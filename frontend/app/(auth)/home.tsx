@@ -15,6 +15,7 @@ import {
   getUserByNetid,
   UserResponse
 } from '../api/userApi';
+import ProfileTester from '../components/test-components/profile-api-tester';
 
 const Page = () => {
   const user = auth().currentUser;
@@ -222,6 +223,8 @@ const Page = () => {
           </View>
         </View>
       )}
+
+      <ProfileTester />
 
       <View style={styles.signOutContainer}>
         <Button title="Sign out" onPress={handleSignOut} color="gray" />
