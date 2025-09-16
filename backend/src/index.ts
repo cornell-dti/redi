@@ -13,7 +13,7 @@ app.use(express.json());
 
 app.get('/ping', (_req, res) => res.send('pong'));
 
-app.use(landingPageRouter); // /api/items
+app.use(landingPageRouter); // /api/landing-emails
 app.use(usersRouter);        // User authentication
 app.use(profilesRouter);
 
@@ -27,11 +27,4 @@ app.listen(3001, () => {
   console.log('  GET  /api/users/:netid - Get user by netid');
   console.log('  POST /api/users - Create new user');
   console.log('  POST /api/users/login - User login');
-  console.log('  DELETE /api/users/:netid - Delete user');
-  console.log('  GET  /api/profiles - Get all profiles (with filters)');
-  console.log('  GET  /api/profiles/:netid - Get profile by netid');
-  console.log('  POST /api/profiles - Create new profile');
-  console.log('  PUT  /api/profiles/:netid - Update profile');
-  console.log('  DELETE /api/profiles/:netid - Delete profile');
-  console.log('  GET  /api/profiles/:netid/matches - Get potential matches');
 });
