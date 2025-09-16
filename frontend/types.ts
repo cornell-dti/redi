@@ -7,6 +7,27 @@ export interface User {
   createdAt: Timestamp;
 }
 
+// User API response type (what the backend returns)
+export interface UserResponse {
+  netid: string;
+  email: string;
+  createdAt: string; // ISO string
+}
+
+// User creation response type
+export interface CreateUserResponse {
+  id: string;
+  netid: string;
+  email: string;
+  message: string;
+}
+
+// Login response type
+export interface LoginResponse {
+  message: string;
+  user: UserResponse;
+}
+
 export type Gender = 'female' | 'male' | 'non-binary';
 
 export type School = 
@@ -75,5 +96,3 @@ export interface CreateProfileResponse {
 export interface ApiError {
   error: string;
 }
-
-// Helper types for creating profiles

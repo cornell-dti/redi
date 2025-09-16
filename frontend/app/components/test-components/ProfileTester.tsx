@@ -2,22 +2,22 @@ import { CreateProfileInput, ProfileResponse, UpdateProfileInput } from '@/types
 import auth from '@react-native-firebase/auth';
 import React, { useState } from 'react';
 import {
-    Alert,
-    Button,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    View
+  Alert,
+  Button,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View
 } from 'react-native';
 import {
-    createProfile,
-    deleteProfile,
-    getAllProfiles,
-    getCurrentUserProfile,
-    getMatches,
-    getProfileByNetid,
-    updateProfile,
+  createProfile,
+  deleteProfile,
+  getAllProfiles,
+  getCurrentUserProfile,
+  getMatches,
+  getProfileByNetid,
+  updateProfile,
 } from '../../api/profileApi';
 
 const ProfileTester = () => {
