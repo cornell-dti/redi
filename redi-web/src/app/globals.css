@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: Satoshi Bold;
+  src: url("/Satoshi/Satoshi-Bold.otf");
+}
+
+@font-face {
+  font-family: Satoshi Medium;
+  src: url("/Satoshi/Satoshi-Medium.otf");
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -22,5 +32,13 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family:
+    Satoshi Medium,
+    "sans-serif";
+}
+
+h1 {
+  font-family:
+    Satoshi Bold,
+    "sans-serif";
 }

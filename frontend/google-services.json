@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "827839734794",
+    "project_id": "redi-fb4ea",
+    "storage_bucket": "redi-fb4ea.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:827839734794:android:eee93af0ddf64d3282ebf3",
+        "android_client_info": {
+          "package_name": "com.incubator.redi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDhbsy3A-W0TTYuRi9PRKCkMcW4wODb_JY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
