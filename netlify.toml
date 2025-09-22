@@ -1,4 +1,4 @@
 [build]
   package = "redi-web"
   command = "npm run build"
-  publish = "/.next"
+  publish = "redi-web/.next"
