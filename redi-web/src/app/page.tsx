@@ -6,9 +6,9 @@ import React, { useState } from "react";
 
 export default function Home() {
   const [email, setEmail] = useState("");
-  const [emails, setEmails] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [_emails, setEmails] = useState<string[]>([]);
+  const [_loading, setLoading] = useState(false);
+  const [_error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
