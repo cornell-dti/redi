@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "cd redi-web && npm run build",
+    "build": "cd redi-web && npm install && npm run build",
     "dev": "npm run dev --workspaces"
   },
   "devDependencies": {
