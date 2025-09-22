@@ -1,6 +1,10 @@
 {
+  "workspaces": [
+    "frontend",
+    "redi-web"
+  ],
   "scripts": {
-    "build": "cd redi-web && npm install && npm run build",
+    "build": "npm install && npm run build --workspaces",
     "dev": "npm run dev --workspaces"
   },
   "devDependencies": {
