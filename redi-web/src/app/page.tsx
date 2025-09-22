@@ -93,7 +93,7 @@ export default function Home() {
             Each week, find the right 3.
           </h1>
           <h2 className="text-xl md:text-3xl text-white opacity-70">
-            Redi is Cornell's first dating app.
+            Redi is Cornell&apos;s first dating app.
           </h2>
         </div>
 
