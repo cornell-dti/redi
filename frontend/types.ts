@@ -7,6 +7,27 @@ export interface User {
   createdAt: Timestamp;
 }
 
+// User API response type (what the backend returns)
+export interface UserResponse {
+  netid: string;
+  email: string;
+  createdAt: string; // ISO string
+}
+
+// User creation response type
+export interface CreateUserResponse {
+  id: string;
+  netid: string;
+  email: string;
+  message: string;
+}
+
+// Login response type
+export interface LoginResponse {
+  message: string;
+  user: UserResponse;
+}
+
 export type Gender = 'female' | 'male' | 'non-binary';
 
 export type School = 
@@ -24,22 +45,54 @@ export type School =
   | 'Business School'
   | 'Medical College';
 
-export interface Profile {
+export interface ProfileResponse {
   netid: string;
   bio: string;
-  gender: Gender;
-  birthdate: Date;
+  gender: 'female' | 'male' | 'non-binary';
+  birthdate: string; // ISO string
   instagram?: string;
   snapchat?: string;
   phoneNumber?: string;
   year: number;
-  school: School;
+  school: string;
   major: string[];
   pictures: string[];
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: string; // ISO string
+  updatedAt: string; // ISO string
 }
 
-// Helper types for creating profiles
-export type CreateProfileInput = Omit<Profile, 'createdAt' | 'updatedAt'>;
-export type UpdateProfileInput = Partial<Omit<Profile, 'netid' | 'createdAt' | 'updatedAt'>>;
+export interface CreateProfileInput {
+  bio: string;
+  gender: 'female' | 'male' | 'non-binary';
+  birthdate: string | Date;
+  instagram?: string;
+  snapchat?: string;
+  phoneNumber?: string;
+  year: number;
+  school: string;
+  major?: string[];
+  pictures?: string[];
+}
+
+export interface UpdateProfileInput {
+  bio?: string;
+  gender?: 'female' | 'male' | 'non-binary';
+  birthdate?: string | Date;
+  instagram?: string;
+  snapchat?: string;
+  phoneNumber?: string;
+  year?: number;
+  school?: string;
+  major?: string[];
+  pictures?: string[];
+}
+
+export interface CreateProfileResponse {
+  id: string;
+  netid: string;
+  message: string;
+}
+
+export interface ApiError {
+  error: string;
+}
