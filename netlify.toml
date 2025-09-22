@@ -1,7 +1,2 @@
 [build]
-  base = "redi-web"
-  command = "npm run build"
-  publish = ".next"
-
-[functions]
-  node_bundler = "esbuild"
+  command = "npm run build:web"
