@@ -19,7 +19,7 @@ app.use(usersRouter); // User authentication
 app.use(profilesRouter);
 
 app.listen(PORT, () => {
-  console.log("Server running on port 3001");
+  console.log(`Server running on port ${PORT}`);
   console.log("Available routes:");
   console.log("  GET  /ping - Health check");
   console.log("  GET  /api/landing-emails - Get landing page emails");
