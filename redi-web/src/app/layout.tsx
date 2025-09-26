@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "redi - landing",
-  description: "Landing page for Redi app",
+  title: "Redi",
+  description: "Cornell's first dating app.",
 };
 
 export default function RootLayout({

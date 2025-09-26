@@ -86,8 +86,12 @@ export default function Home() {
 
       <main className="flex flex-col gap-8 w-full">
         <div className="flex flex-col items-center justify-center gap-4">
-          <img src="/logo.svg" alt="Redi app logo" className="w-24 h-24" />
-          <h1 className="text-4xl leading-14 text-center md:leading-22 md:text-7xl text-white">
+          <img
+            src="/logo.svg"
+            alt="Redi app logo"
+            className="w-20 h-20 sm:w-24 sm:h-24"
+          />
+          <h1 className="text-[26px] leading-9 text-center md:leading-22 md:text-7xl text-white">
             Cornell has 15,000 students.
             <br />
             Each week, find the right 3.
@@ -135,7 +139,7 @@ export default function Home() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="w-8 h-8"
+            className="w-8 h-8 text-white"
           >
             <path d="M14 21v-3a2 2 0 0 0-4 0v3" />
             <path d="M18 5v16" />
@@ -145,7 +149,7 @@ export default function Home() {
             <circle cx="12" cy="9" r="2" />
           </svg>
 
-          <p className="text-[16px] md:text-[20px] text-center">
+          <p className="text-[16px] md:text-[20px] text-center text-white">
             Campus-specific prompts
           </p>
         </div>
@@ -161,13 +165,13 @@ export default function Home() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="w-8 h-8"
+            className="w-8 h-8 text-white"
           >
             <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
             <path d="m9 12 2 2 4-4" />
           </svg>
 
-          <p className="text-[16px] md:text-[20px] text-center">
+          <p className="text-[16px] md:text-[20px] text-center text-white">
             No risk, private matches
           </p>
         </div>
@@ -183,7 +187,7 @@ export default function Home() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="w-8 h-8"
+            className="w-8 h-8 text-white"
           >
             <path d="M8 2v4" />
             <path d="M16 2v4" />
@@ -197,30 +201,11 @@ export default function Home() {
             <path d="M16 18h.01" />
           </svg>
 
-          <p className="text-[16px] md:text-[20px] text-center">
+          <p className="text-[16px] md:text-[20px] text-center text-white">
             New matches every Friday
           </p>
         </div>
       </div>
-
-      {/* <button
-        onClick={fetchEmails}
-        disabled={loading}
-        className={`mt-6 text-white rounded-md px-6 py-2 transition ${
-          loading
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-blue-600 hover:bg-green-700"
-        }`}
-      >
-        {loading ? "Loading emails..." : "Get emails"}
-      </button> */}
-
-      {/* {emails.length > 0 && (
-        <p className="mt-4 max-w-md break-words">{emails.join(" ")}</p>
-      )}
-      {error && (
-        <p className="mt-4 max-w-md break-words text-red-500">{error}</p>
-      )} */}
     </div>
   );
 }
