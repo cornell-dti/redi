@@ -87,7 +87,7 @@ export default function Home() {
       <main className="flex flex-col gap-8 w-full">
         <div className="flex flex-col items-center justify-center gap-4">
           <img
-            src="/logo.svg"
+            src="/logo.png"
             alt="Redi app logo"
             className="w-20 h-20 sm:w-24 sm:h-24"
           />
