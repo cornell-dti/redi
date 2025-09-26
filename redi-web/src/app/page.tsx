@@ -9,12 +9,14 @@ export default function Home() {
   const [emails, setEmails] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [success, setSuccess] = useState<string | null>(null);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     setLoading(true);
     setError(null);
+    setSuccess(null); // clear previous success message
+
     try {
       // first check existing emails for duplicates
       const existingEmails = await getEmails();
@@ -32,7 +34,7 @@ export default function Home() {
       await apiAddEmail(email);
       setEmails((prev) => [...prev, email]); // update UI optimistically
       setEmail(""); // clear input
-      alert("Email added successfully!");
+      setSuccess("You’ve been added to the waitlist! 🎉");
     } catch {
       setError("Failed to add email");
     } finally {
@@ -120,11 +122,15 @@ export default function Home() {
             focus-visible:-translate-y-1.5 focus-visible:[box-shadow:0_6px_0_0_rgba(0_0_0_/_60%)] focus-visible:opacity-90
             focus:outline-none
             active:-translate-y-1 active:[box-shadow:0_4px_0_0_rgba(0_0_0_/_60%)] active:opacity-95
-            transition focus-visible:outline-[#006BFF]"
+            transition"
           >
             Join waitlist
           </button>
         </form>
+
+        {success && (
+          <p className="mt-4 text-green-400 text-center">{success}</p>
+        )}
       </main>
 
       <div className="flex gap-6 justify-center md:[&>div]:w-[200px]">
