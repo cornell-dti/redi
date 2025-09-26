@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "redi",
+  title: "Redi",
   description: "Cornell's first dating app.",
 };
 
