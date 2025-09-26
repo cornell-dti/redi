@@ -86,8 +86,12 @@ export default function Home() {
 
       <main className="flex flex-col gap-8 w-full">
         <div className="flex flex-col items-center justify-center gap-4">
-          <img src="/logo.svg" alt="Redi app logo" className="w-24 h-24" />
-          <h1 className="text-4xl leading-14 text-center md:leading-22 md:text-7xl text-white">
+          <img
+            src="/logo.svg"
+            alt="Redi app logo"
+            className="w-20 h-20 sm:w-24 sm:h-24"
+          />
+          <h1 className="text-[26px] leading-9 text-center md:leading-22 md:text-7xl text-white">
             Cornell has 15,000 students.
             <br />
             Each week, find the right 3.
