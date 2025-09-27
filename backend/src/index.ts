@@ -28,4 +28,5 @@ app.listen(PORT, () => {
   console.log("  GET  /api/users/:netid - Get user by netid");
   console.log("  POST /api/users - Create new user");
   console.log("  POST /api/users/login - User login");
+  console.log("  GET  /api/registered-count - Get number of Cornellians on waitlist");
 });
