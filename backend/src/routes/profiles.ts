@@ -13,7 +13,12 @@ import {
 
 const router = express.Router();
 
-// Middleware to verify user exists and get their netid from firebaseUid
+/**
+ * Verifies that a user exists in the database and retrieves their Cornell NetID
+ * @param firebaseUid - The Firebase authentication UID for the user
+ * @returns Promise resolving to the user's NetID if found, null otherwise
+ * @throws Logs error to console if database query fails
+ */
 const verifyUserExists = async (firebaseUid: string): Promise<string | null> => {
   try {
     const userSnapshot = await db.collection("users")
@@ -31,7 +36,12 @@ const verifyUserExists = async (firebaseUid: string): Promise<string | null> => 
   }
 };
 
-// Convert birthdate to Date object for storage
+/**
+ * Converts various date formats to a JavaScript Date object for Firestore storage
+ * @param value - Date value in various formats (Date, string, Firestore Timestamp)
+ * @returns JavaScript Date object
+ * @description Handles Date objects, ISO strings, and Firestore Timestamps
+ */
 const convertToDate = (value: any): Date => {
   if (value instanceof Date) {
     return value;
@@ -46,7 +56,12 @@ const convertToDate = (value: any): Date => {
   return new Date(value);
 };
 
-// Convert Firestore profile doc to API response
+/**
+ * Converts a Firestore profile document to a client-safe API response format
+ * @param doc - Firestore document containing profile data with document ID
+ * @returns ProfileResponse object with ISO string dates for JSON serialization
+ * @description Transforms Firestore timestamps to ISO strings for API consumption
+ */
 const profileDocToResponse = (doc: FirestoreDoc<ProfileDoc>): ProfileResponse => ({
   netid: doc.netid,
   bio: doc.bio,
@@ -69,7 +84,20 @@ const profileDocToResponse = (doc: FirestoreDoc<ProfileDoc>): ProfileResponse =>
     : doc.updatedAt.toDate().toISOString()
 });
 
-// GET all profiles (for admin/matching - requires authentication)
+/**
+ * GET /api/profiles
+ * Retrieves a filtered list of user profiles for admin or matching purposes
+ * @route GET /api/profiles
+ * @group Profiles - Profile management operations
+ * @param {string} [limit=50] - Maximum number of profiles to return
+ * @param {Gender} [gender] - Filter by gender (female, male, non-binary)
+ * @param {School} [school] - Filter by Cornell school
+ * @param {string} [minYear] - Filter by minimum graduation year
+ * @param {string} [maxYear] - Filter by maximum graduation year
+ * @param {string} [excludeNetid] - Exclude specific user by NetID
+ * @returns {ProfileResponse[]} Array of profile objects
+ * @returns {Error} 500 - Internal server error
+ */
 router.get("/api/profiles", async (req, res) => {
   try {
     const { limit = "50", gender, school, minYear, maxYear, excludeNetid } = req.query;
@@ -108,7 +136,17 @@ router.get("/api/profiles", async (req, res) => {
   }
 });
 
-// GET current user's profile (using firebaseUid from auth)
+/**
+ * GET /api/profiles/me
+ * Retrieves the authenticated user's own profile
+ * @route GET /api/profiles/me
+ * @group Profiles - Profile management operations
+ * @param {string} firebaseUid.query.required - Firebase authentication UID
+ * @returns {ProfileResponse} User's profile data
+ * @returns {Error} 400 - Missing or invalid firebaseUid
+ * @returns {Error} 404 - User or profile not found
+ * @returns {Error} 500 - Internal server error
+ */
 router.get("/api/profiles/me", async (req, res) => {
   try {
     const { firebaseUid } = req.query;
@@ -139,7 +177,16 @@ router.get("/api/profiles/me", async (req, res) => {
   }
 });
 
-// GET profile by netid (public endpoint for viewing other profiles)
+/**
+ * GET /api/profiles/:netid
+ * Retrieves a specific user's profile by their Cornell NetID (public endpoint)
+ * @route GET /api/profiles/:netid
+ * @group Profiles - Profile management operations
+ * @param {string} netid.path.required - Cornell NetID of the user
+ * @returns {ProfileResponse} User's profile data
+ * @returns {Error} 404 - Profile not found
+ * @returns {Error} 500 - Internal server error
+ */
 router.get("/api/profiles/:netid", async (req, res) => {
   try {
     const { netid } = req.params;
@@ -159,7 +206,19 @@ router.get("/api/profiles/:netid", async (req, res) => {
   }
 });
 
-// POST create new profile (requires firebaseUid authentication)
+/**
+ * POST /api/profiles
+ * Creates a new dating profile for the authenticated user
+ * @route POST /api/profiles
+ * @group Profiles - Profile management operations
+ * @param {string} firebaseUid.body.required - Firebase authentication UID
+ * @param {CreateProfileInput} profileData.body.required - Profile data (bio, gender, birthdate, year, school)
+ * @returns {object} Success response with profile ID and NetID
+ * @returns {Error} 400 - Missing required fields or invalid data
+ * @returns {Error} 409 - Profile already exists for this user
+ * @returns {Error} 500 - Internal server error
+ * @description Validates required fields, checks for existing profiles, and creates new profile with server timestamps
+ */
 router.post("/api/profiles", async (req, res) => {
   try {
     console.log("Creating profile:", req.body);
@@ -219,7 +278,19 @@ router.post("/api/profiles", async (req, res) => {
   }
 });
 
-// PUT update current user's profile (requires firebaseUid authentication)
+/**
+ * PUT /api/profiles/me
+ * Updates the authenticated user's existing profile
+ * @route PUT /api/profiles/me
+ * @group Profiles - Profile management operations
+ * @param {string} firebaseUid.body.required - Firebase authentication UID
+ * @param {UpdateProfileInput} updateData.body - Partial profile data to update
+ * @returns {object} Success message
+ * @returns {Error} 400 - Missing firebaseUid or invalid data
+ * @returns {Error} 404 - User or profile not found
+ * @returns {Error} 500 - Internal server error
+ * @description Updates only provided fields, validates gender enum, converts dates, updates timestamp
+ */
 router.put("/api/profiles/me", async (req, res) => {
   try {
     const { firebaseUid, ...updateData }: { firebaseUid: string } & UpdateProfileInput = req.body;
@@ -266,7 +337,18 @@ router.put("/api/profiles/me", async (req, res) => {
   }
 });
 
-// DELETE current user's profile (requires firebaseUid authentication)
+/**
+ * DELETE /api/profiles/me
+ * Permanently deletes the authenticated user's profile
+ * @route DELETE /api/profiles/me
+ * @group Profiles - Profile management operations
+ * @param {string} firebaseUid.body.required - Firebase authentication UID
+ * @returns {object} Success message
+ * @returns {Error} 400 - Missing firebaseUid or user not found
+ * @returns {Error} 404 - Profile not found
+ * @returns {Error} 500 - Internal server error
+ * @warning This operation is irreversible - all profile data will be permanently deleted
+ */
 router.delete("/api/profiles/me", async (req, res) => {
   try {
     const { firebaseUid } = req.body;
@@ -298,7 +380,20 @@ router.delete("/api/profiles/me", async (req, res) => {
   }
 });
 
-// GET profiles for matching (authenticated user's potential matches)
+/**
+ * GET /api/profiles/matches
+ * Retrieves potential dating matches for the authenticated user
+ * @route GET /api/profiles/matches
+ * @group Profiles - Profile management operations
+ * @param {string} firebaseUid.query.required - Firebase authentication UID
+ * @param {string} [limit=20] - Maximum number of matches to return
+ * @returns {ProfileResponse[]} Array of potential match profiles
+ * @returns {Error} 400 - Missing or invalid firebaseUid
+ * @returns {Error} 404 - Current user profile not found
+ * @returns {Error} 500 - Internal server error
+ * @todo Implement sophisticated matching algorithm based on compatibility factors
+ * @description Currently returns all profiles except the current user's - matching logic to be implemented
+ */
 router.get("/api/profiles/matches", async (req, res) => {
   try {
     const { firebaseUid, limit = "20" } = req.query;
