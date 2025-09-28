@@ -74,7 +74,7 @@ export default function Home() {
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
             className="w-6 h-6"
@@ -139,11 +139,33 @@ export default function Home() {
         )}
       </main>
 
-      {signedUpCount !== null && (
-        <h2 className="text-xl md:text-1xl text-white opacity-70">
-          {signedUpCount} Cornellians have already signed up
-        </h2>
-      )}
+      <div className="flex items-center justify-center">
+        {signedUpCount !== null ? (
+          <h2 className="text-xl md:text-1xl text-white opacity-70">
+            {signedUpCount} Cornellians have already signed up
+          </h2>
+        ) : (
+          <div className="flex items-center gap-2">
+            <svg
+              className="w-5 h-5 text-white opacity-70 animate-spin"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+            </svg>
+            <h2 className="text-xl md:text-1xl text-white opacity-70">
+              Cornellians have already signed up
+            </h2>
+          </div>
+        )}
+      </div>
       <div className="flex gap-6 justify-center md:[&>div]:w-[200px]">
         <div className="flex flex-col gap-2 items-center">
           <svg
