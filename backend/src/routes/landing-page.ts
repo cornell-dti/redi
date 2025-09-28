@@ -1,4 +1,5 @@
 import express from "express";
+import admin from "firebase-admin";
 import { db } from "../../firebaseAdmin";
 
 const router = express.Router();
@@ -47,6 +48,11 @@ router.post("/api/landing-emails", async (req, res) => {
       return res.status(409).json({ error: "Email already exists" });
     }
     const docRef = await db.collection("landing-emails").add(data);
+
+    await db.collection("stats").doc("global").update({
+      userCount: admin.firestore.FieldValue.increment(1)
+    });
+
     res.status(201).json({ id: docRef.id });
   } catch (error) {
     console.error("Error adding email:", error);

@@ -1,5 +1,7 @@
+import dotenv from 'dotenv';
 import fetch from 'node-fetch';
-import { API_BASE_URL } from '../constants/constants';
+
+dotenv.config();
 
 interface EmailDoc {
   id: string;
@@ -8,8 +10,13 @@ interface EmailDoc {
 }
 
 async function listEmails(): Promise<void> {
+  const apiBaseUrl = process.env.REACT_APP_API_URL;
+  if (!apiBaseUrl) {
+    throw new Error('REACT_APP_API_URL environment variable is required');
+  }
+
   try {
-    const response = await fetch(`${API_BASE_URL}/api/landing-emails`);
+    const response = await fetch(`${apiBaseUrl}/api/landing-emails`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

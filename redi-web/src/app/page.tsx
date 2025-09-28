@@ -45,6 +45,7 @@ export default function Home() {
 
       await apiAddEmail(email);
       setEmails((prev) => [...prev, email]); // update UI optimistically
+      setSignedUpCount((prev) => prev !== null ? prev + 1 : 1);
       setRegistered(true);
     } catch {
       setError("Failed to add email");
