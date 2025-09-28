@@ -118,7 +118,7 @@ export default function Home() {
           <div className="flex justify-center w-full md:w-fit md:m-auto">
             <div className="rounded-full h-[64px] md:h-[70px] md:w-[600px] flex items-center justify-center">
               <p className="text-[20px] md:text-[20px] text-white">
-                Email added – we'll notify you when redi launches
+                We've added your email and will notify you when Redi launches.
               </p>
             </div>
           </div>
