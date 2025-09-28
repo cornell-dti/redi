@@ -10,7 +10,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [register, setRegistered] = useState(false);
-  const [signedUpCount, setSignedUpCount] = useState<number>(0);
+  const [signedUpCount, setSignedUpCount] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchCount = async () => {
@@ -153,9 +153,11 @@ export default function Home() {
         }
       </main>
 
-      <h2 className="text-xl md:text-1xl text-white opacity-70">
-        {signedUpCount} Cornellians have already signed up
-      </h2>
+      {signedUpCount !== null && (
+        <h2 className="text-xl md:text-1xl text-white opacity-70">
+          {signedUpCount} Cornellians have already signed up
+        </h2>
+      )}
       <div className="flex gap-6 justify-center md:[&>div]:w-[200px]">
         <div className="flex flex-col gap-2 items-center">
           <svg
