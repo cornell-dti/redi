@@ -8,7 +8,8 @@ import usersRouter from "./routes/users";
 dotenv.config();
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
+
 app.use(cors()); // <- allow Expo Go to call us
 app.use(express.json());
 
