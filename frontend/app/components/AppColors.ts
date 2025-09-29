@@ -1,12 +1,12 @@
 // App-wide color constants for consistent theming
 export const AppColors = {
   // Primary Colors
-  primary: '#FF6B6B',
-  primaryLight: '#FF8A8A',
+  primary: '#DB0500',
+  primaryLight: '#FDEFEF',
   primaryDark: '#E55555',
 
   // Secondary Colors
-  secondary: '#4CAF50',
+  secondary: '#7DFFA5',
   secondaryLight: '#66BB6A',
   secondaryDark: '#388E3C',
 
@@ -16,14 +16,14 @@ export const AppColors = {
   accentDark: '#1976D2',
 
   // Text Colors
-  textPrimary: '#333333',
+  textPrimary: '#1F1F1F',
   textSecondary: '#666666',
-  textTertiary: '#999999',
+  textTertiary: '#ABABAB',
   textLight: '#FFFFFF',
 
   // Background Colors
-  background: '#F8F9FA',
-  backgroundSecondary: '#FFFFFF',
+  background: '#FFFFFF',
+  backgroundSecondary: '#F7F7F7',
   backgroundTertiary: '#F0F0F0',
 
   // Border Colors
