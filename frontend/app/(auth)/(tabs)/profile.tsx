@@ -1,35 +1,34 @@
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  StatusBar,
   Alert,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { signOutUser } from '../../api/authService';
 
 // Mock user profile data
 const mockUserProfile = {
-  name: 'You',
-  age: 22,
+  name: 'Arsh',
+  age: 32,
   school: 'College of Arts and Sciences',
   major: ['Computer Science', 'Psychology'],
   year: 2026,
   bio: 'Love exploring Ithaca\'s gorges, trying new restaurants on the Commons, and weekend hiking trips. Always up for a good board game night or discovering new music!',
   images: [
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
-    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+    'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
+    'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
+    'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
   ],
-  instagram: '@yourusername',
-  snapchat: 'your_snap',
-  interests: ['Hiking', 'Photography', 'Board Games', 'Music', 'Travel'],
+  instagram: '@arshoninsta',
+  snapchat: 'arshnap',
+  interests: ['Hiking', 'Photography', 'Board Games', 'Business', 'Travel'],
 };
 
 const profileStats = [
