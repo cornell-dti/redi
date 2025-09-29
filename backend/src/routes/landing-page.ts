@@ -1,5 +1,4 @@
 import express from "express";
-import admin from "firebase-admin";
 import { db } from "../../firebaseAdmin";
 
 const router = express.Router();
@@ -16,23 +15,6 @@ router.get("/api/landing-emails", async (req, res) => {
   }
 });
 
-// GET the number of users signed up on the wait list
-router.get("/api/registered-count", async (req, res) => {
-  try {
-    const docs = db.collection("stats").doc("global")
-    const snapshot = await docs.get();
-
-    if (!snapshot.exists) {
-      return res.status(404).json({ error: "Stats doc not found" });
-    }
-
-    res.status(200).json(snapshot.data());
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
-  }
-});
-
 // POST a new document
 router.post("/api/landing-emails", async (req, res) => {
   try {
@@ -43,16 +25,11 @@ router.post("/api/landing-emails", async (req, res) => {
     const existingDoc = await db.collection("landing-emails")
       .where("email", "==", data.email.toLowerCase())
       .get();
-
+    
     if (!existingDoc.empty) {
       return res.status(409).json({ error: "Email already exists" });
     }
     const docRef = await db.collection("landing-emails").add(data);
-
-    await db.collection("stats").doc("global").update({
-      userCount: admin.firestore.FieldValue.increment(1)
-    });
-
     res.status(201).json({ id: docRef.id });
   } catch (error) {
     console.error("Error adding email:", error);
