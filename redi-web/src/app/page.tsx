@@ -1,29 +1,15 @@
 "use client"; // for using useState
 
-import { apiAddEmail, getEmails, getSignedUpCount } from "@/api/api";
+import { apiAddEmail, getEmails } from "@/api/api";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 export default function Home() {
   const [email, setEmail] = useState("");
   const [emails, setEmails] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [register, setRegistered] = useState(false);
-  const [signedUpCount, setSignedUpCount] = useState<number | null>(null);
 
-  useEffect(() => {
-    const fetchCount = async () => {
-      try {
-        const count = await getSignedUpCount();
-
-        setSignedUpCount(count);
-      } catch (error) {
-        console.error("Failed to fetch signed up count:", error);
-      }
-    };
-    fetchCount();
-  }, []);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
@@ -34,7 +20,7 @@ export default function Home() {
       const existingEmails = await getEmails();
 
       const emailExists = existingEmails.some(
-        (existingEmail) => existingEmail.toLowerCase() === email.toLowerCase(),
+        (existingEmail) => existingEmail.toLowerCase() === email.toLowerCase()
       );
 
       if (emailExists) {
@@ -45,10 +31,23 @@ export default function Home() {
 
       await apiAddEmail(email);
       setEmails((prev) => [...prev, email]); // update UI optimistically
-      setSignedUpCount((prev) => (prev !== null ? prev + 1 : 1));
-      setRegistered(true);
+      setEmail(""); // clear input
+      alert("Email added successfully!");
     } catch {
       setError("Failed to add email");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchEmails = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const list = await getEmails();
+      setEmails(list);
+    } catch {
+      setError("Failed to load emails");
     } finally {
       setLoading(false);
     }
@@ -73,7 +72,7 @@ export default function Home() {
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            stroke-width="2"
             strokeLinecap="round"
             strokeLinejoin="round"
             className="w-6 h-6"
@@ -102,70 +101,32 @@ export default function Home() {
           </h2>
         </div>
 
-        {register ? (
-          <div className="flex justify-center w-full md:w-fit md:m-auto">
-            <div className="rounded-full h-[64px] md:h-[70px] md:w-[600px] flex items-center justify-center">
-              <p className="text-[20px] md:text-[20px] text-white">
-                We&apos;ve added your email and will notify you when Redi
-                launches.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <form
-            onSubmit={handleSubmit}
-            className="flex relative w-full md:w-fit md:m-auto"
-          >
-            <input
-              type="email"
-              placeholder="ezra123@cornell.edu"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="rounded-full h-[64px] md:h-[70px] p-1 pl-6 bg-white w-full md:w-[600px] text-[16px] md:text-[20px] placeholder:opacity-50 placeholder:text-black focus:[box-shadow:0_0_0_5px_rgba(255_255_255_/_50%)] focus:outline-none text-black transition"
-            />
-            <button
-              type="submit"
-              className="bg-[linear-gradient(135.7deg,_#000000_0%,_#333333_100.01%)] text-white rounded-full px-6 py-4 text-[16px] md:text-[20px] absolute right-1 top-1 cursor-pointer transform 
+        <form
+          onSubmit={handleSubmit}
+          className="flex relative w-full md:w-fit md:m-auto"
+        >
+          <input
+            type="email"
+            placeholder="ezra123@cornell.edu"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="rounded-full h-[64px] md:h-[70px] p-1 pl-6 bg-white w-full md:w-[600px] text-[16px] md:text-[20px] placeholder:opacity-50 placeholder:text-black focus:[box-shadow:0_0_0_5px_rgba(255_255_255_/_50%)] focus:outline-none text-black transition"
+          />
+          <button
+            type="submit"
+            className="bg-[linear-gradient(135.7deg,_#000000_0%,_#333333_100.01%)] text-white rounded-full px-6 py-4 text-[16px] md:text-[20px] absolute right-1 top-1 cursor-pointer transform 
             hover:-translate-y-1.5 hover:[box-shadow:0_6px_0_0_rgba(0_0_0_/_60%)] hover:opacity-90
             focus-visible:-translate-y-1.5 focus-visible:[box-shadow:0_6px_0_0_rgba(0_0_0_/_60%)] focus-visible:opacity-90
             focus:outline-none
             active:-translate-y-1 active:[box-shadow:0_4px_0_0_rgba(0_0_0_/_60%)] active:opacity-95
             transition focus-visible:outline-[#006BFF]"
-            >
-              Join waitlist
-            </button>
-          </form>
-        )}
+          >
+            Join waitlist
+          </button>
+        </form>
       </main>
 
-      <div className="flex items-center justify-center">
-        {signedUpCount !== null ? (
-          <h2 className="text-xl md:text-1xl text-white opacity-70">
-            {signedUpCount} Cornellians have already signed up
-          </h2>
-        ) : (
-          <div className="flex items-center gap-2">
-            <svg
-              className="w-5 h-5 text-white opacity-70 animate-spin"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-            </svg>
-            <h2 className="text-xl md:text-1xl text-white opacity-70">
-              Cornellians have already signed up
-            </h2>
-          </div>
-        )}
-      </div>
       <div className="flex gap-6 justify-center md:[&>div]:w-[200px]">
         <div className="flex flex-col gap-2 items-center">
           <svg
