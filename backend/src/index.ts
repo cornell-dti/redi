@@ -9,6 +9,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
 app.use(cors()); // <- allow Expo Go to call us
 app.use(express.json());
 
@@ -28,4 +29,5 @@ app.listen(PORT, () => {
   console.log("  GET  /api/users/:netid - Get user by netid");
   console.log("  POST /api/users - Create new user");
   console.log("  POST /api/users/login - User login");
+  console.log("  GET  /api/registered-count - Get number of Cornellians on waitlist");
 });

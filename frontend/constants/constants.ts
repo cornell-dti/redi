@@ -1,2 +1,3 @@
-export const API_BASE_URL_DEV = "http://localhost:3001"; // Adjust when we change backend
-export const API_BASE_URL = "https://redi-app-8ea0a6e9c3d9.herokuapp.com"; // Adjust when we change backend
+export const API_BASE_URL = 
+  process.env.REACT_APP_API_BASE_URL || 
+  "http://localhost:3001";
