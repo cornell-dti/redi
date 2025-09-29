@@ -13,12 +13,14 @@ Cornell's first and best dating app, connecting students through authentic campu
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 18+ and npm
 - Expo CLI (`npm install -g @expo/cli`)
 - Firebase project with Firestore and Authentication enabled
 - Cornell NetID for testing
 
 ### 1. Clone and Install
+
 ```bash
 git clone <repository-url>
 cd redi
@@ -26,6 +28,7 @@ npm install  # Install root dependencies
 ```
 
 ### 2. Backend Setup
+
 ```bash
 cd backend
 npm install
@@ -38,6 +41,7 @@ npm run dev  # Runs on http://localhost:3001
 ```
 
 #### Backend Environment Variables (.env)
+
 ```env
 FIREBASE_PROJECT_ID=your-project-id
 FIREBASE_CLIENT_EMAIL=your-service-account-email
@@ -46,6 +50,7 @@ REACT_APP_API_URL=http://localhost:3001
 ```
 
 ### 3. Mobile App Setup
+
 ```bash
 cd frontend
 npm install
@@ -59,6 +64,7 @@ npm start  # Choose platform (iOS/Android/Web)
 ```
 
 ### 4. Landing Page Setup
+
 ```bash
 cd redi-web
 npm install
@@ -70,12 +76,14 @@ npm run dev  # Runs on http://localhost:3000
 ## 🔧 Development Commands
 
 ### Backend
+
 - `npm run dev` - Start development server with hot reload
 - `npm run build` - Build TypeScript to JavaScript
 - `npm start` - Run production server
 - `npm run list-emails` - List all waitlist emails
 
 ### Frontend (Mobile App)
+
 - `npm start` - Start Expo development server
 - `npm run android` - Run on Android device/emulator
 - `npm run ios` - Run on iOS device/simulator
@@ -83,6 +91,7 @@ npm run dev  # Runs on http://localhost:3000
 - `npm run lint` - Run ESLint
 
 ### Landing Page
+
 - `npm run dev` - Start Next.js development server
 - `npm run build` - Build for production
 - `npm start` - Run production server
@@ -91,11 +100,13 @@ npm run dev  # Runs on http://localhost:3000
 ## 🗄️ Database Schema
 
 ### Firestore Collections
+
 - **`users`** - Authentication data (netid, email, firebaseUid)
 - **`profiles`** - Dating profiles (bio, photos, Cornell-specific data)
 - **`landing-emails`** - Waitlist email collection
 
 ### Key Features
+
 - Cornell NetID-based authentication
 - Profile management with Cornell schools/majors
 - Image uploads via Firebase Storage
@@ -104,10 +115,12 @@ npm run dev  # Runs on http://localhost:3000
 ## 🚨 API Endpoints
 
 ### Authentication
+
 - `POST /api/users` - Create new user
 - `POST /api/users/login` - User login
 
 ### Profiles
+
 - `GET /api/profiles` - List profiles (with filters)
 - `GET /api/profiles/me` - Get current user's profile
 - `GET /api/profiles/:netid` - Get profile by NetID
@@ -117,6 +130,7 @@ npm run dev  # Runs on http://localhost:3000
 - `GET /api/profiles/matches` - Get potential matches
 
 ### Landing Page
+
 - `GET /api/landing-emails` - Get waitlist emails
 - `POST /api/landing-emails` - Add email to waitlist
 
@@ -133,9 +147,11 @@ cd frontend && npm test
 ## 🚀 Deployment
 
 ### Backend
-Deploy to your preferred platform (Railway, Render, etc.) with environment variables configured.
+
+Deploy to your preferred platform (Heroku, Railway, Render, etc.) with environment variables configured.
 
 ### Frontend
+
 ```bash
 # Build for production
 cd frontend
@@ -144,9 +160,11 @@ eas build  # For app store builds (requires Expo account)
 ```
 
 ### Landing Page
+
 Automatically deployed via Netlify on push to main branch.
 
 ## 🎯 Development Roadmap
+
 - [ ] Implement sophisticated matching algorithm
 - [ ] Add comprehensive test coverage
 - [ ] Implement push notifications
@@ -155,7 +173,7 @@ Automatically deployed via Netlify on push to main branch.
 
 ## 👥 The Dream Team
 
-- **Dev**: Juju Crane
+- **TPM**: Juju Crane
 - **Designer/Frontend Dev**: Clément Rozé
 - **Designer**: Brandon Lee
 - **PM**: Arsh Aggarwal
