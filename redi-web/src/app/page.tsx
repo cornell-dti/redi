@@ -34,7 +34,7 @@ export default function Home() {
       const existingEmails = await getEmails();
 
       const emailExists = existingEmails.some(
-        (existingEmail) => existingEmail.toLowerCase() === email.toLowerCase()
+        (existingEmail) => existingEmail.toLowerCase() === email.toLowerCase(),
       );
 
       if (emailExists) {
@@ -45,7 +45,7 @@ export default function Home() {
 
       await apiAddEmail(email);
       setEmails((prev) => [...prev, email]); // update UI optimistically
-      setSignedUpCount((prev) => prev !== null ? prev + 1 : 1);
+      setSignedUpCount((prev) => (prev !== null ? prev + 1 : 1));
       setRegistered(true);
     } catch {
       setError("Failed to add email");
@@ -53,7 +53,6 @@ export default function Home() {
       setLoading(false);
     }
   };
-
 
   return (
     <div className="flex flex-col items-center justify-between min-h-screen p-4 md:p-8 bg-[url(/background.png)] bg-cover bg-center">
@@ -107,7 +106,8 @@ export default function Home() {
           <div className="flex justify-center w-full md:w-fit md:m-auto">
             <div className="rounded-full h-[64px] md:h-[70px] md:w-[600px] flex items-center justify-center">
               <p className="text-[20px] md:text-[20px] text-white">
-                We&apos;ve added your email and will notify you when Redi launches.
+                We&apos;ve added your email and will notify you when Redi
+                launches.
               </p>
             </div>
           </div>
