@@ -94,7 +94,6 @@ export default function Index() {
             <Button onPress={handleSignIn} title="Login" />
             <Button onPress={handleSignUp} title="Create account" />
             <View style={styles.divider} />
-            <Button onPress={handleGoogleSignIn} title="Sign in with Google" />
           </>
         )}
       </KeyboardAvoidingView>

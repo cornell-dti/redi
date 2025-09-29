@@ -1,40 +1,40 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   Image,
+  ScrollView,
   StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
 
 // Mock data for matches
 const mockMatches = [
   {
     id: '1',
-    name: 'Emma',
-    age: 22,
+    name: 'Abrar',
+    age: 210,
     school: 'College of Arts and Sciences',
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400',
-    bio: 'Love hiking around Ithaca and trying new cafes on Commons!',
+    image: 'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
+    bio: 'Love drinking matcha around Ithaca and sewing in my Grandma\'s sewing circle!',
   },
   {
     id: '2',
-    name: 'Sarah',
+    name: 'Cleemmie',
     age: 21,
     school: 'Engineering',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    image: 'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
     bio: 'CS major who loves board games and bubble tea',
   },
   {
     id: '3',
-    name: 'Jessica',
-    age: 23,
+    name: 'Arshie Barshie',
+    age: 93,
     school: 'Dyson',
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400',
+    image: 'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
     bio: 'Business student with a passion for sustainable fashion',
   },
 ];
