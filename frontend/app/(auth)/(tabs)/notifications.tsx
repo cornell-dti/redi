@@ -1,15 +1,15 @@
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   FlatList,
-  TouchableOpacity,
   Image,
   StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 
 // Mock notification data
 const mockNotifications = [
@@ -17,30 +17,30 @@ const mockNotifications = [
     id: '1',
     type: 'match',
     title: 'New Match!',
-    message: 'You and Emma liked each other',
+    message: 'You and Abrar liked each other',
     timestamp: '2m ago',
     read: false,
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400',
+    image: 'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
     icon: 'favorite',
   },
   {
     id: '2',
     type: 'message',
     title: 'New Message',
-    message: 'Sarah sent you a message',
+    message: 'Cleemmie sent you a message',
     timestamp: '15m ago',
     read: false,
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    image: 'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
     icon: 'message',
   },
   {
     id: '3',
     type: 'like',
     title: 'Someone liked you!',
-    message: 'You have a new admirer',
+    message: 'Arshie Barshie admires your profile',
     timestamp: '1h ago',
     read: true,
-    image: null,
+    image: 'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
     icon: 'favorite-border',
   },
   {
