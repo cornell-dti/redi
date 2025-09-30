@@ -1,4 +1,9 @@
 {
+  "workspaces": [
+    "frontend",
+    "backend",
+    "redi-web"
+  ],
   "scripts": {
     "build": "cd redi-web && npm install && npm run build",
     "dev": "npm run dev --workspaces",
