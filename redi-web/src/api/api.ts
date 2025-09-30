@@ -46,6 +46,6 @@ export const getSignedUpCount = async (): Promise<number> => {
     console.log(data);
     return data.userCount;
   } catch {
-    return 73;
+    return 173;
   }
 };
