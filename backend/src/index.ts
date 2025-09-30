@@ -10,7 +10,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors()); // <- allow Expo Go to call us
+app.use(cors({
+  origin: 'https://redi.love',
+  credentials: true
+})); // configure CORS to accept requests from our frontend domain
+
 app.use(express.json());
 
 app.get("/ping", (_req, res) => res.send("pong"));
