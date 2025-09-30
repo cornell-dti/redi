@@ -1,8 +1,6 @@
 {
   "workspaces": [
-    "frontend",
-    "backend",
-    "redi-web"
+    "backend"
   ],
   "scripts": {
     "build": "cd redi-web && npm install && npm run build",
