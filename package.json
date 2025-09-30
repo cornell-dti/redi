@@ -5,7 +5,7 @@
   "scripts": {
     "build": "cd redi-web && npm install && npm run build",
     "dev": "npm run dev --workspaces",
-    "heroku-postbuild": "npm run build --workspace backend"
+    "heroku-postbuild": "npm run build --workspace=backend"
   },
   "devDependencies": {
     "prettier": "^3.6.2"
