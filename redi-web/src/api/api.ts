@@ -1,6 +1,4 @@
-import { API_BASE_URL } from "../../constants/constants";
-// If the file does not exist, create '../constants/constants.ts' with:
-// export const API_BASE_URL = 'https://your-api-base-url.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
 // Get all emails: return array of email strings
 export const getEmails = async (): Promise<string[]> => {
