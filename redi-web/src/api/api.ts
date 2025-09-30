@@ -30,7 +30,6 @@ export const apiAddEmail = async (email: string): Promise<void> => {
 
 // Get Total Amount of Users
 export const getSignedUpCount = async (): Promise<number> => {
-  return 72;
   const res = await fetch(`${API_BASE_URL}/api/registered-count`);
 
   if (!res.ok) {
