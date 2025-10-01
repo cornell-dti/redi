@@ -8,7 +8,6 @@ export const getEmails = async (): Promise<string[]> => {
     console.warn(`getEmails failed → ${res.status}`);
     return [];
   }
-  // Assume API returns array of { id: string, email: string }
   const data = (await res.json()) as Array<{ id: string; email: string }>;
   return data.map((item) => item.email);
 };
@@ -22,9 +21,7 @@ export const apiAddEmail = async (email: string): Promise<void> => {
   });
 
   if (!res.ok) {
-    const msg = `apiAddEmail failed – status ${res.status}`;
-    console.error(msg);
-    throw new Error(msg);
+    throw new Error(`apiAddEmail failed – status ${res.status}`);
   }
 };
 
