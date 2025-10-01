@@ -1,14 +1,14 @@
 import express from "express";
 import admin from "firebase-admin";
 import { db } from "../../firebaseAdmin";
+import { emailCache } from "../services/emailCache";
 
 const router = express.Router();
 
-// GET document(s) from Firestore
+// GET document(s) from Firestore (using cache)
 router.get("/api/landing-emails", async (req, res) => {
   try {
-    const snapshot = await db.collection("landing-emails").get();
-    const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const docs = emailCache.getAll();
     res.status(200).json(docs);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -40,13 +40,12 @@ router.post("/api/landing-emails", async (req, res) => {
     if (!data.email || typeof data.email !== "string" || !data.email.includes("@")) {
       return res.status(400).json({ error: "Invalid email" });
     }
-    const existingDoc = await db.collection("landing-emails")
-      .where("email", "==", data.email.toLowerCase())
-      .get();
 
-    if (!existingDoc.empty) {
+    // Check cache first (much faster than Firestore query)
+    if (emailCache.emailExists(data.email)) {
       return res.status(409).json({ error: "Email already exists" });
     }
+
     const docRef = await db.collection("landing-emails").add(data);
 
     await db.collection("stats").doc("global").update({

@@ -1,6 +1,6 @@
 "use client"; // for using useState
 
-import { apiAddEmail, getEmails, getSignedUpCount } from "@/api/api";
+import { apiAddEmail, getSignedUpCount } from "@/api/api";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
@@ -30,25 +30,16 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      // first check existing emails for duplicates
-      const existingEmails = await getEmails();
-
-      const emailExists = existingEmails.some(
-        (existingEmail) => existingEmail.toLowerCase() === email.toLowerCase(),
-      );
-
-      if (emailExists) {
-        setError("This email is already registered!");
-        setLoading(false);
-        return;
-      }
-
       await apiAddEmail(email);
-      setEmails((prev) => [...prev, email]); // update UI optimistically
+      setEmails((prev) => [...prev, email]);
       setSignedUpCount((prev) => (prev !== null ? prev + 1 : 1));
       setRegistered(true);
-    } catch {
-      setError("Failed to add email");
+    } catch (error: any) {
+      if (error.message?.includes('409')) {
+        setError("This email is already registered!");
+      } else {
+        setError("Failed to add email");
+      }
     } finally {
       setLoading(false);
     }
