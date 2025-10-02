@@ -1,0 +1,41 @@
+// Firestore Security Rules for REDI Dating App
+// Copy these rules to Firebase Console → Firestore → Rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users collection - users can read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == resource.data.firebaseUid;
+      allow create: if request.auth != null
+        && request.auth.uid == request.resource.data.firebaseUid;
+    }
+
+    // Profiles collection - authenticated users can read all, write own
+    match /profiles/{profileId} {
+      // Anyone authenticated can read profiles (for matching)
+      allow read: if request.auth != null;
+
+      // Users can create/update their own profile
+      allow create, update: if request.auth != null
+        && request.auth.uid == getUserFirebaseUid(request.resource.data.netid);
+
+      // Users can delete their own profile
+      allow delete: if request.auth != null
+        && request.auth.uid == getUserFirebaseUid(resource.data.netid);
+    }
+
+    // Landing emails collection - public write for waitlist, admin read
+    match /landing-emails/{emailId} {
+      allow create: if true; // Allow anyone to join waitlist
+      allow read: if false; // Restrict reads (backend only)
+    }
+
+    // Helper function to get user's firebaseUid from netid
+    function getUserFirebaseUid(netid) {
+      return get(/databases/$(database)/documents/users/$(netid)).data.firebaseUid;
+    }
+  }
+}

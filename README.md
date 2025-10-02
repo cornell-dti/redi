@@ -82,6 +82,36 @@ npm run dev  # Runs on http://localhost:3000
 - `npm start` - Run production server
 - `npm run list-emails` - List all waitlist emails
 
+#### Email Management Scripts
+
+Located in `/backend/scripts/`:
+
+- **Clean Email Data**: `node scripts/clean-emails.js`
+  Removes test/fake emails and duplicates from `response.json`
+
+- **Batch Upload Emails**: `npx tsx scripts/upload-emails.ts`
+  Uploads cleaned emails from `response.json` to Firebase Firestore in batches
+  - Processes emails in batches of 500 (Firestore limit)
+  - Automatically skips duplicates
+  - Updates global stats counter
+  - Includes verification and detailed logging
+
+**Usage Example:**
+```bash
+cd backend
+
+# First, clean the email data
+node scripts/clean-emails.js
+
+# Then upload to Firebase
+npx tsx scripts/upload-emails.ts
+```
+
+**Requirements:**
+- `response.json` file in backend root containing array of `{id, email}` objects
+- Firebase project configured with proper credentials in `.env`
+- `landing-emails` and `stats` Firestore collections (auto-created if missing)
+
 ### Frontend (Mobile App)
 
 - `npm start` - Start Expo development server
