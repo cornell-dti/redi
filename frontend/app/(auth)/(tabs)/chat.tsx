@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import React from 'react';
 import { FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppColors } from '../../components/AppColors';
 import ChatItem from '../../components/ui/ChatItem';
 import Header from '../../components/ui/Header';
 
@@ -55,7 +56,7 @@ export default function ChatScreen() {
         title="Messages"
         right={
           <TouchableOpacity>
-            <MaterialIcons name="search" size={24} color="#666" />
+            <MaterialIcons name="search" size={24} color={AppColors.foregroundDimmer} />
           </TouchableOpacity>
         }
       />
@@ -101,7 +102,7 @@ export default function ChatScreen() {
       </View>
 
       <TouchableOpacity style={styles.fab}>
-        <MaterialIcons name="edit" size={24} color="white" />
+        <MaterialIcons name="edit" size={24} color={AppColors.backgroundDefault} />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -110,19 +111,18 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: AppColors.backgroundDimmer,
   },
   activeMatches: {
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
     paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E1E1E1',
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 20,
     marginBottom: 12,
+    color: AppColors.foregroundDefault,
   },
   activeMatchesList: {
     paddingHorizontal: 20,
@@ -147,22 +147,22 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#4CAF50',
+    backgroundColor: AppColors.accentDefault,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: AppColors.backgroundDefault,
   },
   activeName: {
     fontSize: 12,
-    color: '#666',
+    color: AppColors.foregroundDimmer,
     maxWidth: 60,
   },
   chats: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
   },
   separator: {
     height: 1,
-    backgroundColor: '#E1E1E1',
+    backgroundColor: AppColors.backgroundDimmer,
     marginLeft: 82,
   },
   fab: {
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#FF8DBD',
+    backgroundColor: AppColors.accentDefault,
     justifyContent: 'center',
     alignItems: 'center',
   },

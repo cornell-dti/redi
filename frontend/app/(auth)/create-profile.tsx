@@ -1,18 +1,10 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import {
-  Alert,
-  Image,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppButton from '../components/AppButton';
+import { AppColors } from '../components/AppColors';
 import CustomTextInput from '../components/ui/CustomTextInput';
 
 // Mock data for dropdowns
@@ -144,7 +136,7 @@ export default function CreateProfileScreen() {
         ))}
         {formData.photos.length < 6 && (
           <TouchableOpacity style={styles.addPhotoButton} onPress={addPhoto}>
-            <MaterialIcons name="add-a-photo" size={40} color="#999" />
+            <MaterialIcons name="add-a-photo" size={40} color={AppColors.foregroundDimmer} />
             <Text style={styles.addPhotoText}>
               {formData.photos.length === 0 ? 'Add your first photo' : 'Add more'}
             </Text>
@@ -309,7 +301,7 @@ export default function CreateProfileScreen() {
           <MaterialIcons
             name="arrow-back"
             size={24}
-            color={currentStep === 1 ? '#CCC' : '#333'}
+            color={currentStep === 1 ? AppColors.backgroundDimmer : AppColors.foregroundDefault}
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{getStepTitle()}</Text>
@@ -340,7 +332,7 @@ export default function CreateProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: AppColors.backgroundDimmer,
   },
   header: {
     flexDirection: 'row',
@@ -348,34 +340,32 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E1E1E1',
+    backgroundColor: AppColors.backgroundDefault,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: AppColors.foregroundDefault,
   },
   stepCounter: {
     fontSize: 14,
-    color: '#666',
+    color: AppColors.foregroundDimmer,
   },
   stepIndicator: {
     flexDirection: 'row',
     justifyContent: 'center',
     paddingVertical: 20,
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
     gap: 8,
   },
   stepDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#E1E1E1',
+    backgroundColor: AppColors.backgroundDimmer,
   },
   activeDot: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: AppColors.accentDefault,
   },
   content: {
     flex: 1,
@@ -386,12 +376,12 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: AppColors.foregroundDefault,
     marginBottom: 8,
   },
   stepSubtitle: {
     fontSize: 16,
-    color: '#666',
+    color: AppColors.foregroundDimmer,
     marginBottom: 32,
   },
   photosGrid: {
@@ -413,13 +403,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: AppColors.accentDefault,
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   mainPhotoText: {
-    color: 'white',
+    color: AppColors.backgroundDefault,
     fontSize: 10,
     fontWeight: '600',
   },
@@ -429,14 +419,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: '#DDD',
+    borderColor: AppColors.backgroundDimmer,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
   },
   addPhotoText: {
     fontSize: 12,
-    color: '#999',
+    color: AppColors.foregroundDimmer,
     marginTop: 8,
     textAlign: 'center',
   },
@@ -446,7 +436,7 @@ const styles = StyleSheet.create({
   },
   charCounter: {
     fontSize: 12,
-    color: '#999',
+    color: AppColors.foregroundDimmer,
     textAlign: 'right',
     marginTop: 8,
   },
@@ -456,7 +446,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: AppColors.foregroundDefault,
     marginBottom: 12,
   },
   schoolButtons: {
@@ -464,50 +454,50 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   schoolButton: {
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#E1E1E1',
+    borderColor: AppColors.backgroundDimmer,
   },
   selectedSchoolButton: {
-    backgroundColor: '#FF6B6B',
-    borderColor: '#FF6B6B',
+    backgroundColor: AppColors.accentDefault,
+    borderColor: AppColors.accentDefault,
   },
   schoolButtonText: {
     fontSize: 14,
-    color: '#666',
+    color: AppColors.foregroundDimmer,
     fontWeight: '500',
   },
   selectedSchoolButtonText: {
-    color: 'white',
+    color: AppColors.backgroundDefault,
   },
   yearButtons: {
     flexDirection: 'row',
     gap: 12,
   },
   yearButton: {
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#E1E1E1',
+    borderColor: AppColors.backgroundDimmer,
     flex: 1,
     alignItems: 'center',
   },
   selectedYearButton: {
-    backgroundColor: '#FF6B6B',
-    borderColor: '#FF6B6B',
+    backgroundColor: AppColors.accentDefault,
+    borderColor: AppColors.accentDefault,
   },
   yearButtonText: {
     fontSize: 16,
-    color: '#666',
+    color: AppColors.foregroundDimmer,
     fontWeight: '500',
   },
   selectedYearButtonText: {
-    color: 'white',
+    color: AppColors.backgroundDefault,
   },
   interestsGrid: {
     flexDirection: 'row',
@@ -516,29 +506,27 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   interestButton: {
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#E1E1E1',
+    borderColor: AppColors.backgroundDimmer,
   },
   selectedInterestButton: {
-    backgroundColor: '#FF6B6B',
-    borderColor: '#FF6B6B',
+    backgroundColor: AppColors.accentDefault,
+    borderColor: AppColors.accentDefault,
   },
   interestButtonText: {
     fontSize: 14,
-    color: '#666',
+    color: AppColors.foregroundDimmer,
     fontWeight: '500',
   },
   selectedInterestButtonText: {
-    color: 'white',
+    color: AppColors.backgroundDefault,
   },
   bottomNavigation: {
     padding: 20,
-    backgroundColor: 'white',
-    borderTopWidth: 1,
-    borderTopColor: '#E1E1E1',
+    backgroundColor: AppColors.backgroundDefault,
   },
 });

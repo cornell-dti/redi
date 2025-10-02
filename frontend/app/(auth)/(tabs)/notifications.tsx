@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AppColors } from '../../components/AppColors';
 import Header from '../../components/ui/Header';
 import NotificationItem from '../../components/ui/NotificationItem';
 
@@ -68,7 +69,7 @@ export default function NotificationsScreen() {
         title="Notifications"
         right={
           <TouchableOpacity>
-            <Ionicons name="checkmark-done-outline" size={24} color="#666" />
+            <Ionicons name="checkmark-done-outline" size={24} color={AppColors.foregroundDimmer} />
           </TouchableOpacity>
         }
       />
@@ -113,40 +114,38 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: AppColors.backgroundDefault,
   },
   filterContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    backgroundColor: AppColors.backgroundDefault,
     gap: 12,
   },
   filterTab: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: AppColors.backgroundDimmer,
   },
   activeTab: {
-    backgroundColor: '#FF8DBD',
+    backgroundColor: AppColors.accentDefault,
   },
   filterText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#666',
+    color: AppColors.foregroundDimmer,
   },
   activeFilterText: {
-    color: 'white',
+    color: AppColors.backgroundDefault,
   },
   list: {
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
   },
   separator: {
     height: 1,
-    backgroundColor: '#E1E1E1',
+    backgroundColor: AppColors.backgroundDimmer,
     marginLeft: 76,
   },
 });

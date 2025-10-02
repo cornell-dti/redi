@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { AppColors } from '../AppColors';
 
 interface InfoRowProps {
   label: string;
@@ -22,15 +23,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: AppColors.backgroundDimmer,
   },
   label: {
     fontSize: 14,
-    color: '#666',
+    color: AppColors.foregroundDimmer,
     fontWeight: '500',
   },
   value: {
     fontSize: 14,
+    color: AppColors.foregroundDefault,
     fontWeight: '500',
     textAlign: 'right',
     flex: 1,

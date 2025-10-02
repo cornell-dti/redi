@@ -1,11 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-import {
-  Text,
-  TextStyle,
-  TouchableOpacity,
-  ViewStyle
-} from 'react-native';
+import { Text, TextStyle, TouchableOpacity, ViewStyle } from 'react-native';
+import { AppColors } from './AppColors';
 
 interface AppButtonProps {
   title: string;
@@ -53,19 +49,19 @@ export default function AppButton({
       case 'primary':
         return {
           ...baseStyle,
-          backgroundColor: '#FF8DBD',
+          backgroundColor: AppColors.accentDefault,
         };
       case 'secondary':
         return {
           ...baseStyle,
-          backgroundColor: '#F0F0F0',
+          backgroundColor: AppColors.backgroundDimmer,
         };
       case 'outline':
         return {
           ...baseStyle,
-          backgroundColor: 'transparent',
+          backgroundColor: AppColors.backgroundDefault,
           borderWidth: 1,
-          borderColor: '#FF8DBD',
+          borderColor: AppColors.accentDefault,
         };
       default:
         return baseStyle;
@@ -82,17 +78,17 @@ export default function AppButton({
       case 'primary':
         return {
           ...baseTextStyle,
-          color: 'white',
+          color: AppColors.backgroundDefault,
         };
       case 'secondary':
         return {
           ...baseTextStyle,
-          color: '#333',
+          color: AppColors.foregroundDefault,
         };
       case 'outline':
         return {
           ...baseTextStyle,
-          color: '#FF8DBD',
+          color: AppColors.accentDefault,
         };
       default:
         return baseTextStyle;
@@ -102,13 +98,13 @@ export default function AppButton({
   const getIconColor = () => {
     switch (variant) {
       case 'primary':
-        return 'white';
+        return AppColors.backgroundDefault;
       case 'secondary':
-        return '#333';
+        return AppColors.foregroundDefault;
       case 'outline':
-        return '#FFF8DBD';
+        return AppColors.accentDefault;
       default:
-        return '#333';
+        return AppColors.foregroundDefault;
     }
   };
 

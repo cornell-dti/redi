@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AppColors } from '../AppColors';
 
 interface NotificationItemProps {
   type: string;
@@ -23,17 +24,7 @@ export default function NotificationItem({
   icon,
   onPress,
 }: NotificationItemProps) {
-  const getIconColor = () => {
-    switch (type) {
-      case 'match': return '#FF6B6B';
-      case 'message': return '#2196F3';
-      case 'like': return '#FF6B6B';
-      case 'profile': return '#4CAF50';
-      default: return '#666';
-    }
-  };
-
-  const iconColor = getIconColor();
+  const iconColor = AppColors.accentDefault;
 
   return (
     <TouchableOpacity style={[styles.container, !read && styles.unread]} onPress={onPress}>
@@ -71,7 +62,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   unread: {
-    backgroundColor: '#FFF9F9',
+    backgroundColor: AppColors.negativeDimmer,
   },
   left: {
     marginRight: 12,
@@ -117,17 +108,18 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     flex: 1,
     marginRight: 8,
+    color: AppColors.foregroundDefault,
   },
   unreadTitle: {
     fontWeight: '600',
   },
   timestamp: {
     fontSize: 12,
-    color: '#999',
+    color: AppColors.foregroundDimmer,
   },
   message: {
     fontSize: 14,
-    color: '#666',
+    color: AppColors.foregroundDefault,
   },
   unreadDot: {
     position: 'absolute',
@@ -136,6 +128,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: AppColors.accentDefault,
   },
 });

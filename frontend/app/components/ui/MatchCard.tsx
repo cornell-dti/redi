@@ -1,6 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AppColors } from '../AppColors';
 
 interface MatchCardProps {
   name: string;
@@ -18,7 +19,7 @@ export default function MatchCard({ name, age, school, bio, image, onPress }: Ma
       <View style={styles.info}>
         <View style={styles.header}>
           <Text style={styles.name}>{name}, {age}</Text>
-          <MaterialIcons name="favorite" size={20} color="#FF6B6B" />
+          <MaterialIcons name="favorite" size={20} color={AppColors.accentDefault} />
         </View>
         <Text style={styles.school}>{school}</Text>
         <Text style={styles.bio} numberOfLines={2}>{bio}</Text>
@@ -29,7 +30,7 @@ export default function MatchCard({ name, age, school, bio, image, onPress }: Ma
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
     borderRadius: 12,
     marginBottom: 16,
   },
@@ -51,14 +52,15 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 20,
     fontWeight: '600',
+    color: AppColors.foregroundDefault,
   },
   school: {
     fontSize: 14,
-    color: '#666',
+    color: AppColors.foregroundDimmer,
     marginBottom: 8,
   },
   bio: {
     fontSize: 16,
-    color: '#555',
+    color: AppColors.foregroundDefault,
   },
 });

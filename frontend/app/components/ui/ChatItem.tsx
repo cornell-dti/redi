@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AppColors } from '../AppColors';
 
 interface ChatItemProps {
   name: string;
@@ -68,9 +69,9 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: '#4CAF50',
+    backgroundColor: AppColors.accentDefault,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: AppColors.backgroundDefault,
   },
   content: {
     flex: 1,
@@ -84,10 +85,11 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: '600',
+    color: AppColors.foregroundDefault,
   },
   timestamp: {
     fontSize: 12,
-    color: '#999',
+    color: AppColors.foregroundDimmer,
   },
   messageContainer: {
     flexDirection: 'row',
@@ -96,7 +98,7 @@ const styles = StyleSheet.create({
   },
   lastMessage: {
     fontSize: 14,
-    color: '#666',
+    color: AppColors.foregroundDefault,
     flex: 1,
   },
   unreadMessage: {
@@ -106,7 +108,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: AppColors.accentDefault,
     marginLeft: 8,
   },
 });

@@ -3,6 +3,7 @@ import React from 'react';
 import { Alert, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signOutUser } from '../../api/authService';
+import { AppColors } from '../../components/AppColors';
 import Header from '../../components/ui/Header';
 import InfoCard from '../../components/ui/InfoCard';
 import InfoRow from '../../components/ui/InfoRow';
@@ -41,7 +42,7 @@ export default function ProfileScreen() {
         onPress: async () => {
           try {
             await signOutUser();
-          } catch (error) {
+          } catch {
             Alert.alert('Error', 'Failed to sign out');
           }
         },
@@ -58,10 +59,10 @@ export default function ProfileScreen() {
         right={
           <View style={styles.headerButtons}>
             <TouchableOpacity>
-              <MaterialIcons name="edit" size={24} color="#666" />
+              <MaterialIcons name="edit" size={24} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleSignOut}>
-              <MaterialIcons name="logout" size={24} color="#666" />
+              <MaterialIcons name="logout" size={24} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
           </View>
         }
@@ -71,7 +72,7 @@ export default function ProfileScreen() {
         <View style={styles.statsContainer}>
           {profileStats.map((stat) => (
             <View key={stat.label} style={styles.statCard}>
-              <MaterialIcons name={stat.icon as any} size={24} color="#FF6B6B" />
+              <MaterialIcons name={stat.icon as any} size={24} color={AppColors.accentDefault} />
               <Text style={styles.statValue}>{stat.value}</Text>
               <Text style={styles.statLabel}>{stat.label}</Text>
             </View>
@@ -143,19 +144,19 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Settings</Text>
           <InfoCard>
             <TouchableOpacity style={styles.settingRow}>
-              <MaterialIcons name="notifications" size={24} color="#666" />
+              <MaterialIcons name="notifications" size={24} color={AppColors.foregroundDimmer} />
               <Text style={styles.settingText}>Notifications</Text>
-              <MaterialIcons name="chevron-right" size={24} color="#999" />
+              <MaterialIcons name="chevron-right" size={24} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.settingRow}>
-              <MaterialIcons name="security" size={24} color="#666" />
+              <MaterialIcons name="security" size={24} color={AppColors.foregroundDimmer} />
               <Text style={styles.settingText}>Privacy & Safety</Text>
-              <MaterialIcons name="chevron-right" size={24} color="#999" />
+              <MaterialIcons name="chevron-right" size={24} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.settingRow}>
-              <MaterialIcons name="help" size={24} color="#666" />
+              <MaterialIcons name="help" size={24} color={AppColors.foregroundDimmer} />
               <Text style={styles.settingText}>Help & Support</Text>
-              <MaterialIcons name="chevron-right" size={24} color="#999" />
+              <MaterialIcons name="chevron-right" size={24} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
           </InfoCard>
         </View>
@@ -167,7 +168,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: AppColors.backgroundDimmer,
   },
   headerButtons: {
     flexDirection: 'row',
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -193,10 +194,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginTop: 8,
+    color: AppColors.foregroundDefault,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
+    color: AppColors.foregroundDimmer,
     marginTop: 4,
   },
   section: {
@@ -207,6 +209,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 12,
+    color: AppColors.foregroundDefault,
   },
   imageGrid: {
     flexDirection: 'row',
@@ -227,13 +230,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#FF8DBD',
+    backgroundColor: AppColors.accentDefault,
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   badgeText: {
-    color: 'white',
+    color: AppColors.backgroundDefault,
     fontSize: 10,
     fontWeight: '600',
   },
@@ -243,7 +246,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: '#DDD',
+    borderColor: AppColors.backgroundDimmer,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -256,6 +259,7 @@ const styles = StyleSheet.create({
   socialText: {
     fontSize: 16,
     fontWeight: '500',
+    color: AppColors.foregroundDefault,
   },
   interestsContainer: {
     flexDirection: 'row',
@@ -263,23 +267,24 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   interestTag: {
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: '#E1E1E1',
+    borderColor: AppColors.backgroundDimmer,
   },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: AppColors.backgroundDimmer,
   },
   settingText: {
     fontSize: 16,
     marginLeft: 12,
     flex: 1,
+    color: AppColors.foregroundDefault,
   },
 });

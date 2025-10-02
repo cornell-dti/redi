@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TextInputProps,
-  View,
-} from 'react-native';
+import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
+import { AppColors } from '../AppColors';
 
 interface CustomTextInputProps extends TextInputProps {
   label?: string;
@@ -45,25 +40,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     marginBottom: 5,
-    color: '#333',
+    color: AppColors.foregroundDefault,
   },
   required: {
-    color: '#FF3B30',
+    color: AppColors.negativeDefault,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: AppColors.backgroundDimmer,
     borderRadius: 4,
     padding: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: AppColors.backgroundDefault,
     fontSize: 14,
+    color: AppColors.foregroundDefault,
   },
   inputError: {
-    borderColor: '#FF3B30',
+    borderColor: AppColors.negativeDefault,
   },
   errorText: {
     fontSize: 12,
-    color: '#FF3B30',
+    color: AppColors.negativeDefault,
     marginTop: 4,
   },
 });

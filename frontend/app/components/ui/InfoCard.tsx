@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
+import { AppColors } from '../AppColors';
 
 interface InfoCardProps {
   children: React.ReactNode;
@@ -12,7 +13,7 @@ export default function InfoCard({ children, style }: InfoCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
     borderRadius: 12,
     padding: 16,
   },

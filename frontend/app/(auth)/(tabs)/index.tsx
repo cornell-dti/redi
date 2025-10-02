@@ -3,6 +3,7 @@ import React from 'react';
 import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppButton from '../../components/AppButton';
+import { AppColors } from '../../components/AppColors';
 import Header from '../../components/ui/Header';
 import MatchCard from '../../components/ui/MatchCard';
 
@@ -43,7 +44,7 @@ export default function MatchesScreen() {
         title="Discover"
         right={
           <TouchableOpacity>
-            <MaterialIcons name="tune" size={24} color="#666" />
+            <MaterialIcons name="tune" size={24} color={AppColors.foregroundDimmer} />
           </TouchableOpacity>
         }
       />
@@ -73,7 +74,7 @@ export default function MatchesScreen() {
       </ScrollView>
 
       <TouchableOpacity style={styles.fab}>
-        <MaterialIcons name="search" size={28} color="white" />
+        <MaterialIcons name="search" size={28} color={AppColors.backgroundDefault} />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -82,7 +83,7 @@ export default function MatchesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: AppColors.backgroundDimmer,
   },
   scrollView: {
     flex: 1,
@@ -94,6 +95,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 16,
+    color: AppColors.foregroundDefault,
   },
   fab: {
     position: 'absolute',
@@ -102,7 +104,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#FF8DBD',
+    backgroundColor: AppColors.accentDefault,
     justifyContent: 'center',
     alignItems: 'center',
   },
