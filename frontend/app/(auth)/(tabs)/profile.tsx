@@ -1,3 +1,4 @@
+import AppButton from '@/app/components/AppButton';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Alert, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -53,9 +54,12 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-
+    <Image
+      source={{ uri: 'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE' }}
+      style={{ width: 124, height: 124, borderRadius: 100, alignSelf: 'center' }}
+    />
       <Header
-        title="Profile"
+        title={mockUserProfile.name}
         right={
           <View style={styles.headerButtons}>
             <TouchableOpacity>
@@ -69,6 +73,13 @@ export default function ProfileScreen() {
       />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <AppButton
+                title={'Preview Profile'}
+                onPress={() => {}}
+                variant="primary"
+                size="small"
+                fullWidth={false}
+              />
         <View style={styles.statsContainer}>
           {profileStats.map((stat) => (
             <View key={stat.label} style={styles.statCard}>
