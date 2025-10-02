@@ -35,7 +35,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         <Text style={styles.title}>Filters</Text>
         <Switch value={showFilters} onValueChange={onToggleFilters} />
       </View>
-      
+
       {showFilters && (
         <View style={styles.filterContent}>
           <GenderPicker
@@ -46,21 +46,23 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             includeAny
             label="Filter by Gender"
           />
-          
+
           <CustomTextInput
             label="Filter by School"
             value={school}
             onChangeText={onSchoolChange}
             placeholder="Engineering, Arts & Sciences, etc."
           />
-          
+
           {(onMinYearChange || onMaxYearChange) && (
             <View style={styles.yearFilters}>
               {onMinYearChange && (
                 <CustomTextInput
                   label="Min Year"
                   value={minYear?.toString() || ''}
-                  onChangeText={(value) => onMinYearChange(parseInt(value) || 0)}
+                  onChangeText={(value) =>
+                    onMinYearChange(parseInt(value) || 0)
+                  }
                   placeholder="2024"
                   keyboardType="numeric"
                   style={styles.yearInput}
@@ -70,7 +72,9 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 <CustomTextInput
                   label="Max Year"
                   value={maxYear?.toString() || ''}
-                  onChangeText={(value) => onMaxYearChange(parseInt(value) || 0)}
+                  onChangeText={(value) =>
+                    onMaxYearChange(parseInt(value) || 0)
+                  }
                   placeholder="2028"
                   keyboardType="numeric"
                   style={styles.yearInput}

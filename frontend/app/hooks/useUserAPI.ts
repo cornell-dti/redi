@@ -15,28 +15,30 @@ export const useUserAPI = () => {
     setLoading(true);
     try {
       const result = await operation();
-      
+
       if (successMessage) {
         Alert.alert('Success', successMessage);
       }
-      
+
       successCallback?.(result);
       return result;
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Operation failed');
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'Operation failed'
+      );
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchAllUsers = () =>
-    executeWithLoading(() => getAllUsers());
+  const fetchAllUsers = () => executeWithLoading(() => getAllUsers());
 
   const fetchUserByNetid = (netid: string) =>
     executeWithLoading(() => getUserByNetid(netid));
 
-  const deleteUserByNetid = (netid: string) => 
+  const deleteUserByNetid = (netid: string) =>
     new Promise<boolean>((resolve) => {
       // Prevent users from deleting themselves
       const currentUserNetid = user?.email?.split('@')[0];
@@ -60,8 +62,8 @@ export const useUserAPI = () => {
                 'User deleted successfully!'
               );
               resolve(!!result);
-            }
-          }
+            },
+          },
         ]
       );
     });

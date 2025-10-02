@@ -1,4 +1,4 @@
-// Database timestamp type 
+// Database timestamp type
 type Timestamp = Date | string | number;
 
 export interface User {
@@ -30,10 +30,10 @@ export interface LoginResponse {
 
 export type Gender = 'female' | 'male' | 'non-binary';
 
-export type School = 
+export type School =
   | 'College of Arts and Science'
   | 'Cals'
-  | 'Hotel and Administration' 
+  | 'Hotel and Administration'
   | 'AAP'
   | 'Dyson'
   | 'Engineering'

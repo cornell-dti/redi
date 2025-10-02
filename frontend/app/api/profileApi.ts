@@ -1,4 +1,9 @@
-import { CreateProfileInput, CreateProfileResponse, ProfileResponse, UpdateProfileInput } from '@/types';
+import {
+  CreateProfileInput,
+  CreateProfileResponse,
+  ProfileResponse,
+  UpdateProfileInput,
+} from '@/types';
 import { API_BASE_URL } from '../../constants/constants';
 
 /**
@@ -7,10 +12,14 @@ import { API_BASE_URL } from '../../constants/constants';
  * @returns Promise resolving to user's profile
  * @throws Error if profile not found or fetch fails
  */
-export const getCurrentUserProfile = async (firebaseUid: string): Promise<ProfileResponse> => {
+export const getCurrentUserProfile = async (
+  firebaseUid: string
+): Promise<ProfileResponse> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/profiles/me?firebaseUid=${firebaseUid}`);
-    
+    const response = await fetch(
+      `${API_BASE_URL}/api/profiles/me?firebaseUid=${firebaseUid}`
+    );
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to fetch profile');
@@ -31,7 +40,7 @@ export const getCurrentUserProfile = async (firebaseUid: string): Promise<Profil
  * @throws Error if creation fails or validation errors occur
  */
 export const createProfile = async (
-  firebaseUid: string, 
+  firebaseUid: string,
   profileData: CreateProfileInput
 ): Promise<CreateProfileResponse> => {
   try {
@@ -47,7 +56,7 @@ export const createProfile = async (
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.error || 'Failed to create profile');
     }
@@ -67,7 +76,7 @@ export const createProfile = async (
  * @throws Error if update fails or validation errors occur
  */
 export const updateProfile = async (
-  firebaseUid: string, 
+  firebaseUid: string,
   updateData: UpdateProfileInput
 ): Promise<{ message: string }> => {
   try {
@@ -83,7 +92,7 @@ export const updateProfile = async (
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.error || 'Failed to update profile');
     }
@@ -101,7 +110,9 @@ export const updateProfile = async (
  * @returns Promise resolving to deletion confirmation
  * @throws Error if deletion fails
  */
-export const deleteProfile = async (firebaseUid: string): Promise<{ message: string }> => {
+export const deleteProfile = async (
+  firebaseUid: string
+): Promise<{ message: string }> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/profiles/me`, {
       method: 'DELETE',
@@ -110,7 +121,7 @@ export const deleteProfile = async (firebaseUid: string): Promise<{ message: str
       },
       body: JSON.stringify({ firebaseUid }),
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to delete profile');
@@ -129,10 +140,12 @@ export const deleteProfile = async (firebaseUid: string): Promise<{ message: str
  * @returns Promise resolving to profile data
  * @throws Error if profile not found or fetch fails
  */
-export const getProfileByNetid = async (netid: string): Promise<ProfileResponse> => {
+export const getProfileByNetid = async (
+  netid: string
+): Promise<ProfileResponse> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/profiles/${netid}`);
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to fetch profile');
@@ -153,14 +166,14 @@ export const getProfileByNetid = async (netid: string): Promise<ProfileResponse>
  * @throws Error if fetch fails
  */
 export const getMatches = async (
-  firebaseUid: string, 
+  firebaseUid: string,
   limit: number = 20
 ): Promise<ProfileResponse[]> => {
   try {
     const response = await fetch(
       `${API_BASE_URL}/api/profiles/matches?firebaseUid=${firebaseUid}&limit=${limit}`
     );
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to fetch matches');
@@ -179,25 +192,29 @@ export const getMatches = async (
  * @returns Promise resolving to array of profiles
  * @throws Error if fetch fails
  */
-export const getAllProfiles = async (options: {
-  limit?: number;
-  gender?: 'female' | 'male' | 'non-binary';
-  school?: string;
-  minYear?: number;
-  maxYear?: number;
-  excludeNetid?: string;
-} = {}): Promise<ProfileResponse[]> => {
+export const getAllProfiles = async (
+  options: {
+    limit?: number;
+    gender?: 'female' | 'male' | 'non-binary';
+    school?: string;
+    minYear?: number;
+    maxYear?: number;
+    excludeNetid?: string;
+  } = {}
+): Promise<ProfileResponse[]> => {
   try {
     const params = new URLSearchParams();
-    
+
     Object.entries(options).forEach(([key, value]) => {
       if (value !== undefined) {
         params.append(key, value.toString());
       }
     });
 
-    const response = await fetch(`${API_BASE_URL}/api/profiles?${params.toString()}`);
-    
+    const response = await fetch(
+      `${API_BASE_URL}/api/profiles?${params.toString()}`
+    );
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to fetch profiles');

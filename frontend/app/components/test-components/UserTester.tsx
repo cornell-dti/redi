@@ -7,8 +7,9 @@ import CustomButton from '../ui/CustomButton';
 import SectionCard from '../ui/SectionCard';
 
 const UserTester: React.FC = () => {
-  const { loading, fetchAllUsers, fetchUserByNetid, deleteUserByNetid } = useUser();
-  
+  const { loading, fetchAllUsers, fetchUserByNetid, deleteUserByNetid } =
+    useUser();
+
   const [users, setUsers] = useState<UserResponse[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
   const [testNetid, setTestNetid] = useState('');
@@ -20,14 +21,14 @@ const UserTester: React.FC = () => {
 
   const handleGetUserByNetid = async () => {
     if (!testNetid.trim()) return;
-    
+
     const userData = await fetchUserByNetid(testNetid.trim());
     if (userData) setSelectedUser(userData);
   };
 
   const handleDeleteUser = async () => {
     if (!testNetid.trim()) return;
-    
+
     const deleted = await deleteUserByNetid(testNetid.trim());
     if (deleted) {
       // Refresh users list and clear selected user if it was deleted
@@ -39,11 +40,14 @@ const UserTester: React.FC = () => {
   };
 
   const renderUser = (user: UserResponse) => (
-    <View key={user.netid} style={{
-      padding: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: '#eee',
-    }}>
+    <View
+      key={user.netid}
+      style={{
+        padding: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+      }}
+    >
       <Text style={{ fontSize: 14, fontWeight: '500' }}>
         {user.netid} - {user.email}
       </Text>
@@ -72,7 +76,7 @@ const UserTester: React.FC = () => {
             loading={loading}
             fullWidth
           />
-          
+
           <CustomButton
             title="DELETE User"
             onPress={handleDeleteUser}

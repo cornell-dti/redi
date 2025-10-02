@@ -35,8 +35,8 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
   };
 
   const updateMajor = (majorString: string) => {
-    const majorArray = majorString.trim() 
-      ? majorString.split(',').map(m => m.trim()) 
+    const majorArray = majorString.trim()
+      ? majorString.split(',').map((m) => m.trim())
       : [];
     updateField('major', majorArray);
   };
@@ -86,7 +86,9 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
       <CustomTextInput
         label="Year"
         value={formData.year?.toString() || ''}
-        onChangeText={(value) => updateField('year', parseInt(value) || new Date().getFullYear())}
+        onChangeText={(value) =>
+          updateField('year', parseInt(value) || new Date().getFullYear())
+        }
         placeholder="2025"
         keyboardType="numeric"
         required

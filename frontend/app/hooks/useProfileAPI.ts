@@ -1,19 +1,16 @@
 // app/hooks/useProfileAPI.ts
-import {
-    CreateProfileInput,
-    UpdateProfileInput
-} from '@/types';
+import { CreateProfileInput, UpdateProfileInput } from '@/types';
 import auth from '@react-native-firebase/auth';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import {
-    createProfile,
-    deleteProfile,
-    getAllProfiles,
-    getCurrentUserProfile,
-    getMatches,
-    getProfileByNetid,
-    updateProfile,
+  createProfile,
+  deleteProfile,
+  getAllProfiles,
+  getCurrentUserProfile,
+  getMatches,
+  getProfileByNetid,
+  updateProfile,
 } from '../api/profileApi';
 
 export const useProfileAPI = () => {
@@ -33,15 +30,18 @@ export const useProfileAPI = () => {
     setLoading(true);
     try {
       const result = await operation();
-      
+
       if (successMessage) {
         Alert.alert('Success', successMessage);
       }
-      
+
       successCallback?.(result);
       return result;
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Operation failed');
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'Operation failed'
+      );
       return null;
     } finally {
       setLoading(false);
@@ -79,8 +79,8 @@ export const useProfileAPI = () => {
                 'Profile deleted successfully!'
               );
               resolve(!!result);
-            }
-          }
+            },
+          },
         ]
       );
     });
@@ -91,18 +91,20 @@ export const useProfileAPI = () => {
   const getMatchingProfiles = (limit: number = 20) =>
     executeWithLoading(() => getMatches(user!.uid, limit));
 
-  const getAllProfilesWithFilters = (filters: {
-    limit?: number;
-    gender?: 'female' | 'male' | 'non-binary';
-    school?: string;
-    minYear?: number;
-    maxYear?: number;
-  } = {}) => {
+  const getAllProfilesWithFilters = (
+    filters: {
+      limit?: number;
+      gender?: 'female' | 'male' | 'non-binary';
+      school?: string;
+      minYear?: number;
+      maxYear?: number;
+    } = {}
+  ) => {
     const options = {
       ...filters,
       excludeNetid: user?.email?.split('@')[0],
     };
-    
+
     return executeWithLoading(() => getAllProfiles(options));
   };
 

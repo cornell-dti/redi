@@ -1,11 +1,11 @@
-"use client"; // for using useState
+'use client'; // for using useState
 
-import { apiAddEmail, getEmails, getSignedUpCount } from "@/api/api";
-import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import { apiAddEmail, getEmails, getSignedUpCount } from '@/api/api';
+import Link from 'next/link';
+import React, { useEffect, useState } from 'react';
 
 export default function Home() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
   const [emails, setEmails] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +19,7 @@ export default function Home() {
 
         setSignedUpCount(count);
       } catch (error) {
-        console.error("Failed to fetch signed up count:", error);
+        console.error('Failed to fetch signed up count:', error);
       }
     };
     fetchCount();
@@ -34,11 +34,11 @@ export default function Home() {
       const existingEmails = await getEmails();
 
       const emailExists = existingEmails.some(
-        (existingEmail) => existingEmail.toLowerCase() === email.toLowerCase(),
+        (existingEmail) => existingEmail.toLowerCase() === email.toLowerCase()
       );
 
       if (emailExists) {
-        setError("This email is already registered!");
+        setError('This email is already registered!');
         setLoading(false);
         return;
       }
@@ -48,7 +48,7 @@ export default function Home() {
       setSignedUpCount((prev) => (prev !== null ? prev + 1 : 1));
       setRegistered(true);
     } catch {
-      setError("Failed to add email");
+      setError('Failed to add email');
     } finally {
       setLoading(false);
     }

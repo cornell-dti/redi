@@ -1,11 +1,6 @@
 import auth from '@react-native-firebase/auth';
 import React from 'react';
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-} from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text } from 'react-native';
 import ProfileTester from '../components/test-components/ProfileTester';
 import UserTester from '../components/test-components/UserTester';
 import CustomButton from '../components/ui/CustomButton';
@@ -24,12 +19,13 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
       {/* Header */}
       <SectionCard style={styles.header}>
-        <Text style={styles.welcomeText}>
-          Welcome to redi {user?.email}
-        </Text>
+        <Text style={styles.welcomeText}>Welcome to redi {user?.email}</Text>
         <Text style={styles.infoText}>
           Your netid: {user?.email?.split('@')[0]}
         </Text>

@@ -30,7 +30,7 @@ export interface ApiError {
  * @throws Error if creation fails or email is invalid
  */
 export const createUserInBackend = async (
-  email: string, 
+  email: string,
   firebaseUid: string
 ): Promise<CreateUserResponse> => {
   try {
@@ -46,7 +46,7 @@ export const createUserInBackend = async (
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.error || 'Failed to create user in backend');
     }
@@ -66,7 +66,7 @@ export const createUserInBackend = async (
  * @throws Error if login fails or user not found
  */
 export const loginUserInBackend = async (
-  email: string, 
+  email: string,
   firebaseUid: string
 ): Promise<LoginResponse> => {
   try {
@@ -82,7 +82,7 @@ export const loginUserInBackend = async (
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.error || 'Failed to login user in backend');
     }
@@ -102,7 +102,7 @@ export const loginUserInBackend = async (
 export const getAllUsers = async (): Promise<UserResponse[]> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/users`);
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to fetch users');
@@ -124,7 +124,7 @@ export const getAllUsers = async (): Promise<UserResponse[]> => {
 export const getUserByNetid = async (netid: string): Promise<UserResponse> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/users/${netid}`);
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to fetch user');
@@ -143,12 +143,14 @@ export const getUserByNetid = async (netid: string): Promise<UserResponse> => {
  * @returns Promise resolving to deletion confirmation
  * @throws Error if deletion fails or user not found
  */
-export const deleteUser = async (netid: string): Promise<{ message: string }> => {
+export const deleteUser = async (
+  netid: string
+): Promise<{ message: string }> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/users/${netid}`, {
       method: 'DELETE',
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to delete user');

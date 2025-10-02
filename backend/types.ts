@@ -42,10 +42,10 @@ export interface ProfileDocWrite {
 
 export type Gender = 'female' | 'male' | 'non-binary';
 
-export type School = 
+export type School =
   | 'College of Arts and Science'
   | 'Cals'
-  | 'Hotel and Administration' 
+  | 'Hotel and Administration'
   | 'AAP'
   | 'Dyson'
   | 'Engineering'
@@ -62,7 +62,7 @@ export interface ProfileDoc {
   netid: string;
   bio: string;
   gender: Gender;
-  birthdate: FirestoreTimestampType; 
+  birthdate: FirestoreTimestampType;
   instagram?: string;
   snapchat?: string;
   phoneNumber?: string;
@@ -112,7 +112,9 @@ export type CreateUserInput = Omit<UserDoc, 'createdAt'>;
 export type CreateProfileInput = Omit<ProfileDoc, 'createdAt' | 'updatedAt'>;
 
 // For updating a profile (all fields optional except netid)
-export type UpdateProfileInput = Partial<Omit<ProfileDoc, 'netid' | 'createdAt' | 'updatedAt'>>;
+export type UpdateProfileInput = Partial<
+  Omit<ProfileDoc, 'netid' | 'createdAt' | 'updatedAt'>
+>;
 
 // =============================================================================
 // UTILITY TYPES
@@ -120,11 +122,11 @@ export type UpdateProfileInput = Partial<Omit<ProfileDoc, 'netid' | 'createdAt' 
 
 // Convert Firestore document to API response
 export type DocToResponse<T extends Record<string, any>> = {
-  [K in keyof T]: T[K] extends FirestoreTimestampType 
-    ? string 
+  [K in keyof T]: T[K] extends FirestoreTimestampType
+    ? string
     : T[K] extends FirestoreTimestampType | undefined
-    ? string | undefined
-    : T[K];
+      ? string | undefined
+      : T[K];
 };
 
 // Helper type for Firestore document with auto-generated ID

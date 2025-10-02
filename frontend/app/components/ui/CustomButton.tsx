@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-    ActivityIndicator,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    TouchableOpacityProps,
-    ViewStyle
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableOpacityProps,
+  ViewStyle,
 } from 'react-native';
 
 interface CustomButtonProps extends Omit<TouchableOpacityProps, 'style'> {
@@ -51,7 +51,9 @@ const CustomButton: React.FC<CustomButtonProps> = ({
           color={variant === 'secondary' ? '#007AFF' : '#FFFFFF'}
         />
       ) : (
-        <Text style={[styles.text, styles[`${variant}Text`], styles[`${size}Text`]]}>
+        <Text
+          style={[styles.text, styles[`${variant}Text`], styles[`${size}Text`]]}
+        >
           {title}
         </Text>
       )}
@@ -72,7 +74,7 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.5,
   },
-  
+
   // Variants
   primary: {
     backgroundColor: '#007AFF',
@@ -91,7 +93,7 @@ const styles = StyleSheet.create({
   warning: {
     backgroundColor: '#FF9500',
   },
-  
+
   // Sizes
   small: {
     paddingVertical: 8,
@@ -108,7 +110,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     minHeight: 50,
   },
-  
+
   // Text styles
   text: {
     fontWeight: '600',
@@ -129,7 +131,7 @@ const styles = StyleSheet.create({
   warningText: {
     color: '#FFFFFF',
   },
-  
+
   // Text sizes
   smallText: {
     fontSize: 14,

@@ -16,9 +16,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChangeText,
   onSearch,
-  placeholder = "Search...",
+  placeholder = 'Search...',
   loading = false,
-  buttonTitle = "Search",
+  buttonTitle = 'Search',
 }) => {
   return (
     <SectionCard>
