@@ -1,6 +1,13 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppButton from '../../components/AppButton';
 import { AppColors } from '../../components/AppColors';
@@ -14,15 +21,17 @@ const mockMatches = [
     name: 'Abrar',
     age: 210,
     school: 'College of Arts and Sciences',
-    image: 'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
-    bio: 'Love drinking matcha around Ithaca and sewing in my Grandma\'s sewing circle!',
+    image:
+      'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
+    bio: "Love drinking matcha around Ithaca and sewing in my Grandma's sewing circle!",
   },
   {
     id: '2',
     name: 'Cleemmie',
     age: 21,
     school: 'Engineering',
-    image: 'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
+    image:
+      'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
     bio: 'CS major who loves board games and bubble tea',
   },
   {
@@ -30,7 +39,8 @@ const mockMatches = [
     name: 'Arshie Barshie',
     age: 93,
     school: 'Dyson',
-    image: 'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
+    image:
+      'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
     bio: 'Business student with a passion for sustainable fashion',
   },
 ];
@@ -44,12 +54,19 @@ export default function MatchesScreen() {
         title="Discover"
         right={
           <TouchableOpacity>
-            <MaterialIcons name="tune" size={24} color={AppColors.foregroundDimmer} />
+            <MaterialIcons
+              name="tune"
+              size={24}
+              color={AppColors.foregroundDimmer}
+            />
           </TouchableOpacity>
         }
       />
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.content}>
           <Text style={styles.sectionTitle}>New Matches</Text>
           {mockMatches.map((match) => (
@@ -74,7 +91,11 @@ export default function MatchesScreen() {
       </ScrollView>
 
       <TouchableOpacity style={styles.fab}>
-        <MaterialIcons name="search" size={28} color={AppColors.backgroundDefault} />
+        <MaterialIcons
+          name="search"
+          size={28}
+          color={AppColors.backgroundDefault}
+        />
       </TouchableOpacity>
     </SafeAreaView>
   );

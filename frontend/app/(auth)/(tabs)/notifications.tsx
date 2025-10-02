@@ -1,6 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { FlatList, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  FlatList,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
 import Header from '../../components/ui/Header';
@@ -15,7 +22,8 @@ const mockNotifications = [
     message: 'You and Abrar liked each other',
     timestamp: '2m ago',
     read: false,
-    image: 'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
+    image:
+      'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
     icon: 'favorite',
   },
   {
@@ -25,7 +33,8 @@ const mockNotifications = [
     message: 'Cleemmie sent you a message',
     timestamp: '15m ago',
     read: false,
-    image: 'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
+    image:
+      'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
     icon: 'message',
   },
   {
@@ -35,7 +44,8 @@ const mockNotifications = [
     message: 'Arshie Barsh admires your profile',
     timestamp: '1h ago',
     read: true,
-    image: 'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
+    image:
+      'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
     icon: 'favorite-border',
   },
   {
@@ -69,7 +79,11 @@ export default function NotificationsScreen() {
         title="Notifications"
         right={
           <TouchableOpacity>
-            <Ionicons name="checkmark-done-outline" size={24} color={AppColors.foregroundDimmer} />
+            <Ionicons
+              name="checkmark-done-outline"
+              size={24}
+              color={AppColors.foregroundDimmer}
+            />
           </TouchableOpacity>
         }
       />

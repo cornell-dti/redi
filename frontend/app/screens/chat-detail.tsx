@@ -25,19 +25,19 @@ const mockMessages = [
   },
   {
     id: '2',
-    text: 'Hi there! I\'m doing great, thanks for asking! How about you?',
+    text: "Hi there! I'm doing great, thanks for asking! How about you?",
     timestamp: new Date(Date.now() - 3580000),
     isOwn: true,
   },
   {
     id: '3',
-    text: 'Pretty good! I saw you\'re in CS too. What year are you?',
+    text: "Pretty good! I saw you're in CS too. What year are you?",
     timestamp: new Date(Date.now() - 3560000),
     isOwn: false,
   },
   {
     id: '4',
-    text: 'I\'m a junior! What about you?',
+    text: "I'm a junior! What about you?",
     timestamp: new Date(Date.now() - 3540000),
     isOwn: true,
   },
@@ -55,7 +55,7 @@ const mockMessages = [
   },
   {
     id: '7',
-    text: 'Want to grab coffee at CTB this weekend? I\'d love to hear more about your experience with the class',
+    text: "Want to grab coffee at CTB this weekend? I'd love to hear more about your experience with the class",
     timestamp: new Date(Date.now() - 120000),
     isOwn: false,
   },
@@ -81,7 +81,7 @@ export default function ChatDetailScreen() {
         timestamp: new Date(),
         isOwn: true,
       };
-      setMessages(prev => [...prev, message]);
+      setMessages((prev) => [...prev, message]);
       setNewMessage('');
     }
   };
@@ -91,25 +91,33 @@ export default function ChatDetailScreen() {
   };
 
   const renderMessage = ({ item }: { item: Message }) => (
-    <View style={[
-      styles.messageContainer,
-      item.isOwn ? styles.ownMessageContainer : styles.otherMessageContainer
-    ]}>
-      <View style={[
-        styles.messageBubble,
-        item.isOwn ? styles.ownMessageBubble : styles.otherMessageBubble
-      ]}>
-        <Text style={[
-          styles.messageText,
-          item.isOwn ? styles.ownMessageText : styles.otherMessageText
-        ]}>
+    <View
+      style={[
+        styles.messageContainer,
+        item.isOwn ? styles.ownMessageContainer : styles.otherMessageContainer,
+      ]}
+    >
+      <View
+        style={[
+          styles.messageBubble,
+          item.isOwn ? styles.ownMessageBubble : styles.otherMessageBubble,
+        ]}
+      >
+        <Text
+          style={[
+            styles.messageText,
+            item.isOwn ? styles.ownMessageText : styles.otherMessageText,
+          ]}
+        >
           {item.text}
         </Text>
       </View>
-      <Text style={[
-        styles.messageTime,
-        item.isOwn ? styles.ownMessageTime : styles.otherMessageTime
-      ]}>
+      <Text
+        style={[
+          styles.messageTime,
+          item.isOwn ? styles.ownMessageTime : styles.otherMessageTime,
+        ]}
+      >
         {formatTime(item.timestamp)}
       </Text>
     </View>
@@ -121,13 +129,18 @@ export default function ChatDetailScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
           <MaterialIcons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
 
         <View style={styles.headerInfo}>
           <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400' }}
+            source={{
+              uri: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400',
+            }}
             style={styles.headerAvatar}
           />
           <View style={styles.headerText}>
@@ -181,7 +194,9 @@ export default function ChatDetailScreen() {
           <TouchableOpacity
             style={[
               styles.sendButton,
-              newMessage.trim() ? styles.sendButtonActive : styles.sendButtonInactive
+              newMessage.trim()
+                ? styles.sendButtonActive
+                : styles.sendButtonInactive,
             ]}
             onPress={sendMessage}
             disabled={!newMessage.trim()}

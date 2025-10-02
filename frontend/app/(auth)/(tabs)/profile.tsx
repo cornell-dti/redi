@@ -1,7 +1,16 @@
 import AppButton from '@/app/components/AppButton';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-import { Alert, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signOutUser } from '../../api/authService';
 import { AppColors } from '../../components/AppColors';
@@ -16,7 +25,7 @@ const mockUserProfile = {
   school: 'College of Arts and Sciences',
   major: ['Computer Science', 'Psychology'],
   year: 2026,
-  bio: 'Love exploring Ithaca\'s gorges, trying new restaurants on the Commons, and weekend hiking trips. Always up for a good board game night or discovering new music!',
+  bio: "Love exploring Ithaca's gorges, trying new restaurants on the Commons, and weekend hiking trips. Always up for a good board game night or discovering new music!",
   images: [
     'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
     'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
@@ -54,36 +63,58 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-    <Image
-      source={{ uri: 'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE' }}
-      style={{ width: 124, height: 124, borderRadius: 100, alignSelf: 'center' }}
-    />
+      <Image
+        source={{
+          uri: 'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
+        }}
+        style={{
+          width: 124,
+          height: 124,
+          borderRadius: 100,
+          alignSelf: 'center',
+        }}
+      />
       <Header
         title={mockUserProfile.name}
         right={
           <View style={styles.headerButtons}>
             <TouchableOpacity>
-              <MaterialIcons name="edit" size={24} color={AppColors.foregroundDimmer} />
+              <MaterialIcons
+                name="edit"
+                size={24}
+                color={AppColors.foregroundDimmer}
+              />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleSignOut}>
-              <MaterialIcons name="logout" size={24} color={AppColors.foregroundDimmer} />
+              <MaterialIcons
+                name="logout"
+                size={24}
+                color={AppColors.foregroundDimmer}
+              />
             </TouchableOpacity>
           </View>
         }
       />
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <AppButton
-                title={'Preview Profile'}
-                onPress={() => {}}
-                variant="primary"
-                size="small"
-                fullWidth={false}
-              />
+          title={'Preview Profile'}
+          onPress={() => {}}
+          variant="primary"
+          size="small"
+          fullWidth={false}
+        />
         <View style={styles.statsContainer}>
           {profileStats.map((stat) => (
             <View key={stat.label} style={styles.statCard}>
-              <MaterialIcons name={stat.icon as any} size={24} color={AppColors.accentDefault} />
+              <MaterialIcons
+                name={stat.icon as any}
+                size={24}
+                color={AppColors.accentDefault}
+              />
               <Text style={styles.statValue}>{stat.value}</Text>
               <Text style={styles.statLabel}>{stat.label}</Text>
             </View>
@@ -112,7 +143,10 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Basic Info</Text>
           <InfoCard>
-            <InfoRow label="Name & Age" value={`${mockUserProfile.name}, ${mockUserProfile.age}`} />
+            <InfoRow
+              label="Name & Age"
+              value={`${mockUserProfile.name}, ${mockUserProfile.age}`}
+            />
             <InfoRow label="School" value={mockUserProfile.school} />
             <InfoRow label="Major" value={mockUserProfile.major.join(', ')} />
             <InfoRow label="Graduation Year" value={mockUserProfile.year} />
@@ -155,19 +189,43 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Settings</Text>
           <InfoCard>
             <TouchableOpacity style={styles.settingRow}>
-              <MaterialIcons name="notifications" size={24} color={AppColors.foregroundDimmer} />
+              <MaterialIcons
+                name="notifications"
+                size={24}
+                color={AppColors.foregroundDimmer}
+              />
               <Text style={styles.settingText}>Notifications</Text>
-              <MaterialIcons name="chevron-right" size={24} color={AppColors.foregroundDimmer} />
+              <MaterialIcons
+                name="chevron-right"
+                size={24}
+                color={AppColors.foregroundDimmer}
+              />
             </TouchableOpacity>
             <TouchableOpacity style={styles.settingRow}>
-              <MaterialIcons name="security" size={24} color={AppColors.foregroundDimmer} />
+              <MaterialIcons
+                name="security"
+                size={24}
+                color={AppColors.foregroundDimmer}
+              />
               <Text style={styles.settingText}>Privacy & Safety</Text>
-              <MaterialIcons name="chevron-right" size={24} color={AppColors.foregroundDimmer} />
+              <MaterialIcons
+                name="chevron-right"
+                size={24}
+                color={AppColors.foregroundDimmer}
+              />
             </TouchableOpacity>
             <TouchableOpacity style={styles.settingRow}>
-              <MaterialIcons name="help" size={24} color={AppColors.foregroundDimmer} />
+              <MaterialIcons
+                name="help"
+                size={24}
+                color={AppColors.foregroundDimmer}
+              />
               <Text style={styles.settingText}>Help & Support</Text>
-              <MaterialIcons name="chevron-right" size={24} color={AppColors.foregroundDimmer} />
+              <MaterialIcons
+                name="chevron-right"
+                size={24}
+                color={AppColors.foregroundDimmer}
+              />
             </TouchableOpacity>
           </InfoCard>
         </View>

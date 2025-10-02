@@ -12,17 +12,32 @@ interface MatchCardProps {
   onPress?: () => void;
 }
 
-export default function MatchCard({ name, age, school, bio, image, onPress }: MatchCardProps) {
+export default function MatchCard({
+  name,
+  age,
+  school,
+  bio,
+  image,
+  onPress,
+}: MatchCardProps) {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <Image source={{ uri: image }} style={styles.image} />
       <View style={styles.info}>
         <View style={styles.header}>
-          <Text style={styles.name}>{name}, {age}</Text>
-          <MaterialIcons name="favorite" size={20} color={AppColors.accentDefault} />
+          <Text style={styles.name}>
+            {name}, {age}
+          </Text>
+          <MaterialIcons
+            name="favorite"
+            size={20}
+            color={AppColors.accentDefault}
+          />
         </View>
         <Text style={styles.school}>{school}</Text>
-        <Text style={styles.bio} numberOfLines={2}>{bio}</Text>
+        <Text style={styles.bio} numberOfLines={2}>
+          {bio}
+        </Text>
       </View>
     </TouchableOpacity>
   );

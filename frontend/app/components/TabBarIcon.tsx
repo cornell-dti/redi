@@ -14,7 +14,7 @@ export default function TabBarIcon({
   name,
   size,
   color,
-  library = 'MaterialIcons'
+  library = 'MaterialIcons',
 }: TabBarIconProps) {
   if (library === 'Ionicons') {
     return <Ionicons name={name as any} size={size} color={color} />;

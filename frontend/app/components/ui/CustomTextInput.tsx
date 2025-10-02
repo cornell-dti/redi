@@ -1,5 +1,11 @@
 import React from 'react';
-import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TextInputProps,
+  View,
+} from 'react-native';
 import { AppColors } from '../AppColors';
 
 interface CustomTextInputProps extends TextInputProps {

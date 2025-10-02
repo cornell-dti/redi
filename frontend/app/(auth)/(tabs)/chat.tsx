@@ -1,7 +1,15 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { FlatList, Image, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  FlatList,
+  Image,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
 import ChatItem from '../../components/ui/ChatItem';
@@ -15,7 +23,8 @@ const mockChats = [
     lastMessage: 'Hey! Want to grab coffee at CTB this weekend?',
     timestamp: '2m ago',
     unread: true,
-    image: 'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
+    image:
+      'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
     online: true,
   },
   {
@@ -24,7 +33,8 @@ const mockChats = [
     lastMessage: 'Thanks for the study session! Good luck on the exam ',
     timestamp: '1h ago',
     unread: false,
-    image: 'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
+    image:
+      'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
     online: false,
   },
   {
@@ -33,7 +43,8 @@ const mockChats = [
     lastMessage: 'The farmers market was so fun! We should go again',
     timestamp: '3h ago',
     unread: false,
-    image: 'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
+    image:
+      'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
     online: true,
   },
   {
@@ -42,7 +53,8 @@ const mockChats = [
     lastMessage: 'Are you free for lunch tomorrow?',
     timestamp: '1d ago',
     unread: true,
-    image: 'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
+    image:
+      'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
     online: false,
   },
 ];
@@ -56,7 +68,11 @@ export default function ChatScreen() {
         title="Messages"
         right={
           <TouchableOpacity>
-            <MaterialIcons name="search" size={24} color={AppColors.foregroundDimmer} />
+            <MaterialIcons
+              name="search"
+              size={24}
+              color={AppColors.foregroundDimmer}
+            />
           </TouchableOpacity>
         }
       />
@@ -72,7 +88,10 @@ export default function ChatScreen() {
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.activeMatchItem}>
               <View style={styles.activeAvatarContainer}>
-                <Image source={{ uri: item.image }} style={styles.activeAvatar} />
+                <Image
+                  source={{ uri: item.image }}
+                  style={styles.activeAvatar}
+                />
                 <View style={styles.activeOnline} />
               </View>
               <Text style={styles.activeName}>{item.name}</Text>
@@ -93,7 +112,11 @@ export default function ChatScreen() {
               unread={item.unread}
               image={item.image}
               online={item.online}
-              onPress={() => router.push(`/screens/chat-detail?userId=${item.id}&name=${item.name}`)}
+              onPress={() =>
+                router.push(
+                  `/screens/chat-detail?userId=${item.id}&name=${item.name}`
+                )
+              }
             />
           )}
           showsVerticalScrollIndicator={false}
@@ -102,7 +125,11 @@ export default function ChatScreen() {
       </View>
 
       <TouchableOpacity style={styles.fab}>
-        <MaterialIcons name="edit" size={24} color={AppColors.backgroundDefault} />
+        <MaterialIcons
+          name="edit"
+          size={24}
+          color={AppColors.backgroundDefault}
+        />
       </TouchableOpacity>
     </SafeAreaView>
   );

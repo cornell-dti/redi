@@ -9,7 +9,7 @@ export default function HomePage() {
     // If profile complete: router.replace('/(auth)/(tabs)');
 
     // For now, always redirect to tabs (main app)
-    router.replace('/(auth)/(tabs)' as any);;
+    router.replace('/(auth)/(tabs)' as any);
   }, []);
 
   // Return null since this component just redirects

@@ -1,7 +1,16 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Image, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppButton from '../components/AppButton';
 import { AppColors } from '../components/AppColors';
@@ -34,9 +43,21 @@ interface ProfileFormData {
 }
 
 const availableInterests = [
-  'Hiking', 'Photography', 'Music', 'Travel', 'Board Games',
-  'Cooking', 'Art', 'Sports', 'Reading', 'Dancing',
-  'Yoga', 'Coffee', 'Movies', 'Gaming', 'Fitness'
+  'Hiking',
+  'Photography',
+  'Music',
+  'Travel',
+  'Board Games',
+  'Cooking',
+  'Art',
+  'Sports',
+  'Reading',
+  'Dancing',
+  'Yoga',
+  'Coffee',
+  'Movies',
+  'Gaming',
+  'Fitness',
 ];
 
 export default function CreateProfileScreen() {
@@ -79,7 +100,10 @@ export default function CreateProfileScreen() {
       // TODO: Submit to backend API
       console.log('Profile data:', formData);
       Alert.alert('Success!', 'Your profile has been created!', [
-        { text: 'Continue', onPress: () => router.replace('/(auth)/(tabs)' as any) }
+        {
+          text: 'Continue',
+          onPress: () => router.replace('/(auth)/(tabs)' as any),
+        },
       ]);
     } catch (error) {
       Alert.alert('Error', 'Failed to create profile. Please try again.');
@@ -88,19 +112,20 @@ export default function CreateProfileScreen() {
 
   const addPhoto = () => {
     // TODO: Implement image picker
-    const mockPhoto = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400';
-    setFormData(prev => ({
+    const mockPhoto =
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400';
+    setFormData((prev) => ({
       ...prev,
-      photos: [...prev.photos, mockPhoto]
+      photos: [...prev.photos, mockPhoto],
     }));
   };
 
   const toggleInterest = (interest: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       interests: prev.interests.includes(interest)
-        ? prev.interests.filter(i => i !== interest)
-        : [...prev.interests, interest]
+        ? prev.interests.filter((i) => i !== interest)
+        : [...prev.interests, interest],
     }));
   };
 
@@ -109,10 +134,7 @@ export default function CreateProfileScreen() {
       {Array.from({ length: totalSteps }, (_, index) => (
         <View
           key={index}
-          style={[
-            styles.stepDot,
-            index + 1 <= currentStep && styles.activeDot
-          ]}
+          style={[styles.stepDot, index + 1 <= currentStep && styles.activeDot]}
         />
       ))}
     </View>
@@ -121,7 +143,9 @@ export default function CreateProfileScreen() {
   const renderPhotosStep = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>Add Your Photos</Text>
-      <Text style={styles.stepSubtitle}>Show your personality with great photos</Text>
+      <Text style={styles.stepSubtitle}>
+        Show your personality with great photos
+      </Text>
 
       <View style={styles.photosGrid}>
         {formData.photos.map((photo, index) => (
@@ -136,9 +160,15 @@ export default function CreateProfileScreen() {
         ))}
         {formData.photos.length < 6 && (
           <TouchableOpacity style={styles.addPhotoButton} onPress={addPhoto}>
-            <MaterialIcons name="add-a-photo" size={40} color={AppColors.foregroundDimmer} />
+            <MaterialIcons
+              name="add-a-photo"
+              size={40}
+              color={AppColors.foregroundDimmer}
+            />
             <Text style={styles.addPhotoText}>
-              {formData.photos.length === 0 ? 'Add your first photo' : 'Add more'}
+              {formData.photos.length === 0
+                ? 'Add your first photo'
+                : 'Add more'}
             </Text>
           </TouchableOpacity>
         )}
@@ -149,12 +179,14 @@ export default function CreateProfileScreen() {
   const renderBioStep = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>Tell us about yourself</Text>
-      <Text style={styles.stepSubtitle}>Write a bio that shows your personality</Text>
+      <Text style={styles.stepSubtitle}>
+        Write a bio that shows your personality
+      </Text>
 
       <CustomTextInput
         placeholder="I love exploring Ithaca's gorges, trying new restaurants on the Commons, and weekend hiking trips..."
         value={formData.bio}
-        onChangeText={(text) => setFormData(prev => ({ ...prev, bio: text }))}
+        onChangeText={(text) => setFormData((prev) => ({ ...prev, bio: text }))}
         multiline
         numberOfLines={4}
         maxLength={500}
@@ -178,14 +210,17 @@ export default function CreateProfileScreen() {
                 key={school}
                 style={[
                   styles.schoolButton,
-                  formData.school === school && styles.selectedSchoolButton
+                  formData.school === school && styles.selectedSchoolButton,
                 ]}
-                onPress={() => setFormData(prev => ({ ...prev, school }))}
+                onPress={() => setFormData((prev) => ({ ...prev, school }))}
               >
-                <Text style={[
-                  styles.schoolButtonText,
-                  formData.school === school && styles.selectedSchoolButtonText
-                ]}>
+                <Text
+                  style={[
+                    styles.schoolButtonText,
+                    formData.school === school &&
+                      styles.selectedSchoolButtonText,
+                  ]}
+                >
                   {school}
                 </Text>
               </TouchableOpacity>
@@ -202,14 +237,19 @@ export default function CreateProfileScreen() {
               key={year}
               style={[
                 styles.yearButton,
-                formData.graduationYear === year && styles.selectedYearButton
+                formData.graduationYear === year && styles.selectedYearButton,
               ]}
-              onPress={() => setFormData(prev => ({ ...prev, graduationYear: year }))}
+              onPress={() =>
+                setFormData((prev) => ({ ...prev, graduationYear: year }))
+              }
             >
-              <Text style={[
-                styles.yearButtonText,
-                formData.graduationYear === year && styles.selectedYearButtonText
-              ]}>
+              <Text
+                style={[
+                  styles.yearButtonText,
+                  formData.graduationYear === year &&
+                    styles.selectedYearButtonText,
+                ]}
+              >
                 {year}
               </Text>
             </TouchableOpacity>
@@ -222,7 +262,9 @@ export default function CreateProfileScreen() {
           label="Major"
           placeholder="Computer Science"
           value={formData.major}
-          onChangeText={(text) => setFormData(prev => ({ ...prev, major: text }))}
+          onChangeText={(text) =>
+            setFormData((prev) => ({ ...prev, major: text }))
+          }
         />
       </View>
     </View>
@@ -231,7 +273,9 @@ export default function CreateProfileScreen() {
   const renderInterestsStep = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>Your Interests</Text>
-      <Text style={styles.stepSubtitle}>Select what you are passionate about</Text>
+      <Text style={styles.stepSubtitle}>
+        Select what you are passionate about
+      </Text>
 
       <View style={styles.interestsGrid}>
         {availableInterests.map((interest) => (
@@ -239,14 +283,18 @@ export default function CreateProfileScreen() {
             key={interest}
             style={[
               styles.interestButton,
-              formData.interests.includes(interest) && styles.selectedInterestButton
+              formData.interests.includes(interest) &&
+                styles.selectedInterestButton,
             ]}
             onPress={() => toggleInterest(interest)}
           >
-            <Text style={[
-              styles.interestButtonText,
-              formData.interests.includes(interest) && styles.selectedInterestButtonText
-            ]}>
+            <Text
+              style={[
+                styles.interestButtonText,
+                formData.interests.includes(interest) &&
+                  styles.selectedInterestButtonText,
+              ]}
+            >
               {interest}
             </Text>
           </TouchableOpacity>
@@ -258,13 +306,17 @@ export default function CreateProfileScreen() {
         <CustomTextInput
           placeholder="Instagram username"
           value={formData.instagram}
-          onChangeText={(text) => setFormData(prev => ({ ...prev, instagram: text }))}
+          onChangeText={(text) =>
+            setFormData((prev) => ({ ...prev, instagram: text }))
+          }
           autoCapitalize="none"
         />
         <CustomTextInput
           placeholder="Snapchat username"
           value={formData.snapchat}
-          onChangeText={(text) => setFormData(prev => ({ ...prev, snapchat: text }))}
+          onChangeText={(text) =>
+            setFormData((prev) => ({ ...prev, snapchat: text }))
+          }
           autoCapitalize="none"
         />
       </View>
@@ -273,21 +325,31 @@ export default function CreateProfileScreen() {
 
   const renderCurrentStep = () => {
     switch (currentStep) {
-      case 1: return renderPhotosStep();
-      case 2: return renderBioStep();
-      case 3: return renderBasicInfoStep();
-      case 4: return renderInterestsStep();
-      default: return renderPhotosStep();
+      case 1:
+        return renderPhotosStep();
+      case 2:
+        return renderBioStep();
+      case 3:
+        return renderBasicInfoStep();
+      case 4:
+        return renderInterestsStep();
+      default:
+        return renderPhotosStep();
     }
   };
 
   const getStepTitle = () => {
     switch (currentStep) {
-      case 1: return 'Photos';
-      case 2: return 'About You';
-      case 3: return 'Basic Info';
-      case 4: return 'Interests';
-      default: return 'Setup';
+      case 1:
+        return 'Photos';
+      case 2:
+        return 'About You';
+      case 3:
+        return 'Basic Info';
+      case 4:
+        return 'Interests';
+      default:
+        return 'Setup';
     }
   };
 
@@ -301,11 +363,17 @@ export default function CreateProfileScreen() {
           <MaterialIcons
             name="arrow-back"
             size={24}
-            color={currentStep === 1 ? AppColors.backgroundDimmer : AppColors.foregroundDefault}
+            color={
+              currentStep === 1
+                ? AppColors.backgroundDimmer
+                : AppColors.foregroundDefault
+            }
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{getStepTitle()}</Text>
-        <Text style={styles.stepCounter}>{currentStep}/{totalSteps}</Text>
+        <Text style={styles.stepCounter}>
+          {currentStep}/{totalSteps}
+        </Text>
       </View>
 
       {renderStepIndicator()}

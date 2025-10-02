@@ -27,24 +27,36 @@ export default function NotificationItem({
   const iconColor = AppColors.accentDefault;
 
   return (
-    <TouchableOpacity style={[styles.container, !read && styles.unread]} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.container, !read && styles.unread]}
+      onPress={onPress}
+    >
       <View style={styles.left}>
         {image ? (
           <View style={styles.imageContainer}>
             <Image source={{ uri: image }} style={styles.image} />
-            <View style={[styles.iconBadge, { backgroundColor: iconColor + '15' }]}>
+            <View
+              style={[styles.iconBadge, { backgroundColor: iconColor + '15' }]}
+            >
               <MaterialIcons name={icon as any} size={16} color={iconColor} />
             </View>
           </View>
         ) : (
-          <View style={[styles.iconContainer, { backgroundColor: iconColor + '15' }]}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: iconColor + '15' },
+            ]}
+          >
             <MaterialIcons name={icon as any} size={20} color={iconColor} />
           </View>
         )}
       </View>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={[styles.title, !read && styles.unreadTitle]}>{title}</Text>
+          <Text style={[styles.title, !read && styles.unreadTitle]}>
+            {title}
+          </Text>
           <Text style={styles.timestamp}>{timestamp}</Text>
         </View>
         <Text style={styles.message}>{message}</Text>
