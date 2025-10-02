@@ -14,29 +14,31 @@ const allowedOrigins = [
   'https://redi.love',
   'http://localhost:3000',
   'http://localhost:3001',
-  /\.netlify\.app$/  // Allow any Netlify preview/deploy
+  /\.netlify\.app$/, // Allow any Netlify preview/deploy
 ];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
 
-    const isAllowed = allowedOrigins.some(allowed => {
-      if (typeof allowed === 'string') {
-        return origin === allowed;
+      const isAllowed = allowedOrigins.some((allowed) => {
+        if (typeof allowed === 'string') {
+          return origin === allowed;
+        }
+        return allowed.test(origin);
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
       }
-      return allowed.test(origin);
-    });
-
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
+    },
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 

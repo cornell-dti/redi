@@ -97,6 +97,7 @@ Located in `/backend/scripts/`:
   - Includes verification and detailed logging
 
 **Usage Example:**
+
 ```bash
 cd backend
 
@@ -108,6 +109,7 @@ npx tsx scripts/upload-emails.ts
 ```
 
 **Requirements:**
+
 - `response.json` file in backend root containing array of `{id, email}` objects
 - Firebase project configured with proper credentials in `.env`
 - `landing-emails` and `stats` Firestore collections (auto-created if missing)
