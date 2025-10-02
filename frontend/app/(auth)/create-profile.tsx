@@ -1,18 +1,19 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Image,
-  Alert,
-  StatusBar,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import React, { useState } from 'react';
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AppButton from '../components/AppButton';
+import CustomTextInput from '../components/ui/CustomTextInput';
 
 // Mock data for dropdowns
 const schools = [
@@ -86,7 +87,7 @@ export default function CreateProfileScreen() {
       // TODO: Submit to backend API
       console.log('Profile data:', formData);
       Alert.alert('Success!', 'Your profile has been created!', [
-        { text: 'Continue', onPress: () => router.replace('/(auth)/(tabs)') }
+        { text: 'Continue', onPress: () => router.replace('/(auth)/(tabs)' as any) }
       ]);
     } catch (error) {
       Alert.alert('Error', 'Failed to create profile. Please try again.');
@@ -158,14 +159,14 @@ export default function CreateProfileScreen() {
       <Text style={styles.stepTitle}>Tell us about yourself</Text>
       <Text style={styles.stepSubtitle}>Write a bio that shows your personality</Text>
 
-      <TextInput
-        style={styles.bioInput}
+      <CustomTextInput
         placeholder="I love exploring Ithaca's gorges, trying new restaurants on the Commons, and weekend hiking trips..."
         value={formData.bio}
         onChangeText={(text) => setFormData(prev => ({ ...prev, bio: text }))}
         multiline
+        numberOfLines={4}
         maxLength={500}
-        textAlignVertical="top"
+        style={styles.bioInput}
       />
       <Text style={styles.charCounter}>{formData.bio.length}/500</Text>
     </View>
@@ -225,9 +226,8 @@ export default function CreateProfileScreen() {
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>Major</Text>
-        <TextInput
-          style={styles.textInput}
+        <CustomTextInput
+          label="Major"
           placeholder="Computer Science"
           value={formData.major}
           onChangeText={(text) => setFormData(prev => ({ ...prev, major: text }))}
@@ -239,7 +239,7 @@ export default function CreateProfileScreen() {
   const renderInterestsStep = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>Your Interests</Text>
-      <Text style={styles.stepSubtitle}>Select what you're passionate about</Text>
+      <Text style={styles.stepSubtitle}>Select what you are passionate about</Text>
 
       <View style={styles.interestsGrid}>
         {availableInterests.map((interest) => (
@@ -263,17 +263,17 @@ export default function CreateProfileScreen() {
 
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>Social Media (Optional)</Text>
-        <TextInput
-          style={styles.textInput}
+        <CustomTextInput
           placeholder="Instagram username"
           value={formData.instagram}
           onChangeText={(text) => setFormData(prev => ({ ...prev, instagram: text }))}
+          autoCapitalize="none"
         />
-        <TextInput
-          style={styles.textInput}
+        <CustomTextInput
           placeholder="Snapchat username"
           value={formData.snapchat}
           onChangeText={(text) => setFormData(prev => ({ ...prev, snapchat: text }))}
+          autoCapitalize="none"
         />
       </View>
     </View>
@@ -324,19 +324,14 @@ export default function CreateProfileScreen() {
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNavigation}>
-        <TouchableOpacity
-          style={styles.nextButton}
+        <AppButton
+          title={currentStep === totalSteps ? 'Complete Profile' : 'Next'}
           onPress={handleNext}
-        >
-          <Text style={styles.nextButtonText}>
-            {currentStep === totalSteps ? 'Complete Profile' : 'Next'}
-          </Text>
-          <MaterialIcons
-            name={currentStep === totalSteps ? 'check' : 'arrow-forward'}
-            size={20}
-            color="white"
-          />
-        </TouchableOpacity>
+          variant="primary"
+          size="large"
+          fullWidth
+          icon={currentStep === totalSteps ? 'check' : 'arrow-forward'}
+        />
       </View>
     </SafeAreaView>
   );
@@ -446,14 +441,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   bioInput: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
     height: 120,
-    fontSize: 16,
-    color: '#333',
-    borderWidth: 1,
-    borderColor: '#E1E1E1',
+    textAlignVertical: 'top',
   },
   charCounter: {
     fontSize: 12,
@@ -468,16 +457,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 12,
-  },
-  textInput: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: '#333',
-    borderWidth: 1,
-    borderColor: '#E1E1E1',
     marginBottom: 12,
   },
   schoolButtons: {
@@ -561,19 +540,5 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopWidth: 1,
     borderTopColor: '#E1E1E1',
-  },
-  nextButton: {
-    backgroundColor: '#FF6B6B',
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  nextButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

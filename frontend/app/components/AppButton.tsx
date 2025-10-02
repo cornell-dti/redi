@@ -1,12 +1,11 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import {
-  TouchableOpacity,
   Text,
-  StyleSheet,
-  ViewStyle,
   TextStyle,
+  TouchableOpacity,
+  ViewStyle
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 
 interface AppButtonProps {
   title: string;
@@ -54,7 +53,7 @@ export default function AppButton({
       case 'primary':
         return {
           ...baseStyle,
-          backgroundColor: '#FF6B6B',
+          backgroundColor: '#FF8DBD',
         };
       case 'secondary':
         return {
@@ -66,7 +65,7 @@ export default function AppButton({
           ...baseStyle,
           backgroundColor: 'transparent',
           borderWidth: 1,
-          borderColor: '#FF6B6B',
+          borderColor: '#FF8DBD',
         };
       default:
         return baseStyle;
@@ -93,7 +92,7 @@ export default function AppButton({
       case 'outline':
         return {
           ...baseTextStyle,
-          color: '#FF6B6B',
+          color: '#FF8DBD',
         };
       default:
         return baseTextStyle;
@@ -107,7 +106,7 @@ export default function AppButton({
       case 'secondary':
         return '#333';
       case 'outline':
-        return '#FF6B6B';
+        return '#FFF8DBD';
       default:
         return '#333';
     }
