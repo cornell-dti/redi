@@ -1,4 +1,8 @@
-import { CreateProfileInput, ProfileResponse, UpdateProfileInput } from '@/types';
+import {
+  CreateProfileInput,
+  ProfileResponse,
+  UpdateProfileInput,
+} from '@/types';
 import auth from '@react-native-firebase/auth';
 import React, { useState } from 'react';
 import {
@@ -8,7 +12,7 @@ import {
   Switch,
   Text,
   TextInput,
-  View
+  View,
 } from 'react-native';
 import {
   createProfile,
@@ -23,15 +27,20 @@ import {
 const ProfileTester = () => {
   const user = auth().currentUser;
   const [loading, setLoading] = useState(false);
-  const [currentProfile, setCurrentProfile] = useState<ProfileResponse | null>(null);
+  const [currentProfile, setCurrentProfile] = useState<ProfileResponse | null>(
+    null
+  );
   const [searchNetid, setSearchNetid] = useState('');
-  const [searchedProfile, setSearchedProfile] = useState<ProfileResponse | null>(null);
+  const [searchedProfile, setSearchedProfile] =
+    useState<ProfileResponse | null>(null);
   const [matches, setMatches] = useState<ProfileResponse[]>([]);
   const [allProfiles, setAllProfiles] = useState<ProfileResponse[]>([]);
 
   // Form state for creating/updating profile
   const [bio, setBio] = useState('Testing bio from mobile app');
-  const [gender, setGender] = useState<'female' | 'male' | 'non-binary'>('female');
+  const [gender, setGender] = useState<'female' | 'male' | 'non-binary'>(
+    'female'
+  );
   const [birthdate, setBirthdate] = useState('2000-01-01');
   const [instagram, setInstagram] = useState('');
   const [snapchat, setSnapchat] = useState('');
@@ -41,7 +50,9 @@ const ProfileTester = () => {
   const [major, setMajor] = useState('Computer Science,Mathematics');
 
   // Filter state
-  const [filterGender, setFilterGender] = useState<'female' | 'male' | 'non-binary' | ''>('');
+  const [filterGender, setFilterGender] = useState<
+    'female' | 'male' | 'non-binary' | ''
+  >('');
   const [filterSchool, setFilterSchool] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
@@ -61,10 +72,18 @@ const ProfileTester = () => {
       Alert.alert(
         'Profile Retrieved',
         `Bio: ${profile.bio}\nSchool: ${profile.school}\nYear: ${profile.year}`,
-        [{ text: 'OK', onPress: () => console.log('Current profile:', profile) }]
+        [
+          {
+            text: 'OK',
+            onPress: () => console.log('Current profile:', profile),
+          },
+        ]
       );
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to get profile');
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'Failed to get profile'
+      );
     } finally {
       setLoading(false);
     }
@@ -80,7 +99,10 @@ const ProfileTester = () => {
     }
 
     if (!bio.trim() || !birthdate.trim() || !year.trim() || !school.trim()) {
-      Alert.alert('Error', 'Please fill in all required fields (bio, birthdate, year, school)');
+      Alert.alert(
+        'Error',
+        'Please fill in all required fields (bio, birthdate, year, school)'
+      );
       return;
     }
 
@@ -93,7 +115,7 @@ const ProfileTester = () => {
       phoneNumber: phoneNumber.trim() || undefined,
       year: parseInt(year),
       school: school.trim(),
-      major: major.trim() ? major.split(',').map(m => m.trim()) : []
+      major: major.trim() ? major.split(',').map((m) => m.trim()) : [],
     };
 
     setLoading(true);
@@ -108,12 +130,15 @@ const ProfileTester = () => {
             onPress: () => {
               console.log('Create result:', result);
               handleGetCurrentProfile(); // Refresh current profile
-            }
-          }
+            },
+          },
         ]
       );
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to create profile');
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'Failed to create profile'
+      );
     } finally {
       setLoading(false);
     }
@@ -129,14 +154,14 @@ const ProfileTester = () => {
     }
 
     const updateData: UpdateProfileInput = {};
-    
+
     if (bio.trim()) updateData.bio = bio.trim();
     if (instagram.trim()) updateData.instagram = instagram.trim();
     if (snapchat.trim()) updateData.snapchat = snapchat.trim();
     if (phoneNumber.trim()) updateData.phoneNumber = phoneNumber.trim();
     if (year.trim()) updateData.year = parseInt(year);
     if (school.trim()) updateData.school = school.trim();
-    if (major.trim()) updateData.major = major.split(',').map(m => m.trim());
+    if (major.trim()) updateData.major = major.split(',').map((m) => m.trim());
 
     if (Object.keys(updateData).length === 0) {
       Alert.alert('Error', 'Please provide at least one field to update');
@@ -146,21 +171,20 @@ const ProfileTester = () => {
     setLoading(true);
     try {
       const result = await updateProfile(user.uid, updateData);
-      Alert.alert(
-        'Profile Updated',
-        result.message,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              console.log('Update result:', result);
-              handleGetCurrentProfile(); // Refresh current profile
-            }
-          }
-        ]
-      );
+      Alert.alert('Profile Updated', result.message, [
+        {
+          text: 'OK',
+          onPress: () => {
+            console.log('Update result:', result);
+            handleGetCurrentProfile(); // Refresh current profile
+          },
+        },
+      ]);
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to update profile');
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'Failed to update profile'
+      );
     } finally {
       setLoading(false);
     }
@@ -190,12 +214,17 @@ const ProfileTester = () => {
               setCurrentProfile(null);
               Alert.alert('Profile Deleted', result.message);
             } catch (error) {
-              Alert.alert('Error', error instanceof Error ? error.message : 'Failed to delete profile');
+              Alert.alert(
+                'Error',
+                error instanceof Error
+                  ? error.message
+                  : 'Failed to delete profile'
+              );
             } finally {
               setLoading(false);
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -216,10 +245,18 @@ const ProfileTester = () => {
       Alert.alert(
         'Profile Found',
         `${profile.netid}\nBio: ${profile.bio}\nSchool: ${profile.school}`,
-        [{ text: 'OK', onPress: () => console.log('Searched profile:', profile) }]
+        [
+          {
+            text: 'OK',
+            onPress: () => console.log('Searched profile:', profile),
+          },
+        ]
       );
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to get profile');
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'Failed to get profile'
+      );
     } finally {
       setLoading(false);
     }
@@ -244,7 +281,10 @@ const ProfileTester = () => {
         [{ text: 'OK', onPress: () => console.log('Matches:', matchResults) }]
       );
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to get matches');
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'Failed to get matches'
+      );
     } finally {
       setLoading(false);
     }
@@ -255,7 +295,7 @@ const ProfileTester = () => {
    */
   const handleGetAllProfiles = async () => {
     const options: any = { limit: 20 };
-    
+
     if (filterGender) options.gender = filterGender;
     if (filterSchool.trim()) options.school = filterSchool.trim();
     if (user?.email) {
@@ -272,7 +312,10 @@ const ProfileTester = () => {
         [{ text: 'OK', onPress: () => console.log('All profiles:', profiles) }]
       );
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to get profiles');
+      Alert.alert(
+        'Error',
+        error instanceof Error ? error.message : 'Failed to get profiles'
+      );
     } finally {
       setLoading(false);
     }
@@ -281,15 +324,37 @@ const ProfileTester = () => {
   const renderProfile = (profile: ProfileResponse, title: string) => (
     <View style={styles.profileCard}>
       <Text style={styles.profileTitle}>{title}</Text>
-      <Text style={styles.profileText}><Text style={styles.bold}>Netid:</Text> {profile.netid}</Text>
-      <Text style={styles.profileText}><Text style={styles.bold}>Bio:</Text> {profile.bio}</Text>
-      <Text style={styles.profileText}><Text style={styles.bold}>Gender:</Text> {profile.gender}</Text>
-      <Text style={styles.profileText}><Text style={styles.bold}>School:</Text> {profile.school}</Text>
-      <Text style={styles.profileText}><Text style={styles.bold}>Year:</Text> {profile.year}</Text>
-      <Text style={styles.profileText}><Text style={styles.bold}>Major:</Text> {profile.major.join(', ')}</Text>
-      {profile.instagram && <Text style={styles.profileText}><Text style={styles.bold}>Instagram:</Text> {profile.instagram}</Text>}
-      {profile.snapchat && <Text style={styles.profileText}><Text style={styles.bold}>Snapchat:</Text> {profile.snapchat}</Text>}
-      <Text style={styles.profileDate}>Created: {new Date(profile.createdAt).toLocaleDateString()}</Text>
+      <Text style={styles.profileText}>
+        <Text style={styles.bold}>Netid:</Text> {profile.netid}
+      </Text>
+      <Text style={styles.profileText}>
+        <Text style={styles.bold}>Bio:</Text> {profile.bio}
+      </Text>
+      <Text style={styles.profileText}>
+        <Text style={styles.bold}>Gender:</Text> {profile.gender}
+      </Text>
+      <Text style={styles.profileText}>
+        <Text style={styles.bold}>School:</Text> {profile.school}
+      </Text>
+      <Text style={styles.profileText}>
+        <Text style={styles.bold}>Year:</Text> {profile.year}
+      </Text>
+      <Text style={styles.profileText}>
+        <Text style={styles.bold}>Major:</Text> {profile.major.join(', ')}
+      </Text>
+      {profile.instagram && (
+        <Text style={styles.profileText}>
+          <Text style={styles.bold}>Instagram:</Text> {profile.instagram}
+        </Text>
+      )}
+      {profile.snapchat && (
+        <Text style={styles.profileText}>
+          <Text style={styles.bold}>Snapchat:</Text> {profile.snapchat}
+        </Text>
+      )}
+      <Text style={styles.profileDate}>
+        Created: {new Date(profile.createdAt).toLocaleDateString()}
+      </Text>
     </View>
   );
 
@@ -300,7 +365,7 @@ const ProfileTester = () => {
       {/* Profile Form */}
       <View style={styles.formSection}>
         <Text style={styles.formTitle}>Profile Form Data</Text>
-        
+
         <TextInput
           style={styles.input}
           placeholder="Bio (required)"
@@ -308,7 +373,7 @@ const ProfileTester = () => {
           onChangeText={setBio}
           multiline
         />
-        
+
         <View style={styles.pickerContainer}>
           <Text style={styles.label}>Gender:</Text>
           <View style={styles.genderButtons}>
@@ -322,35 +387,35 @@ const ProfileTester = () => {
             ))}
           </View>
         </View>
-        
+
         <TextInput
           style={styles.input}
           placeholder="Birthdate (YYYY-MM-DD, required)"
           value={birthdate}
           onChangeText={setBirthdate}
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Instagram handle"
           value={instagram}
           onChangeText={setInstagram}
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Snapchat username"
           value={snapchat}
           onChangeText={setSnapchat}
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Phone number"
           value={phoneNumber}
           onChangeText={setPhoneNumber}
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Year (required)"
@@ -358,14 +423,14 @@ const ProfileTester = () => {
           onChangeText={setYear}
           keyboardType="numeric"
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="School (required)"
           value={school}
           onChangeText={setSchool}
         />
-        
+
         <TextInput
           style={styles.input}
           placeholder="Major (comma-separated)"
@@ -377,27 +442,27 @@ const ProfileTester = () => {
       {/* Profile Action Buttons */}
       <View style={styles.buttonSection}>
         <Button
-          title={loading ? "Loading..." : "GET My Profile"}
+          title={loading ? 'Loading...' : 'GET My Profile'}
           onPress={handleGetCurrentProfile}
           disabled={loading}
         />
-        
+
         <Button
-          title={loading ? "Loading..." : "CREATE Profile"}
+          title={loading ? 'Loading...' : 'CREATE Profile'}
           onPress={handleCreateProfile}
           disabled={loading}
           color="green"
         />
-        
+
         <Button
-          title={loading ? "Loading..." : "UPDATE Profile"}
+          title={loading ? 'Loading...' : 'UPDATE Profile'}
           onPress={handleUpdateProfile}
           disabled={loading}
           color="orange"
         />
-        
+
         <Button
-          title={loading ? "Loading..." : "DELETE Profile"}
+          title={loading ? 'Loading...' : 'DELETE Profile'}
           onPress={handleDeleteProfile}
           disabled={loading}
           color="red"
@@ -415,7 +480,7 @@ const ProfileTester = () => {
           autoCapitalize="none"
         />
         <Button
-          title={loading ? "Loading..." : "Search Profile"}
+          title={loading ? 'Loading...' : 'Search Profile'}
           onPress={handleGetProfileByNetid}
           disabled={loading}
         />
@@ -424,7 +489,7 @@ const ProfileTester = () => {
       {/* Discovery Buttons */}
       <View style={styles.buttonSection}>
         <Button
-          title={loading ? "Loading..." : "GET My Matches"}
+          title={loading ? 'Loading...' : 'GET My Matches'}
           onPress={handleGetMatches}
           disabled={loading}
           color="purple"
@@ -437,7 +502,7 @@ const ProfileTester = () => {
           <Text style={styles.formTitle}>All Profiles Filters</Text>
           <Switch value={showFilters} onValueChange={setShowFilters} />
         </View>
-        
+
         {showFilters && (
           <View>
             <View style={styles.pickerContainer}>
@@ -453,7 +518,7 @@ const ProfileTester = () => {
                 ))}
               </View>
             </View>
-            
+
             <TextInput
               style={styles.input}
               placeholder="Filter by School"
@@ -462,9 +527,9 @@ const ProfileTester = () => {
             />
           </View>
         )}
-        
+
         <Button
-          title={loading ? "Loading..." : "GET All Profiles"}
+          title={loading ? 'Loading...' : 'GET All Profiles'}
           onPress={handleGetAllProfiles}
           disabled={loading}
           color="blue"
@@ -472,28 +537,38 @@ const ProfileTester = () => {
       </View>
 
       {/* Display Results */}
-      {currentProfile && renderProfile(currentProfile, "My Profile")}
-      {searchedProfile && renderProfile(searchedProfile, "Searched Profile")}
-      
+      {currentProfile && renderProfile(currentProfile, 'My Profile')}
+      {searchedProfile && renderProfile(searchedProfile, 'Searched Profile')}
+
       {matches.length > 0 && (
         <View style={styles.resultsSection}>
           <Text style={styles.resultsTitle}>Matches ({matches.length})</Text>
           {matches.slice(0, 3).map((match, index) => (
             <View key={index} style={styles.miniProfile}>
-              <Text style={styles.miniProfileText}>{match.netid} - {match.school}</Text>
-              <Text style={styles.miniProfileBio}>{match.bio.substring(0, 50)}...</Text>
+              <Text style={styles.miniProfileText}>
+                {match.netid} - {match.school}
+              </Text>
+              <Text style={styles.miniProfileBio}>
+                {match.bio.substring(0, 50)}...
+              </Text>
             </View>
           ))}
         </View>
       )}
-      
+
       {allProfiles.length > 0 && (
         <View style={styles.resultsSection}>
-          <Text style={styles.resultsTitle}>All Profiles ({allProfiles.length})</Text>
+          <Text style={styles.resultsTitle}>
+            All Profiles ({allProfiles.length})
+          </Text>
           {allProfiles.slice(0, 5).map((profile, index) => (
             <View key={index} style={styles.miniProfile}>
-              <Text style={styles.miniProfileText}>{profile.netid} - {profile.school}</Text>
-              <Text style={styles.miniProfileBio}>{profile.bio.substring(0, 50)}...</Text>
+              <Text style={styles.miniProfileText}>
+                {profile.netid} - {profile.school}
+              </Text>
+              <Text style={styles.miniProfileBio}>
+                {profile.bio.substring(0, 50)}...
+              </Text>
             </View>
           ))}
         </View>

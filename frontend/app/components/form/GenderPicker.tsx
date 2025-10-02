@@ -21,8 +21,8 @@ const GenderPicker: React.FC<GenderPickerProps> = ({
   onChangeAny,
   valueAny,
 }) => {
-  const genders: (Gender | '')[] = includeAny 
-    ? ['', 'female', 'male', 'non-binary'] 
+  const genders: (Gender | '')[] = includeAny
+    ? ['', 'female', 'male', 'non-binary']
     : ['female', 'male', 'non-binary'];
 
   const handlePress = (gender: Gender | '') => {

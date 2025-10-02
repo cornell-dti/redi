@@ -5,7 +5,12 @@
   "scripts": {
     "build": "cd redi-web && npm install && npm run build",
     "dev": "npm run dev --workspaces",
-    "heroku-postbuild": "npm run build --workspace=backend"
+    "heroku-postbuild": "npm run build --workspace=backend",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\" \"!**/node_modules/**\" \"!**/dist/**\" \"!**/.expo/**\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\" \"!**/node_modules/**\" \"!**/dist/**\" \"!**/.expo/**\"",
+    "format:backend": "npm run format --workspace=backend",
+    "format:frontend": "cd frontend && npm run format",
+    "format:web": "cd redi-web && npm run format"
   },
   "devDependencies": {
     "prettier": "^3.6.2"

@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { signInUser, signInWithGoogle, signUpUser } from './api/authService';
 
-const GOOGLE_CLIENT_ID = '827839734794-ms5jes64lv5u1590imn34gnd4o9m7hj1.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID =
+  '827839734794-ms5jes64lv5u1590imn34gnd4o9m7hj1.apps.googleusercontent.com';
 const REDIRECT_SCHEME = 'com.incubator.redi';
 
 export default function Index() {
@@ -20,16 +21,25 @@ export default function Index() {
 
   const handleSignUp = async () => {
     if (!email || !password) {
-      Alert.alert('Missing Information', 'Please enter both email and password');
+      Alert.alert(
+        'Missing Information',
+        'Please enter both email and password'
+      );
       return;
     }
 
     setLoading(true);
     try {
       await signUpUser(email, password);
-      Alert.alert('Success', 'Account created successfully! Please check your email for verification.');
+      Alert.alert(
+        'Success',
+        'Account created successfully! Please check your email for verification.'
+      );
     } catch (error) {
-      Alert.alert('Registration Failed', error instanceof Error ? error.message : 'Unknown error occurred');
+      Alert.alert(
+        'Registration Failed',
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
     } finally {
       setLoading(false);
     }
@@ -37,7 +47,10 @@ export default function Index() {
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      Alert.alert('Missing Information', 'Please enter both email and password');
+      Alert.alert(
+        'Missing Information',
+        'Please enter both email and password'
+      );
       return;
     }
 
@@ -46,7 +59,10 @@ export default function Index() {
       await signInUser(email, password);
       // Navigation will be handled by _layout.tsx auth state listener
     } catch (error) {
-      Alert.alert('Sign In Failed', error instanceof Error ? error.message : 'Unknown error occurred');
+      Alert.alert(
+        'Sign In Failed',
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
     } finally {
       setLoading(false);
     }

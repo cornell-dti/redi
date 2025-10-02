@@ -8,7 +8,11 @@ interface SectionCardProps {
   style?: ViewStyle;
 }
 
-const SectionCard: React.FC<SectionCardProps> = ({ title, children, style }) => {
+const SectionCard: React.FC<SectionCardProps> = ({
+  title,
+  children,
+  style,
+}) => {
   return (
     <View style={[styles.container, style]}>
       {title && <Text style={styles.title}>{title}</Text>}

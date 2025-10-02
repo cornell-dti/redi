@@ -19,7 +19,10 @@ export const extractNetidFromEmail = (email: string): string | null => {
  * @param password - User password
  * @throws Error if registration fails
  */
-export const signUpUser = async (email: string, password: string): Promise<void> => {
+export const signUpUser = async (
+  email: string,
+  password: string
+): Promise<void> => {
   // Validate Cornell email before proceeding
   if (!validateCornellEmail(email)) {
     throw new Error('Please use your Cornell email address (@cornell.edu)');
@@ -27,7 +30,10 @@ export const signUpUser = async (email: string, password: string): Promise<void>
 
   try {
     // Create user in Firebase Auth
-    const userCredential = await auth().createUserWithEmailAndPassword(email, password);
+    const userCredential = await auth().createUserWithEmailAndPassword(
+      email,
+      password
+    );
     const firebaseUser = userCredential.user;
 
     if (firebaseUser) {
@@ -36,12 +42,16 @@ export const signUpUser = async (email: string, password: string): Promise<void>
     }
   } catch (error) {
     const err = error as FirebaseError;
-    
+
     // Handle specific Firebase errors with messages
     if (err.code === 'auth/email-already-in-use') {
-      throw new Error('An account with this email already exists. Please try logging in instead.');
+      throw new Error(
+        'An account with this email already exists. Please try logging in instead.'
+      );
     } else if (err.code === 'auth/weak-password') {
-      throw new Error('Password is too weak. Please choose a stronger password.');
+      throw new Error(
+        'Password is too weak. Please choose a stronger password.'
+      );
     } else if (err.code === 'auth/invalid-email') {
       throw new Error('Please enter a valid email address.');
     } else {
@@ -56,7 +66,10 @@ export const signUpUser = async (email: string, password: string): Promise<void>
  * @param password - User password
  * @throws Error with user-friendly message if sign in fails
  */
-export const signInUser = async (email: string, password: string): Promise<void> => {
+export const signInUser = async (
+  email: string,
+  password: string
+): Promise<void> => {
   // Validate Cornell email before proceeding
   if (!validateCornellEmail(email)) {
     throw new Error('Please use your Cornell email address (@cornell.edu)');
@@ -64,7 +77,10 @@ export const signInUser = async (email: string, password: string): Promise<void>
 
   try {
     // Sign in with Firebase Auth
-    const userCredential = await auth().signInWithEmailAndPassword(email, password);
+    const userCredential = await auth().signInWithEmailAndPassword(
+      email,
+      password
+    );
     const firebaseUser = userCredential.user;
 
     if (firebaseUser) {
@@ -75,12 +91,19 @@ export const signInUser = async (email: string, password: string): Promise<void>
     const err = error as FirebaseError;
 
     // Handle specific Firebase errors with messages
-    if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-      throw new Error('Invalid email or password. Please check your credentials and try again.');
+    if (
+      err.code === 'auth/user-not-found' ||
+      err.code === 'auth/wrong-password'
+    ) {
+      throw new Error(
+        'Invalid email or password. Please check your credentials and try again.'
+      );
     } else if (err.code === 'auth/invalid-email') {
       throw new Error('Please enter a valid email address.');
     } else if (err.code === 'auth/user-disabled') {
-      throw new Error('This account has been disabled. Please contact support.');
+      throw new Error(
+        'This account has been disabled. Please contact support.'
+      );
     } else {
       throw new Error(err.message || 'Sign in failed. Please try again.');
     }
@@ -113,12 +136,13 @@ export const signInWithGoogle = async (
 
     if (result.type === 'success') {
       const { id_token } = result.params;
-      
+
       // Create a Google credential with the token
       const googleCredential = auth.GoogleAuthProvider.credential(id_token);
-      
+
       // Sign-in the user with the credential
-      const userCredential = await auth().signInWithCredential(googleCredential);
+      const userCredential =
+        await auth().signInWithCredential(googleCredential);
       const firebaseUser = userCredential.user;
 
       if (firebaseUser && firebaseUser.email) {
@@ -126,7 +150,9 @@ export const signInWithGoogle = async (
         if (!validateCornellEmail(firebaseUser.email)) {
           // Sign out the user if they don't have a Cornell email
           await auth().signOut();
-          throw new Error('Please use your Cornell email address (@cornell.edu)');
+          throw new Error(
+            'Please use your Cornell email address (@cornell.edu)'
+          );
         }
 
         // Try to login first, if user doesn't exist, create them

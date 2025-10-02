@@ -8,17 +8,21 @@ interface ProfileCardProps {
   compact?: boolean;
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ 
-  profile, 
+const ProfileCard: React.FC<ProfileCardProps> = ({
+  profile,
   title,
-  compact = false 
+  compact = false,
 }) => {
   if (compact) {
     return (
       <View style={styles.compactCard}>
-        <Text style={styles.compactTitle}>{profile.netid} - {profile.school}</Text>
+        <Text style={styles.compactTitle}>
+          {profile.netid} - {profile.school}
+        </Text>
         <Text style={styles.compactBio}>
-          {profile.bio.length > 50 ? `${profile.bio.substring(0, 50)}...` : profile.bio}
+          {profile.bio.length > 50
+            ? `${profile.bio.substring(0, 50)}...`
+            : profile.bio}
         </Text>
       </View>
     );
@@ -27,14 +31,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   return (
     <View style={styles.fullCard}>
       {title && <Text style={styles.cardTitle}>{title}</Text>}
-      
+
       <ProfileField label="Netid" value={profile.netid} />
       <ProfileField label="Bio" value={profile.bio} />
       <ProfileField label="Gender" value={profile.gender} />
       <ProfileField label="School" value={profile.school} />
       <ProfileField label="Year" value={profile.year.toString()} />
       <ProfileField label="Major" value={profile.major.join(', ')} />
-      
+
       {profile.instagram && (
         <ProfileField label="Instagram" value={profile.instagram} />
       )}
@@ -44,7 +48,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       {profile.phoneNumber && (
         <ProfileField label="Phone" value={profile.phoneNumber} />
       )}
-      
+
       <Text style={styles.dateText}>
         Created: {new Date(profile.createdAt).toLocaleDateString()}
       </Text>
@@ -93,7 +97,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontStyle: 'italic',
   },
-  
+
   // Compact card styles
   compactCard: {
     backgroundColor: '#f9f9f9',

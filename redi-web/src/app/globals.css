@@ -1,13 +1,13 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @font-face {
   font-family: Satoshi Bold;
-  src: url("/Satoshi/Satoshi-Bold.otf");
+  src: url('/Satoshi/Satoshi-Bold.otf');
 }
 
 @font-face {
   font-family: Satoshi Medium;
-  src: url("/Satoshi/Satoshi-Medium.otf");
+  src: url('/Satoshi/Satoshi-Medium.otf');
 }
 
 :root {
@@ -34,11 +34,11 @@ body {
   color: var(--foreground);
   font-family:
     Satoshi Medium,
-    "sans-serif";
+    'sans-serif';
 }
 
 h1 {
   font-family:
     Satoshi Bold,
-    "sans-serif";
+    'sans-serif';
 }

@@ -193,6 +193,24 @@ eas build  # For app store builds (requires Expo account)
 
 Automatically deployed via Netlify on push to main branch.
 
+### Formatting
+
+Available formatting commands:
+
+From root directory (/Users/jujucrane/dev/redi):
+
+- npm run format - Format all files across the entire codebase
+- npm run format:check - Check formatting without making changes
+- npm run format:backend - Format only backend files
+- npm run format:frontend - Format only frontend files
+- npm run format:web - Format only web files
+
+From individual directories:
+
+- Backend: npm run format, npm run lint, npm run lint:fix
+- Frontend: npm run format, npm run format:check
+- Web: npm run format
+
 ## 🎯 Development Roadmap
 
 - [ ] Implement sophisticated matching algorithm

@@ -1,13 +1,13 @@
-import express from "express";
-import admin from "firebase-admin";
-import { db } from "../../firebaseAdmin";
+import express from 'express';
+import admin from 'firebase-admin';
+import { db } from '../../firebaseAdmin';
 
 const router = express.Router();
 
 // GET document(s) from Firestore
-router.get("/api/landing-emails", async (req, res) => {
+router.get('/api/landing-emails', async (req, res) => {
   try {
-    const snapshot = await db.collection("landing-emails").get();
+    const snapshot = await db.collection('landing-emails').get();
     const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     res.status(200).json(docs);
   } catch (error) {
@@ -17,7 +17,7 @@ router.get("/api/landing-emails", async (req, res) => {
 });
 
 // GET the number of users signed up on the wait list
-router.get("/api/registered-count", async (req, res) => {
+router.get('/api/registered-count', async (req, res) => {
   try {
     const doc = db.collection("stats").doc("global");
     const snapshot = await doc.get();
@@ -36,20 +36,25 @@ router.get("/api/registered-count", async (req, res) => {
 });
 
 // POST a new document
-router.post("/api/landing-emails", async (req, res) => {
+router.post('/api/landing-emails', async (req, res) => {
   try {
     const data = req.body;
-    if (!data.email || typeof data.email !== "string" || !data.email.includes("@")) {
-      return res.status(400).json({ error: "Invalid email" });
+    if (
+      !data.email ||
+      typeof data.email !== 'string' ||
+      !data.email.includes('@')
+    ) {
+      return res.status(400).json({ error: 'Invalid email' });
     }
-    const existingDoc = await db.collection("landing-emails")
-      .where("email", "==", data.email.toLowerCase())
+    const existingDoc = await db
+      .collection('landing-emails')
+      .where('email', '==', data.email.toLowerCase())
       .get();
 
     if (!existingDoc.empty) {
-      return res.status(409).json({ error: "Email already exists" });
+      return res.status(409).json({ error: 'Email already exists' });
     }
-    const docRef = await db.collection("landing-emails").add(data);
+    const docRef = await db.collection('landing-emails').add(data);
 
     // Update or create the stats document
     const statsDoc = db.collection("stats").doc("global");
@@ -64,7 +69,7 @@ router.post("/api/landing-emails", async (req, res) => {
 
     res.status(201).json({ id: docRef.id });
   } catch (error) {
-    console.error("Error adding email:", error);
+    console.error('Error adding email:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     res.status(500).json({ error: errorMessage });
   }
