@@ -1,4 +1,4 @@
-import AppButton from '@/app/components/AppButton';
+import AppButton from '@/app/components/Button';
 import { Ionicons } from '@expo/vector-icons';
 import {
   Bell,

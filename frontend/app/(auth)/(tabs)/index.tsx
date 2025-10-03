@@ -9,8 +9,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AppButton from '../../components/AppButton';
 import { AppColors } from '../../components/AppColors';
+import AppButton from '../../components/Button';
 import Header from '../../components/ui/Header';
 import MatchCard from '../../components/ui/MatchCard';
 
