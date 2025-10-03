@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { CheckCheck } from 'lucide-react-native';
 import React from 'react';
 import {
   FlatList,
@@ -79,11 +79,7 @@ export default function NotificationsScreen() {
         title="Notifications"
         right={
           <TouchableOpacity>
-            <Ionicons
-              name="checkmark-done-outline"
-              size={24}
-              color={AppColors.foregroundDimmer}
-            />
+            <CheckCheck size={24} color={AppColors.foregroundDimmer} />
           </TouchableOpacity>
         }
       />

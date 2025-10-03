@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Search, SlidersHorizontal } from 'lucide-react-native';
 import React from 'react';
 import {
   ScrollView,
@@ -54,11 +54,7 @@ export default function MatchesScreen() {
         title="Discover"
         right={
           <TouchableOpacity>
-            <MaterialIcons
-              name="tune"
-              size={24}
-              color={AppColors.foregroundDimmer}
-            />
+            <SlidersHorizontal size={24} color={AppColors.foregroundDimmer} />
           </TouchableOpacity>
         }
       />
@@ -91,11 +87,7 @@ export default function MatchesScreen() {
       </ScrollView>
 
       <TouchableOpacity style={styles.fab}>
-        <MaterialIcons
-          name="search"
-          size={28}
-          color={AppColors.backgroundDefault}
-        />
+        <Search size={28} color={AppColors.backgroundDefault} />
       </TouchableOpacity>
     </SafeAreaView>
   );

@@ -40,6 +40,7 @@
     "express": "^5.1.0",
     "firebase": "^12.2.1",
     "firebase-admin": "^13.5.0",
+    "lucide-react-native": "^0.544.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.5",

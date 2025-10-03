@@ -1,5 +1,17 @@
 import AppButton from '@/app/components/AppButton';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
+import {
+  Bell,
+  Camera,
+  ChevronRight,
+  Edit,
+  Eye,
+  Heart,
+  HelpCircle,
+  LogOut,
+  MessageCircle,
+  Shield,
+} from 'lucide-react-native';
 import React from 'react';
 import {
   Alert,
@@ -37,10 +49,31 @@ const mockUserProfile = {
 };
 
 const profileStats = [
-  { label: 'Profile Views', value: '127', icon: 'visibility' },
-  { label: 'Matches', value: '23', icon: 'favorite' },
-  { label: 'Messages', value: '8', icon: 'chat_bubble' },
+  { label: 'Profile Views', value: '127', icon: 'eye' },
+  { label: 'Matches', value: '23', icon: 'heart' },
+  { label: 'Messages', value: '8', icon: 'message-circle' },
 ];
+
+const IconComponent = ({
+  name,
+  size,
+  color,
+}: {
+  name: string;
+  size: number;
+  color: string;
+}) => {
+  switch (name) {
+    case 'eye':
+      return <Eye size={size} color={color} />;
+    case 'heart':
+      return <Heart size={size} color={color} />;
+    case 'message-circle':
+      return <MessageCircle size={size} color={color} />;
+    default:
+      return null;
+  }
+};
 
 export default function ProfileScreen() {
   const handleSignOut = async () => {
@@ -79,18 +112,10 @@ export default function ProfileScreen() {
         right={
           <View style={styles.headerButtons}>
             <TouchableOpacity>
-              <MaterialIcons
-                name="edit"
-                size={24}
-                color={AppColors.foregroundDimmer}
-              />
+              <Edit size={24} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleSignOut}>
-              <MaterialIcons
-                name="logout"
-                size={24}
-                color={AppColors.foregroundDimmer}
-              />
+              <LogOut size={24} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
           </View>
         }
@@ -110,8 +135,8 @@ export default function ProfileScreen() {
         <View style={styles.statsContainer}>
           {profileStats.map((stat) => (
             <View key={stat.label} style={styles.statCard}>
-              <MaterialIcons
-                name={stat.icon as any}
+              <IconComponent
+                name={stat.icon}
                 size={24}
                 color={AppColors.accentDefault}
               />
@@ -135,7 +160,7 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             ))}
             <TouchableOpacity style={styles.addImage}>
-              <MaterialIcons name="add-a-photo" size={32} color="#999" />
+              <Camera size={32} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
           </View>
         </View>
@@ -164,11 +189,19 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Social Media</Text>
           <InfoCard>
             <View style={styles.socialRow}>
-              <Ionicons name="logo-instagram" size={24} color="#E4405F" />
+              <Ionicons
+                name="logo-instagram"
+                size={24}
+                color={AppColors.negativeDefault}
+              />
               <Text style={styles.socialText}>{mockUserProfile.instagram}</Text>
             </View>
             <View style={styles.socialRow}>
-              <Ionicons name="logo-snapchat" size={24} color="#FFFC00" />
+              <Ionicons
+                name="logo-snapchat"
+                size={24}
+                color={AppColors.negativeDimmer}
+              />
               <Text style={styles.socialText}>{mockUserProfile.snapchat}</Text>
             </View>
           </InfoCard>
@@ -189,43 +222,19 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Settings</Text>
           <InfoCard>
             <TouchableOpacity style={styles.settingRow}>
-              <MaterialIcons
-                name="notifications"
-                size={24}
-                color={AppColors.foregroundDimmer}
-              />
+              <Bell size={24} color={AppColors.foregroundDimmer} />
               <Text style={styles.settingText}>Notifications</Text>
-              <MaterialIcons
-                name="chevron-right"
-                size={24}
-                color={AppColors.foregroundDimmer}
-              />
+              <ChevronRight size={24} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.settingRow}>
-              <MaterialIcons
-                name="security"
-                size={24}
-                color={AppColors.foregroundDimmer}
-              />
+              <Shield size={24} color={AppColors.foregroundDimmer} />
               <Text style={styles.settingText}>Privacy & Safety</Text>
-              <MaterialIcons
-                name="chevron-right"
-                size={24}
-                color={AppColors.foregroundDimmer}
-              />
+              <ChevronRight size={24} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.settingRow}>
-              <MaterialIcons
-                name="help"
-                size={24}
-                color={AppColors.foregroundDimmer}
-              />
+              <HelpCircle size={24} color={AppColors.foregroundDimmer} />
               <Text style={styles.settingText}>Help & Support</Text>
-              <MaterialIcons
-                name="chevron-right"
-                size={24}
-                color={AppColors.foregroundDimmer}
-              />
+              <ChevronRight size={24} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
           </InfoCard>
         </View>

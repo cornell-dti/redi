@@ -1,16 +1,17 @@
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { Bell, Heart, MessageCircle, User } from 'lucide-react-native';
+import { AppColors } from '../../components/AppColors';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#FF8DBD', // Dating app primary color
-        tabBarInactiveTintColor: '#666',
+        tabBarActiveTintColor: AppColors.accentDefault,
+        tabBarInactiveTintColor: AppColors.foregroundDimmer,
         tabBarStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: AppColors.backgroundDefault,
           borderTopWidth: 1,
-          borderTopColor: '#E1E1E1',
+          borderTopColor: AppColors.backgroundDimmer,
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
@@ -26,9 +27,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Matches',
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="favorite" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <Heart size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -36,7 +35,7 @@ export default function TabLayout() {
         options={{
           title: 'Chat',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles-outline" size={size} color={color} />
+            <MessageCircle size={size} color={color} />
           ),
         }}
       />
@@ -44,19 +43,15 @@ export default function TabLayout() {
         name="notifications"
         options={{
           title: 'Notifications',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="notifications-outline" size={size} color={color} />
-          ),
-          tabBarBadge: 3, // Example notification badge
+          tabBarIcon: ({ color, size }) => <Bell size={size} color={color} />,
+          tabBarBadge: 3,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />
     </Tabs>

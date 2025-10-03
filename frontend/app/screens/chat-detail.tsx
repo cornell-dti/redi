@@ -1,19 +1,27 @@
+import { router, useLocalSearchParams } from 'expo-router';
+import {
+  ArrowLeft,
+  Heart,
+  MoreVertical,
+  Plus,
+  Send,
+  Video,
+} from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   FlatList,
-  TextInput,
-  TouchableOpacity,
   Image,
-  StatusBar,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { AppColors } from '../components/AppColors';
 
 // Mock chat messages
 const mockMessages = [
@@ -133,7 +141,7 @@ export default function ChatDetailScreen() {
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <MaterialIcons name="arrow-back" size={24} color="#333" />
+          <ArrowLeft size={24} color={AppColors.foregroundDefault} />
         </TouchableOpacity>
 
         <View style={styles.headerInfo}>
@@ -151,10 +159,10 @@ export default function ChatDetailScreen() {
 
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerAction}>
-            <Ionicons name="videocam-outline" size={24} color="#666" />
+            <Video size={24} color={AppColors.foregroundDimmer} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerAction}>
-            <MaterialIcons name="more-vert" size={24} color="#666" />
+            <MoreVertical size={24} color={AppColors.foregroundDimmer} />
           </TouchableOpacity>
         </View>
       </View>
@@ -177,7 +185,7 @@ export default function ChatDetailScreen() {
       >
         <View style={styles.inputRow}>
           <TouchableOpacity style={styles.attachButton}>
-            <MaterialIcons name="add" size={24} color="#666" />
+            <Plus size={24} color={AppColors.foregroundDimmer} />
           </TouchableOpacity>
 
           <View style={styles.textInputContainer}>
@@ -186,6 +194,7 @@ export default function ChatDetailScreen() {
               value={newMessage}
               onChangeText={setNewMessage}
               placeholder="Type a message..."
+              placeholderTextColor={AppColors.foregroundDimmer}
               multiline
               maxLength={500}
             />
@@ -201,10 +210,13 @@ export default function ChatDetailScreen() {
             onPress={sendMessage}
             disabled={!newMessage.trim()}
           >
-            <MaterialIcons
-              name="send"
+            <Send
               size={20}
-              color={newMessage.trim() ? 'white' : '#999'}
+              color={
+                newMessage.trim()
+                  ? AppColors.backgroundDefault
+                  : AppColors.foregroundDimmer
+              }
             />
           </TouchableOpacity>
         </View>
@@ -212,7 +224,7 @@ export default function ChatDetailScreen() {
 
       {/* Match Info Banner (for new matches) */}
       <View style={styles.matchBanner}>
-        <MaterialIcons name="favorite" size={20} color="#FF6B6B" />
+        <Heart size={20} color={AppColors.accentDefault} />
         <Text style={styles.matchBannerText}>
           You and {name} liked each other!
         </Text>
@@ -227,16 +239,16 @@ export default function ChatDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: AppColors.backgroundDimmer,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
     borderBottomWidth: 1,
-    borderBottomColor: '#E1E1E1',
+    borderBottomColor: AppColors.backgroundDimmer,
   },
   backButton: {
     marginRight: 12,
@@ -259,7 +271,7 @@ const styles = StyleSheet.create({
   headerName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: AppColors.foregroundDefault,
   },
   headerStatus: {
     fontSize: 12,
@@ -298,11 +310,11 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   ownMessageBubble: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: AppColors.accentDefault,
     borderBottomRightRadius: 6,
   },
   otherMessageBubble: {
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
     borderBottomLeftRadius: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -315,25 +327,25 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   ownMessageText: {
-    color: 'white',
+    color: AppColors.backgroundDefault,
   },
   otherMessageText: {
-    color: '#333',
+    color: AppColors.foregroundDefault,
   },
   messageTime: {
     fontSize: 11,
     marginHorizontal: 8,
   },
   ownMessageTime: {
-    color: '#999',
+    color: AppColors.foregroundDimmer,
   },
   otherMessageTime: {
-    color: '#999',
+    color: AppColors.foregroundDimmer,
   },
   inputContainer: {
-    backgroundColor: 'white',
+    backgroundColor: AppColors.backgroundDefault,
     borderTopWidth: 1,
-    borderTopColor: '#E1E1E1',
+    borderTopColor: AppColors.backgroundDimmer,
   },
   inputRow: {
     flexDirection: 'row',
@@ -347,7 +359,7 @@ const styles = StyleSheet.create({
   },
   textInputContainer: {
     flex: 1,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -355,7 +367,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     fontSize: 16,
-    color: '#333',
+    color: AppColors.foregroundDefault,
     minHeight: 24,
   },
   sendButton: {
@@ -366,17 +378,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sendButtonActive: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: AppColors.accentDefault,
   },
   sendButtonInactive: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: AppColors.backgroundDimmer,
   },
   matchBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF9F9',
+    backgroundColor: AppColors.negativeDimmer,
     borderTopWidth: 1,
-    borderTopColor: '#FFE1E1',
+    borderTopColor: AppColors.backgroundDimmer,
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 8,
@@ -384,11 +396,11 @@ const styles = StyleSheet.create({
   matchBannerText: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
+    color: AppColors.foregroundDefault,
   },
   matchBannerAction: {
     fontSize: 14,
-    color: '#FF6B6B',
+    color: AppColors.accentDefault,
     fontWeight: '500',
   },
 });

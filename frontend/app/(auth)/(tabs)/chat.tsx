@@ -1,5 +1,5 @@
-import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { Edit, Search } from 'lucide-react-native';
 import React from 'react';
 import {
   FlatList,
@@ -68,11 +68,7 @@ export default function ChatScreen() {
         title="Messages"
         right={
           <TouchableOpacity>
-            <MaterialIcons
-              name="search"
-              size={24}
-              color={AppColors.foregroundDimmer}
-            />
+            <Search size={24} color={AppColors.foregroundDimmer} />
           </TouchableOpacity>
         }
       />
@@ -125,11 +121,7 @@ export default function ChatScreen() {
       </View>
 
       <TouchableOpacity style={styles.fab}>
-        <MaterialIcons
-          name="edit"
-          size={24}
-          color={AppColors.backgroundDefault}
-        />
+        <Edit size={24} color={AppColors.backgroundDefault} />
       </TouchableOpacity>
     </SafeAreaView>
   );
