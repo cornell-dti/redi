@@ -1,5 +1,25 @@
 import { Stack } from 'expo-router';
-const Layout = () => {
-  return <Stack />;
-};
-export default Layout;
+
+export default function AuthLayout() {
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen
+        name="(tabs)"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="create-profile"
+        options={{
+          headerShown: false,
+          presentation: 'modal',
+        }}
+      />
+    </Stack>
+  );
+}

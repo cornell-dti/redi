@@ -4,15 +4,12 @@
     "slug": "redi",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": {
-      "src": "./assets/images/icon.png",
-      "supportsTablet": true
-    },
+    "icon": "./assets/images/icon.png",
     "scheme": "redi",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.incubator.redi",
       "googleServicesFile": "./GoogleService-Info.plist"
     },
