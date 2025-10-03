@@ -48,21 +48,6 @@ index.tsx (Welcome/Login)
 └── profile.tsx (User Profile)
 ```
 
-## Design System (TEMPORARY)
-
-### Colors (AppColors.ts)
-
-- **Primary**: `#FF6B6B` (Dating app red)
-- **Secondary**: `#4CAF50` (Green for success)
-- **Background**: `#F8F9FA` (Light gray)
-- **Text**: `#333333` (Dark gray)
-
-### Components
-
-- **AppButton**: Consistent button styling (primary/secondary/outline variants)
-- **TabBarIcon**: Unified icon component for tabs
-- **Consistent spacing**: 8px, 12px, 16px, 20px grid
-
 ## TODO Items
 
 1. **Backend Integration**
