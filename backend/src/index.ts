@@ -5,10 +5,21 @@ import landingPageRouter from './routes/landing-page';
 import profilesRouter from './routes/profiles';
 import usersRouter from './routes/users';
 
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+process.on('uncaughtException', (error) => {
+  console.error('UNCAUGHT EXCEPTION:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('UNHANDLED REJECTION at:', promise, 'reason:', reason);
+  process.exit(1);
+});
 
 const allowedOrigins = [
   'https://redi.love',
