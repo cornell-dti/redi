@@ -1,4 +1,4 @@
-import AppButton from '@/app/components/Button';
+import Button from '@/app/components/ui/Button';
 import { Ionicons } from '@expo/vector-icons';
 import {
   Bell,
@@ -125,7 +125,7 @@ export default function ProfileScreen() {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <AppButton
+        <Button
           title={'Preview Profile'}
           onPress={() => {}}
           variant="primary"

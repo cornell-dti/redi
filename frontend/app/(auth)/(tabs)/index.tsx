@@ -1,3 +1,4 @@
+import Button from '@/app/components/ui/Button';
 import { Search, SlidersHorizontal } from 'lucide-react-native';
 import React from 'react';
 import {
@@ -10,7 +11,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
-import AppButton from '../../components/Button';
 import Header from '../../components/ui/Header';
 import MatchCard from '../../components/ui/MatchCard';
 
@@ -76,7 +76,7 @@ export default function MatchesScreen() {
             />
           ))}
 
-          <AppButton
+          <Button
             title="Load More Profiles"
             onPress={() => {}}
             variant="outline"

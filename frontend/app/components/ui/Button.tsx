@@ -1,9 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, TextStyle, TouchableOpacity, ViewStyle } from 'react-native';
-import { AppColors } from './AppColors';
+import { AppColors } from '../AppColors';
 
-interface AppButtonProps {
+interface ButtonProps {
   title: string;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'outline';
@@ -15,7 +15,7 @@ interface AppButtonProps {
   textStyle?: TextStyle;
 }
 
-export default function AppButton({
+export default function Button({
   title,
   onPress,
   variant = 'primary',
@@ -25,7 +25,7 @@ export default function AppButton({
   fullWidth = false,
   style,
   textStyle,
-}: AppButtonProps) {
+}: ButtonProps) {
   const getButtonStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
       flexDirection: 'row',

@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
-import AppButton from '../components/Button';
+import Button from '../components/ui/Button';
 import CustomTextInput from '../components/ui/CustomTextInput';
 
 // Mock data for dropdowns
@@ -384,7 +384,7 @@ export default function CreateProfileScreen() {
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNavigation}>
-        <AppButton
+        <Button
           title={currentStep === totalSteps ? 'Complete Profile' : 'Next'}
           onPress={handleNext}
           variant="primary"
