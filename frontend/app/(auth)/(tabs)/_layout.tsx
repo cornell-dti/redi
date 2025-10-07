@@ -1,3 +1,6 @@
+import FilledBellIcon from '@/app/components/icons/FilledBellIcon';
+import FilledChatIcon from '@/app/components/icons/FilledChatIcon';
+import FilledHeartIcon from '@/app/components/icons/FilledHeartIcon';
 import { Tabs } from 'expo-router';
 import { Bell, Heart, MessageCircle, User } from 'lucide-react-native';
 import { useRef } from 'react';
@@ -65,7 +68,12 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Matches',
-          tabBarIcon: ({ color, size }) => <Heart size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) =>
+            focused ? (
+              <FilledHeartIcon size={size} color={color} />
+            ) : (
+              <Heart size={size} color={color} />
+            ),
           tabBarButton: (props) => <AnimatedTabButton {...props} />,
         }}
       />
@@ -73,9 +81,12 @@ export default function TabLayout() {
         name="chat"
         options={{
           title: 'Chat',
-          tabBarIcon: ({ color, size }) => (
-            <MessageCircle size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size, focused }) =>
+            focused ? (
+              <FilledChatIcon size={size} color={color} />
+            ) : (
+              <MessageCircle size={size} color={color} />
+            ),
           tabBarButton: (props) => <AnimatedTabButton {...props} />,
         }}
       />
@@ -83,7 +94,12 @@ export default function TabLayout() {
         name="notifications"
         options={{
           title: 'Notifications',
-          tabBarIcon: ({ color, size }) => <Bell size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) =>
+            focused ? (
+              <FilledBellIcon size={size} color={color} />
+            ) : (
+              <Bell size={size} color={color} />
+            ),
           tabBarBadge: 3,
           tabBarBadgeStyle: {
             backgroundColor: AppColors.negativeDefault,
