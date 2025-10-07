@@ -19,6 +19,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
-    gap: 4, // RN supports gap in newer versions; if unsupported, alternatives may be needed
+    gap: 4,
   },
 });
