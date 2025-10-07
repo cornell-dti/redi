@@ -1,6 +1,7 @@
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors } from '../AppColors';
+import AppText from './AppText';
 
 interface ChatItemProps {
   name: string;
@@ -29,16 +30,19 @@ export default function ChatItem({
       </View>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.timestamp}>{timestamp}</Text>
+          <AppText variant="subtitle">{name}</AppText>
+          <AppText variant="bodySmall" color="dimmer">
+            {timestamp}
+          </AppText>
         </View>
         <View style={styles.messageContainer}>
-          <Text
-            style={[styles.lastMessage, unread && styles.unreadMessage]}
+          <AppText
+            variant="body"
+            style={[styles.lastMessage, unread && { fontWeight: '500' }]}
             numberOfLines={1}
           >
             {lastMessage}
-          </Text>
+          </AppText>
           {unread && <View style={styles.unreadDot} />}
         </View>
       </View>
@@ -82,27 +86,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
-  name: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: AppColors.foregroundDefault,
-  },
-  timestamp: {
-    fontSize: 12,
-    color: AppColors.foregroundDimmer,
-  },
   messageContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   lastMessage: {
-    fontSize: 14,
-    color: AppColors.foregroundDefault,
     flex: 1,
-  },
-  unreadMessage: {
-    fontWeight: '500',
   },
   unreadDot: {
     width: 8,

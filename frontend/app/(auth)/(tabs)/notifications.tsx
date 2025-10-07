@@ -1,10 +1,10 @@
+import AppText from '@/app/components/ui/AppText';
 import { CheckCheck } from 'lucide-react-native';
 import React from 'react';
 import {
   FlatList,
   StatusBar,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -86,16 +86,22 @@ export default function NotificationsScreen() {
 
       <View style={styles.filterContainer}>
         <TouchableOpacity style={[styles.filterTab, styles.activeTab]}>
-          <Text style={[styles.filterText, styles.activeFilterText]}>All</Text>
+          <AppText variant="body">All</AppText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.filterTab}>
-          <Text style={styles.filterText}>Matches</Text>
+          <AppText variant="body" color="dimmer">
+            Matches
+          </AppText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.filterTab}>
-          <Text style={styles.filterText}>Messages</Text>
+          <AppText variant="body" color="dimmer">
+            Messages
+          </AppText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.filterTab}>
-          <Text style={styles.filterText}>Likes</Text>
+          <AppText variant="body" color="dimmer">
+            Likes
+          </AppText>
         </TouchableOpacity>
       </View>
 
@@ -141,14 +147,6 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     backgroundColor: AppColors.accentDefault,
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: AppColors.foregroundDimmer,
-  },
-  activeFilterText: {
-    color: AppColors.backgroundDefault,
   },
   list: {
     backgroundColor: AppColors.backgroundDefault,

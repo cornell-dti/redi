@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
+import AppText from './AppText';
 
 interface InfoRowProps {
   label: string;
@@ -10,8 +11,12 @@ interface InfoRowProps {
 export default function InfoRow({ label, value }: InfoRowProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
-      <Text style={styles.value}>{value}</Text>
+      <AppText variant="body" color="dimmer">
+        {label}
+      </AppText>
+      <AppText variant="body" style={styles.value}>
+        {value}
+      </AppText>
     </View>
   );
 }
@@ -25,15 +30,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: AppColors.backgroundDimmer,
   },
-  label: {
-    fontSize: 14,
-    color: AppColors.foregroundDimmer,
-    fontWeight: '500',
-  },
   value: {
-    fontSize: 14,
-    color: AppColors.foregroundDefault,
-    fontWeight: '500',
     textAlign: 'right',
     flex: 1,
     marginLeft: 16,

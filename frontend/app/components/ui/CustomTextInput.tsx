@@ -1,12 +1,7 @@
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TextInputProps,
-  View,
-} from 'react-native';
+import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 import { AppColors } from '../AppColors';
+import AppText from './AppText';
 
 interface CustomTextInputProps extends TextInputProps {
   label?: string;
@@ -24,16 +19,25 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   return (
     <View style={styles.container}>
       {label && (
-        <Text style={styles.label}>
+        <AppText variant="body" style={{ marginBottom: 5 }}>
           {label}
-          {required && <Text style={styles.required}> *</Text>}
-        </Text>
+          {required && (
+            <AppText variant="body" color="negative">
+              {' '}
+              *
+            </AppText>
+          )}
+        </AppText>
       )}
       <TextInput
         style={[styles.input, error && styles.inputError, style]}
         {...props}
       />
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && (
+        <AppText variant="bodySmall" color="negative" style={{ marginTop: 4 }}>
+          {error}
+        </AppText>
+      )}
     </View>
   );
 };
@@ -41,15 +45,6 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 12,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 5,
-    color: AppColors.foregroundDefault,
-  },
-  required: {
-    color: AppColors.negativeDefault,
   },
   input: {
     borderWidth: 1,
@@ -62,11 +57,6 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: AppColors.negativeDefault,
-  },
-  errorText: {
-    fontSize: 12,
-    color: AppColors.negativeDefault,
-    marginTop: 4,
   },
 });
 

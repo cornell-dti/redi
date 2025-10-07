@@ -1,7 +1,8 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors } from '../AppColors';
+import AppText from './AppText';
 
 interface NotificationItemProps {
   type: string;
@@ -54,12 +55,17 @@ export default function NotificationItem({
       </View>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={[styles.title, !read && styles.unreadTitle]}>
+          <AppText
+            variant="subtitle"
+            style={{ fontWeight: !read ? '600' : '500' }}
+          >
             {title}
-          </Text>
-          <Text style={styles.timestamp}>{timestamp}</Text>
+          </AppText>
+          <AppText variant="bodySmall" color="dimmer">
+            {timestamp}
+          </AppText>
         </View>
-        <Text style={styles.message}>{message}</Text>
+        <AppText variant="body">{message}</AppText>
         {!read && <View style={styles.unreadDot} />}
       </View>
     </TouchableOpacity>
@@ -114,24 +120,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 4,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '500',
-    flex: 1,
-    marginRight: 8,
-    color: AppColors.foregroundDefault,
-  },
-  unreadTitle: {
-    fontWeight: '600',
-  },
-  timestamp: {
-    fontSize: 12,
-    color: AppColors.foregroundDimmer,
-  },
-  message: {
-    fontSize: 14,
-    color: AppColors.foregroundDefault,
   },
   unreadDot: {
     position: 'absolute',

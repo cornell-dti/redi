@@ -1,3 +1,4 @@
+import AppText from '@/app/components/ui/AppText';
 import { router } from 'expo-router';
 import { Edit, Search } from 'lucide-react-native';
 import React from 'react';
@@ -6,7 +7,6 @@ import {
   Image,
   StatusBar,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -74,7 +74,12 @@ export default function ChatScreen() {
       />
 
       <View style={styles.activeMatches}>
-        <Text style={styles.sectionTitle}>Active Matches</Text>
+        <AppText
+          variant="subtitle"
+          style={{ marginBottom: 12, paddingHorizontal: 20 }}
+        >
+          Active Matches
+        </AppText>
         <FlatList
           data={mockChats.filter((chat) => chat.online)}
           keyExtractor={(item) => item.id}
@@ -90,7 +95,7 @@ export default function ChatScreen() {
                 />
                 <View style={styles.activeOnline} />
               </View>
-              <Text style={styles.activeName}>{item.name}</Text>
+              <AppText variant="bodySmall">{item.name}</AppText>
             </TouchableOpacity>
           )}
         />
@@ -136,13 +141,6 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDefault,
     paddingVertical: 16,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 20,
-    marginBottom: 12,
-    color: AppColors.foregroundDefault,
-  },
   activeMatchesList: {
     paddingHorizontal: 20,
     gap: 12,
@@ -169,11 +167,6 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.accentDefault,
     borderWidth: 2,
     borderColor: AppColors.backgroundDefault,
-  },
-  activeName: {
-    fontSize: 12,
-    color: AppColors.foregroundDimmer,
-    maxWidth: 60,
   },
   chats: {
     flex: 1,
