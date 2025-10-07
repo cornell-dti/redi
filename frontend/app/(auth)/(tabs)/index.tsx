@@ -2,8 +2,6 @@ import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import Sheet from '@/app/components/ui/Sheet';
-import { Search, SlidersHorizontal } from 'lucide-react-native';
-import React, { useState } from 'react';
 import {
   AirVent,
   ArrowDownAZ,
@@ -13,6 +11,7 @@ import {
   Search,
   SlidersHorizontal,
 } from 'lucide-react-native';
+import React, { useState } from 'react';
 import {
   ScrollView,
   StatusBar,
@@ -150,7 +149,7 @@ export default function MatchesScreen() {
               title="Open Sheet"
               onPress={() => setSheetVisible(true)}
               variant="secondary"
-              />
+            />
             <AppInput onChangeText={() => {}} placeholder="Placeholder" />
             <AppInput
               onChangeText={() => {}}
