@@ -4,12 +4,12 @@ import {
   FlatList,
   StatusBar,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
+import { Text } from '../../components/ui';
 import Header from '../../components/ui/Header';
 import NotificationItem from '../../components/ui/NotificationItem';
 
@@ -86,16 +86,16 @@ export default function NotificationsScreen() {
 
       <View style={styles.filterContainer}>
         <TouchableOpacity style={[styles.filterTab, styles.activeTab]}>
-          <Text style={[styles.filterText, styles.activeFilterText]}>All</Text>
+          <Text variant="body" color={AppColors.foregroundDefault}>All</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.filterTab}>
-          <Text style={styles.filterText}>Matches</Text>
+          <Text variant="body" color={AppColors.foregroundDimmer}>Matches</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.filterTab}>
-          <Text style={styles.filterText}>Messages</Text>
+          <Text variant="body" color={AppColors.foregroundDimmer}>Messages</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.filterTab}>
-          <Text style={styles.filterText}>Likes</Text>
+          <Text variant="body" color={AppColors.foregroundDimmer}>Likes</Text>
         </TouchableOpacity>
       </View>
 
@@ -141,14 +141,6 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     backgroundColor: AppColors.accentDefault,
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: AppColors.foregroundDimmer,
-  },
-  activeFilterText: {
-    color: AppColors.backgroundDefault,
   },
   list: {
     backgroundColor: AppColors.backgroundDefault,

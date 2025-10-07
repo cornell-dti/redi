@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Switch, Text, View } from 'react-native';
+import { StyleSheet, Switch, View } from 'react-native';
+import { Text } from '../ui';
 import GenderPicker from '../form/GenderPicker';
 import CustomTextInput from '../ui/CustomTextInput';
 import SectionCard from '../ui/SectionCard';
@@ -32,7 +33,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   return (
     <SectionCard>
       <View style={styles.header}>
-        <Text style={styles.title}>Filters</Text>
+        <Text variant="subtitle" color="#333" style={{ fontWeight: '600' }}>Filters</Text>
         <Switch value={showFilters} onValueChange={onToggleFilters} />
       </View>
 
@@ -93,11 +94,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
   },
   filterContent: {
     marginTop: 16,

@@ -1,3 +1,4 @@
+import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import { Search, SlidersHorizontal } from 'lucide-react-native';
 import React from 'react';
@@ -5,7 +6,6 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -64,7 +64,7 @@ export default function MatchesScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          <Text style={styles.sectionTitle}>New Matches</Text>
+          <AppText variant="subtitle">New Matches</AppText>
           {mockMatches.map((match) => (
             <MatchCard
               key={match.id}
@@ -103,12 +103,6 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 16,
-    color: AppColors.foregroundDefault,
   },
   fab: {
     position: 'absolute',

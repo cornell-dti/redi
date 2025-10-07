@@ -7,12 +7,12 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
+import { Text } from '../components/ui';
 import Button from '../components/ui/Button';
 import CustomTextInput from '../components/ui/CustomTextInput';
 
@@ -142,8 +142,8 @@ export default function CreateProfileScreen() {
 
   const renderPhotosStep = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Add Your Photos</Text>
-      <Text style={styles.stepSubtitle}>
+      <Text variant="title" color={AppColors.foregroundDefault} style={{ marginBottom: 8 }}>Add Your Photos</Text>
+      <Text variant="subtitle" color={AppColors.foregroundDimmer} style={{ marginBottom: 32 }}>
         Show your personality with great photos
       </Text>
 
@@ -153,7 +153,7 @@ export default function CreateProfileScreen() {
             <Image source={{ uri: photo }} style={styles.photo} />
             {index === 0 && (
               <View style={styles.mainPhotoBadge}>
-                <Text style={styles.mainPhotoText}>Main</Text>
+                <Text variant="bodySmall" color={AppColors.backgroundDefault} style={{ fontWeight: '600' }}>Main</Text>
               </View>
             )}
           </View>
@@ -165,7 +165,7 @@ export default function CreateProfileScreen() {
               size={40}
               color={AppColors.foregroundDimmer}
             />
-            <Text style={styles.addPhotoText}>
+            <Text variant="bodySmall" color={AppColors.foregroundDimmer} style={{ marginTop: 8, textAlign: 'center' }}>
               {formData.photos.length === 0
                 ? 'Add your first photo'
                 : 'Add more'}
@@ -178,8 +178,8 @@ export default function CreateProfileScreen() {
 
   const renderBioStep = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Tell us about yourself</Text>
-      <Text style={styles.stepSubtitle}>
+      <Text variant="title" color={AppColors.foregroundDefault} style={{ marginBottom: 8 }}>Tell us about yourself</Text>
+      <Text variant="subtitle" color={AppColors.foregroundDimmer} style={{ marginBottom: 32 }}>
         Write a bio that shows your personality
       </Text>
 
@@ -192,17 +192,17 @@ export default function CreateProfileScreen() {
         maxLength={500}
         style={styles.bioInput}
       />
-      <Text style={styles.charCounter}>{formData.bio.length}/500</Text>
+      <Text variant="bodySmall" color={AppColors.foregroundDimmer} style={{ textAlign: 'right', marginTop: 8 }}>{formData.bio.length}/500</Text>
     </View>
   );
 
   const renderBasicInfoStep = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Basic Information</Text>
-      <Text style={styles.stepSubtitle}>Let people know the basics</Text>
+      <Text variant="title" color={AppColors.foregroundDefault} style={{ marginBottom: 8 }}>Basic Information</Text>
+      <Text variant="subtitle" color={AppColors.foregroundDimmer} style={{ marginBottom: 32 }}>Let people know the basics</Text>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>School *</Text>
+        <Text variant="subtitle" color={AppColors.foregroundDefault} style={{ fontWeight: '600', marginBottom: 12 }}>School *</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.schoolButtons}>
             {schools.map((school) => (
@@ -215,11 +215,8 @@ export default function CreateProfileScreen() {
                 onPress={() => setFormData((prev) => ({ ...prev, school }))}
               >
                 <Text
-                  style={[
-                    styles.schoolButtonText,
-                    formData.school === school &&
-                      styles.selectedSchoolButtonText,
-                  ]}
+                  variant="body"
+                  color={formData.school === school ? AppColors.backgroundDefault : AppColors.foregroundDimmer}
                 >
                   {school}
                 </Text>
@@ -230,7 +227,7 @@ export default function CreateProfileScreen() {
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>Graduation Year *</Text>
+        <Text variant="subtitle" color={AppColors.foregroundDefault} style={{ fontWeight: '600', marginBottom: 12 }}>Graduation Year *</Text>
         <View style={styles.yearButtons}>
           {graduationYears.map((year) => (
             <TouchableOpacity
@@ -244,11 +241,8 @@ export default function CreateProfileScreen() {
               }
             >
               <Text
-                style={[
-                  styles.yearButtonText,
-                  formData.graduationYear === year &&
-                    styles.selectedYearButtonText,
-                ]}
+                variant="subtitle"
+                color={formData.graduationYear === year ? AppColors.backgroundDefault : AppColors.foregroundDimmer}
               >
                 {year}
               </Text>
@@ -272,8 +266,8 @@ export default function CreateProfileScreen() {
 
   const renderInterestsStep = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Your Interests</Text>
-      <Text style={styles.stepSubtitle}>
+      <Text variant="title" color={AppColors.foregroundDefault} style={{ marginBottom: 8 }}>Your Interests</Text>
+      <Text variant="subtitle" color={AppColors.foregroundDimmer} style={{ marginBottom: 32 }}>
         Select what you are passionate about
       </Text>
 
@@ -289,11 +283,8 @@ export default function CreateProfileScreen() {
             onPress={() => toggleInterest(interest)}
           >
             <Text
-              style={[
-                styles.interestButtonText,
-                formData.interests.includes(interest) &&
-                  styles.selectedInterestButtonText,
-              ]}
+              variant="body"
+              color={formData.interests.includes(interest) ? AppColors.backgroundDefault : AppColors.foregroundDimmer}
             >
               {interest}
             </Text>
@@ -302,7 +293,7 @@ export default function CreateProfileScreen() {
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>Social Media (Optional)</Text>
+        <Text variant="subtitle" color={AppColors.foregroundDefault} style={{ fontWeight: '600', marginBottom: 12 }}>Social Media (Optional)</Text>
         <CustomTextInput
           placeholder="Instagram username"
           value={formData.instagram}
@@ -370,8 +361,8 @@ export default function CreateProfileScreen() {
             }
           />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{getStepTitle()}</Text>
-        <Text style={styles.stepCounter}>
+        <Text variant="subtitle" color={AppColors.foregroundDefault} style={{ fontWeight: '600' }}>{getStepTitle()}</Text>
+        <Text variant="body" color={AppColors.foregroundDimmer}>
           {currentStep}/{totalSteps}
         </Text>
       </View>
@@ -410,15 +401,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: AppColors.backgroundDefault,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: AppColors.foregroundDefault,
-  },
-  stepCounter: {
-    fontSize: 14,
-    color: AppColors.foregroundDimmer,
-  },
   stepIndicator: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -440,17 +422,6 @@ const styles = StyleSheet.create({
   },
   stepContainer: {
     padding: 20,
-  },
-  stepTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: AppColors.foregroundDefault,
-    marginBottom: 8,
-  },
-  stepSubtitle: {
-    fontSize: 16,
-    color: AppColors.foregroundDimmer,
-    marginBottom: 32,
   },
   photosGrid: {
     flexDirection: 'row',
@@ -476,11 +447,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
-  mainPhotoText: {
-    color: AppColors.backgroundDefault,
-    fontSize: 10,
-    fontWeight: '600',
-  },
   addPhotoButton: {
     width: '47%',
     aspectRatio: 0.75,
@@ -492,30 +458,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: AppColors.backgroundDefault,
   },
-  addPhotoText: {
-    fontSize: 12,
-    color: AppColors.foregroundDimmer,
-    marginTop: 8,
-    textAlign: 'center',
-  },
   bioInput: {
     height: 120,
     textAlignVertical: 'top',
   },
-  charCounter: {
-    fontSize: 12,
-    color: AppColors.foregroundDimmer,
-    textAlign: 'right',
-    marginTop: 8,
-  },
   inputGroup: {
     marginBottom: 24,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: AppColors.foregroundDefault,
-    marginBottom: 12,
   },
   schoolButtons: {
     flexDirection: 'row',
@@ -532,14 +480,6 @@ const styles = StyleSheet.create({
   selectedSchoolButton: {
     backgroundColor: AppColors.accentDefault,
     borderColor: AppColors.accentDefault,
-  },
-  schoolButtonText: {
-    fontSize: 14,
-    color: AppColors.foregroundDimmer,
-    fontWeight: '500',
-  },
-  selectedSchoolButtonText: {
-    color: AppColors.backgroundDefault,
   },
   yearButtons: {
     flexDirection: 'row',
@@ -559,14 +499,6 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.accentDefault,
     borderColor: AppColors.accentDefault,
   },
-  yearButtonText: {
-    fontSize: 16,
-    color: AppColors.foregroundDimmer,
-    fontWeight: '500',
-  },
-  selectedYearButtonText: {
-    color: AppColors.backgroundDefault,
-  },
   interestsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -584,14 +516,6 @@ const styles = StyleSheet.create({
   selectedInterestButton: {
     backgroundColor: AppColors.accentDefault,
     borderColor: AppColors.accentDefault,
-  },
-  interestButtonText: {
-    fontSize: 14,
-    color: AppColors.foregroundDimmer,
-    fontWeight: '500',
-  },
-  selectedInterestButtonText: {
-    color: AppColors.backgroundDefault,
   },
   bottomNavigation: {
     padding: 20,

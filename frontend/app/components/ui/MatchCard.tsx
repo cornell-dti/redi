@@ -1,7 +1,8 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors } from '../AppColors';
+import { Text } from './';
 
 interface MatchCardProps {
   name: string;
@@ -25,7 +26,7 @@ export default function MatchCard({
       <Image source={{ uri: image }} style={styles.image} />
       <View style={styles.info}>
         <View style={styles.header}>
-          <Text style={styles.name}>
+          <Text variant="title" color={AppColors.foregroundDefault} style={{ fontSize: 20, fontWeight: '600' }}>
             {name}, {age}
           </Text>
           <MaterialIcons
@@ -34,8 +35,8 @@ export default function MatchCard({
             color={AppColors.accentDefault}
           />
         </View>
-        <Text style={styles.school}>{school}</Text>
-        <Text style={styles.bio} numberOfLines={2}>
+        <Text variant="body" color={AppColors.foregroundDimmer} style={{ marginBottom: 8 }}>{school}</Text>
+        <Text variant="subtitle" color={AppColors.foregroundDefault} numberOfLines={2}>
           {bio}
         </Text>
       </View>
@@ -63,19 +64,5 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4,
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: AppColors.foregroundDefault,
-  },
-  school: {
-    fontSize: 14,
-    color: AppColors.foregroundDimmer,
-    marginBottom: 8,
-  },
-  bio: {
-    fontSize: 16,
-    color: AppColors.foregroundDefault,
   },
 });

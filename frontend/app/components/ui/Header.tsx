@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { AppColors } from '../AppColors';
+import { AppTypography } from '../AppTypography';
 
 interface HeaderProps {
   title: string;
@@ -26,8 +27,7 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDefault,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    ...AppTypography.title,
     color: AppColors.foregroundDefault,
   },
 });

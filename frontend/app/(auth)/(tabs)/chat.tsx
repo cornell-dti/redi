@@ -6,12 +6,12 @@ import {
   Image,
   StatusBar,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
+import { Text } from '../../components/ui';
 import ChatItem from '../../components/ui/ChatItem';
 import Header from '../../components/ui/Header';
 
@@ -74,7 +74,7 @@ export default function ChatScreen() {
       />
 
       <View style={styles.activeMatches}>
-        <Text style={styles.sectionTitle}>Active Matches</Text>
+        <Text variant="subtitle" color={AppColors.foregroundDefault} style={{ fontWeight: '600', marginBottom: 12, paddingHorizontal: 20 }}>Active Matches</Text>
         <FlatList
           data={mockChats.filter((chat) => chat.online)}
           keyExtractor={(item) => item.id}
@@ -90,7 +90,7 @@ export default function ChatScreen() {
                 />
                 <View style={styles.activeOnline} />
               </View>
-              <Text style={styles.activeName}>{item.name}</Text>
+              <Text variant="bodySmall" color={AppColors.foregroundDefault}>{item.name}</Text>
             </TouchableOpacity>
           )}
         />
@@ -136,13 +136,6 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDefault,
     paddingVertical: 16,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 20,
-    marginBottom: 12,
-    color: AppColors.foregroundDefault,
-  },
   activeMatchesList: {
     paddingHorizontal: 20,
     gap: 12,
@@ -169,11 +162,6 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.accentDefault,
     borderWidth: 2,
     borderColor: AppColors.backgroundDefault,
-  },
-  activeName: {
-    fontSize: 12,
-    color: AppColors.foregroundDimmer,
-    maxWidth: 60,
   },
   chats: {
     flex: 1,
