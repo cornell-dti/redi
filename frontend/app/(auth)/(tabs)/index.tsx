@@ -1,8 +1,18 @@
+import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import Sheet from '@/app/components/ui/Sheet';
 import { Search, SlidersHorizontal } from 'lucide-react-native';
 import React, { useState } from 'react';
+import {
+  AirVent,
+  ArrowDownAZ,
+  Clapperboard,
+  Plus,
+  RefreshCw,
+  Search,
+  SlidersHorizontal,
+} from 'lucide-react-native';
 import {
   ScrollView,
   StatusBar,
@@ -82,7 +92,7 @@ export default function MatchesScreen() {
           <Button
             title="Load More Profiles"
             onPress={() => {}}
-            iconLeft="refresh"
+            iconLeft={RefreshCw}
             fullWidth
           />
 
@@ -100,35 +110,35 @@ export default function MatchesScreen() {
             <Button title="Button" onPress={() => {}} variant="secondary" />
 
             <Button title="Button" onPress={() => {}} variant="negative" />
-            <Button title="Button" onPress={() => {}} iconLeft="add" />
+            <Button title="Button" onPress={() => {}} iconLeft={Clapperboard} />
 
             <Button
               title="Button"
               onPress={() => {}}
-              iconLeft="add"
+              iconLeft={Plus}
               variant="secondary"
             />
 
             <Button
               title="Button"
               onPress={() => {}}
-              iconLeft="add"
+              iconLeft={AirVent}
               variant="negative"
             />
 
-            <Button title="Button" onPress={() => {}} iconRight="add" />
+            <Button title="Button" onPress={() => {}} iconRight={Plus} />
 
             <Button
               title="Button"
               onPress={() => {}}
-              iconRight="add"
+              iconRight={ArrowDownAZ}
               variant="secondary"
             />
 
             <Button
               title="Button"
               onPress={() => {}}
-              iconRight="add"
+              iconRight={Plus}
               variant="negative"
             />
             <AppText variant="title">Title Text</AppText>
@@ -140,6 +150,38 @@ export default function MatchesScreen() {
               title="Open Sheet"
               onPress={() => setSheetVisible(true)}
               variant="secondary"
+              />
+            <AppInput onChangeText={() => {}} placeholder="Placeholder" />
+            <AppInput
+              onChangeText={() => {}}
+              placeholder="Placeholder (no label)"
+              required
+            />
+
+            <AppInput
+              label="Label"
+              onChangeText={() => {}}
+              placeholder="Placeholder (no label)"
+            />
+            <AppInput
+              label="Label"
+              onChangeText={() => {}}
+              placeholder="Placeholder"
+              required
+            />
+
+            <AppInput
+              label="Label"
+              onChangeText={() => {}}
+              placeholder="Placeholder (no label)"
+              error="This is an error message"
+            />
+            <AppInput
+              label="Label"
+              onChangeText={() => {}}
+              placeholder="Placeholder"
+              required
+              error="This is an error message"
             />
           </View>
         </View>

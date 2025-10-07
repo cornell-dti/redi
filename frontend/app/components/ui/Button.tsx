@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { LucideIcon } from 'lucide-react-native';
 import React, { useRef } from 'react';
 import {
   Animated,
@@ -14,8 +14,8 @@ interface ButtonProps {
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'negative';
   disabled?: boolean;
-  iconLeft?: string;
-  iconRight?: string;
+  iconLeft?: LucideIcon;
+  iconRight?: LucideIcon;
   fullWidth?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
@@ -148,21 +148,15 @@ export default function Button({
         disabled={disabled}
         activeOpacity={1}
       >
-        {iconLeft && (
-          <MaterialIcons
-            name={iconLeft as any}
-            size={16}
-            color={getIconColor()}
-          />
-        )}
+        {iconLeft && React.createElement(iconLeft, {
+          size: 16,
+          color: getIconColor(),
+        })}
         <Text style={[getTextStyle(), textStyle]}>{title}</Text>
-        {iconRight && (
-          <MaterialIcons
-            name={iconRight as any}
-            size={16}
-            color={getIconColor()}
-          />
-        )}
+        {iconRight && React.createElement(iconRight, {
+          size: 16,
+          color: getIconColor(),
+        })}
       </TouchableOpacity>
     </Animated.View>
   );

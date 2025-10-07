@@ -1,5 +1,5 @@
-import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { ArrowLeft, ArrowRight, Camera, Check } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
+import AppInput from '../components/ui/AppInput';
 import AppText from '../components/ui/AppText';
 import Button from '../components/ui/Button';
-import CustomTextInput from '../components/ui/CustomTextInput';
 
 // Mock data for dropdowns
 const schools = [
@@ -162,11 +162,7 @@ export default function CreateProfileScreen() {
         ))}
         {formData.photos.length < 6 && (
           <TouchableOpacity style={styles.addPhotoButton} onPress={addPhoto}>
-            <MaterialIcons
-              name="add-a-photo"
-              size={40}
-              color={AppColors.foregroundDimmer}
-            />
+            <Camera size={40} color={AppColors.foregroundDimmer} />
             <AppText
               variant="bodySmall"
               color="dimmer"
@@ -191,7 +187,7 @@ export default function CreateProfileScreen() {
         Write a bio that shows your personality
       </AppText>
 
-      <CustomTextInput
+      <AppInput
         placeholder="I love exploring Ithaca's gorges, trying new restaurants on the Commons, and weekend hiking trips..."
         value={formData.bio}
         onChangeText={(text) => setFormData((prev) => ({ ...prev, bio: text }))}
@@ -264,7 +260,7 @@ export default function CreateProfileScreen() {
       </View>
 
       <View style={styles.inputGroup}>
-        <CustomTextInput
+        <AppInput
           label="Major"
           placeholder="Computer Science"
           value={formData.major}
@@ -305,7 +301,7 @@ export default function CreateProfileScreen() {
         <AppText variant="subtitle" style={{ marginBottom: 12 }}>
           Social Media (Optional)
         </AppText>
-        <CustomTextInput
+        <AppInput
           placeholder="Instagram username"
           value={formData.instagram}
           onChangeText={(text) =>
@@ -313,7 +309,7 @@ export default function CreateProfileScreen() {
           }
           autoCapitalize="none"
         />
-        <CustomTextInput
+        <AppInput
           placeholder="Snapchat username"
           value={formData.snapchat}
           onChangeText={(text) =>
@@ -362,8 +358,7 @@ export default function CreateProfileScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} disabled={currentStep === 1}>
-          <MaterialIcons
-            name="arrow-back"
+          <ArrowLeft
             size={24}
             color={
               currentStep === 1
@@ -390,9 +385,8 @@ export default function CreateProfileScreen() {
           title={currentStep === totalSteps ? 'Complete Profile' : 'Next'}
           onPress={handleNext}
           variant="primary"
-          size="large"
           fullWidth
-          icon={currentStep === totalSteps ? 'check' : 'arrow-forward'}
+          iconRight={currentStep === totalSteps ? Check : ArrowRight}
         />
       </View>
     </SafeAreaView>

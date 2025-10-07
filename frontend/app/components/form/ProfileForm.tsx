@@ -1,7 +1,7 @@
 import { CreateProfileInput } from '@/types';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import CustomTextInput from '../ui/CustomTextInput';
+import AppInput from '../ui/AppInput';
 import GenderPicker from './GenderPicker';
 
 interface ProfileFormProps {
@@ -43,7 +43,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
 
   return (
     <View style={styles.container}>
-      <CustomTextInput
+      <AppInput
         label="Bio"
         value={formData.bio || ''}
         onChangeText={(value) => updateField('bio', value)}
@@ -59,7 +59,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         onChange={(gender) => updateField('gender', gender)}
       />
 
-      <CustomTextInput
+      <AppInput
         label="Birthdate"
         value={
           formData.birthdate
@@ -74,7 +74,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         error={errors.birthdate}
       />
 
-      <CustomTextInput
+      <AppInput
         label="School"
         value={formData.school || ''}
         onChangeText={(value) => updateField('school', value)}
@@ -83,7 +83,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         error={errors.school}
       />
 
-      <CustomTextInput
+      <AppInput
         label="Year"
         value={formData.year?.toString() || ''}
         onChangeText={(value) =>
@@ -95,7 +95,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         error={errors.year}
       />
 
-      <CustomTextInput
+      <AppInput
         label="Major(s)"
         value={formData.major?.join(', ') || ''}
         onChangeText={updateMajor}
@@ -103,7 +103,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         error={errors.major}
       />
 
-      <CustomTextInput
+      <AppInput
         label="Instagram"
         value={formData.instagram || ''}
         onChangeText={(value) => updateField('instagram', value)}
@@ -112,7 +112,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         error={errors.instagram}
       />
 
-      <CustomTextInput
+      <AppInput
         label="Snapchat"
         value={formData.snapchat || ''}
         onChangeText={(value) => updateField('snapchat', value)}
@@ -121,7 +121,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
         error={errors.snapchat}
       />
 
-      <CustomTextInput
+      <AppInput
         label="Phone Number"
         value={formData.phoneNumber || ''}
         onChangeText={(value) => updateField('phoneNumber', value)}
