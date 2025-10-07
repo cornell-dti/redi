@@ -1,11 +1,17 @@
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
+import IconWrapper from '@/app/components/ui/IconWrapper';
+import ListItem from '@/app/components/ui/ListItem';
+import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
 import {
   AirVent,
   ArrowDownAZ,
+  Check,
+  ChevronRight,
   Clapperboard,
+  Edit,
   Plus,
   RefreshCw,
   Search,
@@ -182,6 +188,40 @@ export default function MatchesScreen() {
               required
               error="This is an error message"
             />
+
+            {/* Examples for ListItem variants */}
+            <View style={{ padding: 20 }}>
+              <AppText variant="subtitle">ListItem Examples</AppText>
+
+              <ListItemWrapper>
+                <ListItem title="Default item" onPress={() => {}} />
+
+                <ListItem
+                  title="With description"
+                  description="This is a secondary description"
+                  onPress={() => {}}
+                />
+
+                <ListItem
+                  title="Left and right elements"
+                  left={
+                    <IconWrapper variant="white">
+                      <Edit />
+                    </IconWrapper>
+                  }
+                  right={<ChevronRight />}
+                  onPress={() => {}}
+                />
+
+                <ListItem
+                  title="Selected item"
+                  description="Selected variant should have dimmer background"
+                  selected
+                  onPress={() => {}}
+                  right={<Check color={AppColors.backgroundDefault} />}
+                />
+              </ListItemWrapper>
+            </View>
           </View>
         </View>
       </ScrollView>
