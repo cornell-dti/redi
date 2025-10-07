@@ -156,7 +156,9 @@ export default function MatchesScreen() {
               onPress={() => setSheetVisible(true)}
               variant="secondary"
             />
+
             <AppInput onChangeText={() => {}} placeholder="Placeholder" />
+
             <AppInput
               onChangeText={() => {}}
               placeholder="Placeholder (no label)"
@@ -168,6 +170,7 @@ export default function MatchesScreen() {
               onChangeText={() => {}}
               placeholder="Placeholder (no label)"
             />
+
             <AppInput
               label="Label"
               onChangeText={() => {}}
@@ -181,6 +184,7 @@ export default function MatchesScreen() {
               placeholder="Placeholder (no label)"
               error="This is an error message"
             />
+
             <AppInput
               label="Label"
               onChangeText={() => {}}

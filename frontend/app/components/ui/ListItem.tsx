@@ -37,7 +37,7 @@ export default function ListItem({
       style={({ pressed }) => [
         styles.container,
         selected && styles.selected,
-        pressed && styles.pressed,
+        pressed && (selected ? styles.selectedPressed : styles.pressed),
         style,
       ]}
       accessibilityRole="button"
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDimmest,
   },
   selectedPressed: {
-    backgroundColor: AppColors.accentDimmer,
+    backgroundColor: AppColors.accentDefault,
   },
   left: {
     marginRight: 12,
