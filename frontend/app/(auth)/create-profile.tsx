@@ -1,5 +1,5 @@
-import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { ArrowLeft, ArrowRight, Camera, Check } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -162,11 +162,7 @@ export default function CreateProfileScreen() {
         ))}
         {formData.photos.length < 6 && (
           <TouchableOpacity style={styles.addPhotoButton} onPress={addPhoto}>
-            <MaterialIcons
-              name="add-a-photo"
-              size={40}
-              color={AppColors.foregroundDimmer}
-            />
+            <Camera size={40} color={AppColors.foregroundDimmer} />
             <AppText
               variant="bodySmall"
               color="dimmer"
@@ -362,8 +358,7 @@ export default function CreateProfileScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} disabled={currentStep === 1}>
-          <MaterialIcons
-            name="arrow-back"
+          <ArrowLeft
             size={24}
             color={
               currentStep === 1
@@ -390,9 +385,8 @@ export default function CreateProfileScreen() {
           title={currentStep === totalSteps ? 'Complete Profile' : 'Next'}
           onPress={handleNext}
           variant="primary"
-          size="large"
           fullWidth
-          icon={currentStep === totalSteps ? 'check' : 'arrow-forward'}
+          iconRight={currentStep === totalSteps ? Check : ArrowRight}
         />
       </View>
     </SafeAreaView>
