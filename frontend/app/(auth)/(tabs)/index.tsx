@@ -1,3 +1,4 @@
+import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import {
@@ -140,6 +141,39 @@ export default function MatchesScreen() {
             <AppText variant="subtitle">Subtitle Text</AppText>
             <AppText variant="body">Body Text</AppText>
             <AppText variant="bodySmall">Body Small Text</AppText>
+
+            <AppInput onChangeText={() => {}} placeholder="Placeholder" />
+            <AppInput
+              onChangeText={() => {}}
+              placeholder="Placeholder (no label)"
+              required
+            />
+
+            <AppInput
+              label="Label"
+              onChangeText={() => {}}
+              placeholder="Placeholder (no label)"
+            />
+            <AppInput
+              label="Label"
+              onChangeText={() => {}}
+              placeholder="Placeholder"
+              required
+            />
+
+            <AppInput
+              label="Label"
+              onChangeText={() => {}}
+              placeholder="Placeholder (no label)"
+              error="This is an error message"
+            />
+            <AppInput
+              label="Label"
+              onChangeText={() => {}}
+              placeholder="Placeholder"
+              required
+              error="This is an error message"
+            />
           </View>
         </View>
       </ScrollView>

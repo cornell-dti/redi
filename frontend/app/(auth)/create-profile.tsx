@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
+import AppInput from '../components/ui/AppInput';
 import AppText from '../components/ui/AppText';
 import Button from '../components/ui/Button';
-import CustomTextInput from '../components/ui/CustomTextInput';
 
 // Mock data for dropdowns
 const schools = [
@@ -187,7 +187,7 @@ export default function CreateProfileScreen() {
         Write a bio that shows your personality
       </AppText>
 
-      <CustomTextInput
+      <AppInput
         placeholder="I love exploring Ithaca's gorges, trying new restaurants on the Commons, and weekend hiking trips..."
         value={formData.bio}
         onChangeText={(text) => setFormData((prev) => ({ ...prev, bio: text }))}
@@ -260,7 +260,7 @@ export default function CreateProfileScreen() {
       </View>
 
       <View style={styles.inputGroup}>
-        <CustomTextInput
+        <AppInput
           label="Major"
           placeholder="Computer Science"
           value={formData.major}
@@ -301,7 +301,7 @@ export default function CreateProfileScreen() {
         <AppText variant="subtitle" style={{ marginBottom: 12 }}>
           Social Media (Optional)
         </AppText>
-        <CustomTextInput
+        <AppInput
           placeholder="Instagram username"
           value={formData.instagram}
           onChangeText={(text) =>
@@ -309,7 +309,7 @@ export default function CreateProfileScreen() {
           }
           autoCapitalize="none"
         />
-        <CustomTextInput
+        <AppInput
           placeholder="Snapchat username"
           value={formData.snapchat}
           onChangeText={(text) =>

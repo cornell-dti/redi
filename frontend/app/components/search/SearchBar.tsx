@@ -1,6 +1,6 @@
 import React from 'react';
+import AppInput from '../ui/AppInput';
 import CustomButton from '../ui/CustomButton';
-import CustomTextInput from '../ui/CustomTextInput';
 import SectionCard from '../ui/SectionCard';
 
 interface SearchBarProps {
@@ -22,7 +22,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
 }) => {
   return (
     <SectionCard>
-      <CustomTextInput
+      <AppInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
