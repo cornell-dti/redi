@@ -189,8 +189,7 @@ export default function MatchesScreen() {
               error="This is an error message"
             />
 
-            {/* Examples for ListItem variants */}
-            <View style={{ padding: 20 }}>
+            <View style={{ marginTop: 20 }}>
               <AppText variant="subtitle">ListItem Examples</AppText>
 
               <ListItemWrapper>
