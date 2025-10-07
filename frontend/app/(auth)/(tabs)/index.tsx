@@ -1,6 +1,7 @@
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
+import Sheet from '@/app/components/ui/Sheet';
 import {
   AirVent,
   ArrowDownAZ,
@@ -10,7 +11,7 @@ import {
   Search,
   SlidersHorizontal,
 } from 'lucide-react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ScrollView,
   StatusBar,
@@ -55,6 +56,8 @@ const mockMatches = [
 ];
 
 export default function MatchesScreen() {
+  const [sheetVisible, setSheetVisible] = useState(false);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -142,6 +145,11 @@ export default function MatchesScreen() {
             <AppText variant="body">Body Text</AppText>
             <AppText variant="bodySmall">Body Small Text</AppText>
 
+            <Button
+              title="Open Sheet"
+              onPress={() => setSheetVisible(true)}
+              variant="secondary"
+            />
             <AppInput onChangeText={() => {}} placeholder="Placeholder" />
             <AppInput
               onChangeText={() => {}}
@@ -177,6 +185,23 @@ export default function MatchesScreen() {
           </View>
         </View>
       </ScrollView>
+
+      <Sheet
+        visible={sheetVisible}
+        onDismiss={() => setSheetVisible(false)}
+        height={500}
+        title="Example sheet title"
+      >
+        <View style={{ display: 'flex', gap: 24 }}>
+          <AppText variant="body">
+            This sheet was opened from the Discover screen.
+          </AppText>
+
+          <Button variant="primary" title="Hi" onPress={() => {}} />
+
+          <Button variant="negative" title="Hi" onPress={() => {}} />
+        </View>
+      </Sheet>
 
       <TouchableOpacity style={styles.fab}>
         <Search size={28} color={AppColors.backgroundDefault} />
