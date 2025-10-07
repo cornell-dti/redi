@@ -4,6 +4,8 @@ import { AppColors } from '../AppColors';
 
 interface IconWrapperProps {
   children: React.ReactNode;
+  // on white backgrounds (eg: AppColors.backgroundDefault), use 'gray' variant
+  // on gray backgrounds (eg: AppColors.backgroundDimmer or AppColors.backgroundDimmest), use 'white' variant
   variant?: 'white' | 'gray';
   style?: StyleProp<ViewStyle>;
 }
