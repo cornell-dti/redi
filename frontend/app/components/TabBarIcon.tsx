@@ -1,24 +1,16 @@
+import { LucideIcon } from 'lucide-react-native';
 import React from 'react';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
-
-type IconLibrary = 'MaterialIcons' | 'Ionicons';
 
 interface TabBarIconProps {
-  name: string;
+  icon: LucideIcon;
   size: number;
   color: string;
-  library?: IconLibrary;
 }
 
 export default function TabBarIcon({
-  name,
+  icon,
   size,
   color,
-  library = 'MaterialIcons',
 }: TabBarIconProps) {
-  if (library === 'Ionicons') {
-    return <Ionicons name={name as any} size={size} color={color} />;
-  }
-
-  return <MaterialIcons name={name as any} size={size} color={color} />;
+  return React.createElement(icon, { size, color });
 }

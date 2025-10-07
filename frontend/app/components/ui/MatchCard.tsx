@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Heart } from 'lucide-react-native';
 import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors } from '../AppColors';
@@ -29,11 +29,7 @@ export default function MatchCard({
           <AppText variant="title">
             {name}, {age}
           </AppText>
-          <MaterialIcons
-            name="favorite"
-            size={20}
-            color={AppColors.accentDefault}
-          />
+          <Heart size={20} color={AppColors.accentDefault} fill={AppColors.accentDefault} />
         </View>
         <AppText variant="body" color="dimmer" style={{ marginBottom: 8 }}>
           {school}

@@ -1,5 +1,5 @@
 import AppText from '@/app/components/ui/AppText';
-import { CheckCheck } from 'lucide-react-native';
+import { BarChart3, CheckCheck, Heart, LucideIcon, MessageCircle, TrendingUp } from 'lucide-react-native';
 import React from 'react';
 import {
   FlatList,
@@ -13,8 +13,19 @@ import { AppColors } from '../../components/AppColors';
 import Header from '../../components/ui/Header';
 import NotificationItem from '../../components/ui/NotificationItem';
 
+interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  image: string | null;
+  icon: LucideIcon;
+}
+
 // Mock notification data
-const mockNotifications = [
+const mockNotifications: Notification[] = [
   {
     id: '1',
     type: 'match',
@@ -24,7 +35,7 @@ const mockNotifications = [
     read: false,
     image:
       'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
-    icon: 'favorite',
+    icon: Heart,
   },
   {
     id: '2',
@@ -35,7 +46,7 @@ const mockNotifications = [
     read: false,
     image:
       'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
-    icon: 'message',
+    icon: MessageCircle,
   },
   {
     id: '3',
@@ -46,7 +57,7 @@ const mockNotifications = [
     read: true,
     image:
       'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
-    icon: 'favorite-border',
+    icon: Heart,
   },
   {
     id: '4',
@@ -56,7 +67,7 @@ const mockNotifications = [
     timestamp: '3h ago',
     read: true,
     image: null,
-    icon: 'trending-up',
+    icon: TrendingUp,
   },
   {
     id: '5',
@@ -66,7 +77,7 @@ const mockNotifications = [
     timestamp: '1d ago',
     read: true,
     image: null,
-    icon: 'analytics',
+    icon: BarChart3,
   },
 ];
 
