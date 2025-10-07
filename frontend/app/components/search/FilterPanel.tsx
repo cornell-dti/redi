@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, Switch, View } from 'react-native';
 import GenderPicker from '../form/GenderPicker';
+import { default as AppInput } from '../ui/AppInput';
 import AppText from '../ui/AppText';
-import CustomTextInput from '../ui/CustomTextInput';
 import SectionCard from '../ui/SectionCard';
 
 interface FilterPanelProps {
@@ -50,7 +50,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             label="Filter by Gender"
           />
 
-          <CustomTextInput
+          <AppInput
             label="Filter by School"
             value={school}
             onChangeText={onSchoolChange}
@@ -60,7 +60,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
           {(onMinYearChange || onMaxYearChange) && (
             <View style={styles.yearFilters}>
               {onMinYearChange && (
-                <CustomTextInput
+                <AppInput
                   label="Min Year"
                   value={minYear?.toString() || ''}
                   onChangeText={(value) =>
@@ -72,7 +72,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 />
               )}
               {onMaxYearChange && (
-                <CustomTextInput
+                <AppInput
                   label="Max Year"
                   value={maxYear?.toString() || ''}
                   onChangeText={(value) =>
