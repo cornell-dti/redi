@@ -113,6 +113,15 @@ export default function MatchesScreen() {
               backgroundColor: 'white',
             }}
           >
+            <Button title="Button" noRound onPress={() => {}} />
+
+            <Button
+              title="Button"
+              noRound
+              variant="negative"
+              onPress={() => {}}
+            />
+
             <Button title="Button" onPress={() => {}} />
 
             <Button title="Button" onPress={() => {}} variant="secondary" />
