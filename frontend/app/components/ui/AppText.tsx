@@ -5,7 +5,7 @@ import { AppTypography } from '../AppTypography';
 
 interface AppTextProps extends TextProps {
   variant?: 'title' | 'subtitle' | 'body' | 'bodySmall';
-  color?: 'default' | 'dimmer' | 'negative';
+  color?: 'default' | 'dimmer' | 'negative' | 'inverse';
 }
 
 export default function AppText({
@@ -15,11 +15,13 @@ export default function AppText({
   ...props
 }: AppTextProps) {
   const resolvedColor =
-    color === 'negative'
-      ? AppColors.negativeDefault
-      : color === 'dimmer'
-        ? AppColors.foregroundDimmer
-        : AppColors.foregroundDefault;
+    color === 'inverse'
+      ? AppColors.backgroundDefault
+      : color === 'negative'
+        ? AppColors.negativeDefault
+        : color === 'dimmer'
+          ? AppColors.foregroundDimmer
+          : AppColors.foregroundDefault;
 
   return (
     <Text
