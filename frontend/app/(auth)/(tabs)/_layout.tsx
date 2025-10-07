@@ -1,24 +1,65 @@
+import FilledBellIcon from '@/app/components/icons/FilledBellIcon';
+import FilledChatIcon from '@/app/components/icons/FilledChatIcon';
+import FilledHeartIcon from '@/app/components/icons/FilledHeartIcon';
 import { Tabs } from 'expo-router';
 import { Bell, Heart, MessageCircle, User } from 'lucide-react-native';
+import { useRef } from 'react';
+import { Animated, Pressable } from 'react-native';
 import { AppColors } from '../../components/AppColors';
+
+const AnimatedTabButton = (props: any) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.timing(scaleAnim, {
+      toValue: 0.93,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+    props.onPressIn?.();
+  };
+
+  const handlePressOut = () => {
+    Animated.timing(scaleAnim, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+    props.onPressOut?.();
+  };
+
+  return (
+    <Pressable {...props} onPressIn={handlePressIn} onPressOut={handlePressOut}>
+      <Animated.View
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+
+          transform: [{ scale: scaleAnim }],
+        }}
+      >
+        {props.children}
+      </Animated.View>
+    </Pressable>
+  );
+};
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: AppColors.accentDefault,
+        tabBarActiveTintColor: AppColors.backgroundDefault,
         tabBarInactiveTintColor: AppColors.foregroundDimmer,
         tabBarStyle: {
-          backgroundColor: AppColors.backgroundDefault,
-          borderTopWidth: 1,
-          borderTopColor: AppColors.backgroundDimmer,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          backgroundColor: AppColors.accentDefault,
+          paddingTop: 16,
+          paddingBottom: 16,
+          height: 100,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
+          fontSize: 14,
+          marginTop: 6,
         },
         headerShown: false,
       }}
@@ -27,24 +68,44 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Matches',
-          tabBarIcon: ({ color, size }) => <Heart size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) =>
+            focused ? (
+              <FilledHeartIcon size={size} color={color} />
+            ) : (
+              <Heart size={size} color={color} />
+            ),
+          tabBarButton: (props) => <AnimatedTabButton {...props} />,
         }}
       />
       <Tabs.Screen
         name="chat"
         options={{
           title: 'Chat',
-          tabBarIcon: ({ color, size }) => (
-            <MessageCircle size={size} color={color} />
-          ),
+          tabBarIcon: ({ color, size, focused }) =>
+            focused ? (
+              <FilledChatIcon size={size} color={color} />
+            ) : (
+              <MessageCircle size={size} color={color} />
+            ),
+          tabBarButton: (props) => <AnimatedTabButton {...props} />,
         }}
       />
       <Tabs.Screen
         name="notifications"
         options={{
           title: 'Notifications',
-          tabBarIcon: ({ color, size }) => <Bell size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) =>
+            focused ? (
+              <FilledBellIcon size={size} color={color} />
+            ) : (
+              <Bell size={size} color={color} />
+            ),
           tabBarBadge: 3,
+          tabBarBadgeStyle: {
+            backgroundColor: AppColors.negativeDefault,
+            color: AppColors.backgroundDefault,
+          },
+          tabBarButton: (props) => <AnimatedTabButton {...props} />,
         }}
       />
       <Tabs.Screen
@@ -52,6 +113,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
+          tabBarButton: (props) => <AnimatedTabButton {...props} />,
         }}
       />
     </Tabs>
