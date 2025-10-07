@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { LucideIcon } from 'lucide-react-native';
 import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors } from '../AppColors';
@@ -11,7 +11,7 @@ interface NotificationItemProps {
   timestamp: string;
   read: boolean;
   image?: string | null;
-  icon: string;
+  icon: LucideIcon;
   onPress?: () => void;
 }
 
@@ -39,7 +39,7 @@ export default function NotificationItem({
             <View
               style={[styles.iconBadge, { backgroundColor: iconColor + '15' }]}
             >
-              <MaterialIcons name={icon as any} size={16} color={iconColor} />
+              {React.createElement(icon, { size: 16, color: iconColor })}
             </View>
           </View>
         ) : (
@@ -49,7 +49,7 @@ export default function NotificationItem({
               { backgroundColor: iconColor + '15' },
             ]}
           >
-            <MaterialIcons name={icon as any} size={20} color={iconColor} />
+            {React.createElement(icon, { size: 20, color: iconColor })}
           </View>
         )}
       </View>

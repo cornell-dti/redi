@@ -1,5 +1,4 @@
 import Button from '@/app/components/ui/Button';
-import { Ionicons } from '@expo/vector-icons';
 import {
   Bell,
   Camera,
@@ -8,6 +7,7 @@ import {
   Eye,
   Heart,
   HelpCircle,
+  Instagram,
   LogOut,
   MessageCircle,
   Shield,
@@ -188,16 +188,14 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Social Media</Text>
           <InfoCard>
             <View style={styles.socialRow}>
-              <Ionicons
-                name="logo-instagram"
+              <Instagram
                 size={24}
                 color={AppColors.negativeDefault}
               />
               <Text style={styles.socialText}>{mockUserProfile.instagram}</Text>
             </View>
             <View style={styles.socialRow}>
-              <Ionicons
-                name="logo-snapchat"
+              <Camera
                 size={24}
                 color={AppColors.negativeDimmer}
               />

@@ -1,7 +1,15 @@
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
-import { Search, SlidersHorizontal } from 'lucide-react-native';
+import {
+  AirVent,
+  ArrowDownAZ,
+  Clapperboard,
+  Plus,
+  RefreshCw,
+  Search,
+  SlidersHorizontal,
+} from 'lucide-react-native';
 import React from 'react';
 import {
   ScrollView,
@@ -80,7 +88,7 @@ export default function MatchesScreen() {
           <Button
             title="Load More Profiles"
             onPress={() => {}}
-            iconLeft="refresh"
+            iconLeft={RefreshCw}
             fullWidth
           />
 
@@ -98,35 +106,35 @@ export default function MatchesScreen() {
             <Button title="Button" onPress={() => {}} variant="secondary" />
 
             <Button title="Button" onPress={() => {}} variant="negative" />
-            <Button title="Button" onPress={() => {}} iconLeft="add" />
+            <Button title="Button" onPress={() => {}} iconLeft={Clapperboard} />
 
             <Button
               title="Button"
               onPress={() => {}}
-              iconLeft="add"
+              iconLeft={Plus}
               variant="secondary"
             />
 
             <Button
               title="Button"
               onPress={() => {}}
-              iconLeft="add"
+              iconLeft={AirVent}
               variant="negative"
             />
 
-            <Button title="Button" onPress={() => {}} iconRight="add" />
+            <Button title="Button" onPress={() => {}} iconRight={Plus} />
 
             <Button
               title="Button"
               onPress={() => {}}
-              iconRight="add"
+              iconRight={ArrowDownAZ}
               variant="secondary"
             />
 
             <Button
               title="Button"
               onPress={() => {}}
-              iconRight="add"
+              iconRight={Plus}
               variant="negative"
             />
             <AppText variant="title">Title Text</AppText>
