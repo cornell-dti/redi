@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors } from '../AppColors';
-import { Text } from './';
+import AppText from './AppText';
 
 interface MatchCardProps {
   name: string;
@@ -26,19 +26,21 @@ export default function MatchCard({
       <Image source={{ uri: image }} style={styles.image} />
       <View style={styles.info}>
         <View style={styles.header}>
-          <Text variant="title" color={AppColors.foregroundDefault} style={{ fontSize: 20, fontWeight: '600' }}>
+          <AppText variant="title">
             {name}, {age}
-          </Text>
+          </AppText>
           <MaterialIcons
             name="favorite"
             size={20}
             color={AppColors.accentDefault}
           />
         </View>
-        <Text variant="body" color={AppColors.foregroundDimmer} style={{ marginBottom: 8 }}>{school}</Text>
-        <Text variant="subtitle" color={AppColors.foregroundDefault} numberOfLines={2}>
+        <AppText variant="body" color="dimmer" style={{ marginBottom: 8 }}>
+          {school}
+        </AppText>
+        <AppText variant="subtitle" numberOfLines={2}>
           {bio}
-        </Text>
+        </AppText>
       </View>
     </TouchableOpacity>
   );

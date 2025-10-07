@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
-import { Text } from '../components/ui';
+import AppText from '../components/ui/AppText';
 import Button from '../components/ui/Button';
 import CustomTextInput from '../components/ui/CustomTextInput';
 
@@ -142,10 +142,12 @@ export default function CreateProfileScreen() {
 
   const renderPhotosStep = () => (
     <View style={styles.stepContainer}>
-      <Text variant="title" color={AppColors.foregroundDefault} style={{ marginBottom: 8 }}>Add Your Photos</Text>
-      <Text variant="subtitle" color={AppColors.foregroundDimmer} style={{ marginBottom: 32 }}>
+      <AppText variant="title" style={{ marginBottom: 8 }}>
+        Add Your Photos
+      </AppText>
+      <AppText variant="subtitle" color="dimmer" style={{ marginBottom: 32 }}>
         Show your personality with great photos
-      </Text>
+      </AppText>
 
       <View style={styles.photosGrid}>
         {formData.photos.map((photo, index) => (
@@ -153,7 +155,7 @@ export default function CreateProfileScreen() {
             <Image source={{ uri: photo }} style={styles.photo} />
             {index === 0 && (
               <View style={styles.mainPhotoBadge}>
-                <Text variant="bodySmall" color={AppColors.backgroundDefault} style={{ fontWeight: '600' }}>Main</Text>
+                <AppText variant="bodySmall">Main</AppText>
               </View>
             )}
           </View>
@@ -165,11 +167,15 @@ export default function CreateProfileScreen() {
               size={40}
               color={AppColors.foregroundDimmer}
             />
-            <Text variant="bodySmall" color={AppColors.foregroundDimmer} style={{ marginTop: 8, textAlign: 'center' }}>
+            <AppText
+              variant="bodySmall"
+              color="dimmer"
+              style={{ marginTop: 8, textAlign: 'center' }}
+            >
               {formData.photos.length === 0
                 ? 'Add your first photo'
                 : 'Add more'}
-            </Text>
+            </AppText>
           </TouchableOpacity>
         )}
       </View>
@@ -178,10 +184,12 @@ export default function CreateProfileScreen() {
 
   const renderBioStep = () => (
     <View style={styles.stepContainer}>
-      <Text variant="title" color={AppColors.foregroundDefault} style={{ marginBottom: 8 }}>Tell us about yourself</Text>
-      <Text variant="subtitle" color={AppColors.foregroundDimmer} style={{ marginBottom: 32 }}>
+      <AppText variant="title" style={{ marginBottom: 8 }}>
+        Tell us about yourself
+      </AppText>
+      <AppText variant="subtitle" color="dimmer" style={{ marginBottom: 32 }}>
         Write a bio that shows your personality
-      </Text>
+      </AppText>
 
       <CustomTextInput
         placeholder="I love exploring Ithaca's gorges, trying new restaurants on the Commons, and weekend hiking trips..."
@@ -192,17 +200,29 @@ export default function CreateProfileScreen() {
         maxLength={500}
         style={styles.bioInput}
       />
-      <Text variant="bodySmall" color={AppColors.foregroundDimmer} style={{ textAlign: 'right', marginTop: 8 }}>{formData.bio.length}/500</Text>
+      <AppText
+        variant="bodySmall"
+        color="dimmer"
+        style={{ textAlign: 'right', marginTop: 8 }}
+      >
+        {formData.bio.length}/500
+      </AppText>
     </View>
   );
 
   const renderBasicInfoStep = () => (
     <View style={styles.stepContainer}>
-      <Text variant="title" color={AppColors.foregroundDefault} style={{ marginBottom: 8 }}>Basic Information</Text>
-      <Text variant="subtitle" color={AppColors.foregroundDimmer} style={{ marginBottom: 32 }}>Let people know the basics</Text>
+      <AppText variant="title" style={{ marginBottom: 8 }}>
+        Basic Information
+      </AppText>
+      <AppText variant="subtitle" color="dimmer" style={{ marginBottom: 32 }}>
+        Let people know the basics
+      </AppText>
 
       <View style={styles.inputGroup}>
-        <Text variant="subtitle" color={AppColors.foregroundDefault} style={{ fontWeight: '600', marginBottom: 12 }}>School *</Text>
+        <AppText variant="subtitle" style={{ marginBottom: 12 }}>
+          School *
+        </AppText>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.schoolButtons}>
             {schools.map((school) => (
@@ -214,12 +234,7 @@ export default function CreateProfileScreen() {
                 ]}
                 onPress={() => setFormData((prev) => ({ ...prev, school }))}
               >
-                <Text
-                  variant="body"
-                  color={formData.school === school ? AppColors.backgroundDefault : AppColors.foregroundDimmer}
-                >
-                  {school}
-                </Text>
+                <AppText variant="body">{school}</AppText>
               </TouchableOpacity>
             ))}
           </View>
@@ -227,7 +242,9 @@ export default function CreateProfileScreen() {
       </View>
 
       <View style={styles.inputGroup}>
-        <Text variant="subtitle" color={AppColors.foregroundDefault} style={{ fontWeight: '600', marginBottom: 12 }}>Graduation Year *</Text>
+        <AppText variant="subtitle" style={{ marginBottom: 12 }}>
+          Graduation Year *
+        </AppText>
         <View style={styles.yearButtons}>
           {graduationYears.map((year) => (
             <TouchableOpacity
@@ -240,12 +257,7 @@ export default function CreateProfileScreen() {
                 setFormData((prev) => ({ ...prev, graduationYear: year }))
               }
             >
-              <Text
-                variant="subtitle"
-                color={formData.graduationYear === year ? AppColors.backgroundDefault : AppColors.foregroundDimmer}
-              >
-                {year}
-              </Text>
+              <AppText variant="subtitle">{year}</AppText>
             </TouchableOpacity>
           ))}
         </View>
@@ -266,10 +278,12 @@ export default function CreateProfileScreen() {
 
   const renderInterestsStep = () => (
     <View style={styles.stepContainer}>
-      <Text variant="title" color={AppColors.foregroundDefault} style={{ marginBottom: 8 }}>Your Interests</Text>
-      <Text variant="subtitle" color={AppColors.foregroundDimmer} style={{ marginBottom: 32 }}>
+      <AppText variant="title" style={{ marginBottom: 8 }}>
+        Your Interests
+      </AppText>
+      <AppText variant="subtitle" color="dimmer" style={{ marginBottom: 32 }}>
         Select what you are passionate about
-      </Text>
+      </AppText>
 
       <View style={styles.interestsGrid}>
         {availableInterests.map((interest) => (
@@ -282,18 +296,15 @@ export default function CreateProfileScreen() {
             ]}
             onPress={() => toggleInterest(interest)}
           >
-            <Text
-              variant="body"
-              color={formData.interests.includes(interest) ? AppColors.backgroundDefault : AppColors.foregroundDimmer}
-            >
-              {interest}
-            </Text>
+            <AppText variant="body">{interest}</AppText>
           </TouchableOpacity>
         ))}
       </View>
 
       <View style={styles.inputGroup}>
-        <Text variant="subtitle" color={AppColors.foregroundDefault} style={{ fontWeight: '600', marginBottom: 12 }}>Social Media (Optional)</Text>
+        <AppText variant="subtitle" style={{ marginBottom: 12 }}>
+          Social Media (Optional)
+        </AppText>
         <CustomTextInput
           placeholder="Instagram username"
           value={formData.instagram}
@@ -361,10 +372,10 @@ export default function CreateProfileScreen() {
             }
           />
         </TouchableOpacity>
-        <Text variant="subtitle" color={AppColors.foregroundDefault} style={{ fontWeight: '600' }}>{getStepTitle()}</Text>
-        <Text variant="body" color={AppColors.foregroundDimmer}>
+        <AppText variant="subtitle">{getStepTitle()}</AppText>
+        <AppText variant="body" color="dimmer">
           {currentStep}/{totalSteps}
-        </Text>
+        </AppText>
       </View>
 
       {renderStepIndicator()}

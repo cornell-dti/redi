@@ -1,7 +1,7 @@
 import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors } from '../AppColors';
-import { Text } from './';
+import AppText from './AppText';
 
 interface ChatItemProps {
   name: string;
@@ -30,18 +30,19 @@ export default function ChatItem({
       </View>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text variant="subtitle" color={AppColors.foregroundDefault} style={{ fontWeight: '600' }}>{name}</Text>
-          <Text variant="bodySmall" color={AppColors.foregroundDimmer}>{timestamp}</Text>
+          <AppText variant="subtitle">{name}</AppText>
+          <AppText variant="bodySmall" color="dimmer">
+            {timestamp}
+          </AppText>
         </View>
         <View style={styles.messageContainer}>
-          <Text
+          <AppText
             variant="body"
-            color={AppColors.foregroundDefault}
             style={[styles.lastMessage, unread && { fontWeight: '500' }]}
             numberOfLines={1}
           >
             {lastMessage}
-          </Text>
+          </AppText>
           {unread && <View style={styles.unreadDot} />}
         </View>
       </View>

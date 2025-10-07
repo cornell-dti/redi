@@ -1,3 +1,4 @@
+import AppText from '@/app/components/ui/AppText';
 import { router } from 'expo-router';
 import { Edit, Search } from 'lucide-react-native';
 import React from 'react';
@@ -11,7 +12,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
-import { Text } from '../../components/ui';
 import ChatItem from '../../components/ui/ChatItem';
 import Header from '../../components/ui/Header';
 
@@ -74,7 +74,12 @@ export default function ChatScreen() {
       />
 
       <View style={styles.activeMatches}>
-        <Text variant="subtitle" color={AppColors.foregroundDefault} style={{ fontWeight: '600', marginBottom: 12, paddingHorizontal: 20 }}>Active Matches</Text>
+        <AppText
+          variant="subtitle"
+          style={{ marginBottom: 12, paddingHorizontal: 20 }}
+        >
+          Active Matches
+        </AppText>
         <FlatList
           data={mockChats.filter((chat) => chat.online)}
           keyExtractor={(item) => item.id}
@@ -90,7 +95,7 @@ export default function ChatScreen() {
                 />
                 <View style={styles.activeOnline} />
               </View>
-              <Text variant="bodySmall" color={AppColors.foregroundDefault}>{item.name}</Text>
+              <AppText variant="bodySmall">{item.name}</AppText>
             </TouchableOpacity>
           )}
         />

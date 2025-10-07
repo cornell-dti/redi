@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors } from '../AppColors';
-import { Text } from './';
+import AppText from './AppText';
 
 interface NotificationItemProps {
   type: string;
@@ -55,12 +55,17 @@ export default function NotificationItem({
       </View>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text variant="subtitle" color={AppColors.foregroundDefault} style={{ fontWeight: !read ? '600' : '500' }}>
+          <AppText
+            variant="subtitle"
+            style={{ fontWeight: !read ? '600' : '500' }}
+          >
             {title}
-          </Text>
-          <Text variant="bodySmall" color={AppColors.foregroundDimmer}>{timestamp}</Text>
+          </AppText>
+          <AppText variant="bodySmall" color="dimmer">
+            {timestamp}
+          </AppText>
         </View>
-        <Text variant="body" color={AppColors.foregroundDefault}>{message}</Text>
+        <AppText variant="body">{message}</AppText>
         {!read && <View style={styles.unreadDot} />}
       </View>
     </TouchableOpacity>

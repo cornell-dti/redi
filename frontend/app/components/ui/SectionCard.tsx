@@ -1,7 +1,7 @@
 // app/components/ui/SectionCard.tsx
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
-import { Text } from './';
+import AppText from './AppText';
 
 interface SectionCardProps {
   title?: string;
@@ -16,7 +16,11 @@ const SectionCard: React.FC<SectionCardProps> = ({
 }) => {
   return (
     <View style={[styles.container, style]}>
-      {title && <Text variant="subtitle" color="#333" style={{ fontWeight: 'bold', marginBottom: 16 }}>{title}</Text>}
+      {title && (
+        <AppText variant="subtitle" color="dimmer" style={{ marginBottom: 16 }}>
+          {title}
+        </AppText>
+      )}
       {children}
     </View>
   );

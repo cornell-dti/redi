@@ -83,6 +83,21 @@ export default function MatchesScreen() {
             icon="refresh"
             fullWidth
           />
+
+          <View
+            style={{
+              display: 'flex',
+              gap: 12,
+              padding: 24,
+              paddingBottom: 128,
+              backgroundColor: 'white',
+            }}
+          >
+            <AppText variant="title">Title Text</AppText>
+            <AppText variant="subtitle">Subtitle Text</AppText>
+            <AppText variant="body">Body Text</AppText>
+            <AppText variant="bodySmall">Body Small Text</AppText>
+          </View>
         </View>
       </ScrollView>
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Text } from '../ui';
+import AppText from '../ui/AppText';
 import CustomButton from '../ui/CustomButton';
 
 type Gender = 'female' | 'male' | 'non-binary';
@@ -43,7 +43,9 @@ const GenderPicker: React.FC<GenderPickerProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text variant="body" color="#333" style={{ marginBottom: 8 }}>{label}:</Text>
+      <AppText variant="body" color="dimmer" style={{ marginBottom: 8 }}>
+        {label}:
+      </AppText>
       <View style={styles.buttonContainer}>
         {genders.map((gender) => (
           <CustomButton

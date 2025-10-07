@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
-import { Text } from './';
+import AppText from './AppText';
 
 interface InfoRowProps {
   label: string;
@@ -11,16 +11,12 @@ interface InfoRowProps {
 export default function InfoRow({ label, value }: InfoRowProps) {
   return (
     <View style={styles.container}>
-      <Text variant="body" color={AppColors.foregroundDimmer}>
+      <AppText variant="body" color="dimmer">
         {label}
-      </Text>
-      <Text
-        variant="body"
-        color={AppColors.foregroundDefault}
-        style={styles.value}
-      >
+      </AppText>
+      <AppText variant="body" style={styles.value}>
         {value}
-      </Text>
+      </AppText>
     </View>
   );
 }

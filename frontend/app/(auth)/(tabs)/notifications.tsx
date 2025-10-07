@@ -1,3 +1,4 @@
+import AppText from '@/app/components/ui/AppText';
 import { CheckCheck } from 'lucide-react-native';
 import React from 'react';
 import {
@@ -9,7 +10,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
-import { Text } from '../../components/ui';
 import Header from '../../components/ui/Header';
 import NotificationItem from '../../components/ui/NotificationItem';
 
@@ -86,16 +86,22 @@ export default function NotificationsScreen() {
 
       <View style={styles.filterContainer}>
         <TouchableOpacity style={[styles.filterTab, styles.activeTab]}>
-          <Text variant="body" color={AppColors.foregroundDefault}>All</Text>
+          <AppText variant="body">All</AppText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.filterTab}>
-          <Text variant="body" color={AppColors.foregroundDimmer}>Matches</Text>
+          <AppText variant="body" color="dimmer">
+            Matches
+          </AppText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.filterTab}>
-          <Text variant="body" color={AppColors.foregroundDimmer}>Messages</Text>
+          <AppText variant="body" color="dimmer">
+            Messages
+          </AppText>
         </TouchableOpacity>
         <TouchableOpacity style={styles.filterTab}>
-          <Text variant="body" color={AppColors.foregroundDimmer}>Likes</Text>
+          <AppText variant="body" color="dimmer">
+            Likes
+          </AppText>
         </TouchableOpacity>
       </View>
 

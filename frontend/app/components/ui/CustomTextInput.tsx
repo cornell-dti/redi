@@ -1,12 +1,7 @@
 import React from 'react';
-import {
-  StyleSheet,
-  TextInput,
-  TextInputProps,
-  View,
-} from 'react-native';
+import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 import { AppColors } from '../AppColors';
-import { Text } from './';
+import AppText from './AppText';
 
 interface CustomTextInputProps extends TextInputProps {
   label?: string;
@@ -24,16 +19,25 @@ const CustomTextInput: React.FC<CustomTextInputProps> = ({
   return (
     <View style={styles.container}>
       {label && (
-        <Text variant="body" color={AppColors.foregroundDefault} style={{ marginBottom: 5 }}>
+        <AppText variant="body" style={{ marginBottom: 5 }}>
           {label}
-          {required && <Text variant="body" color={AppColors.negativeDefault}> *</Text>}
-        </Text>
+          {required && (
+            <AppText variant="body" color="negative">
+              {' '}
+              *
+            </AppText>
+          )}
+        </AppText>
       )}
       <TextInput
         style={[styles.input, error && styles.inputError, style]}
         {...props}
       />
-      {error && <Text variant="bodySmall" color={AppColors.negativeDefault} style={{ marginTop: 4 }}>{error}</Text>}
+      {error && (
+        <AppText variant="bodySmall" color="negative" style={{ marginTop: 4 }}>
+          {error}
+        </AppText>
+      )}
     </View>
   );
 };
