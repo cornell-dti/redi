@@ -129,7 +129,6 @@ export default function ProfileScreen() {
           title={'Preview Profile'}
           onPress={() => {}}
           variant="primary"
-          size="small"
           fullWidth={false}
         />
         <View style={styles.statsContainer}>

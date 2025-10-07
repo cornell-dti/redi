@@ -76,13 +76,52 @@ export default function MatchesScreen() {
             />
           ))}
 
-          <Button
-            title="Load More Profiles"
-            onPress={() => {}}
-            variant="outline"
-            icon="refresh"
-            fullWidth
-          />
+          <View
+            style={{
+              display: 'flex',
+              gap: 12,
+              padding: 24,
+              paddingBottom: 128,
+              backgroundColor: 'white',
+            }}
+          >
+            <Button title="Button" onPress={() => {}} />
+
+            <Button title="Button" onPress={() => {}} variant="secondary" />
+
+            <Button title="Button" onPress={() => {}} variant="negative" />
+            <Button title="Button" onPress={() => {}} iconLeft="add" />
+
+            <Button
+              title="Button"
+              onPress={() => {}}
+              iconLeft="add"
+              variant="secondary"
+            />
+
+            <Button
+              title="Button"
+              onPress={() => {}}
+              iconLeft="add"
+              variant="negative"
+            />
+
+            <Button title="Button" onPress={() => {}} iconRight="add" />
+
+            <Button
+              title="Button"
+              onPress={() => {}}
+              iconRight="add"
+              variant="secondary"
+            />
+
+            <Button
+              title="Button"
+              onPress={() => {}}
+              iconRight="add"
+              variant="negative"
+            />
+          </View>
         </View>
       </ScrollView>
 
