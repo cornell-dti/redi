@@ -79,8 +79,7 @@ export default function MatchesScreen() {
           <Button
             title="Load More Profiles"
             onPress={() => {}}
-            variant="outline"
-            icon="refresh"
+            iconLeft="refresh"
             fullWidth
           />
 
@@ -93,6 +92,42 @@ export default function MatchesScreen() {
               backgroundColor: 'white',
             }}
           >
+            <Button title="Button" onPress={() => {}} />
+
+            <Button title="Button" onPress={() => {}} variant="secondary" />
+
+            <Button title="Button" onPress={() => {}} variant="negative" />
+            <Button title="Button" onPress={() => {}} iconLeft="add" />
+
+            <Button
+              title="Button"
+              onPress={() => {}}
+              iconLeft="add"
+              variant="secondary"
+            />
+
+            <Button
+              title="Button"
+              onPress={() => {}}
+              iconLeft="add"
+              variant="negative"
+            />
+
+            <Button title="Button" onPress={() => {}} iconRight="add" />
+
+            <Button
+              title="Button"
+              onPress={() => {}}
+              iconRight="add"
+              variant="secondary"
+            />
+
+            <Button
+              title="Button"
+              onPress={() => {}}
+              iconRight="add"
+              variant="negative"
+            />
             <AppText variant="title">Title Text</AppText>
             <AppText variant="subtitle">Subtitle Text</AppText>
             <AppText variant="body">Body Text</AppText>

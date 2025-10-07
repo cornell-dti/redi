@@ -1,15 +1,21 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import React from 'react';
-import { Text, TextStyle, TouchableOpacity, ViewStyle } from 'react-native';
+import React, { useRef } from 'react';
+import {
+  Animated,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  ViewStyle,
+} from 'react-native';
 import { AppColors } from '../AppColors';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline';
-  size?: 'small' | 'medium' | 'large';
+  variant?: 'primary' | 'secondary' | 'negative';
   disabled?: boolean;
-  icon?: string;
+  iconLeft?: string;
+  iconRight?: string;
   fullWidth?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
@@ -19,22 +25,42 @@ export default function Button({
   title,
   onPress,
   variant = 'primary',
-  size = 'medium',
   disabled = false,
-  icon,
+  iconLeft,
+  iconRight,
   fullWidth = false,
   style,
   textStyle,
 }: ButtonProps) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const [isPressed, setIsPressed] = React.useState(false);
+
+  const handlePressIn = () => {
+    setIsPressed(true);
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    setIsPressed(false);
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const getButtonStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: 12,
-      paddingHorizontal: size === 'small' ? 16 : size === 'large' ? 24 : 20,
-      paddingVertical: size === 'small' ? 8 : size === 'large' ? 16 : 12,
-      gap: 8,
+      borderRadius: 128,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      height: 48,
+      gap: 6,
     };
 
     if (fullWidth) {
@@ -49,19 +75,23 @@ export default function Button({
       case 'primary':
         return {
           ...baseStyle,
-          backgroundColor: AppColors.accentDefault,
+          backgroundColor: isPressed
+            ? AppColors.accentDimmer
+            : AppColors.accentDefault,
         };
       case 'secondary':
         return {
           ...baseStyle,
-          backgroundColor: AppColors.backgroundDimmer,
+          backgroundColor: isPressed
+            ? AppColors.backgroundDimmest
+            : AppColors.backgroundDimmer,
         };
-      case 'outline':
+      case 'negative':
         return {
           ...baseStyle,
-          backgroundColor: AppColors.backgroundDefault,
-          borderWidth: 1,
-          borderColor: AppColors.accentDefault,
+          backgroundColor: isPressed
+            ? AppColors.negativeDimmer
+            : AppColors.negativeDimmest,
         };
       default:
         return baseStyle;
@@ -70,8 +100,8 @@ export default function Button({
 
   const getTextStyle = (): TextStyle => {
     const baseTextStyle: TextStyle = {
-      fontSize: size === 'small' ? 14 : size === 'large' ? 18 : 16,
-      fontWeight: '600',
+      fontSize: 16,
+      fontWeight: '400',
     };
 
     switch (variant) {
@@ -85,10 +115,10 @@ export default function Button({
           ...baseTextStyle,
           color: AppColors.foregroundDefault,
         };
-      case 'outline':
+      case 'negative':
         return {
           ...baseTextStyle,
-          color: AppColors.accentDefault,
+          color: AppColors.negativeDefault,
         };
       default:
         return baseTextStyle;
@@ -101,28 +131,39 @@ export default function Button({
         return AppColors.backgroundDefault;
       case 'secondary':
         return AppColors.foregroundDefault;
-      case 'outline':
-        return AppColors.accentDefault;
+      case 'negative':
+        return AppColors.negativeDefault;
       default:
         return AppColors.foregroundDefault;
     }
   };
 
   return (
-    <TouchableOpacity
-      style={[getButtonStyle(), style]}
-      onPress={onPress}
-      disabled={disabled}
-      activeOpacity={0.8}
-    >
-      {icon && (
-        <MaterialIcons
-          name={icon as any}
-          size={size === 'small' ? 16 : size === 'large' ? 20 : 18}
-          color={getIconColor()}
-        />
-      )}
-      <Text style={[getTextStyle(), textStyle]}>{title}</Text>
-    </TouchableOpacity>
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <TouchableOpacity
+        style={[getButtonStyle(), style]}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled}
+        activeOpacity={1}
+      >
+        {iconLeft && (
+          <MaterialIcons
+            name={iconLeft as any}
+            size={16}
+            color={getIconColor()}
+          />
+        )}
+        <Text style={[getTextStyle(), textStyle]}>{title}</Text>
+        {iconRight && (
+          <MaterialIcons
+            name={iconRight as any}
+            size={16}
+            color={getIconColor()}
+          />
+        )}
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
