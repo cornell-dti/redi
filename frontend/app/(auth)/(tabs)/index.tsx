@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Search,
   SlidersHorizontal,
+  Square,
 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
@@ -62,7 +63,9 @@ const mockMatches = [
 ];
 
 export default function MatchesScreen() {
-  const [sheetVisible, setSheetVisible] = useState(false);
+  const [sheetVisible1, setSheetVisible1] = useState(false);
+
+  const [sheetVisible2, setSheetVisible2] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -152,8 +155,14 @@ export default function MatchesScreen() {
             <AppText variant="bodySmall">Body Small Text</AppText>
 
             <Button
-              title="Open Sheet"
-              onPress={() => setSheetVisible(true)}
+              title="Open Sheet 1"
+              onPress={() => setSheetVisible1(true)}
+              variant="secondary"
+            />
+
+            <Button
+              title="Open Sheet 2"
+              onPress={() => setSheetVisible2(true)}
               variant="secondary"
             />
 
@@ -230,8 +239,8 @@ export default function MatchesScreen() {
       </ScrollView>
 
       <Sheet
-        visible={sheetVisible}
-        onDismiss={() => setSheetVisible(false)}
+        visible={sheetVisible1}
+        onDismiss={() => setSheetVisible1(false)}
         height={500}
         title="Example sheet title"
       >
@@ -243,6 +252,47 @@ export default function MatchesScreen() {
           <Button variant="primary" title="Hi" onPress={() => {}} />
 
           <Button variant="negative" title="Hi" onPress={() => {}} />
+        </View>
+      </Sheet>
+
+      <Sheet
+        visible={sheetVisible2}
+        onDismiss={() => setSheetVisible2(false)}
+        height={500}
+        title="Another sheet"
+      >
+        <View
+          style={{ display: 'flex', justifyContent: 'space-between', flex: 1 }}
+        >
+          <ListItemWrapper>
+            <ListItem
+              title="Default item"
+              right={<Square />}
+              onPress={() => {}}
+            />
+
+            <ListItem
+              title="Default item"
+              right={<Square />}
+              onPress={() => {}}
+            />
+
+            <ListItem
+              title="Selected item"
+              description="Selected variant should have dimmer background"
+              selected
+              onPress={() => {}}
+              right={<Check color={AppColors.backgroundDefault} />}
+            />
+          </ListItemWrapper>
+
+          <Button
+            title="Select"
+            iconLeft={Check}
+            variant="primary"
+            onPress={() => {}}
+            fullWidth
+          />
         </View>
       </Sheet>
 
