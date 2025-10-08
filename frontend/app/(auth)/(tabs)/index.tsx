@@ -1,6 +1,7 @@
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
+import IconButton from '@/app/components/ui/IconButton';
 import Sheet from '@/app/components/ui/Sheet';
 import {
   AirVent,
@@ -140,6 +141,63 @@ export default function MatchesScreen() {
               iconRight={Plus}
               variant="negative"
             />
+            <AppText variant="subtitle">Icon Buttons</AppText>
+
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'col',
+                alignItems: 'center',
+                gap: 12,
+              }}
+            >
+              <IconButton onPress={() => {}} icon={Plus} />
+
+              <IconButton
+                onPress={() => {}}
+                icon={RefreshCw}
+                variant="secondary"
+              />
+
+              <IconButton
+                onPress={() => {}}
+                icon={AirVent}
+                variant="negative"
+              />
+
+              <IconButton onPress={() => {}} icon={Plus} noRound />
+
+              <IconButton
+                onPress={() => {}}
+                icon={RefreshCw}
+                variant="secondary"
+                noRound
+              />
+
+              <IconButton
+                onPress={() => {}}
+                icon={AirVent}
+                variant="negative"
+                noRound
+              />
+
+              <IconButton onPress={() => {}} icon={Search} size="small" />
+
+              <IconButton
+                onPress={() => {}}
+                icon={Search}
+                variant="secondary"
+                size="small"
+              />
+
+              <IconButton
+                onPress={() => {}}
+                icon={Search}
+                variant="negative"
+                size="small"
+              />
+            </View>
+
             <AppText variant="title">Title Text</AppText>
             <AppText variant="subtitle">Subtitle Text</AppText>
             <AppText variant="body">Body Text</AppText>
