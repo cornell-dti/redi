@@ -5,7 +5,7 @@ import { AppColors } from '../AppColors';
 
 interface IconButtonProps {
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'negative';
+  variant?: 'primary' | 'secondary' | 'negative' | 'transparent';
   disabled?: boolean;
   size?: number | 'small' | 'default';
   style?: ViewStyle;
@@ -49,7 +49,7 @@ export default function IconButton({
     const baseStyle: ViewStyle = {
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: noRound ? 4 : 128,
+      borderRadius: noRound ? 0 : 128,
       height: resolvedSize,
       width: resolvedSize,
     };
@@ -79,6 +79,13 @@ export default function IconButton({
           backgroundColor: isPressed
             ? AppColors.negativeDimmer
             : AppColors.negativeDimmest,
+        };
+      case 'transparent':
+        return {
+          ...baseStyle,
+          backgroundColor: isPressed
+            ? AppColors.backgroundDimmer
+            : AppColors.backgroundDefault,
         };
       default:
         return baseStyle;
