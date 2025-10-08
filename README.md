@@ -184,12 +184,29 @@ Deploy to your preferred platform (Heroku, Railway, Render, etc.) with environme
 
 ### Frontend
 
-```bash
+````bash
 # Build for production
 cd frontend
 npm run build:web  # For web deployment
 eas build  # For app store builds (requires Expo account)
-```
+
+## Frontend Development Commands
+
+```bash
+# Start development server
+npm start
+
+# Run on specific platform
+npm run ios
+npm run android
+npm run web
+
+# Type checking
+npx tsc --noEmit
+
+# Linting
+npm run lint
+````
 
 ### Landing Page
 
