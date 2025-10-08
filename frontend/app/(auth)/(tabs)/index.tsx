@@ -24,6 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
 import Header from '../../components/ui/Header';
 import MatchCard from '../../components/ui/MatchCard';
+import Tag from '../../components/ui/Tag';
 
 // Mock data for matches
 const mockMatches = [
@@ -146,7 +147,7 @@ export default function MatchesScreen() {
             <View
               style={{
                 display: 'flex',
-                flexDirection: 'col',
+                flexDirection: 'column',
                 alignItems: 'center',
                 gap: 12,
               }}
@@ -240,6 +241,36 @@ export default function MatchesScreen() {
               required
               error="This is an error message"
             />
+
+            <AppText variant="subtitle">Tags</AppText>
+            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+              <Tag label="Student" />
+
+              <Tag label="Verified" icon={SlidersHorizontal} />
+
+              <Tag label="Removable" dismissible onDismiss={() => {}} />
+            </View>
+
+            <View
+              style={{
+                backgroundColor: AppColors.backgroundDimmer,
+                flexDirection: 'row',
+                gap: 8,
+                flexWrap: 'wrap',
+                padding: 12,
+              }}
+            >
+              <Tag variant="white" label="Student" />
+
+              <Tag variant="white" label="Verified" icon={SlidersHorizontal} />
+
+              <Tag
+                variant="white"
+                label="Removable"
+                dismissible
+                onDismiss={() => {}}
+              />
+            </View>
           </View>
         </View>
       </ScrollView>
