@@ -25,33 +25,88 @@ export type ScreensParamList = {
   };
 };
 
-// User profile types
-export interface UserProfile {
-  id: string;
+// =============================================================================
+// PROFILE TYPES (aligned with backend)
+// =============================================================================
+
+export type Gender = 'female' | 'male' | 'non-binary';
+
+export type School =
+  | 'College of Agriculture and Life Sciences'
+  | 'College of Architecture, Art, and Planning'
+  | 'College of Arts and Sciences'
+  | 'Cornell SC Johnson College of Business'
+  | 'College of Engineering'
+  | 'College of Human Ecology'
+  | 'School of Industrial and Labor Relations'
+  | 'Graduate School'
+  | 'Law School'
+  | 'Business School'
+  | 'Medical College'
+  | 'Veterinary Medicine';
+
+// Profile response from API (matches backend ProfileResponse)
+export interface ProfileResponse {
   netid: string;
-  name: string;
-  age: number;
+  firstName: string;
   bio: string;
-  school: string;
-  major: string[];
-  graduationYear: number;
-  photos: string[];
-  interests: string[];
+  gender: Gender;
+  birthdate: string; // ISO string format
+  hometown?: string;
+  pronouns?: string[];
+  sexualOrientation?: string[];
+  interestedIn?: string[];
+  showGenderOnProfile?: boolean;
+  showPronounsOnProfile?: boolean;
+  showHometownOnProfile?: boolean;
+  showCollegeOnProfile?: boolean;
+  showSexualOrientationOnProfile?: boolean;
+  prompts?: { question: string; answer: string }[];
   instagram?: string;
   snapchat?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  phoneNumber?: string;
+  year: number;
+  school: School;
+  major: string[];
+  pictures: string[];
+  createdAt: string; // ISO string format
+  updatedAt: string; // ISO string format
 }
 
-export interface CreateProfileData {
-  photos: string[];
+// Input for creating a new profile (matches backend CreateProfileInput)
+export interface CreateProfileInput {
+  netid: string;
+  firstName: string;
   bio: string;
-  school: string;
-  graduationYear: number;
-  major: string;
-  interests: string[];
+  gender: Gender;
+  birthdate: string | Date; // ISO string or Date
+  hometown?: string;
+  pronouns?: string[];
+  sexualOrientation?: string[];
+  interestedIn?: string[];
+  showGenderOnProfile?: boolean;
+  showPronounsOnProfile?: boolean;
+  showHometownOnProfile?: boolean;
+  showCollegeOnProfile?: boolean;
+  showSexualOrientationOnProfile?: boolean;
+  prompts?: { question: string; answer: string }[];
   instagram?: string;
   snapchat?: string;
+  phoneNumber?: string;
+  year: number;
+  school: School;
+  major: string[];
+  pictures: string[];
+}
+
+// Input for updating a profile (all fields optional except those omitted)
+export type UpdateProfileInput = Partial<Omit<CreateProfileInput, 'netid'>>;
+
+// Response when creating a profile
+export interface CreateProfileResponse {
+  id: string;
+  netid: string;
+  message: string;
 }
 
 // Chat and messaging types
@@ -106,21 +161,7 @@ export interface SearchFilters {
   distance?: number;
 }
 
-// Cornell-specific types
-export type CornellSchool =
-  | 'College of Arts and Sciences'
-  | 'College of Agriculture and Life Sciences'
-  | 'College of Engineering'
-  | 'School of Hotel Administration'
-  | 'College of Human Ecology'
-  | 'School of Industrial and Labor Relations'
-  | 'College of Architecture, Art, and Planning'
-  | 'Dyson School of Applied Economics'
-  | 'Graduate School';
-
 export type GraduationYear = 2025 | 2026 | 2027 | 2028;
-
-export type Gender = 'male' | 'female' | 'non-binary' | 'other';
 
 // API response types
 export interface ApiResponse<T = any> {

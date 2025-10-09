@@ -10,32 +10,47 @@ import { AppColors } from '../../components/AppColors';
 const AnimatedTabButton = (props: any) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  const handlePressIn = () => {
+  const handlePressIn = (e: any) => {
     Animated.timing(scaleAnim, {
       toValue: 0.93,
       duration: 100,
       useNativeDriver: true,
     }).start();
-    props.onPressIn?.();
+    // Call the original onPressIn if it exists
+    props.onPressIn?.(e);
   };
 
-  const handlePressOut = () => {
+  const handlePressOut = (e: any) => {
     Animated.timing(scaleAnim, {
       toValue: 1,
       duration: 100,
       useNativeDriver: true,
     }).start();
-    props.onPressOut?.();
+    // Call the original onPressOut if it exists
+    props.onPressOut?.(e);
+  };
+
+  const handlePress = (e: any) => {
+    console.log('AnimatedTabButton: handlePress called', {
+      hasOnPress: !!props.onPress,
+      accessibilityLabel: props.accessibilityLabel,
+    });
+    // CRITICAL: Call the original onPress handler for navigation
+    props.onPress?.(e);
   };
 
   return (
-    <Pressable {...props} onPressIn={handlePressIn} onPressOut={handlePressOut}>
+    <Pressable
+      {...props}
+      onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+    >
       <Animated.View
         style={{
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-
           transform: [{ scale: scaleAnim }],
         }}
       >
@@ -114,6 +129,11 @@ export default function TabLayout() {
           title: 'Profile',
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
           tabBarButton: (props) => <AnimatedTabButton {...props} />,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            console.log('Profile tab pressed');
+          },
         }}
       />
     </Tabs>

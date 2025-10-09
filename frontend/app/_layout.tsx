@@ -1,4 +1,5 @@
 // _layout.tsx
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -19,7 +20,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(handleAuthStateChanged);
-    return unsubscribe; // Clean up subscription on unmount
+    return unsubscribe;
   }, []);
 
   useEffect(() => {
@@ -27,14 +28,29 @@ export default function RootLayout() {
 
     const inAuthGroup = segments[0] === '(auth)';
 
-    if (user && !inAuthGroup) {
-      // User is signed in but not in auth group, redirect to home
-      router.replace('/(auth)/home');
-    } else if (!user && inAuthGroup) {
-      // User is not signed in but in auth group, redirect to login
-      router.replace('/');
-    }
-  }, [user, initializing, segments, router]);
+    const checkAndRedirect = async () => {
+      if (user && !inAuthGroup) {
+        // User is signed in but not in auth group
+        // Check onboarding status to determine where to redirect
+        const onboardingComplete = await AsyncStorage.getItem(
+          'onboarding_complete'
+        );
+
+        if (onboardingComplete === 'true') {
+          // User has completed onboarding, go to tabs
+          router.replace('/(auth)/(tabs)');
+        } else {
+          // User hasn't completed onboarding, go to create profile
+          router.replace('/(auth)/create-profile');
+        }
+      } else if (!user && inAuthGroup) {
+        // User is not signed in but in auth group, redirect to login
+        router.replace('/');
+      }
+    };
+
+    checkAndRedirect();
+  }, [user, initializing]);
 
   if (initializing) {
     return (

@@ -98,210 +98,206 @@ export default function MatchesScreen() {
               image={match.image}
             />
           ))}
-          </View>
+        </View>
+
+        <Button
+          title="Load More Profiles"
+          onPress={() => {}}
+          iconLeft={RefreshCw}
+          fullWidth
+        />
+
+        <View
+          style={{
+            display: 'flex',
+            gap: 12,
+            padding: 24,
+            paddingBottom: 128,
+            backgroundColor: 'white',
+          }}
+        >
+          <Button title="Button" noRound onPress={() => {}} />
 
           <Button
-            title="Load More Profiles"
+            title="Button"
+            noRound
+            variant="negative"
             onPress={() => {}}
-            iconLeft={RefreshCw}
-            fullWidth
           />
+
+          <Button title="Button" onPress={() => {}} />
+
+          <Button title="Button" onPress={() => {}} variant="secondary" />
+
+          <Button title="Button" onPress={() => {}} variant="negative" />
+          <Button title="Button" onPress={() => {}} iconLeft={Clapperboard} />
+
+          <Button
+            title="Button"
+            onPress={() => {}}
+            iconLeft={Plus}
+            variant="secondary"
+          />
+
+          <Button
+            title="Button"
+            onPress={() => {}}
+            iconLeft={AirVent}
+            variant="negative"
+          />
+
+          <Button title="Button" onPress={() => {}} iconRight={Plus} />
+
+          <Button
+            title="Button"
+            onPress={() => {}}
+            iconRight={ArrowDownAZ}
+            variant="secondary"
+          />
+
+          <Button
+            title="Button"
+            onPress={() => {}}
+            iconRight={Plus}
+            variant="negative"
+          />
+          <AppText variant="subtitle">Icon Buttons</AppText>
 
           <View
             style={{
               display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
               gap: 12,
-              padding: 24,
-              paddingBottom: 128,
-              backgroundColor: 'white',
             }}
           >
-            <Button title="Button" noRound onPress={() => {}} />
+            <IconButton onPress={() => {}} icon={Plus} />
 
-            <Button
-              title="Button"
+            <IconButton
+              onPress={() => {}}
+              icon={RefreshCw}
+              variant="secondary"
+            />
+
+            <IconButton onPress={() => {}} icon={AirVent} variant="negative" />
+
+            <IconButton onPress={() => {}} icon={Plus} noRound />
+
+            <IconButton
+              onPress={() => {}}
+              icon={RefreshCw}
+              variant="secondary"
               noRound
+            />
+
+            <IconButton
+              onPress={() => {}}
+              icon={AirVent}
               variant="negative"
-              onPress={() => {}}
+              noRound
             />
 
-            <Button title="Button" onPress={() => {}} />
+            <IconButton onPress={() => {}} icon={Search} size="small" />
 
-            <Button title="Button" onPress={() => {}} variant="secondary" />
-
-            <Button title="Button" onPress={() => {}} variant="negative" />
-            <Button title="Button" onPress={() => {}} iconLeft={Clapperboard} />
-
-            <Button
-              title="Button"
+            <IconButton
               onPress={() => {}}
-              iconLeft={Plus}
+              icon={Search}
               variant="secondary"
+              size="small"
             />
 
-            <Button
-              title="Button"
+            <IconButton
               onPress={() => {}}
-              iconLeft={AirVent}
+              icon={Search}
               variant="negative"
+              size="small"
             />
+          </View>
 
-            <Button title="Button" onPress={() => {}} iconRight={Plus} />
+          <AppText variant="title">Title Text</AppText>
+          <AppText variant="subtitle">Subtitle Text</AppText>
+          <AppText variant="body">Body Text</AppText>
+          <AppText variant="bodySmall">Body Small Text</AppText>
 
-            <Button
-              title="Button"
-              onPress={() => {}}
-              iconRight={ArrowDownAZ}
-              variant="secondary"
-            />
+          <Button
+            title="Open Sheet 1"
+            onPress={() => setSheetVisible1(true)}
+            variant="secondary"
+          />
 
-            <Button
-              title="Button"
-              onPress={() => {}}
-              iconRight={Plus}
-              variant="negative"
-            />
-            <AppText variant="subtitle">Icon Buttons</AppText>
+          <Button
+            title="Open Sheet 2"
+            onPress={() => setSheetVisible2(true)}
+            variant="secondary"
+          />
 
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 12,
-              }}
-            >
-              <IconButton onPress={() => {}} icon={Plus} />
+          <AppInput onChangeText={() => {}} placeholder="Placeholder" />
 
-              <IconButton
+          <AppInput
+            onChangeText={() => {}}
+            placeholder="Placeholder (no label)"
+            required
+          />
+
+          <AppInput
+            label="Label"
+            onChangeText={() => {}}
+            placeholder="Placeholder (no label)"
+          />
+
+          <AppInput
+            label="Label"
+            onChangeText={() => {}}
+            placeholder="Placeholder"
+            required
+          />
+
+          <AppInput
+            label="Label"
+            onChangeText={() => {}}
+            placeholder="Placeholder (no label)"
+            error="This is an error message"
+          />
+
+          <AppInput
+            label="Label"
+            onChangeText={() => {}}
+            placeholder="Placeholder"
+            required
+            error="This is an error message"
+          />
+
+          <View style={{ marginTop: 20 }}>
+            <AppText variant="subtitle">ListItem Examples</AppText>
+
+            <ListItemWrapper>
+              <ListItem title="Default item" onPress={() => {}} />
+
+              <ListItem
+                title="With description"
+                description="This is a secondary description"
                 onPress={() => {}}
-                icon={RefreshCw}
-                variant="secondary"
               />
 
-              <IconButton
+              <ListItem
+                title="Left and right elements"
+                left={
+                  <IconWrapper variant="white">
+                    <Edit />
+                  </IconWrapper>
+                }
+                right={<ChevronRight />}
                 onPress={() => {}}
-                icon={AirVent}
-                variant="negative"
               />
 
-              <IconButton onPress={() => {}} icon={Plus} noRound />
-
-              <IconButton
+              <ListItem
+                title="Selected item"
+                description="Selected variant should have dimmer background"
+                selected
                 onPress={() => {}}
-                icon={RefreshCw}
-                variant="secondary"
-                noRound
+                right={<Check color={AppColors.backgroundDefault} />}
               />
-
-              <IconButton
-                onPress={() => {}}
-                icon={AirVent}
-                variant="negative"
-                noRound
-              />
-
-              <IconButton onPress={() => {}} icon={Search} size="small" />
-
-              <IconButton
-                onPress={() => {}}
-                icon={Search}
-                variant="secondary"
-                size="small"
-              />
-
-              <IconButton
-                onPress={() => {}}
-                icon={Search}
-                variant="negative"
-                size="small"
-              />
-            </View>
-
-            <AppText variant="title">Title Text</AppText>
-            <AppText variant="subtitle">Subtitle Text</AppText>
-            <AppText variant="body">Body Text</AppText>
-            <AppText variant="bodySmall">Body Small Text</AppText>
-
-            <Button
-              title="Open Sheet 1"
-              onPress={() => setSheetVisible1(true)}
-              variant="secondary"
-            />
-
-            <Button
-              title="Open Sheet 2"
-              onPress={() => setSheetVisible2(true)}
-              variant="secondary"
-            />
-
-            <AppInput onChangeText={() => {}} placeholder="Placeholder" />
-
-            <AppInput
-              onChangeText={() => {}}
-              placeholder="Placeholder (no label)"
-              required
-            />
-
-            <AppInput
-              label="Label"
-              onChangeText={() => {}}
-              placeholder="Placeholder (no label)"
-            />
-
-            <AppInput
-              label="Label"
-              onChangeText={() => {}}
-              placeholder="Placeholder"
-              required
-            />
-
-            <AppInput
-              label="Label"
-              onChangeText={() => {}}
-              placeholder="Placeholder (no label)"
-              error="This is an error message"
-            />
-
-            <AppInput
-              label="Label"
-              onChangeText={() => {}}
-              placeholder="Placeholder"
-              required
-              error="This is an error message"
-            />
-
-            <View style={{ marginTop: 20 }}>
-              <AppText variant="subtitle">ListItem Examples</AppText>
-
-              <ListItemWrapper>
-                <ListItem title="Default item" onPress={() => {}} />
-
-                <ListItem
-                  title="With description"
-                  description="This is a secondary description"
-                  onPress={() => {}}
-                />
-
-                <ListItem
-                  title="Left and right elements"
-                  left={
-                    <IconWrapper variant="white">
-                      <Edit />
-                    </IconWrapper>
-                  }
-                  right={<ChevronRight />}
-                  onPress={() => {}}
-                />
-
-                <ListItem
-                  title="Selected item"
-                  description="Selected variant should have dimmer background"
-                  selected
-                  onPress={() => {}}
-                  right={<Check color={AppColors.backgroundDefault} />}
-                />
-              </ListItemWrapper>
+            </ListItemWrapper>
             <AppText variant="subtitle">Tags</AppText>
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
               <Tag label="Student" />

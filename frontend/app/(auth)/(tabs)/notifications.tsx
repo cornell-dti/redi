@@ -1,5 +1,12 @@
 import AppText from '@/app/components/ui/AppText';
-import { BarChart3, CheckCheck, Heart, LucideIcon, MessageCircle, TrendingUp } from 'lucide-react-native';
+import {
+  BarChart3,
+  CheckCheck,
+  Heart,
+  LucideIcon,
+  MessageCircle,
+  TrendingUp,
+} from 'lucide-react-native';
 import React from 'react';
 import {
   FlatList,

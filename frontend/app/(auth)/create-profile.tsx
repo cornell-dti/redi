@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowLeft, ArrowRight, Camera, Check } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -7,76 +7,66 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getCurrentUser } from '../api/authService';
+import { createProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
+import OnboardingFooter from '../components/onboarding/OnboardingFooter';
+import OnboardingHeader from '../components/onboarding/OnboardingHeader';
+import OnboardingTitle from '../components/onboarding/OnboardingTitle';
+import PhotoUploadGrid from '../components/onboarding/PhotoUploadGrid';
+import PromptSelector from '../components/onboarding/PromptSelector';
 import AppInput from '../components/ui/AppInput';
 import AppText from '../components/ui/AppText';
 import Button from '../components/ui/Button';
+import ListItem from '../components/ui/ListItem';
+import ListItemWrapper from '../components/ui/ListItemWrapper';
+import Sheet from '../components/ui/Sheet';
+import { useOnboardingState } from '../hooks/useOnboardingState';
+import {
+  CORNELL_SCHOOLS,
+  GENDER_OPTIONS,
+  GRADUATION_YEARS,
+  INTERESTED_IN_OPTIONS,
+  PRONOUN_OPTIONS,
+  PromptData,
+  SEXUAL_ORIENTATION_OPTIONS,
+} from '../types/onboarding';
+import {
+  transformOnboardingToProfilePayload,
+  validateProfilePayload,
+} from '../utils/onboardingTransform';
 
-// Mock data for dropdowns
-const schools = [
-  'College of Arts and Sciences',
-  'College of Agriculture and Life Sciences',
-  'College of Engineering',
-  'School of Hotel Administration',
-  'College of Human Ecology',
-  'School of Industrial and Labor Relations',
-  'College of Architecture, Art, and Planning',
-  'Dyson School of Applied Economics',
-  'Graduate School',
-];
-
-const graduationYears = [2025, 2026, 2027, 2028];
-
-interface ProfileFormData {
-  photos: string[];
-  bio: string;
-  school: string;
-  graduationYear: number | null;
-  major: string;
-  instagram: string;
-  snapchat: string;
-  interests: string[];
-}
-
-const availableInterests = [
-  'Hiking',
-  'Photography',
-  'Music',
-  'Travel',
-  'Board Games',
-  'Cooking',
-  'Art',
-  'Sports',
-  'Reading',
-  'Dancing',
-  'Yoga',
-  'Coffee',
-  'Movies',
-  'Gaming',
-  'Fitness',
-];
+const TOTAL_STEPS = 11; // Steps 2-12 (Step 1 is in home.tsx)
 
 export default function CreateProfileScreen() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<ProfileFormData>({
-    photos: [],
-    bio: '',
-    school: '',
-    graduationYear: null,
-    major: '',
-    instagram: '',
-    snapchat: '',
-    interests: [],
-  });
+  const [currentStep, setCurrentStep] = useState(2); // Start at step 2
+  const {
+    data,
+    updateField,
+    toggleArrayItem,
+    validateStep,
+    clearStorage,
+    isLoaded,
+  } = useOnboardingState();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSchoolSheet, setShowSchoolSheet] = useState(false);
+  const [showMajorInput, setShowMajorInput] = useState(false);
+  const [majorInput, setMajorInput] = useState('');
 
-  const totalSteps = 4;
+  if (!isLoaded) {
+    return null; // Wait for AsyncStorage to load
+  }
 
   const handleNext = () => {
-    if (currentStep < totalSteps) {
+    if (!validateStep(currentStep)) {
+      Alert.alert('Required', 'Please complete all required fields');
+      return;
+    }
+
+    if (currentStep < 12) {
       setCurrentStep(currentStep + 1);
     } else {
       handleSubmit();
@@ -84,311 +74,460 @@ export default function CreateProfileScreen() {
   };
 
   const handleBack = () => {
-    if (currentStep > 1) {
+    if (currentStep > 2) {
       setCurrentStep(currentStep - 1);
     }
   };
 
   const handleSubmit = async () => {
-    // Validate required fields
-    if (!formData.bio || !formData.school || !formData.graduationYear) {
-      Alert.alert('Missing Information', 'Please fill in all required fields');
+    // Get the authenticated user's Firebase UID
+    const currentUser = getCurrentUser();
+    const firebaseUid = currentUser?.uid;
+
+    if (!firebaseUid) {
+      Alert.alert('Error', 'You must be logged in to create a profile');
+      router.replace('/(auth)/home' as any);
       return;
     }
 
     try {
-      // TODO: Submit to backend API
-      console.log('Profile data:', formData);
-      Alert.alert('Success!', 'Your profile has been created!', [
+      setIsSubmitting(true);
+
+      // Transform data to API payload
+      const payload = transformOnboardingToProfilePayload(data, firebaseUid);
+
+      // Validate payload
+      const validation = validateProfilePayload(payload);
+      if (!validation.valid) {
+        Alert.alert('Missing Information', validation.errors.join('\n'));
+        return;
+      }
+
+      // Submit to backend - extract firebaseUid from payload
+      const { firebaseUid: uid, ...profileData } = payload;
+      await createProfile(uid, profileData);
+
+      // Clear storage and navigate to main app
+      await clearStorage();
+      Alert.alert('Welcome!', 'Your profile has been created successfully!', [
         {
-          text: 'Continue',
+          text: 'Get Started',
           onPress: () => router.replace('/(auth)/(tabs)' as any),
         },
       ]);
     } catch (error) {
-      Alert.alert('Error', 'Failed to create profile. Please try again.');
+      Alert.alert(
+        'Error',
+        error instanceof Error
+          ? error.message
+          : 'Failed to create profile. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const addPhoto = () => {
-    // TODO: Implement image picker
-    const mockPhoto =
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400';
-    setFormData((prev) => ({
-      ...prev,
-      photos: [...prev.photos, mockPhoto],
-    }));
+  const addMajor = () => {
+    if (majorInput.trim()) {
+      updateField('major', [...data.major, majorInput.trim()]);
+      setMajorInput('');
+      setShowMajorInput(false);
+    }
   };
 
-  const toggleInterest = (interest: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      interests: prev.interests.includes(interest)
-        ? prev.interests.filter((i) => i !== interest)
-        : [...prev.interests, interest],
-    }));
+  const removeMajor = (index: number) => {
+    updateField(
+      'major',
+      data.major.filter((_, i) => i !== index)
+    );
   };
 
-  const renderStepIndicator = () => (
-    <View style={styles.stepIndicator}>
-      {Array.from({ length: totalSteps }, (_, index) => (
-        <View
-          key={index}
-          style={[styles.stepDot, index + 1 <= currentStep && styles.activeDot]}
-        />
-      ))}
-    </View>
-  );
+  const addPrompt = () => {
+    if (data.prompts.length < 3) {
+      const newPrompt: PromptData = {
+        id: Date.now().toString(),
+        question: '',
+        answer: '',
+      };
+      updateField('prompts', [...data.prompts, newPrompt]);
+    }
+  };
 
-  const renderPhotosStep = () => (
-    <View style={styles.stepContainer}>
-      <AppText variant="title" style={{ marginBottom: 8 }}>
-        Add Your Photos
-      </AppText>
-      <AppText variant="subtitle" color="dimmer" style={{ marginBottom: 32 }}>
-        Show your personality with great photos
-      </AppText>
+  const updatePrompt = (id: string, updatedPrompt: PromptData) => {
+    updateField(
+      'prompts',
+      data.prompts.map((p) => (p.id === id ? updatedPrompt : p))
+    );
+  };
 
-      <View style={styles.photosGrid}>
-        {formData.photos.map((photo, index) => (
-          <View key={index} style={styles.photoContainer}>
-            <Image source={{ uri: photo }} style={styles.photo} />
-            {index === 0 && (
-              <View style={styles.mainPhotoBadge}>
-                <AppText variant="bodySmall">Main</AppText>
-              </View>
-            )}
-          </View>
-        ))}
-        {formData.photos.length < 6 && (
-          <TouchableOpacity style={styles.addPhotoButton} onPress={addPhoto}>
-            <Camera size={40} color={AppColors.foregroundDimmer} />
-            <AppText
-              variant="bodySmall"
-              color="dimmer"
-              style={{ marginTop: 8, textAlign: 'center' }}
-            >
-              {formData.photos.length === 0
-                ? 'Add your first photo'
-                : 'Add more'}
-            </AppText>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
+  const removePrompt = (id: string) => {
+    updateField(
+      'prompts',
+      data.prompts.filter((p) => p.id !== id)
+    );
+  };
 
-  const renderBioStep = () => (
-    <View style={styles.stepContainer}>
-      <AppText variant="title" style={{ marginBottom: 8 }}>
-        Tell us about yourself
-      </AppText>
-      <AppText variant="subtitle" color="dimmer" style={{ marginBottom: 32 }}>
-        Write a bio that shows your personality
-      </AppText>
-
-      <AppInput
-        placeholder="I love exploring Ithaca's gorges, trying new restaurants on the Commons, and weekend hiking trips..."
-        value={formData.bio}
-        onChangeText={(text) => setFormData((prev) => ({ ...prev, bio: text }))}
-        multiline
-        numberOfLines={4}
-        maxLength={500}
-        style={styles.bioInput}
-      />
-      <AppText
-        variant="bodySmall"
-        color="dimmer"
-        style={{ textAlign: 'right', marginTop: 8 }}
-      >
-        {formData.bio.length}/500
-      </AppText>
-    </View>
-  );
-
-  const renderBasicInfoStep = () => (
-    <View style={styles.stepContainer}>
-      <AppText variant="title" style={{ marginBottom: 8 }}>
-        Basic Information
-      </AppText>
-      <AppText variant="subtitle" color="dimmer" style={{ marginBottom: 32 }}>
-        Let people know the basics
-      </AppText>
-
-      <View style={styles.inputGroup}>
-        <AppText variant="subtitle" style={{ marginBottom: 12 }}>
-          School *
-        </AppText>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.schoolButtons}>
-            {schools.map((school) => (
-              <TouchableOpacity
-                key={school}
-                style={[
-                  styles.schoolButton,
-                  formData.school === school && styles.selectedSchoolButton,
-                ]}
-                onPress={() => setFormData((prev) => ({ ...prev, school }))}
-              >
-                <AppText variant="body">{school}</AppText>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </ScrollView>
-      </View>
-
-      <View style={styles.inputGroup}>
-        <AppText variant="subtitle" style={{ marginBottom: 12 }}>
-          Graduation Year *
-        </AppText>
-        <View style={styles.yearButtons}>
-          {graduationYears.map((year) => (
-            <TouchableOpacity
-              key={year}
-              style={[
-                styles.yearButton,
-                formData.graduationYear === year && styles.selectedYearButton,
-              ]}
-              onPress={() =>
-                setFormData((prev) => ({ ...prev, graduationYear: year }))
-              }
-            >
-              <AppText variant="subtitle">{year}</AppText>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      <View style={styles.inputGroup}>
-        <AppInput
-          label="Major"
-          placeholder="Computer Science"
-          value={formData.major}
-          onChangeText={(text) =>
-            setFormData((prev) => ({ ...prev, major: text }))
-          }
-        />
-      </View>
-    </View>
-  );
-
-  const renderInterestsStep = () => (
-    <View style={styles.stepContainer}>
-      <AppText variant="title" style={{ marginBottom: 8 }}>
-        Your Interests
-      </AppText>
-      <AppText variant="subtitle" color="dimmer" style={{ marginBottom: 32 }}>
-        Select what you are passionate about
-      </AppText>
-
-      <View style={styles.interestsGrid}>
-        {availableInterests.map((interest) => (
-          <TouchableOpacity
-            key={interest}
-            style={[
-              styles.interestButton,
-              formData.interests.includes(interest) &&
-                styles.selectedInterestButton,
-            ]}
-            onPress={() => toggleInterest(interest)}
-          >
-            <AppText variant="body">{interest}</AppText>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <View style={styles.inputGroup}>
-        <AppText variant="subtitle" style={{ marginBottom: 12 }}>
-          Social Media (Optional)
-        </AppText>
-        <AppInput
-          placeholder="Instagram username"
-          value={formData.instagram}
-          onChangeText={(text) =>
-            setFormData((prev) => ({ ...prev, instagram: text }))
-          }
-          autoCapitalize="none"
-        />
-        <AppInput
-          placeholder="Snapchat username"
-          value={formData.snapchat}
-          onChangeText={(text) =>
-            setFormData((prev) => ({ ...prev, snapchat: text }))
-          }
-          autoCapitalize="none"
-        />
-      </View>
-    </View>
-  );
-
-  const renderCurrentStep = () => {
+  const renderStep = () => {
     switch (currentStep) {
-      case 1:
-        return renderPhotosStep();
       case 2:
-        return renderBioStep();
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle title="To start, let's learn more about you" />
+            <AppInput
+              label="Your first name"
+              placeholder="First name"
+              value={data.firstName}
+              onChangeText={(text) => updateField('firstName', text)}
+              required
+            />
+            <AppInput
+              label="Your birthday"
+              placeholder="MM/DD/YYYY"
+              value={data.birthdate}
+              onChangeText={(text) => updateField('birthdate', text)}
+              required
+            />
+          </View>
+        );
+
       case 3:
-        return renderBasicInfoStep();
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle
+              title="What's your gender?"
+              subtitle="Select all that describe you to help us show your profile to the right people."
+            />
+            <ListItemWrapper>
+              {GENDER_OPTIONS.map((gender) => (
+                <ListItem
+                  key={gender}
+                  title={gender}
+                  selected={data.genders.includes(gender)}
+                  onPress={() => toggleArrayItem('genders', gender)}
+                  right={
+                    data.genders.includes(gender) ? (
+                      <Check size={24} color={AppColors.backgroundDefault} />
+                    ) : null
+                  }
+                />
+              ))}
+            </ListItemWrapper>
+          </View>
+        );
+
       case 4:
-        return renderInterestsStep();
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle
+              title="What pronouns do you use?"
+              subtitle="Select all that describe you to help us show your profile to the right people"
+            />
+            <ListItemWrapper>
+              {PRONOUN_OPTIONS.map((pronoun) => (
+                <ListItem
+                  key={pronoun}
+                  title={pronoun}
+                  selected={data.pronouns.includes(pronoun)}
+                  onPress={() => toggleArrayItem('pronouns', pronoun)}
+                  right={
+                    data.pronouns.includes(pronoun) ? (
+                      <Check size={24} color={AppColors.backgroundDefault} />
+                    ) : null
+                  }
+                />
+              ))}
+            </ListItemWrapper>
+          </View>
+        );
+
+      case 5:
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle title="What's your hometown?" />
+            <AppInput
+              placeholder="E.g. New York City"
+              value={data.hometown}
+              onChangeText={(text) => updateField('hometown', text)}
+            />
+          </View>
+        );
+
+      case 6:
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle title="What's your college and area of study?" />
+            <Button
+              title={data.school || 'Select college'}
+              onPress={() => setShowSchoolSheet(true)}
+              variant="secondary"
+              fullWidth
+            />
+            <View style={styles.majorContainer}>
+              {data.major.map((major, index) => (
+                <View key={index} style={styles.majorTag}>
+                  <AppText variant="body">{major}</AppText>
+                  <Button
+                    title="×"
+                    onPress={() => removeMajor(index)}
+                    variant="secondary"
+                  />
+                </View>
+              ))}
+              {showMajorInput ? (
+                <View style={styles.majorInputRow}>
+                  <AppInput
+                    placeholder="Enter major"
+                    value={majorInput}
+                    onChangeText={setMajorInput}
+                    style={{ flex: 1 }}
+                  />
+                  <Button title="Add" onPress={addMajor} variant="primary" />
+                </View>
+              ) : (
+                <Button
+                  title="+ Add major"
+                  onPress={() => setShowMajorInput(true)}
+                  variant="secondary"
+                />
+              )}
+            </View>
+
+            <Sheet
+              visible={showSchoolSheet}
+              onDismiss={() => setShowSchoolSheet(false)}
+              title="Select your college"
+              height={500}
+            >
+              <ListItemWrapper>
+                {CORNELL_SCHOOLS.map((school) => (
+                  <ListItem
+                    key={school}
+                    title={school}
+                    selected={data.school === school}
+                    onPress={() => {
+                      updateField('school', school);
+                      setShowSchoolSheet(false);
+                    }}
+                  />
+                ))}
+              </ListItemWrapper>
+            </Sheet>
+          </View>
+        );
+
+      case 7:
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle title="What's your graduation year?" />
+            <ListItemWrapper>
+              {GRADUATION_YEARS.map((year) => (
+                <ListItem
+                  key={year}
+                  title={year.toString()}
+                  selected={data.year === year}
+                  onPress={() => updateField('year', year)}
+                  right={
+                    data.year === year ? (
+                      <Check size={24} color={AppColors.backgroundDefault} />
+                    ) : null
+                  }
+                />
+              ))}
+            </ListItemWrapper>
+          </View>
+        );
+
+      case 8:
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle
+              title="What's your sexual orientation?"
+              subtitle="Select all that describe you to help us show your profile to the right people."
+            />
+            <ListItemWrapper>
+              {SEXUAL_ORIENTATION_OPTIONS.map((orientation) => (
+                <ListItem
+                  key={orientation}
+                  title={orientation}
+                  selected={data.sexualOrientation.includes(orientation)}
+                  onPress={() =>
+                    toggleArrayItem('sexualOrientation', orientation)
+                  }
+                  right={
+                    data.sexualOrientation.includes(orientation) ? (
+                      <Check size={24} color={AppColors.backgroundDefault} />
+                    ) : null
+                  }
+                />
+              ))}
+            </ListItemWrapper>
+          </View>
+        );
+
+      case 9:
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle
+              title="Who are you interested in seeing?"
+              subtitle="Select all that help us find the right people for you."
+            />
+            <ListItemWrapper>
+              {INTERESTED_IN_OPTIONS.map((option) => (
+                <ListItem
+                  key={option}
+                  title={option}
+                  selected={data.interestedIn.includes(option)}
+                  onPress={() => toggleArrayItem('interestedIn', option)}
+                  right={
+                    data.interestedIn.includes(option) ? (
+                      <Check size={24} color={AppColors.backgroundDefault} />
+                    ) : null
+                  }
+                />
+              ))}
+            </ListItemWrapper>
+          </View>
+        );
+
+      case 10:
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle title="Choose 3-5 photos for your profile" />
+            {/* TODO: this is currently crashing every time I try to test on the app */}
+            <PhotoUploadGrid
+              photos={data.pictures}
+              onPhotosChange={(photos) => updateField('pictures', photos)}
+              minPhotos={3}
+              maxPhotos={5}
+            />
+            {/* Temporary skip button for testing */}
+            <Button
+              title="Skip Photos (Testing Only)"
+              onPress={() => {
+                // Add placeholder photos for testing
+                const placeholderPhotos = [
+                  'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
+                  'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
+                  'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
+                ];
+                updateField('pictures', placeholderPhotos);
+                Alert.alert(
+                  'Photos Skipped',
+                  'Placeholder photos added for testing',
+                  [{ text: 'OK', onPress: () => setCurrentStep(11) }]
+                );
+              }}
+              variant="secondary"
+            />
+          </View>
+        );
+
+      case 11:
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle title="Select 1-3 prompts for your profile" />
+            <View style={styles.promptsContainer}>
+              {data.prompts.map((prompt) => (
+                <PromptSelector
+                  key={prompt.id}
+                  prompt={prompt}
+                  onUpdate={(updated) => updatePrompt(prompt.id, updated)}
+                  onRemove={() => removePrompt(prompt.id)}
+                  canRemove={data.prompts.length > 1}
+                />
+              ))}
+              {data.prompts.length < 3 && (
+                <Button
+                  title="+ Add another prompt"
+                  onPress={addPrompt}
+                  variant="secondary"
+                  fullWidth
+                />
+              )}
+            </View>
+          </View>
+        );
+
+      case 12:
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle title={`Welcome ${data.firstName}!`} />
+            <View style={styles.welcomeContainer}>
+              {data.pictures[0] && (
+                <Image
+                  source={{ uri: data.pictures[0] }}
+                  style={styles.welcomePhoto}
+                />
+              )}
+              <AppText variant="body" style={styles.welcomeText}>
+                Matches drop every Friday at 9am. Send a nudge to show interest,
+                and if they nudge back, you&apos;ll unlock chat!
+              </AppText>
+            </View>
+          </View>
+        );
+
       default:
-        return renderPhotosStep();
+        return null;
     }
   };
 
-  const getStepTitle = () => {
-    switch (currentStep) {
-      case 1:
-        return 'Photos';
-      case 2:
-        return 'About You';
-      case 3:
-        return 'Basic Info';
-      case 4:
-        return 'Interests';
-      default:
-        return 'Setup';
-    }
+  const getNextLabel = () => {
+    if (currentStep === 12) return 'Get Started';
+    return 'Next ▼';
+  };
+
+  const showCheckbox = [3, 4, 5, 6, 8].includes(currentStep);
+  const getCheckboxLabel = () => {
+    if (currentStep === 3) return 'Show on my profile';
+    if (currentStep === 4) return 'Show on my profile';
+    if (currentStep === 5) return 'Show on my profile';
+    if (currentStep === 6) return 'Show on my profile';
+    if (currentStep === 8) return 'Show on my profile';
+    return '';
+  };
+
+  const getCheckboxValue = () => {
+    if (currentStep === 3) return data.showGenderOnProfile;
+    if (currentStep === 4) return data.showPronounsOnProfile;
+    if (currentStep === 5) return data.showHometownOnProfile;
+    if (currentStep === 6) return data.showCollegeOnProfile;
+    if (currentStep === 8) return data.showSexualOrientationOnProfile;
+    return false;
+  };
+
+  const handleCheckboxChange = (checked: boolean) => {
+    if (currentStep === 3) updateField('showGenderOnProfile', checked);
+    if (currentStep === 4) updateField('showPronounsOnProfile', checked);
+    if (currentStep === 5) updateField('showHometownOnProfile', checked);
+    if (currentStep === 6) updateField('showCollegeOnProfile', checked);
+    if (currentStep === 8)
+      updateField('showSexualOrientationOnProfile', checked);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleBack} disabled={currentStep === 1}>
-          <ArrowLeft
-            size={24}
-            color={
-              currentStep === 1
-                ? AppColors.backgroundDimmer
-                : AppColors.foregroundDefault
-            }
-          />
-        </TouchableOpacity>
-        <AppText variant="subtitle">{getStepTitle()}</AppText>
-        <AppText variant="body" color="dimmer">
-          {currentStep}/{totalSteps}
-        </AppText>
-      </View>
-
-      {renderStepIndicator()}
+      <OnboardingHeader
+        currentStep={currentStep - 1}
+        totalSteps={TOTAL_STEPS}
+        onBack={handleBack}
+      />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {renderCurrentStep()}
+        {renderStep()}
       </ScrollView>
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNavigation}>
-        <Button
-          title={currentStep === totalSteps ? 'Complete Profile' : 'Next'}
-          onPress={handleNext}
-          variant="primary"
-          fullWidth
-          iconRight={currentStep === totalSteps ? Check : ArrowRight}
-        />
-      </View>
+      <OnboardingFooter
+        onNext={handleNext}
+        nextDisabled={!validateStep(currentStep) || isSubmitting}
+        nextLabel={getNextLabel()}
+        showCheckbox={showCheckbox}
+        checkboxLabel={getCheckboxLabel()}
+        checkboxChecked={getCheckboxValue()}
+        onCheckboxChange={handleCheckboxChange}
+      />
     </SafeAreaView>
   );
 }
@@ -396,134 +535,45 @@ export default function CreateProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDimmer,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
     backgroundColor: AppColors.backgroundDefault,
-  },
-  stepIndicator: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    paddingVertical: 20,
-    backgroundColor: AppColors.backgroundDefault,
-    gap: 8,
-  },
-  stepDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: AppColors.backgroundDimmer,
-  },
-  activeDot: {
-    backgroundColor: AppColors.accentDefault,
   },
   content: {
     flex: 1,
   },
   stepContainer: {
     padding: 20,
+    gap: 20,
   },
-  photosGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  majorContainer: {
     gap: 12,
   },
-  photoContainer: {
-    position: 'relative',
-    width: '47%',
-    aspectRatio: 0.75,
-  },
-  photo: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 12,
-  },
-  mainPhotoBadge: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: AppColors.accentDefault,
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  addPhotoButton: {
-    width: '47%',
-    aspectRatio: 0.75,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: AppColors.backgroundDimmer,
-    justifyContent: 'center',
+  majorTag: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: AppColors.backgroundDefault,
+    justifyContent: 'space-between',
+    backgroundColor: AppColors.backgroundDimmer,
+    borderRadius: 8,
+    padding: 12,
   },
-  bioInput: {
-    height: 120,
-    textAlignVertical: 'top',
-  },
-  inputGroup: {
-    marginBottom: 24,
-  },
-  schoolButtons: {
+  majorInputRow: {
     flexDirection: 'row',
     gap: 8,
-  },
-  schoolButton: {
-    backgroundColor: AppColors.backgroundDefault,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: AppColors.backgroundDimmer,
-  },
-  selectedSchoolButton: {
-    backgroundColor: AppColors.accentDefault,
-    borderColor: AppColors.accentDefault,
-  },
-  yearButtons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  yearButton: {
-    backgroundColor: AppColors.backgroundDefault,
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: AppColors.backgroundDimmer,
-    flex: 1,
     alignItems: 'center',
   },
-  selectedYearButton: {
-    backgroundColor: AppColors.accentDefault,
-    borderColor: AppColors.accentDefault,
+  promptsContainer: {
+    gap: 16,
   },
-  interestsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 32,
+  welcomeContainer: {
+    alignItems: 'center',
+    gap: 24,
   },
-  interestButton: {
-    backgroundColor: AppColors.backgroundDefault,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: AppColors.backgroundDimmer,
+  welcomePhoto: {
+    width: 200,
+    height: 266,
+    borderRadius: 12,
   },
-  selectedInterestButton: {
-    backgroundColor: AppColors.accentDefault,
-    borderColor: AppColors.accentDefault,
-  },
-  bottomNavigation: {
-    padding: 20,
-    backgroundColor: AppColors.backgroundDefault,
+  welcomeText: {
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });

@@ -37,6 +37,7 @@ const ProfileTester = () => {
   const [allProfiles, setAllProfiles] = useState<ProfileResponse[]>([]);
 
   // Form state for creating/updating profile
+  const [firstName, setFirstName] = useState('Test');
   const [bio, setBio] = useState('Testing bio from mobile app');
   const [gender, setGender] = useState<'female' | 'male' | 'non-binary'>(
     'female'
@@ -46,7 +47,7 @@ const ProfileTester = () => {
   const [snapchat, setSnapchat] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [year, setYear] = useState('2025');
-  const [school, setSchool] = useState('Engineering');
+  const [school, setSchool] = useState('College of Engineering');
   const [major, setMajor] = useState('Computer Science,Mathematics');
 
   // Filter state
@@ -68,17 +69,21 @@ const ProfileTester = () => {
     setLoading(true);
     try {
       const profile = await getCurrentUserProfile(user.uid);
-      setCurrentProfile(profile);
-      Alert.alert(
-        'Profile Retrieved',
-        `Bio: ${profile.bio}\nSchool: ${profile.school}\nYear: ${profile.year}`,
-        [
-          {
-            text: 'OK',
-            onPress: () => console.log('Current profile:', profile),
-          },
-        ]
-      );
+      if (profile) {
+        setCurrentProfile(profile);
+        Alert.alert(
+          'Profile Retrieved',
+          `Name: ${profile.firstName}\nBio: ${profile.bio}\nSchool: ${profile.school}\nYear: ${profile.year}`,
+          [
+            {
+              text: 'OK',
+              onPress: () => console.log('Current profile:', profile),
+            },
+          ]
+        );
+      } else {
+        Alert.alert('No Profile', 'Profile not found');
+      }
     } catch (error) {
       Alert.alert(
         'Error',
@@ -107,6 +112,8 @@ const ProfileTester = () => {
     }
 
     const profileData: CreateProfileInput = {
+      netid: '', // Backend will derive this from firebaseUid
+      firstName: firstName.trim(),
       bio: bio.trim(),
       gender,
       birthdate,
@@ -114,8 +121,9 @@ const ProfileTester = () => {
       snapchat: snapchat.trim() || undefined,
       phoneNumber: phoneNumber.trim() || undefined,
       year: parseInt(year),
-      school: school.trim(),
+      school: school.trim() as any, // Type assertion for School
       major: major.trim() ? major.split(',').map((m) => m.trim()) : [],
+      pictures: [], // Empty for testing
     };
 
     setLoading(true);
@@ -155,12 +163,13 @@ const ProfileTester = () => {
 
     const updateData: UpdateProfileInput = {};
 
+    if (firstName.trim()) updateData.firstName = firstName.trim();
     if (bio.trim()) updateData.bio = bio.trim();
     if (instagram.trim()) updateData.instagram = instagram.trim();
     if (snapchat.trim()) updateData.snapchat = snapchat.trim();
     if (phoneNumber.trim()) updateData.phoneNumber = phoneNumber.trim();
     if (year.trim()) updateData.year = parseInt(year);
-    if (school.trim()) updateData.school = school.trim();
+    if (school.trim()) updateData.school = school.trim() as any; // Type assertion for School
     if (major.trim()) updateData.major = major.split(',').map((m) => m.trim());
 
     if (Object.keys(updateData).length === 0) {
@@ -328,6 +337,9 @@ const ProfileTester = () => {
         <Text style={styles.bold}>Netid:</Text> {profile.netid}
       </Text>
       <Text style={styles.profileText}>
+        <Text style={styles.bold}>Name:</Text> {profile.firstName}
+      </Text>
+      <Text style={styles.profileText}>
         <Text style={styles.bold}>Bio:</Text> {profile.bio}
       </Text>
       <Text style={styles.profileText}>
@@ -365,6 +377,13 @@ const ProfileTester = () => {
       {/* Profile Form */}
       <View style={styles.formSection}>
         <Text style={styles.formTitle}>Profile Form Data</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="First Name (required)"
+          value={firstName}
+          onChangeText={setFirstName}
+        />
 
         <TextInput
           style={styles.input}

@@ -8,7 +8,7 @@ export default function AuthLayout() {
       }}
     >
       <Stack.Screen
-        name="(tabs)"
+        name="home"
         options={{
           headerShown: false,
         }}

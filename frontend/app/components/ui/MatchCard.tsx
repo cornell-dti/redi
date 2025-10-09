@@ -29,7 +29,11 @@ export default function MatchCard({
           <AppText variant="title">
             {name}, {age}
           </AppText>
-          <Heart size={20} color={AppColors.accentDefault} fill={AppColors.accentDefault} />
+          <Heart
+            size={20}
+            color={AppColors.accentDefault}
+            fill={AppColors.accentDefault}
+          />
         </View>
         <AppText variant="body" color="dimmer" style={{ marginBottom: 8 }}>
           {school}
