@@ -1,4 +1,6 @@
+import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
+import { ProfileResponse } from '@/types';
 import { router } from 'expo-router';
 import {
   Bell,
@@ -13,8 +15,9 @@ import {
   MessageCircle,
   Shield,
 } from 'lucide-react-native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -25,28 +28,22 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { signOutUser } from '../../api/authService';
+import { getCurrentUser, signOutUser } from '../../api/authService';
+import { getCurrentUserProfile } from '../../api/profileApi';
 import { AppColors } from '../../components/AppColors';
 import Header from '../../components/ui/Header';
 import InfoCard from '../../components/ui/InfoCard';
 import InfoRow from '../../components/ui/InfoRow';
 
-// Mock user profile data
-const mockUserProfile = {
-  name: 'Arsh',
-  age: 32,
-  school: 'College of Arts and Sciences',
-  major: ['Computer Science', 'Psychology'],
-  year: 2026,
-  bio: "Love exploring Ithaca's gorges, trying new restaurants on the Commons, and weekend hiking trips. Always up for a good board game night or discovering new music!",
+// Mock fallback data for fields not in API
+const mockFallbackData = {
+  age: 22, // Not in ProfileResponse
   images: [
     'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
     'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
     'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
   ],
-  instagram: '@arshoninsta',
-  snapchat: 'arshnap',
-  interests: ['Hiking', 'Photography', 'Board Games', 'Business', 'Travel'],
+  interests: ['Hiking', 'Photography', 'Board Games', 'Business', 'Travel'], // Not in current schema
 };
 
 const profileStats = [
@@ -77,6 +74,42 @@ const IconComponent = ({
 };
 
 export default function ProfileScreen() {
+  const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch profile data on mount
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    const user = getCurrentUser();
+
+    if (!user?.uid) {
+      setError('User not authenticated');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const profileData = await getCurrentUserProfile(user.uid);
+
+      if (profileData) {
+        setProfile(profileData);
+        setError(null);
+      } else {
+        setError('Profile not found. Please complete your profile.');
+      }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignOut = async () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -86,7 +119,7 @@ export default function ProfileScreen() {
         onPress: async () => {
           try {
             await signOutUser();
-            router.replace('/(auth)/home' as any);
+            router.replace('/home' as any);
           } catch {
             Alert.alert('Error', 'Failed to sign out');
           }
@@ -95,13 +128,59 @@ export default function ProfileScreen() {
     ]);
   };
 
+  // Get display data - use profile data if available, otherwise fallback
+  const displayName = profile?.firstName || 'User';
+  const displayImages =
+    profile?.pictures && profile.pictures.length > 0
+      ? profile.pictures
+      : mockFallbackData.images;
+  const displayBio = profile?.bio || 'No bio yet';
+  const displaySchool = profile?.school || 'School not set';
+  const displayMajor =
+    profile?.major && profile.major.length > 0
+      ? profile.major.join(', ')
+      : 'Major not set';
+  const displayYear = profile?.year?.toString() || 'Year not set';
+  const displayInstagram = profile?.instagram || null;
+  const displaySnapchat = profile?.snapchat || null;
+
+  // Show loading spinner while fetching
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color={AppColors.accentDefault} />
+        <AppText style={styles.loadingText}>Loading profile...</AppText>
+      </SafeAreaView>
+    );
+  }
+
+  // Show error message if failed to load
+  if (error && !profile) {
+    return (
+      <SafeAreaView style={[styles.container, styles.centerContent]}>
+        <TouchableOpacity onPress={handleSignOut}>
+          <LogOut size={24} color={AppColors.foregroundDimmer} />
+        </TouchableOpacity>
+        <AppText style={styles.errorText}>{error}</AppText>
+        <Button
+          title="Go to Auth"
+          onPress={() => router.replace('/home' as any)}
+        />
+        <Button
+          title="Retry"
+          onPress={fetchProfile}
+          variant="primary"
+          fullWidth={false}
+        />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <Image
-        source={{
-          uri: 'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
-        }}
+        source={{ uri: displayImages[0] }}
         style={{
           width: 124,
           height: 124,
@@ -110,7 +189,7 @@ export default function ProfileScreen() {
         }}
       />
       <Header
-        title={mockUserProfile.name}
+        title={displayName}
         right={
           <View style={styles.headerButtons}>
             <TouchableOpacity>
@@ -148,85 +227,94 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Photos</Text>
+          <AppText style={styles.sectionTitle}>Photos</AppText>
           <View style={styles.imageGrid}>
-            {mockUserProfile.images.map((image, index) => (
+            {displayImages.map((image, index) => (
               <TouchableOpacity key={index} style={styles.imageContainer}>
                 <Image source={{ uri: image }} style={styles.image} />
                 {index === 0 && (
                   <View style={styles.badge}>
-                    <Text style={styles.badgeText}>Main</Text>
+                    <AppText style={styles.badgeText}>Main</AppText>
                   </View>
                 )}
               </TouchableOpacity>
             ))}
-            <TouchableOpacity style={styles.addImage}>
-              <Camera size={32} color={AppColors.foregroundDimmer} />
-            </TouchableOpacity>
+            {displayImages.length < 5 && (
+              <TouchableOpacity style={styles.addImage}>
+                <Camera size={32} color={AppColors.foregroundDimmer} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Basic Info</Text>
+          <AppText style={styles.sectionTitle}>Basic Info</AppText>
           <InfoCard>
             <InfoRow
               label="Name & Age"
-              value={`${mockUserProfile.name}, ${mockUserProfile.age}`}
+              value={`${displayName}, ${mockFallbackData.age}`}
             />
-            <InfoRow label="School" value={mockUserProfile.school} />
-            <InfoRow label="Major" value={mockUserProfile.major.join(', ')} />
-            <InfoRow label="Graduation Year" value={mockUserProfile.year} />
+            <InfoRow label="School" value={displaySchool} />
+            <InfoRow label="Major" value={displayMajor} />
+            <InfoRow label="Graduation Year" value={displayYear} />
           </InfoCard>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About Me</Text>
+          <AppText style={styles.sectionTitle}>About Me</AppText>
           <InfoCard>
-            <Text>{mockUserProfile.bio}</Text>
+            <AppText>{displayBio}</AppText>
           </InfoCard>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Social Media</Text>
+          <AppText style={styles.sectionTitle}>Social Media</AppText>
           <InfoCard>
-            <View style={styles.socialRow}>
-              <Instagram size={24} color={AppColors.negativeDefault} />
-              <Text style={styles.socialText}>{mockUserProfile.instagram}</Text>
-            </View>
-            <View style={styles.socialRow}>
-              <Camera size={24} color={AppColors.negativeDimmer} />
-              <Text style={styles.socialText}>{mockUserProfile.snapchat}</Text>
-            </View>
+            {displayInstagram ? (
+              <View style={styles.socialRow}>
+                <Instagram size={24} color={AppColors.negativeDefault} />
+                <AppText style={styles.socialText}>{displayInstagram}</AppText>
+              </View>
+            ) : null}
+            {displaySnapchat ? (
+              <View style={styles.socialRow}>
+                <Camera size={24} color={AppColors.negativeDimmer} />
+                <AppText style={styles.socialText}>{displaySnapchat}</AppText>
+              </View>
+            ) : null}
+            {!displayInstagram && !displaySnapchat && (
+              <AppText style={styles.noDataText}>No social media added</AppText>
+            )}
           </InfoCard>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Interests</Text>
+          <AppText style={styles.sectionTitle}>Interests</AppText>
           <View style={styles.interestsContainer}>
-            {mockUserProfile.interests.map((interest, index) => (
+            {mockFallbackData.interests.map((interest, index) => (
               <View key={index} style={styles.interestTag}>
-                <Text>{interest}</Text>
+                <AppText>{interest}</AppText>
               </View>
             ))}
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Settings</Text>
+          <AppText style={styles.sectionTitle}>Settings</AppText>
           <InfoCard>
             <TouchableOpacity style={styles.settingRow}>
               <Bell size={24} color={AppColors.foregroundDimmer} />
-              <Text style={styles.settingText}>Notifications</Text>
+              <AppText style={styles.settingText}>Notifications</AppText>
               <ChevronRight size={24} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.settingRow}>
               <Shield size={24} color={AppColors.foregroundDimmer} />
-              <Text style={styles.settingText}>Privacy & Safety</Text>
+              <AppText style={styles.settingText}>Privacy & Safety</AppText>
               <ChevronRight size={24} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.settingRow}>
               <HelpCircle size={24} color={AppColors.foregroundDimmer} />
-              <Text style={styles.settingText}>Help & Support</Text>
+              <AppText style={styles.settingText}>Help & Support</AppText>
               <ChevronRight size={24} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
           </InfoCard>
@@ -240,6 +328,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: AppColors.backgroundDimmer,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: AppColors.foregroundDimmer,
+    marginTop: 12,
+  },
+  errorText: {
+    fontSize: 16,
+    color: AppColors.negativeDefault,
+    textAlign: 'center',
+    paddingHorizontal: 40,
+    marginBottom: 20,
   },
   headerButtons: {
     flexDirection: 'row',
@@ -331,6 +436,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: AppColors.foregroundDefault,
+  },
+  noDataText: {
+    fontSize: 14,
+    color: AppColors.foregroundDimmer,
+    fontStyle: 'italic',
+    paddingVertical: 12,
   },
   interestsContainer: {
     flexDirection: 'row',

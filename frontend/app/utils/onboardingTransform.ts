@@ -1,29 +1,5 @@
 import { OnboardingData } from '../types/onboarding';
-
-export interface CreateProfilePayload {
-  firebaseUid: string;
-  firstName: string;
-  bio: string;
-  gender: 'female' | 'male' | 'non-binary';
-  birthdate: string; // ISO string
-  year: number;
-  school: string;
-  major: string[];
-  pictures: string[];
-  hometown?: string;
-  pronouns?: string[];
-  sexualOrientation?: string[];
-  interestedIn?: string[];
-  showGenderOnProfile?: boolean;
-  showPronounsOnProfile?: boolean;
-  showHometownOnProfile?: boolean;
-  showCollegeOnProfile?: boolean;
-  showSexualOrientationOnProfile?: boolean;
-  prompts?: { question: string; answer: string }[];
-  instagram?: string;
-  snapchat?: string;
-  phoneNumber?: string;
-}
+import { CreateProfileInput } from '../types/types';
 
 /**
  * Converts MM/DD/YYYY format to ISO date string
@@ -78,7 +54,7 @@ function generateBioFromPrompts(prompts: OnboardingData['prompts']): string {
 export function transformOnboardingToProfilePayload(
   onboardingData: OnboardingData,
   firebaseUid: string
-): CreateProfilePayload {
+): CreateProfileInput & { firebaseUid: string } {
   // Generate bio from prompts
   const bio = generateBioFromPrompts(onboardingData.prompts);
 
@@ -93,15 +69,20 @@ export function transformOnboardingToProfilePayload(
     throw new Error('Graduation year is required');
   }
 
+  // Get netid from user email (will be set by backend, but we need a placeholder)
+  // The backend will derive the actual netid from firebaseUid
+  const netid = ''; // Backend will override this
+
   // Transform the onboarding data into exact format our backend API expects
-  const payload: CreateProfilePayload = {
+  const payload: CreateProfileInput & { firebaseUid: string } = {
     firebaseUid,
+    netid, // Will be set by backend
     firstName: onboardingData.firstName,
     bio,
     gender,
     birthdate,
     year: onboardingData.year,
-    school: onboardingData.school,
+    school: onboardingData.school as any, // Type assertion for School
     major: onboardingData.major,
     pictures: onboardingData.pictures,
     hometown: onboardingData.hometown || undefined,
@@ -136,7 +117,9 @@ export function transformOnboardingToProfilePayload(
 /**
  * Validates that all required fields are present before submission
  */
-export function validateProfilePayload(payload: CreateProfilePayload): {
+export function validateProfilePayload(
+  payload: CreateProfileInput & { firebaseUid: string }
+): {
   valid: boolean;
   errors: string[];
 } {

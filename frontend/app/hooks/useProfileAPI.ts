@@ -1,5 +1,4 @@
-// app/hooks/useProfileAPI.ts
-import { CreateProfileInput, UpdateProfileInput } from '@/types';
+import { CreateProfileInput, UpdateProfileInput, Gender } from '../types/types';
 import auth from '@react-native-firebase/auth';
 import { useState } from 'react';
 import { Alert } from 'react-native';
@@ -94,7 +93,7 @@ export const useProfileAPI = () => {
   const getAllProfilesWithFilters = (
     filters: {
       limit?: number;
-      gender?: 'female' | 'male' | 'non-binary';
+      gender?: Gender;
       school?: string;
       minYear?: number;
       maxYear?: number;

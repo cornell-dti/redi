@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { createProfile } from '../api/profiles';
+import { createProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import OnboardingFooter from '../components/onboarding/OnboardingFooter';
 import OnboardingHeader from '../components/onboarding/OnboardingHeader';
@@ -103,8 +103,9 @@ export default function CreateProfileScreen() {
         return;
       }
 
-      // Submit to backend
-      await createProfile(payload);
+      // Submit to backend - extract firebaseUid from payload
+      const { firebaseUid: uid, ...profileData } = payload;
+      await createProfile(uid, profileData);
 
       // Clear storage and navigate to main app
       await clearStorage();

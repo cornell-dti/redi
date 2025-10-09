@@ -3,32 +3,46 @@ import {
   CreateProfileResponse,
   ProfileResponse,
   UpdateProfileInput,
-} from '@/types';
+  Gender,
+} from '../types/types';
 import { API_BASE_URL } from '../../constants/constants';
 
 /**
  * Gets the current user's profile using their Firebase UID
  * @param firebaseUid - Firebase Authentication UID
- * @returns Promise resolving to user's profile
- * @throws Error if profile not found or fetch fails
+ * @returns Promise resolving to user's profile, or null if not found
+ * @throws Error if fetch fails
  */
 export const getCurrentUserProfile = async (
   firebaseUid: string
-): Promise<ProfileResponse> => {
+): Promise<ProfileResponse | null> => {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/api/profiles/me?firebaseUid=${firebaseUid}`
+      `${API_BASE_URL}/api/profiles/me?firebaseUid=${firebaseUid}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
     );
 
     if (!response.ok) {
+      if (response.status === 404) {
+        return null; // Profile doesn't exist yet
+      }
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to fetch profile');
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching current user profile:', error);
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(
+      'Network error. Please check your connection and try again.'
+    );
   }
 };
 
@@ -58,13 +72,26 @@ export const createProfile = async (
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to create profile');
+      // Handle specific error codes
+      if (response.status === 409) {
+        throw new Error('Profile already exists for this user');
+      } else if (response.status === 400) {
+        throw new Error(data.error || 'Invalid profile data');
+      } else if (response.status === 500) {
+        throw new Error('Server error. Please try again later.');
+      } else {
+        throw new Error(data.error || 'Failed to create profile');
+      }
     }
 
     return data;
   } catch (error) {
-    console.error('Profile creation error:', error);
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(
+      'Network error. Please check your connection and try again.'
+    );
   }
 };
 
@@ -94,13 +121,23 @@ export const updateProfile = async (
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to update profile');
+      if (response.status === 404) {
+        throw new Error('Profile not found');
+      } else if (response.status === 400) {
+        throw new Error(data.error || 'Invalid update data');
+      } else {
+        throw new Error(data.error || 'Failed to update profile');
+      }
     }
 
     return data;
   } catch (error) {
-    console.error('Profile update error:', error);
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(
+      'Network error. Please check your connection and try again.'
+    );
   }
 };
 
@@ -124,13 +161,20 @@ export const deleteProfile = async (
 
     if (!response.ok) {
       const errorData = await response.json();
+      if (response.status === 404) {
+        throw new Error('Profile not found');
+      }
       throw new Error(errorData.error || 'Failed to delete profile');
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error deleting profile:', error);
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(
+      'Network error. Please check your connection and try again.'
+    );
   }
 };
 
@@ -148,13 +192,20 @@ export const getProfileByNetid = async (
 
     if (!response.ok) {
       const errorData = await response.json();
+      if (response.status === 404) {
+        throw new Error('Profile not found');
+      }
       throw new Error(errorData.error || 'Failed to fetch profile');
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching profile:', error);
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(
+      'Network error. Please check your connection and try again.'
+    );
   }
 };
 
@@ -176,13 +227,20 @@ export const getMatches = async (
 
     if (!response.ok) {
       const errorData = await response.json();
+      if (response.status === 404) {
+        throw new Error('Current user profile not found');
+      }
       throw new Error(errorData.error || 'Failed to fetch matches');
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching matches:', error);
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(
+      'Network error. Please check your connection and try again.'
+    );
   }
 };
 
@@ -195,7 +253,7 @@ export const getMatches = async (
 export const getAllProfiles = async (
   options: {
     limit?: number;
-    gender?: 'female' | 'male' | 'non-binary';
+    gender?: Gender;
     school?: string;
     minYear?: number;
     maxYear?: number;
@@ -222,7 +280,11 @@ export const getAllProfiles = async (
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching profiles:', error);
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error(
+      'Network error. Please check your connection and try again.'
+    );
   }
 };
