@@ -12,7 +12,11 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { signInUser, signUpUser, validateCornellEmail } from '../api/authService';
+import {
+  signInUser,
+  signUpUser,
+  validateCornellEmail,
+} from '../api/authService';
 import { AppColors } from '../components/AppColors';
 import LegalFooterText from '../components/onboarding/LegalFooterText';
 import AppInput from '../components/ui/AppInput';
@@ -29,12 +33,18 @@ export default function HomePage() {
 
   const handleCreateAccount = async () => {
     if (!email || !password) {
-      Alert.alert('Missing Information', 'Please enter both email and password');
+      Alert.alert(
+        'Missing Information',
+        'Please enter both email and password'
+      );
       return;
     }
 
     if (!validateCornellEmail(email)) {
-      Alert.alert('Invalid Email', 'Please use your Cornell email address (@cornell.edu)');
+      Alert.alert(
+        'Invalid Email',
+        'Please use your Cornell email address (@cornell.edu)'
+      );
       return;
     }
 
@@ -56,12 +66,18 @@ export default function HomePage() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Missing Information', 'Please enter both email and password');
+      Alert.alert(
+        'Missing Information',
+        'Please enter both email and password'
+      );
       return;
     }
 
     if (!validateCornellEmail(email)) {
-      Alert.alert('Invalid Email', 'Please use your Cornell email address (@cornell.edu)');
+      Alert.alert(
+        'Invalid Email',
+        'Please use your Cornell email address (@cornell.edu)'
+      );
       return;
     }
 
@@ -70,7 +86,9 @@ export default function HomePage() {
       await signInUser(email, password);
 
       // Check onboarding completion status
-      const onboardingComplete = await AsyncStorage.getItem('onboarding_complete');
+      const onboardingComplete = await AsyncStorage.getItem(
+        'onboarding_complete'
+      );
 
       if (onboardingComplete === 'true') {
         // User has completed onboarding, go to main app
@@ -127,7 +145,10 @@ export default function HomePage() {
 
   const renderAuthForm = () => (
     <>
-      <ScrollView style={styles.formScrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.formScrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.formContainer}>
           <AppText variant="title" style={styles.formTitle}>
             {mode === 'signup' ? 'Create Account' : 'Welcome Back'}
@@ -161,7 +182,11 @@ export default function HomePage() {
           </View>
 
           {loading ? (
-            <ActivityIndicator size="large" color={AppColors.accentDefault} style={styles.loader} />
+            <ActivityIndicator
+              size="large"
+              color={AppColors.accentDefault}
+              style={styles.loader}
+            />
           ) : (
             <View style={styles.buttonContainer}>
               <Button

@@ -1,7 +1,14 @@
 import { router } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { Alert, Image, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { createProfile } from '../api/profiles';
@@ -36,7 +43,14 @@ const TOTAL_STEPS = 11; // Steps 2-12 (Step 1 is in home.tsx)
 
 export default function CreateProfileScreen() {
   const [currentStep, setCurrentStep] = useState(2); // Start at step 2
-  const { data, updateField, toggleArrayItem, validateStep, clearStorage, isLoaded } = useOnboardingState();
+  const {
+    data,
+    updateField,
+    toggleArrayItem,
+    validateStep,
+    clearStorage,
+    isLoaded,
+  } = useOnboardingState();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSchoolSheet, setShowSchoolSheet] = useState(false);
   const [showMajorInput, setShowMajorInput] = useState(false);
@@ -103,7 +117,9 @@ export default function CreateProfileScreen() {
     } catch (error) {
       Alert.alert(
         'Error',
-        error instanceof Error ? error.message : 'Failed to create profile. Please try again.'
+        error instanceof Error
+          ? error.message
+          : 'Failed to create profile. Please try again.'
       );
     } finally {
       setIsSubmitting(false);
@@ -155,9 +171,7 @@ export default function CreateProfileScreen() {
       case 2:
         return (
           <View style={styles.stepContainer}>
-            <OnboardingTitle
-              title="To start, let's learn more about you"
-            />
+            <OnboardingTitle title="To start, let's learn more about you" />
             <AppInput
               label="Your first name"
               placeholder="First name"
@@ -335,7 +349,9 @@ export default function CreateProfileScreen() {
                   key={orientation}
                   title={orientation}
                   selected={data.sexualOrientation.includes(orientation)}
-                  onPress={() => toggleArrayItem('sexualOrientation', orientation)}
+                  onPress={() =>
+                    toggleArrayItem('sexualOrientation', orientation)
+                  }
                   right={
                     data.sexualOrientation.includes(orientation) ? (
                       <Check size={24} color={AppColors.backgroundDefault} />
@@ -373,34 +389,37 @@ export default function CreateProfileScreen() {
         );
 
       case 10:
-  return (
-    <View style={styles.stepContainer}>
-      <OnboardingTitle title="Choose 3-5 photos for your profile" />
-      <PhotoUploadGrid
-        photos={data.pictures}
-        onPhotosChange={(photos) => updateField('pictures', photos)}
-        minPhotos={3}
-        maxPhotos={5}
-      />
-      {/* Temporary skip button for testing */}
-      <Button
-        title="Skip Photos (Testing Only)"
-        onPress={() => {
-          // Add placeholder photos for testing
-          const placeholderPhotos = [
-            'https://via.placeholder.com/400x533/FF6B6B/FFFFFF?text=Photo+1',
-            'https://via.placeholder.com/400x533/4ECDC4/FFFFFF?text=Photo+2',
-            'https://via.placeholder.com/400x533/45B7D1/FFFFFF?text=Photo+3',
-          ];
-          updateField('pictures', placeholderPhotos);
-          Alert.alert('Photos Skipped', 'Placeholder photos added for testing', [
-            { text: 'OK', onPress: () => setCurrentStep(11) }
-          ]);
-        }}
-        variant="secondary"
-      />
-    </View>
-  );
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle title="Choose 3-5 photos for your profile" />
+            {/* TODO: this is currently crashing every time I try to test on the app */}
+            <PhotoUploadGrid
+              photos={data.pictures}
+              onPhotosChange={(photos) => updateField('pictures', photos)}
+              minPhotos={3}
+              maxPhotos={5}
+            />
+            {/* Temporary skip button for testing */}
+            <Button
+              title="Skip Photos (Testing Only)"
+              onPress={() => {
+                // Add placeholder photos for testing
+                const placeholderPhotos = [
+                  'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
+                  'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
+                  'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
+                ];
+                updateField('pictures', placeholderPhotos);
+                Alert.alert(
+                  'Photos Skipped',
+                  'Placeholder photos added for testing',
+                  [{ text: 'OK', onPress: () => setCurrentStep(11) }]
+                );
+              }}
+              variant="secondary"
+            />
+          </View>
+        );
 
       case 11:
         return (
@@ -434,11 +453,14 @@ export default function CreateProfileScreen() {
             <OnboardingTitle title={`Welcome ${data.firstName}!`} />
             <View style={styles.welcomeContainer}>
               {data.pictures[0] && (
-                <Image source={{ uri: data.pictures[0] }} style={styles.welcomePhoto} />
+                <Image
+                  source={{ uri: data.pictures[0] }}
+                  style={styles.welcomePhoto}
+                />
               )}
               <AppText variant="body" style={styles.welcomeText}>
-                Matches drop every Friday at 9am. Send a nudge to show interest, and if they nudge
-                back, you&apos;ll unlock chat!
+                Matches drop every Friday at 9am. Send a nudge to show interest,
+                and if they nudge back, you&apos;ll unlock chat!
               </AppText>
             </View>
           </View>
@@ -478,7 +500,8 @@ export default function CreateProfileScreen() {
     if (currentStep === 4) updateField('showPronounsOnProfile', checked);
     if (currentStep === 5) updateField('showHometownOnProfile', checked);
     if (currentStep === 6) updateField('showCollegeOnProfile', checked);
-    if (currentStep === 8) updateField('showSexualOrientationOnProfile', checked);
+    if (currentStep === 8)
+      updateField('showSexualOrientationOnProfile', checked);
   };
 
   return (

@@ -8,7 +8,7 @@ export function useOnboardingState() {
   const [data, setData] = useState<OnboardingData>(INITIAL_ONBOARDING_DATA);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load from AsyncStorage on mount
+  // Load from AsyncStorage on mount - ensures progress is restored when users partially fill form and close app
   useEffect(() => {
     loadFromStorage();
   }, []);
@@ -64,11 +64,17 @@ export function useOnboardingState() {
   ) => {
     setData((prev) => {
       const currentValue = prev[field];
-      if (!Array.isArray(currentValue)) return prev;
+      // Only allow toggling for fields that are string arrays
+      if (
+        !Array.isArray(currentValue) ||
+        !currentValue.every((v) => typeof v === 'string')
+      ) {
+        return prev;
+      }
 
-      const newValue = currentValue.includes(item)
-        ? currentValue.filter((i) => i !== item)
-        : [...currentValue, item];
+      const newValue = (currentValue as string[]).includes(item)
+        ? (currentValue as string[]).filter((i) => i !== item)
+        : [...(currentValue as string[]), item];
 
       return { ...prev, [field]: newValue };
     });

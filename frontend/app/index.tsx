@@ -14,11 +14,13 @@ export default function Index() {
     const checkAuthStatus = async () => {
       try {
         const user = getCurrentUser();
-        
+
         if (user) {
           // User is authenticated, check onboarding status
-          const onboardingComplete = await AsyncStorage.getItem('onboarding_complete');
-          
+          const onboardingComplete = await AsyncStorage.getItem(
+            'onboarding_complete'
+          );
+
           if (onboardingComplete === 'true') {
             // User has completed onboarding, go to main app
             router.replace('/(auth)/(tabs)');
@@ -56,14 +58,12 @@ export default function Index() {
     <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.centerContent}>
-          <AppText variant="title" style={styles.logo}>
-            redi
-          </AppText>
-          <AppText variant="subtitle" style={styles.subtitle}>
-            cornell&apos;s first dating app
-          </AppText>
+          <AppText variant="title">redi</AppText>
+          <AppText variant="subtitle">cornell&apos;s first dating app</AppText>
         </View>
-
+        <AppText variant="body" style={styles.madeByText}>
+          Made by Incubator
+        </AppText>
         <Button
           title="Get Started"
           onPress={handleGetStarted}
@@ -86,19 +86,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 80,
   },
+  madeByText: {
+    textAlign: 'center' as const,
+  },
   centerContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  logo: {
-    fontSize: 64,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: AppColors.foregroundDimmer,
   },
   loadingContainer: {
     flex: 1,

@@ -1,7 +1,7 @@
+import * as ImagePicker from 'expo-image-picker';
 import { Camera, X } from 'lucide-react-native';
 import React from 'react';
 import { Alert, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
 import { AppColors } from '../AppColors';
 import AppText from '../ui/AppText';
 import IconButton from '../ui/IconButton';

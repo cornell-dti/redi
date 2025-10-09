@@ -18,10 +18,7 @@ export default function OnboardingTitle({
         {title}
       </AppText>
       {subtitle && (
-        <AppText
-          variant="body"
-          style={styles.subtitle}
-        >
+        <AppText variant="body" style={styles.subtitle}>
           {subtitle}
         </AppText>
       )}

@@ -20,7 +20,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(handleAuthStateChanged);
-    return unsubscribe; // Clean up subscription on unmount
+    return unsubscribe;
   }, []);
 
   useEffect(() => {
@@ -32,7 +32,9 @@ export default function RootLayout() {
       if (user && !inAuthGroup) {
         // User is signed in but not in auth group
         // Check onboarding status to determine where to redirect
-        const onboardingComplete = await AsyncStorage.getItem('onboarding_complete');
+        const onboardingComplete = await AsyncStorage.getItem(
+          'onboarding_complete'
+        );
 
         if (onboardingComplete === 'true') {
           // User has completed onboarding, go to tabs

@@ -47,7 +47,9 @@ export async function createProfile(
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error('Network error. Please check your connection and try again.');
+    throw new Error(
+      'Network error. Please check your connection and try again.'
+    );
   }
 }
 
@@ -80,6 +82,8 @@ export async function getCurrentUserProfile(firebaseUid: string) {
     if (error instanceof Error) {
       throw error;
     }
-    throw new Error('Network error. Please check your connection and try again.');
+    throw new Error(
+      'Network error. Please check your connection and try again.'
+    );
   }
 }

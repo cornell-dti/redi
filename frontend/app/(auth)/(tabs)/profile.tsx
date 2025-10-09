@@ -190,17 +190,11 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Social Media</Text>
           <InfoCard>
             <View style={styles.socialRow}>
-              <Instagram
-                size={24}
-                color={AppColors.negativeDefault}
-              />
+              <Instagram size={24} color={AppColors.negativeDefault} />
               <Text style={styles.socialText}>{mockUserProfile.instagram}</Text>
             </View>
             <View style={styles.socialRow}>
-              <Camera
-                size={24}
-                color={AppColors.negativeDimmer}
-              />
+              <Camera size={24} color={AppColors.negativeDimmer} />
               <Text style={styles.socialText}>{mockUserProfile.snapchat}</Text>
             </View>
           </InfoCard>

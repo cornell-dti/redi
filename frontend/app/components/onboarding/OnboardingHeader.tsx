@@ -34,10 +34,7 @@ export default function OnboardingHeader({
       <View style={styles.progressBarContainer}>
         <View style={styles.progressBarBackground}>
           <View
-            style={[
-              styles.progressBarFill,
-              { width: `${progress * 100}%` },
-            ]}
+            style={[styles.progressBarFill, { width: `${progress * 100}%` }]}
           />
         </View>
       </View>

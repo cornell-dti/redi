@@ -1,6 +1,7 @@
 import React from 'react';
-import { Linking, StyleSheet, Text, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
+import AppText from '../ui/AppText';
 
 interface LegalFooterTextProps {
   text: string; // Text with {terms} and {privacy} placeholders
@@ -8,11 +9,11 @@ interface LegalFooterTextProps {
 
 export default function LegalFooterText({ text }: LegalFooterTextProps) {
   const handleTermsPress = () => {
-    Linking.openURL('https://redi.love/terms');
+    Linking.openURL('https://redi.love/terms'); // Replace with actual terms URL
   };
 
   const handlePrivacyPress = () => {
-    Linking.openURL('https://redi.love/privacy');
+    Linking.openURL('https://redi.love/privacy'); // Replace with actual privacy URL
   };
 
   // Split text by placeholders and create touchable links
@@ -22,32 +23,36 @@ export default function LegalFooterText({ text }: LegalFooterTextProps) {
     return parts.map((part, index) => {
       if (part === '{terms}') {
         return (
-          <Text
+          <AppText
+            variant="bodySmall"
             key={index}
             style={styles.link}
             onPress={handleTermsPress}
           >
             Terms
-          </Text>
+          </AppText>
         );
       } else if (part === '{privacy}') {
         return (
-          <Text
+          <AppText
+            variant="bodySmall"
             key={index}
             style={styles.link}
             onPress={handlePrivacyPress}
           >
             Privacy Policy
-          </Text>
+          </AppText>
         );
       }
-      return <Text key={index}>{part}</Text>;
+      return <AppText key={index}>{part}</AppText>;
     });
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>{renderText()}</Text>
+      <AppText variant="bodySmall" style={styles.text}>
+        {renderText()}
+      </AppText>
     </View>
   );
 }
@@ -58,9 +63,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   text: {
-    fontSize: 12,
-    lineHeight: 16,
-    color: AppColors.foregroundDimmer,
     textAlign: 'center',
   },
   link: {

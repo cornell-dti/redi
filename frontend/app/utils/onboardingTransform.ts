@@ -38,7 +38,9 @@ function convertBirthdateToISO(birthdate: string): string {
  * Maps gender selection to backend enum
  * Takes the first selected gender since backend only supports single value
  */
-function mapGenderToBackend(genders: string[]): 'female' | 'male' | 'non-binary' {
+function mapGenderToBackend(
+  genders: string[]
+): 'female' | 'male' | 'non-binary' {
   if (genders.length === 0) {
     throw new Error('At least one gender must be selected');
   }
@@ -91,7 +93,7 @@ export function transformOnboardingToProfilePayload(
     throw new Error('Graduation year is required');
   }
 
-  // Build payload
+  // Transform the onboarding data into exact format our backend API expects
   const payload: CreateProfilePayload = {
     firebaseUid,
     firstName: onboardingData.firstName,
@@ -103,18 +105,22 @@ export function transformOnboardingToProfilePayload(
     major: onboardingData.major,
     pictures: onboardingData.pictures,
     hometown: onboardingData.hometown || undefined,
-    pronouns: onboardingData.pronouns.length > 0 ? onboardingData.pronouns : undefined,
+    pronouns:
+      onboardingData.pronouns.length > 0 ? onboardingData.pronouns : undefined,
     sexualOrientation:
       onboardingData.sexualOrientation.length > 0
         ? onboardingData.sexualOrientation
         : undefined,
     interestedIn:
-      onboardingData.interestedIn.length > 0 ? onboardingData.interestedIn : undefined,
+      onboardingData.interestedIn.length > 0
+        ? onboardingData.interestedIn
+        : undefined,
     showGenderOnProfile: onboardingData.showGenderOnProfile,
     showPronounsOnProfile: onboardingData.showPronounsOnProfile,
     showHometownOnProfile: onboardingData.showHometownOnProfile,
     showCollegeOnProfile: onboardingData.showCollegeOnProfile,
-    showSexualOrientationOnProfile: onboardingData.showSexualOrientationOnProfile,
+    showSexualOrientationOnProfile:
+      onboardingData.showSexualOrientationOnProfile,
     prompts:
       onboardingData.prompts.length > 0
         ? onboardingData.prompts.map((p) => ({
@@ -142,7 +148,8 @@ export function validateProfilePayload(payload: CreateProfilePayload): {
   if (!payload.birthdate) errors.push('Birthdate is required');
   if (!payload.year) errors.push('Graduation year is required');
   if (!payload.school) errors.push('School is required');
-  if (!payload.major || payload.major.length === 0) errors.push('At least one major is required');
+  if (!payload.major || payload.major.length === 0)
+    errors.push('At least one major is required');
   if (!payload.pictures || payload.pictures.length < 3) {
     errors.push('At least 3 photos are required');
   }

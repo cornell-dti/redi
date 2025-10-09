@@ -65,7 +65,16 @@ export const INITIAL_ONBOARDING_DATA: OnboardingData = {
 
 // Available options for dropdowns and selections
 export const GENDER_OPTIONS = ['Man', 'Woman', 'Non-Binary'];
-export const PRONOUN_OPTIONS = ['He', 'Him', 'His', 'She', 'Her', 'Hers', 'They', 'Them'];
+export const PRONOUN_OPTIONS = [
+  'He',
+  'Him',
+  'His',
+  'She',
+  'Her',
+  'Hers',
+  'They',
+  'Them',
+];
 export const SEXUAL_ORIENTATION_OPTIONS = [
   'Straight',
   'Gay',

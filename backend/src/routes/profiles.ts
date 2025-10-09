@@ -287,7 +287,8 @@ router.post('/api/profiles', async (req, res) => {
       !profileData.school
     ) {
       return res.status(400).json({
-        error: 'firstName, bio, gender, birthdate, year, and school are required',
+        error:
+          'firstName, bio, gender, birthdate, year, and school are required',
       });
     }
 

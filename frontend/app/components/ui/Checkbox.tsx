@@ -9,17 +9,17 @@ interface CheckboxProps {
   color?: string;
 }
 
-const Checkbox: React.FC<CheckboxProps> = ({ 
-  value, 
+const Checkbox: React.FC<CheckboxProps> = ({
+  value,
   onValueChange,
-  color = AppColors.accentDefault 
+  color = AppColors.accentDefault,
 }) => {
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       onPress={() => onValueChange(!value)}
       style={[
         styles.checkbox,
-        value && { backgroundColor: color, borderColor: color }
+        value && { backgroundColor: color, borderColor: color },
       ]}
       activeOpacity={0.7}
     >

@@ -5,7 +5,6 @@ import landingPageRouter from './routes/landing-page';
 import profilesRouter from './routes/profiles';
 import usersRouter from './routes/users';
 
-
 dotenv.config();
 
 const app = express();

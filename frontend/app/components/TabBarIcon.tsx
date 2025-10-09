@@ -7,10 +7,6 @@ interface TabBarIconProps {
   color: string;
 }
 
-export default function TabBarIcon({
-  icon,
-  size,
-  color,
-}: TabBarIconProps) {
+export default function TabBarIcon({ icon, size, color }: TabBarIconProps) {
   return React.createElement(icon, { size, color });
 }
