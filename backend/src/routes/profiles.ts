@@ -69,12 +69,23 @@ const profileDocToResponse = (
   doc: FirestoreDoc<ProfileDoc>
 ): ProfileResponse => ({
   netid: doc.netid,
+  firstName: doc.firstName,
   bio: doc.bio,
   gender: doc.gender,
   birthdate:
     doc.birthdate instanceof Date
       ? doc.birthdate.toISOString()
       : doc.birthdate.toDate().toISOString(),
+  hometown: doc.hometown,
+  pronouns: doc.pronouns,
+  sexualOrientation: doc.sexualOrientation,
+  interestedIn: doc.interestedIn,
+  showGenderOnProfile: doc.showGenderOnProfile,
+  showPronounsOnProfile: doc.showPronounsOnProfile,
+  showHometownOnProfile: doc.showHometownOnProfile,
+  showCollegeOnProfile: doc.showCollegeOnProfile,
+  showSexualOrientationOnProfile: doc.showSexualOrientationOnProfile,
+  prompts: doc.prompts,
   instagram: doc.instagram,
   snapchat: doc.snapchat,
   phoneNumber: doc.phoneNumber,
@@ -268,6 +279,7 @@ router.post('/api/profiles', async (req, res) => {
 
     // Validate required fields (netid is now derived from firebaseUid)
     if (
+      !profileData.firstName ||
       !profileData.bio ||
       !profileData.gender ||
       !profileData.birthdate ||
@@ -275,7 +287,7 @@ router.post('/api/profiles', async (req, res) => {
       !profileData.school
     ) {
       return res.status(400).json({
-        error: 'bio, gender, birthdate, year, and school are required',
+        error: 'firstName, bio, gender, birthdate, year, and school are required',
       });
     }
 

@@ -1,4 +1,5 @@
 import Button from '@/app/components/ui/Button';
+import { router } from 'expo-router';
 import {
   Bell,
   Camera,
@@ -85,6 +86,7 @@ export default function ProfileScreen() {
         onPress: async () => {
           try {
             await signOutUser();
+            router.replace('/(auth)/home' as any);
           } catch {
             Alert.alert('Error', 'Failed to sign out');
           }

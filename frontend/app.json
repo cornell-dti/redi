@@ -47,7 +47,14 @@
         }
       ],
       "@react-native-firebase/app",
-      "@react-native-firebase/auth"
+      "@react-native-firebase/auth",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app needs access to your photos to upload profile pictures.",
+          "cameraPermission": "The app needs access to your camera to take profile pictures."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

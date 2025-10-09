@@ -26,9 +26,20 @@ export interface UserDocWrite {
 // Profile document when writing to Firestore (includes FieldValue for timestamps)
 export interface ProfileDocWrite {
   netid: string;
+  firstName: string;
   bio: string;
   gender: Gender;
   birthdate: FirestoreTimestampType | Date;
+  hometown?: string;
+  pronouns?: string[];
+  sexualOrientation?: string[];
+  interestedIn?: string[];
+  showGenderOnProfile?: boolean;
+  showPronounsOnProfile?: boolean;
+  showHometownOnProfile?: boolean;
+  showCollegeOnProfile?: boolean;
+  showSexualOrientationOnProfile?: boolean;
+  prompts?: { question: string; answer: string }[];
   instagram?: string;
   snapchat?: string;
   phoneNumber?: string;
@@ -43,26 +54,36 @@ export interface ProfileDocWrite {
 export type Gender = 'female' | 'male' | 'non-binary';
 
 export type School =
-  | 'College of Arts and Science'
-  | 'Cals'
-  | 'Hotel and Administration'
-  | 'AAP'
-  | 'Dyson'
-  | 'Engineering'
-  | 'ILR'
-  | 'Human Ecology'
-  | 'Veterinary Medicine'
+  | 'College of Agriculture and Life Sciences'
+  | 'College of Architecture, Art, and Planning'
+  | 'College of Arts and Sciences'
+  | 'Cornell SC Johnson College of Business'
+  | 'College of Engineering'
+  | 'College of Human Ecology'
+  | 'School of Industrial and Labor Relations'
   | 'Graduate School'
   | 'Law School'
   | 'Business School'
-  | 'Medical College';
+  | 'Medical College'
+  | 'Veterinary Medicine';
 
 // Profile document in Firestore (profiles collection)
 export interface ProfileDoc {
   netid: string;
+  firstName: string;
   bio: string;
   gender: Gender;
   birthdate: FirestoreTimestampType;
+  hometown?: string;
+  pronouns?: string[];
+  sexualOrientation?: string[];
+  interestedIn?: string[];
+  showGenderOnProfile?: boolean;
+  showPronounsOnProfile?: boolean;
+  showHometownOnProfile?: boolean;
+  showCollegeOnProfile?: boolean;
+  showSexualOrientationOnProfile?: boolean;
+  prompts?: { question: string; answer: string }[];
   instagram?: string;
   snapchat?: string;
   phoneNumber?: string;
@@ -87,9 +108,20 @@ export interface UserResponse {
 // Profile data for API responses
 export interface ProfileResponse {
   netid: string;
+  firstName: string;
   bio: string;
   gender: Gender;
   birthdate: string; // ISO string format for JSON
+  hometown?: string;
+  pronouns?: string[];
+  sexualOrientation?: string[];
+  interestedIn?: string[];
+  showGenderOnProfile?: boolean;
+  showPronounsOnProfile?: boolean;
+  showHometownOnProfile?: boolean;
+  showCollegeOnProfile?: boolean;
+  showSexualOrientationOnProfile?: boolean;
+  prompts?: { question: string; answer: string }[];
   instagram?: string;
   snapchat?: string;
   phoneNumber?: string;
