@@ -25,9 +25,15 @@ const getChildWithRadius = (
         borderBottomRightRadius: 24,
       };
     }
-    return React.cloneElement(child, {
-      style: [child.props.style, borderRadiusStyle],
-    });
+    return React.cloneElement(
+      child as React.ReactElement<{ style?: StyleProp<ViewStyle> }>,
+      {
+        style: [
+          (child.props as { style?: StyleProp<ViewStyle> }).style,
+          borderRadiusStyle,
+        ],
+      }
+    );
   }
   return child;
 };
@@ -48,8 +54,6 @@ export default function ListItemWrapper({
 
 const styles = StyleSheet.create({
   container: {
-    // borderRadius: 24,
-    // overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
     gap: 4,
