@@ -4,6 +4,7 @@ import Button from '@/app/components/ui/Button';
 import IconWrapper from '@/app/components/ui/IconWrapper';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
+import IconButton from '@/app/components/ui/IconButton';
 import Sheet from '@/app/components/ui/Sheet';
 import {
   AirVent,
@@ -30,6 +31,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
 import Header from '../../components/ui/Header';
 import MatchCard from '../../components/ui/MatchCard';
+import Tag from '../../components/ui/Tag';
 
 // Mock data for matches
 const mockMatches = [
@@ -158,6 +160,63 @@ export default function MatchesScreen() {
               iconRight={Plus}
               variant="negative"
             />
+            <AppText variant="subtitle">Icon Buttons</AppText>
+
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12,
+              }}
+            >
+              <IconButton onPress={() => {}} icon={Plus} />
+
+              <IconButton
+                onPress={() => {}}
+                icon={RefreshCw}
+                variant="secondary"
+              />
+
+              <IconButton
+                onPress={() => {}}
+                icon={AirVent}
+                variant="negative"
+              />
+
+              <IconButton onPress={() => {}} icon={Plus} noRound />
+
+              <IconButton
+                onPress={() => {}}
+                icon={RefreshCw}
+                variant="secondary"
+                noRound
+              />
+
+              <IconButton
+                onPress={() => {}}
+                icon={AirVent}
+                variant="negative"
+                noRound
+              />
+
+              <IconButton onPress={() => {}} icon={Search} size="small" />
+
+              <IconButton
+                onPress={() => {}}
+                icon={Search}
+                variant="secondary"
+                size="small"
+              />
+
+              <IconButton
+                onPress={() => {}}
+                icon={Search}
+                variant="negative"
+                size="small"
+              />
+            </View>
+
             <AppText variant="title">Title Text</AppText>
             <AppText variant="subtitle">Subtitle Text</AppText>
             <AppText variant="body">Body Text</AppText>
@@ -242,6 +301,34 @@ export default function MatchesScreen() {
                   right={<Check color={AppColors.backgroundDefault} />}
                 />
               </ListItemWrapper>
+            <AppText variant="subtitle">Tags</AppText>
+            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+              <Tag label="Student" />
+
+              <Tag label="Verified" icon={SlidersHorizontal} />
+
+              <Tag label="Removable" dismissible onDismiss={() => {}} />
+            </View>
+
+            <View
+              style={{
+                backgroundColor: AppColors.backgroundDimmer,
+                flexDirection: 'row',
+                gap: 8,
+                flexWrap: 'wrap',
+                padding: 12,
+              }}
+            >
+              <Tag variant="white" label="Student" />
+
+              <Tag variant="white" label="Verified" icon={SlidersHorizontal} />
+
+              <Tag
+                variant="white"
+                label="Removable"
+                dismissible
+                onDismiss={() => {}}
+              />
             </View>
           </View>
         </View>
