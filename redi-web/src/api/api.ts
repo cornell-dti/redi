@@ -24,7 +24,6 @@ export const apiAddEmail = async (email: string): Promise<void> => {
 
   if (!res.ok) {
     const msg = `apiAddEmail failed – status ${res.status}`;
-    console.error(msg);
     throw new Error(msg);
   }
 };
