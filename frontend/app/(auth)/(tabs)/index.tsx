@@ -1,10 +1,10 @@
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
+import IconButton from '@/app/components/ui/IconButton';
 import IconWrapper from '@/app/components/ui/IconWrapper';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
-import IconButton from '@/app/components/ui/IconButton';
 import Sheet from '@/app/components/ui/Sheet';
 import {
   AirVent,
@@ -98,6 +98,7 @@ export default function MatchesScreen() {
               image={match.image}
             />
           ))}
+          </View>
 
           <Button
             title="Load More Profiles"
