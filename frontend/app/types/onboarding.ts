@@ -1,3 +1,5 @@
+import { School } from "@/types";
+
 export interface OnboardingData {
   // Step 2: Basic Info
   firstName: string;
@@ -16,7 +18,7 @@ export interface OnboardingData {
   showHometownOnProfile: boolean;
 
   // Step 6: College Info
-  school: string;
+  school: School | '';
   major: string[];
   showCollegeOnProfile: boolean;
 
@@ -85,7 +87,7 @@ export const SEXUAL_ORIENTATION_OPTIONS = [
 ];
 export const INTERESTED_IN_OPTIONS = ['Men', 'Women', 'Non-Binary'];
 export const GRADUATION_YEARS = [2026, 2027, 2028, 2029, 2030];
-export const CORNELL_SCHOOLS = [
+export const CORNELL_SCHOOLS : School[] = [
   'College of Agriculture and Life Sciences',
   'College of Architecture, Art, and Planning',
   'College of Arts and Sciences',
@@ -95,9 +97,10 @@ export const CORNELL_SCHOOLS = [
   'School of Industrial and Labor Relations',
   'Graduate School',
   'Law School',
-  'Business School',
-  'Medical College',
-  'Veterinary Medicine',
+  'Nolan School of Hotel Administration',
+  'Brooks School of Public Policy',
+  'Weill Cornell Medical',
+  'College of Veterinary Medicine'
 ];
 
 // Sample prompts for Step 11
