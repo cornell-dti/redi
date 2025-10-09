@@ -52,3 +52,4 @@ npm-debug.*
 web-build/
 ios/
 android/
+*SPECS.md
