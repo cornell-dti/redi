@@ -6,17 +6,50 @@ interface ListItemWrapperProps {
   style?: StyleProp<ViewStyle>;
 }
 
+// Helper component to wrap children and apply border radius to first/last child
+const getChildWithRadius = (
+  child: React.ReactNode,
+  index: number,
+  total: number
+) => {
+  // Only apply style to React elements
+  if (React.isValidElement(child)) {
+    let borderRadiusStyle = {};
+    if (index === 0) {
+      borderRadiusStyle = { borderTopLeftRadius: 24, borderTopRightRadius: 24 };
+    }
+    if (index === total - 1) {
+      borderRadiusStyle = {
+        ...borderRadiusStyle,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+      };
+    }
+    return React.cloneElement(child, {
+      style: [child.props.style, borderRadiusStyle],
+    });
+  }
+  return child;
+};
+
 export default function ListItemWrapper({
   children,
   style,
 }: ListItemWrapperProps) {
-  return <View style={[styles.container, style]}>{children}</View>;
+  const childrenArray = React.Children.toArray(children);
+  return (
+    <View style={[styles.container, style]}>
+      {childrenArray.map((child, idx) =>
+        getChildWithRadius(child, idx, childrenArray.length)
+      )}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 24,
-    overflow: 'hidden',
+    // borderRadius: 24,
+    // overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
     gap: 4,
