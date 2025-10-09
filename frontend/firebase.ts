@@ -9,13 +9,12 @@ import { getStorage } from 'firebase/storage';
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: 'AIzaSyBYPE7SEA7Mj161lGtIl2iotJg7VvmmpAU',
-  authDomain: 'redi-fb4ea.firebaseapp.com',
-  projectId: 'redi-fb4ea',
-  storageBucket: 'redi-fb4ea.firebasestorage.app',
-  messagingSenderId: '827839734794',
-  appId: '1:827839734794:web:ed5e0c0301b9b25b82ebf3',
-  measurementId: 'G-5VS50PFWGZ',
+  apiKey: "AIzaSyCHV7mKBF3GqU_WxLIJeBaSPMear3t9oBs",
+  authDomain: "redi-1c25e.firebaseapp.com",
+  projectId: "redi-1c25e",
+  storageBucket: "redi-1c25e.firebasestorage.app",
+  messagingSenderId: "272234540869",
+  appId: "1:272234540869:web:d39079c3a5cd5381fc182c"
 };
 
 // Initialize Firebase
