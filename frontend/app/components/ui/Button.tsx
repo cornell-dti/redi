@@ -19,6 +19,7 @@ interface ButtonProps {
   fullWidth?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  noRound?: boolean;
 }
 
 export default function Button({
@@ -31,6 +32,7 @@ export default function Button({
   fullWidth = false,
   style,
   textStyle,
+  noRound = false,
 }: ButtonProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isPressed, setIsPressed] = React.useState(false);
@@ -56,7 +58,7 @@ export default function Button({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: 128,
+      borderRadius: noRound ? 4 : 128,
       paddingHorizontal: 24,
       paddingVertical: 12,
       height: 48,
@@ -148,15 +150,17 @@ export default function Button({
         disabled={disabled}
         activeOpacity={1}
       >
-        {iconLeft && React.createElement(iconLeft, {
-          size: 16,
-          color: getIconColor(),
-        })}
+        {iconLeft &&
+          React.createElement(iconLeft, {
+            size: 16,
+            color: getIconColor(),
+          })}
         <Text style={[getTextStyle(), textStyle]}>{title}</Text>
-        {iconRight && React.createElement(iconRight, {
-          size: 16,
-          color: getIconColor(),
-        })}
+        {iconRight &&
+          React.createElement(iconRight, {
+            size: 16,
+            color: getIconColor(),
+          })}
       </TouchableOpacity>
     </Animated.View>
   );
