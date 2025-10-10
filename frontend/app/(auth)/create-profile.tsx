@@ -33,13 +33,13 @@ import {
   PRONOUN_OPTIONS,
   PromptData,
   SEXUAL_ORIENTATION_OPTIONS,
-} from '../types/onboarding';
+} from '@/types';
 import {
   transformOnboardingToProfilePayload,
   validateProfilePayload,
 } from '../utils/onboardingTransform';
 
-const TOTAL_STEPS = 11; // Steps 2-12 (Step 1 is in home.tsx)
+const TOTAL_STEPS = 14; // Steps 2-15 (Step 1 is in home.tsx)
 
 export default function CreateProfileScreen() {
   const [currentStep, setCurrentStep] = useState(2); // Start at step 2
@@ -55,6 +55,10 @@ export default function CreateProfileScreen() {
   const [showSchoolSheet, setShowSchoolSheet] = useState(false);
   const [showMajorInput, setShowMajorInput] = useState(false);
   const [majorInput, setMajorInput] = useState('');
+  const [showClubInput, setShowClubInput] = useState(false);
+  const [clubInput, setClubInput] = useState('');
+  const [showInterestInput, setShowInterestInput] = useState(false);
+  const [interestInput, setInterestInput] = useState('');
 
   if (!isLoaded) {
     return null; // Wait for AsyncStorage to load
@@ -66,7 +70,7 @@ export default function CreateProfileScreen() {
       return;
     }
 
-    if (currentStep < 12) {
+    if (currentStep < 15) {
       setCurrentStep(currentStep + 1);
     } else {
       handleSubmit();
@@ -164,6 +168,36 @@ export default function CreateProfileScreen() {
     updateField(
       'prompts',
       data.prompts.filter((p) => p.id !== id)
+    );
+  };
+
+  const addClub = () => {
+    if (clubInput.trim()) {
+      updateField('clubs', [...data.clubs, clubInput.trim()]);
+      setClubInput('');
+      setShowClubInput(false);
+    }
+  };
+
+  const removeClub = (index: number) => {
+    updateField(
+      'clubs',
+      data.clubs.filter((_, i) => i !== index)
+    );
+  };
+
+  const addInterest = () => {
+    if (interestInput.trim()) {
+      updateField('interests', [...data.interests, interestInput.trim()]);
+      setInterestInput('');
+      setShowInterestInput(false);
+    }
+  };
+
+  const removeInterest = (index: number) => {
+    updateField(
+      'interests',
+      data.interests.filter((_, i) => i !== index)
     );
   };
 
@@ -451,6 +485,128 @@ export default function CreateProfileScreen() {
       case 12:
         return (
           <View style={styles.stepContainer}>
+            <OnboardingTitle
+              title="What clubs are you in?"
+              subtitle="Add any Cornell clubs or organizations you're part of"
+            />
+            <View style={styles.majorContainer}>
+              {data.clubs.map((club, index) => (
+                <View key={index} style={styles.majorTag}>
+                  <AppText variant="body">{club}</AppText>
+                  <Button
+                    title="×"
+                    onPress={() => removeClub(index)}
+                    variant="secondary"
+                  />
+                </View>
+              ))}
+              {showClubInput ? (
+                <View style={styles.majorInputRow}>
+                  <AppInput
+                    placeholder="Enter club name"
+                    value={clubInput}
+                    onChangeText={setClubInput}
+                    style={{ flex: 1 }}
+                  />
+                  <Button title="Add" onPress={addClub} variant="primary" />
+                </View>
+              ) : (
+                <Button
+                  title="+ Add club"
+                  onPress={() => setShowClubInput(true)}
+                  variant="secondary"
+                />
+              )}
+            </View>
+          </View>
+        );
+
+      case 13:
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle
+              title="Connect your social media"
+              subtitle="All fields are optional - add any you'd like to share"
+            />
+            <AppInput
+              label="LinkedIn"
+              placeholder="linkedin.com/in/username"
+              value={data.linkedIn}
+              onChangeText={(text) => updateField('linkedIn', text)}
+            />
+            <AppInput
+              label="Instagram"
+              placeholder="@username"
+              value={data.instagram}
+              onChangeText={(text) => updateField('instagram', text)}
+            />
+            <AppInput
+              label="Snapchat"
+              placeholder="username"
+              value={data.snapchat}
+              onChangeText={(text) => updateField('snapchat', text)}
+            />
+            <AppInput
+              label="GitHub"
+              placeholder="github.com/username"
+              value={data.github}
+              onChangeText={(text) => updateField('github', text)}
+            />
+            <AppInput
+              label="Personal Website"
+              placeholder="https://yourwebsite.com"
+              value={data.website}
+              onChangeText={(text) => updateField('website', text)}
+            />
+          </View>
+        );
+
+      case 14:
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle
+              title="What are your interests?"
+              subtitle="Share what you're passionate about"
+            />
+            <View style={styles.majorContainer}>
+              {data.interests.map((interest, index) => (
+                <View key={index} style={styles.majorTag}>
+                  <AppText variant="body">{interest}</AppText>
+                  <Button
+                    title="×"
+                    onPress={() => removeInterest(index)}
+                    variant="secondary"
+                  />
+                </View>
+              ))}
+              {showInterestInput ? (
+                <View style={styles.majorInputRow}>
+                  <AppInput
+                    placeholder="Enter an interest"
+                    value={interestInput}
+                    onChangeText={setInterestInput}
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    title="Add"
+                    onPress={addInterest}
+                    variant="primary"
+                  />
+                </View>
+              ) : (
+                <Button
+                  title="+ Add Interest"
+                  onPress={() => setShowInterestInput(true)}
+                  variant="secondary"
+                />
+              )}
+            </View>
+          </View>
+        );
+
+      case 15:
+        return (
+          <View style={styles.stepContainer}>
             <OnboardingTitle title={`Welcome ${data.firstName}!`} />
             <View style={styles.welcomeContainer}>
               {data.pictures[0] && (
@@ -473,7 +629,7 @@ export default function CreateProfileScreen() {
   };
 
   const getNextLabel = () => {
-    if (currentStep === 12) return 'Get Started';
+    if (currentStep === 15) return 'Get Started';
     return 'Next ▼';
   };
 

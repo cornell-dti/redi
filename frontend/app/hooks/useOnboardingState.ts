@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
-import { INITIAL_ONBOARDING_DATA, OnboardingData } from '../types/onboarding';
+import { INITIAL_ONBOARDING_DATA, OnboardingData } from '@/types';
 
 const STORAGE_KEY = 'onboarding_progress';
 
@@ -135,6 +135,23 @@ export function useOnboardingState() {
           (p) => p.question && p.answer.trim() !== ''
         );
         return validPrompts.length >= 1 && validPrompts.length <= 3;
+
+      case 12:
+        // Clubs: Optional, always valid
+        return true;
+
+      case 13:
+        // Social Links: Optional, always valid
+        // Could add URL validation here if needed
+        return true;
+
+      case 14:
+        // Interests: Optional, always valid
+        return true;
+
+      case 15:
+        // Final welcome screen: Always valid
+        return true;
 
       default:
         return true;

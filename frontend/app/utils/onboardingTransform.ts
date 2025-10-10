@@ -1,5 +1,4 @@
-import { OnboardingData } from '../types/onboarding';
-import { CreateProfileInput } from '../types/types';
+import { OnboardingData, CreateProfileInput } from '@/types';
 
 /**
  * Converts MM/DD/YYYY format to ISO date string
@@ -109,6 +108,12 @@ export function transformOnboardingToProfilePayload(
             answer: p.answer,
           }))
         : undefined,
+    clubs: onboardingData.clubs.length > 0 ? onboardingData.clubs : undefined,
+    linkedIn: onboardingData.linkedIn || undefined,
+    github: onboardingData.github || undefined,
+    website: onboardingData.website || undefined,
+    interests:
+      onboardingData.interests.length > 0 ? onboardingData.interests : undefined,
   };
 
   return payload;

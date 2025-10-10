@@ -43,6 +43,11 @@ export interface ProfileDocWrite {
   instagram?: string;
   snapchat?: string;
   phoneNumber?: string;
+  linkedIn?: string;
+  github?: string;
+  website?: string;
+  clubs?: string[];
+  interests?: string[];
   year: number;
   school: School;
   major: string[];
@@ -88,6 +93,11 @@ export interface ProfileDoc {
   instagram?: string;
   snapchat?: string;
   phoneNumber?: string;
+  linkedIn?: string;
+  github?: string;
+  website?: string;
+  clubs?: string[];
+  interests?: string[];
   year: number;
   school: School;
   major: string[];
@@ -126,6 +136,11 @@ export interface ProfileResponse {
   instagram?: string;
   snapchat?: string;
   phoneNumber?: string;
+  linkedIn?: string;
+  github?: string;
+  website?: string;
+  clubs?: string[];
+  interests?: string[];
   year: number;
   school: School;
   major: string[];

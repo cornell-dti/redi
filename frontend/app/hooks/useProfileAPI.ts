@@ -1,4 +1,4 @@
-import { CreateProfileInput, UpdateProfileInput, Gender } from '../types/types';
+import { CreateProfileInput, UpdateProfileInput, Gender } from '@/types';
 import auth from '@react-native-firebase/auth';
 import { useState } from 'react';
 import { Alert } from 'react-native';
