@@ -1,4 +1,4 @@
-import { School } from "@/types";
+import { School } from '@/types';
 
 export interface OnboardingData {
   // Step 2: Basic Info
@@ -87,7 +87,7 @@ export const SEXUAL_ORIENTATION_OPTIONS = [
 ];
 export const INTERESTED_IN_OPTIONS = ['Men', 'Women', 'Non-Binary'];
 export const GRADUATION_YEARS = [2026, 2027, 2028, 2029, 2030];
-export const CORNELL_SCHOOLS : School[] = [
+export const CORNELL_SCHOOLS: School[] = [
   'College of Agriculture and Life Sciences',
   'College of Architecture, Art, and Planning',
   'College of Arts and Sciences',
@@ -100,7 +100,7 @@ export const CORNELL_SCHOOLS : School[] = [
   'Nolan School of Hotel Administration',
   'Brooks School of Public Policy',
   'Weill Cornell Medical',
-  'College of Veterinary Medicine'
+  'College of Veterinary Medicine',
 ];
 
 // Sample prompts for Step 11

@@ -44,7 +44,7 @@ export type School =
   | 'Brooks School of Public Policy'
   | 'Weill Cornell Medical'
   | 'College of Veterinary Medicine'
-  | 'Nolan School of Hotel Administration'
+  | 'Nolan School of Hotel Administration';
 
 // Profile response from API (matches backend ProfileResponse)
 export interface ProfileResponse {
