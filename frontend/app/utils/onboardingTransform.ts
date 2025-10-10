@@ -113,7 +113,9 @@ export function transformOnboardingToProfilePayload(
     github: onboardingData.github || undefined,
     website: onboardingData.website || undefined,
     interests:
-      onboardingData.interests.length > 0 ? onboardingData.interests : undefined,
+      onboardingData.interests.length > 0
+        ? onboardingData.interests
+        : undefined,
   };
 
   return payload;
