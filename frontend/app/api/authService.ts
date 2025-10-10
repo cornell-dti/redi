@@ -35,10 +35,16 @@ export const signUpUser = async (
       password
     );
     const firebaseUser = userCredential.user;
-
+    // Check to see if the user has signed up with Firebase Auth.
     if (firebaseUser) {
-      // Create user in backend
-      await createUserInBackend(email, firebaseUser.uid);
+      try {
+        await createUserInBackend(email, firebaseUser.uid);
+        await firebaseUser.sendEmailVerification();
+      } catch (backendError) {
+        // Backend creation failed - clean up Firebase user
+        await firebaseUser.delete();
+        throw backendError;
+      }
     }
   } catch (error) {
     const err = error as FirebaseError;
@@ -84,6 +90,14 @@ export const signInUser = async (
     const firebaseUser = userCredential.user;
 
     if (firebaseUser) {
+
+      // User has not verified their email yet.
+      if (!firebaseUser.emailVerified) {
+        await auth().signOut();
+        throw new Error(
+          'Please verify your email address. Check your inbox for the verification link.'
+        );
+      }
       // Verify user exists in backend and login
       await loginUserInBackend(email, firebaseUser.uid);
     }

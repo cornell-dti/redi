@@ -52,7 +52,7 @@ export default function HomePage() {
     try {
       await signUpUser(email, password);
       // After successful signup, navigate to create profile
-      router.replace('/(auth)/create-profile');
+      router.replace('/(auth)/verify-email');
     } catch (error) {
       Alert.alert(
         'Sign Up Failed',
