@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
+  Animated,
   Pressable,
   StyleProp,
   StyleSheet,
@@ -30,29 +31,54 @@ export default function ListItem({
   onPress,
   style,
 }: ListItemProps) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const [isPressed, setIsPressed] = React.useState(false);
+
+  const handlePressIn = () => {
+    setIsPressed(true);
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    setIsPressed(false);
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
   return (
-    <Pressable
-      onPress={onPress}
-      android_ripple={{ color: AppColors.backgroundDimmest }}
-      style={({ pressed }) => [
-        styles.container,
-        selected && styles.selected,
-        pressed && (selected ? styles.selectedPressed : styles.pressed),
-        style,
-      ]}
-      accessibilityRole="button"
-    >
-      {left ? <View style={styles.left}>{left}</View> : null}
+    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <Pressable
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        android_ripple={{ color: AppColors.backgroundDimmest }}
+        style={({ pressed }) => [
+          styles.container,
+          selected && styles.selected,
+          // keep original pressed styling logic; rely on pressed OR local isPressed
+          (pressed || isPressed) &&
+            (selected ? styles.selectedPressed : styles.pressed),
+          style,
+        ]}
+        accessibilityRole="button"
+      >
+        {left ? <View style={styles.left}>{left}</View> : null}
 
-      <View style={styles.content}>
-        <AppText variant="body" color={selected ? 'inverse' : 'default'}>
-          {title}
-        </AppText>
-        {description ? <AppText color="dimmer">{description}</AppText> : null}
-      </View>
+        <View style={styles.content}>
+          <AppText variant="body" color={selected ? 'inverse' : 'default'}>
+            {title}
+          </AppText>
+          {description ? <AppText color="dimmer">{description}</AppText> : null}
+        </View>
 
-      {right ? <View style={styles.right}>{right}</View> : null}
-    </Pressable>
+        {right ? <View style={styles.right}>{right}</View> : null}
+      </Pressable>
+    </Animated.View>
   );
 }
 const styles = StyleSheet.create({
