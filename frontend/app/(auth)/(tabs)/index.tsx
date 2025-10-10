@@ -345,6 +345,14 @@ export default function MatchesScreen() {
           <Button variant="primary" title="Hi" onPress={() => {}} />
 
           <Button variant="negative" title="Hi" onPress={() => {}} />
+
+          <ListItemWrapper>
+            <Button variant="primary" title="Hi" onPress={() => {}} noRound />
+
+            <Button variant="secondary" title="Hi" onPress={() => {}} noRound />
+
+            <Button variant="negative" title="Hi" onPress={() => {}} noRound />
+          </ListItemWrapper>
         </View>
       </Sheet>
 
