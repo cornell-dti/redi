@@ -587,7 +587,11 @@ export default function CreateProfileScreen() {
                     onChangeText={setInterestInput}
                     style={{ flex: 1 }}
                   />
-                  <Button title="Add" onPress={addInterest} variant="primary" />
+                  <Button
+                    title="Add"
+                    onPress={addInterest}
+                    variant="primary"
+                  />
                 </View>
               ) : (
                 <Button
