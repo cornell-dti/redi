@@ -4,7 +4,7 @@ import {
   ProfileResponse,
   UpdateProfileInput,
   Gender,
-} from '../types/types';
+} from '@/types';
 import { API_BASE_URL } from '../../constants/constants';
 
 /**

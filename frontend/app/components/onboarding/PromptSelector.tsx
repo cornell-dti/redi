@@ -1,7 +1,7 @@
 import { X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { AVAILABLE_PROMPTS, PromptData } from '../../types/onboarding';
+import { AVAILABLE_PROMPTS, PromptData } from '@/types';
 import { AppColors } from '../AppColors';
 import AppInput from '../ui/AppInput';
 import AppText from '../ui/AppText';

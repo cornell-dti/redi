@@ -1,4 +1,8 @@
-import { School } from '@/types';
+// =============================================================================
+// ONBOARDING TYPES
+// =============================================================================
+
+import { School } from './profile';
 
 export interface OnboardingData {
   // Step 2: Basic Info
@@ -37,6 +41,19 @@ export interface OnboardingData {
 
   // Step 11: Prompts
   prompts: PromptData[];
+
+  // Step 12: Clubs
+  clubs: string[];
+
+  // Step 13: Social Links
+  linkedIn?: string;
+  instagram?: string;
+  snapchat?: string;
+  github?: string;
+  website?: string;
+
+  // Step 14: Interests
+  interests: string[];
 }
 
 export interface PromptData {
@@ -63,6 +80,13 @@ export const INITIAL_ONBOARDING_DATA: OnboardingData = {
   interestedIn: [],
   pictures: [],
   prompts: [],
+  clubs: [],
+  linkedIn: '',
+  instagram: '',
+  snapchat: '',
+  github: '',
+  website: '',
+  interests: [],
 };
 
 // Available options for dropdowns and selections

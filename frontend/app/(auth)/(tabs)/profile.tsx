@@ -8,12 +8,15 @@ import {
   ChevronRight,
   Edit,
   Eye,
+  Globe,
   Heart,
   HelpCircle,
   Instagram,
+  Linkedin,
   LogOut,
   MessageCircle,
   Shield,
+  Github,
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
@@ -143,6 +146,14 @@ export default function ProfileScreen() {
   const displayYear = profile?.year?.toString() || 'Year not set';
   const displayInstagram = profile?.instagram || null;
   const displaySnapchat = profile?.snapchat || null;
+  const displayLinkedIn = profile?.linkedIn || null;
+  const displayGithub = profile?.github || null;
+  const displayWebsite = profile?.website || null;
+  const displayClubs = profile?.clubs || [];
+  const displayInterests =
+    profile?.interests && profile.interests.length > 0
+      ? profile.interests
+      : mockFallbackData.interests;
 
   // Show loading spinner while fetching
   if (loading) {
@@ -270,6 +281,12 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <AppText style={styles.sectionTitle}>Social Media</AppText>
           <InfoCard>
+            {displayLinkedIn ? (
+              <View style={styles.socialRow}>
+                <Linkedin size={24} color={AppColors.accentDefault} />
+                <AppText style={styles.socialText}>{displayLinkedIn}</AppText>
+              </View>
+            ) : null}
             {displayInstagram ? (
               <View style={styles.socialRow}>
                 <Instagram size={24} color={AppColors.negativeDefault} />
@@ -282,16 +299,47 @@ export default function ProfileScreen() {
                 <AppText style={styles.socialText}>{displaySnapchat}</AppText>
               </View>
             ) : null}
-            {!displayInstagram && !displaySnapchat && (
-              <AppText style={styles.noDataText}>No social media added</AppText>
-            )}
+            {displayGithub ? (
+              <View style={styles.socialRow}>
+                <Github size={24} color={AppColors.foregroundDefault} />
+                <AppText style={styles.socialText}>{displayGithub}</AppText>
+              </View>
+            ) : null}
+            {displayWebsite ? (
+              <View style={styles.socialRow}>
+                <Globe size={24} color={AppColors.accentDefault} />
+                <AppText style={styles.socialText}>{displayWebsite}</AppText>
+              </View>
+            ) : null}
+            {!displayLinkedIn &&
+              !displayInstagram &&
+              !displaySnapchat &&
+              !displayGithub &&
+              !displayWebsite && (
+                <AppText style={styles.noDataText}>
+                  No social media added
+                </AppText>
+              )}
           </InfoCard>
         </View>
+
+        {displayClubs.length > 0 && (
+          <View style={styles.section}>
+            <AppText style={styles.sectionTitle}>Clubs & Organizations</AppText>
+            <InfoCard>
+              {displayClubs.map((club, index) => (
+                <View key={index} style={styles.clubRow}>
+                  <AppText style={styles.clubText}>• {club}</AppText>
+                </View>
+              ))}
+            </InfoCard>
+          </View>
+        )}
 
         <View style={styles.section}>
           <AppText style={styles.sectionTitle}>Interests</AppText>
           <View style={styles.interestsContainer}>
-            {mockFallbackData.interests.map((interest, index) => (
+            {displayInterests.map((interest, index) => (
               <View key={index} style={styles.interestTag}>
                 <AppText>{interest}</AppText>
               </View>
@@ -442,6 +490,15 @@ const styles = StyleSheet.create({
     color: AppColors.foregroundDimmer,
     fontStyle: 'italic',
     paddingVertical: 12,
+  },
+  clubRow: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: AppColors.backgroundDimmer,
+  },
+  clubText: {
+    fontSize: 16,
+    color: AppColors.foregroundDefault,
   },
   interestsContainer: {
     flexDirection: 'row',
