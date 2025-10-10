@@ -1,6 +1,7 @@
 import FilledBellIcon from '@/app/components/icons/FilledBellIcon';
 import FilledChatIcon from '@/app/components/icons/FilledChatIcon';
 import FilledHeartIcon from '@/app/components/icons/FilledHeartIcon';
+import FilledProfileIcon from '@/app/components/icons/FilledProfileIcon';
 import { Tabs } from 'expo-router';
 import { Bell, Heart, MessageCircle, User } from 'lucide-react-native';
 import { useRef } from 'react';
@@ -127,7 +128,12 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
+          tabBarIcon: ({ color, size, focused }) =>
+            focused ? (
+              <FilledProfileIcon size={size} color={color} />
+            ) : (
+              <User size={size} color={color} />
+            ),
           tabBarButton: (props) => <AnimatedTabButton {...props} />,
         }}
         listeners={{
