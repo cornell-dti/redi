@@ -87,6 +87,10 @@ export function transformOnboardingToProfilePayload(
     hometown: onboardingData.hometown || undefined,
     pronouns:
       onboardingData.pronouns.length > 0 ? onboardingData.pronouns : undefined,
+    ethnicity:
+      onboardingData.ethnicity && onboardingData.ethnicity.length > 0
+        ? onboardingData.ethnicity
+        : undefined,
     sexualOrientation:
       onboardingData.sexualOrientation.length > 0
         ? onboardingData.sexualOrientation
@@ -99,6 +103,7 @@ export function transformOnboardingToProfilePayload(
     showPronounsOnProfile: onboardingData.showPronounsOnProfile,
     showHometownOnProfile: onboardingData.showHometownOnProfile,
     showCollegeOnProfile: onboardingData.showCollegeOnProfile,
+    showEthnicityOnProfile: onboardingData.showEthnicityOnProfile,
     showSexualOrientationOnProfile:
       onboardingData.showSexualOrientationOnProfile,
     prompts:

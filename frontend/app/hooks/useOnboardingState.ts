@@ -1,6 +1,6 @@
+import { INITIAL_ONBOARDING_DATA, OnboardingData } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
-import { INITIAL_ONBOARDING_DATA, OnboardingData } from '@/types';
 
 const STORAGE_KEY = 'onboarding_progress';
 
@@ -122,34 +122,38 @@ export function useOnboardingState() {
         return data.sexualOrientation.length > 0;
 
       case 9:
+        // Ethnicity: select at least one
+        return Array.isArray(data.ethnicity) && data.ethnicity.length > 0;
+
+      case 10:
         // Interested in: At least one selected
         return data.interestedIn.length > 0;
 
-      case 10:
+      case 11:
         // Photos: 3-5 photos required
         return data.pictures.length >= 3 && data.pictures.length <= 5;
 
-      case 11:
+      case 12:
         // Prompts: 1-3 prompts required, each with answer
         const validPrompts = data.prompts.filter(
           (p) => p.question && p.answer.trim() !== ''
         );
         return validPrompts.length >= 1 && validPrompts.length <= 3;
 
-      case 12:
+      case 13:
         // Clubs: Optional, always valid
         return true;
 
-      case 13:
+      case 14:
         // Social Links: Optional, always valid
         // Could add URL validation here if needed
         return true;
 
-      case 14:
+      case 15:
         // Interests: Optional, always valid
         return true;
 
-      case 15:
+      case 16:
         // Final welcome screen: Always valid
         return true;
 
