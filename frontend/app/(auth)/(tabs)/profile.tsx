@@ -1,6 +1,7 @@
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import { ProfileResponse } from '@/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import {
   Bell,
@@ -142,10 +143,28 @@ export default function ProfileScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
+            console.log('Starting sign out process...');
+
+            // Clear any stored data first
+            await AsyncStorage.clear();
+            console.log('AsyncStorage cleared');
+
+            // Sign out from Firebase
             await signOutUser();
-            router.replace('/home' as any);
-          } catch {
-            Alert.alert('Error', 'Failed to sign out');
+            console.log('Sign out successful');
+
+            // Navigate to the root index page
+            // Use dismiss to go back to root, then replace
+            console.log('Navigating to root...');
+            router.dismissAll();
+            router.replace('/');
+          } catch (error) {
+            console.error('Sign out error:', error);
+            Alert.alert(
+              'Error',
+              'Failed to sign out: ' +
+                (error instanceof Error ? error.message : 'Unknown error')
+            );
           }
         },
       },

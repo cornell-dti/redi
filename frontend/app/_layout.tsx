@@ -1,10 +1,10 @@
 // _layout.tsx
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { onAuthStateChanged } from './api/authService';
+import { getCurrentUserProfile } from './api/profileApi';
 
 export default function RootLayout() {
   const [initializing, setInitializing] = useState(true);
@@ -29,24 +29,49 @@ export default function RootLayout() {
     const inAuthGroup = segments[0] === '(auth)';
 
     const checkAndRedirect = async () => {
+      console.log('=== AUTH CHECK ===');
+      console.log('User:', user?.email || 'No user');
+      console.log('inAuthGroup:', inAuthGroup);
+      console.log('segments:', segments);
+      console.log('Full path:', segments.join('/'));
+
       if (user && !inAuthGroup) {
         // User is signed in but not in auth group
-        // Check onboarding status to determine where to redirect
-        const onboardingComplete = await AsyncStorage.getItem(
-          'onboarding_complete'
-        );
+        // Check if user has a profile to determine where to redirect
+        try {
+          const profile = await getCurrentUserProfile(user.uid);
 
-        if (onboardingComplete === 'true') {
-          // User has completed onboarding, go to tabs
-          router.replace('/(auth)/(tabs)');
-        } else {
-          // User hasn't completed onboarding, go to create profile
+          if (profile) {
+            // User has a complete profile, go to tabs
+            console.log('✅ Redirecting to tabs - user has profile');
+            router.replace('/(auth)/(tabs)');
+          } else {
+            // User doesn't have a profile yet, go to create profile
+            console.log('✅ Redirecting to create-profile - no profile found');
+            router.replace('/(auth)/create-profile');
+          }
+        } catch (error) {
+          console.error('Error checking profile:', error);
+          // If there's an error checking the profile, default to create profile
+          console.log(
+            '✅ Redirecting to create-profile - error checking profile'
+          );
           router.replace('/(auth)/create-profile');
         }
       } else if (!user && inAuthGroup) {
         // User is not signed in but in auth group, redirect to login
+        console.log('✅ Redirecting to root - no user but in auth group');
         router.replace('/');
+      } else if (!user && !inAuthGroup) {
+        console.log(
+          'ℹ️  No user and not in auth group - staying at current location'
+        );
+      } else {
+        console.log(
+          'ℹ️  User authenticated and in auth group - no action needed'
+        );
       }
+      console.log('=== END AUTH CHECK ===\n');
     };
 
     checkAndRedirect();

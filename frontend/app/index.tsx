@@ -1,8 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { getCurrentUser } from './api/authService';
+import { getCurrentUserProfile } from './api/profileApi';
 import { AppColors } from './components/AppColors';
 import AppText from './components/ui/AppText';
 import Button from './components/ui/Button';
@@ -16,16 +16,14 @@ export default function Index() {
         const user = getCurrentUser();
 
         if (user) {
-          // User is authenticated, check onboarding status
-          const onboardingComplete = await AsyncStorage.getItem(
-            'onboarding_complete'
-          );
+          // User is authenticated, check if they have a profile
+          const profile = await getCurrentUserProfile(user.uid);
 
-          if (onboardingComplete === 'true') {
-            // User has completed onboarding, go to main app
+          if (profile) {
+            // User has a complete profile, go to main app
             router.replace('/(auth)/(tabs)');
           } else {
-            // User hasn't completed onboarding, go to create profile
+            // User doesn't have a profile yet, go to create profile
             router.replace('/(auth)/create-profile');
           }
         } else {

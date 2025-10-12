@@ -20,6 +20,12 @@ export default function AuthLayout() {
           presentation: 'modal',
         }}
       />
+      <Stack.Screen
+        name="(tabs)"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }
