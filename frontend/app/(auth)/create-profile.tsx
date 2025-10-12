@@ -1,3 +1,12 @@
+import {
+  CORNELL_SCHOOLS,
+  GENDER_OPTIONS,
+  GRADUATION_YEARS,
+  INTERESTED_IN_OPTIONS,
+  PRONOUN_OPTIONS,
+  PromptData,
+  SEXUAL_ORIENTATION_OPTIONS,
+} from '@/types';
 import { router } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import React, { useState } from 'react';
@@ -25,15 +34,6 @@ import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Sheet from '../components/ui/Sheet';
 import { useOnboardingState } from '../hooks/useOnboardingState';
-import {
-  CORNELL_SCHOOLS,
-  GENDER_OPTIONS,
-  GRADUATION_YEARS,
-  INTERESTED_IN_OPTIONS,
-  PRONOUN_OPTIONS,
-  PromptData,
-  SEXUAL_ORIENTATION_OPTIONS,
-} from '@/types';
 import {
   transformOnboardingToProfilePayload,
   validateProfilePayload,
@@ -70,6 +70,10 @@ export default function CreateProfileScreen() {
       return;
     }
 
+    if (currentStep === 13) {
+      normalizeSocialMediaLinks();
+    }
+
     if (currentStep < 15) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -80,6 +84,82 @@ export default function CreateProfileScreen() {
   const handleBack = () => {
     if (currentStep > 2) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const normalizeSocialMediaLinks = () => {
+    // Normalize LinkedIn
+    if (data.linkedIn) {
+      let linkedin = data.linkedIn.trim();
+      // Remove @ if present
+      linkedin = linkedin.replace(/^@/, '');
+      // Remove https:// or http:// if present
+      linkedin = linkedin.replace(/^https?:\/\//, '');
+      // Remove www. if present
+      linkedin = linkedin.replace(/^www\./, '');
+      // If it doesn't start with linkedin.com, add it
+      if (!linkedin.startsWith('linkedin.com/')) {
+        // If it's just a username, add the full path
+        if (!linkedin.includes('/')) {
+          linkedin = `linkedin.com/in/${linkedin}`;
+        } else {
+          linkedin = `linkedin.com/${linkedin}`;
+        }
+      }
+      updateField('linkedIn', `https://${linkedin}`);
+    }
+
+    // Normalize Instagram
+    if (data.instagram) {
+      let instagram = data.instagram.trim();
+      // Remove @ if present
+      instagram = instagram.replace(/^@/, '');
+      // Remove https:// or http:// if present
+      instagram = instagram.replace(/^https?:\/\//, '');
+      // Remove www. if present
+      instagram = instagram.replace(/^www\./, '');
+      // Remove instagram.com/ if present (we'll add it back)
+      instagram = instagram.replace(/^instagram\.com\//, '');
+      // Create the full Instagram URL
+      updateField('instagram', `https://instagram.com/${instagram}`);
+    }
+
+    // Normalize Snapchat
+    if (data.snapchat) {
+      let snapchat = data.snapchat.trim();
+      // Remove @ if present
+      snapchat = snapchat.replace(/^@/, '');
+      // Remove https:// or http:// if present
+      snapchat = snapchat.replace(/^https?:\/\//, '');
+      // Remove www. if present
+      snapchat = snapchat.replace(/^www\./, '');
+      // Remove snapchat.com/add/ if present (we'll add it back)
+      snapchat = snapchat.replace(/^snapchat\.com\/add\//, '');
+      // Create the full Snapchat URL
+      updateField('snapchat', `https://snapchat.com/add/${snapchat}`);
+    }
+
+    // Normalize GitHub
+    if (data.github) {
+      let github = data.github.trim();
+      // Remove @ if present
+      github = github.replace(/^@/, '');
+      // Remove https:// or http:// if present
+      github = github.replace(/^https?:\/\//, '');
+      // Remove www. if present
+      github = github.replace(/^www\./, '');
+      // Remove github.com/ if present (we'll add it back)
+      github = github.replace(/^github\.com\//, '');
+      // Create the full GitHub URL
+      updateField('github', `https://github.com/${github}`);
+    }
+
+    // Normalize Website (ensure it has https://)
+    if (data.website) {
+      let website = data.website.trim();
+      if (!website.startsWith('http://') && !website.startsWith('https://')) {
+        updateField('website', `https://${website}`);
+      }
     }
   };
 
@@ -587,11 +667,7 @@ export default function CreateProfileScreen() {
                     onChangeText={setInterestInput}
                     style={{ flex: 1 }}
                   />
-                  <Button
-                    title="Add"
-                    onPress={addInterest}
-                    variant="primary"
-                  />
+                  <Button title="Add" onPress={addInterest} variant="primary" />
                 </View>
               ) : (
                 <Button

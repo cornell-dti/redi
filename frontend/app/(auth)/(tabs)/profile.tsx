@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Edit,
   Eye,
+  Github,
   Globe,
   Heart,
   HelpCircle,
@@ -16,13 +17,13 @@ import {
   LogOut,
   MessageCircle,
   Shield,
-  Github,
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -100,6 +101,12 @@ export default function ProfileScreen() {
       const profileData = await getCurrentUserProfile(user.uid);
 
       if (profileData) {
+        console.log('Full Profile Data:', JSON.stringify(profileData, null, 2));
+        console.log('LinkedIn:', profileData.linkedIn);
+        console.log('Instagram:', profileData.instagram);
+        console.log('Snapchat:', profileData.snapchat);
+        console.log('GitHub:', profileData.github);
+        console.log('Website:', profileData.website);
         setProfile(profileData);
         setError(null);
       } else {
@@ -110,6 +117,20 @@ export default function ProfileScreen() {
       setError(err instanceof Error ? err.message : 'Failed to load profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openURL = async (url: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Error', `Cannot open URL: ${url}`);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to open link');
+      console.error('Error opening URL:', error);
     }
   };
 
@@ -282,34 +303,68 @@ export default function ProfileScreen() {
           <AppText style={styles.sectionTitle}>Social Media</AppText>
           <InfoCard>
             {displayLinkedIn ? (
-              <View style={styles.socialRow}>
+              <TouchableOpacity
+                style={styles.socialRow}
+                onPress={() => openURL(displayLinkedIn)}
+              >
                 <Linkedin size={24} color={AppColors.accentDefault} />
-                <AppText style={styles.socialText}>{displayLinkedIn}</AppText>
-              </View>
+                <AppText style={styles.socialText}>
+                  {displayLinkedIn
+                    .replace('https://', '')
+                    .replace('http://', '')}
+                </AppText>
+                <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+              </TouchableOpacity>
             ) : null}
             {displayInstagram ? (
-              <View style={styles.socialRow}>
+              <TouchableOpacity
+                style={styles.socialRow}
+                onPress={() => openURL(displayInstagram)}
+              >
                 <Instagram size={24} color={AppColors.negativeDefault} />
-                <AppText style={styles.socialText}>{displayInstagram}</AppText>
-              </View>
+                <AppText style={styles.socialText}>
+                  {displayInstagram.replace('https://instagram.com/', '@')}
+                </AppText>
+                <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+              </TouchableOpacity>
             ) : null}
             {displaySnapchat ? (
-              <View style={styles.socialRow}>
+              <TouchableOpacity
+                style={styles.socialRow}
+                onPress={() => openURL(displaySnapchat)}
+              >
                 <Camera size={24} color={AppColors.negativeDimmer} />
-                <AppText style={styles.socialText}>{displaySnapchat}</AppText>
-              </View>
+                <AppText style={styles.socialText}>
+                  {displaySnapchat.replace('https://snapchat.com/add/', '@')}
+                </AppText>
+                <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+              </TouchableOpacity>
             ) : null}
             {displayGithub ? (
-              <View style={styles.socialRow}>
+              <TouchableOpacity
+                style={styles.socialRow}
+                onPress={() => openURL(displayGithub)}
+              >
                 <Github size={24} color={AppColors.foregroundDefault} />
-                <AppText style={styles.socialText}>{displayGithub}</AppText>
-              </View>
+                <AppText style={styles.socialText}>
+                  {displayGithub.replace('https://github.com/', '@')}
+                </AppText>
+                <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+              </TouchableOpacity>
             ) : null}
             {displayWebsite ? (
-              <View style={styles.socialRow}>
+              <TouchableOpacity
+                style={styles.socialRow}
+                onPress={() => openURL(displayWebsite)}
+              >
                 <Globe size={24} color={AppColors.accentDefault} />
-                <AppText style={styles.socialText}>{displayWebsite}</AppText>
-              </View>
+                <AppText style={styles.socialText} numberOfLines={1}>
+                  {displayWebsite
+                    .replace('https://', '')
+                    .replace('http://', '')}
+                </AppText>
+                <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+              </TouchableOpacity>
             ) : null}
             {!displayLinkedIn &&
               !displayInstagram &&
