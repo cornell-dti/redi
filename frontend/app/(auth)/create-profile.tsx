@@ -567,7 +567,7 @@ export default function CreateProfileScreen() {
           <View style={styles.stepContainer}>
             <OnboardingTitle
               title="What clubs are you in?"
-              subtitle="Add any Cornell clubs or organizations you're part of"
+              subtitle="Optional - Add any Cornell clubs or organizations you're part of."
             />
             <View style={styles.majorContainer}>
               {data.clubs.map((club, index) => (
