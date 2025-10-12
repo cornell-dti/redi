@@ -1,5 +1,6 @@
 import {
   CORNELL_SCHOOLS,
+  ETHNICITY_OPTIONS,
   GENDER_OPTIONS,
   GRADUATION_YEARS,
   INTERESTED_IN_OPTIONS,
@@ -39,7 +40,7 @@ import {
   validateProfilePayload,
 } from '../utils/onboardingTransform';
 
-const TOTAL_STEPS = 14; // Steps 2-15 (Step 1 is in home.tsx)
+const TOTAL_STEPS = 15; // Steps 2-16 (Step 1 is in home.tsx)
 
 export default function CreateProfileScreen() {
   const [currentStep, setCurrentStep] = useState(2); // Start at step 2
@@ -70,11 +71,11 @@ export default function CreateProfileScreen() {
       return;
     }
 
-    if (currentStep === 13) {
+    if (currentStep === 14) {
       normalizeSocialMediaLinks();
     }
 
-    if (currentStep < 15) {
+    if (currentStep < 16) {
       setCurrentStep(currentStep + 1);
     } else {
       handleSubmit();
@@ -482,6 +483,31 @@ export default function CreateProfileScreen() {
         return (
           <View style={styles.stepContainer}>
             <OnboardingTitle
+              title="What's your ethnicity?"
+              subtitle="Optional - This helps you connect with people who share similar cultural backgrounds. You can choose whether to display this on your profile."
+            />
+            <ListItemWrapper>
+              {ETHNICITY_OPTIONS.map((ethnicity) => (
+                <ListItem
+                  key={ethnicity}
+                  title={ethnicity}
+                  selected={data.ethnicity?.includes(ethnicity)}
+                  onPress={() => toggleArrayItem('ethnicity', ethnicity)}
+                  right={
+                    data.ethnicity?.includes(ethnicity) ? (
+                      <Check size={24} color={AppColors.backgroundDefault} />
+                    ) : null
+                  }
+                />
+              ))}
+            </ListItemWrapper>
+          </View>
+        );
+
+      case 10:
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle
               title="Who are you interested in seeing?"
               subtitle="Select all that help us find the right people for you."
             />
@@ -503,7 +529,7 @@ export default function CreateProfileScreen() {
           </View>
         );
 
-      case 10:
+      case 11:
         return (
           <View style={styles.stepContainer}>
             <OnboardingTitle title="Choose 3-5 photos for your profile" />
@@ -528,7 +554,7 @@ export default function CreateProfileScreen() {
                 Alert.alert(
                   'Photos Skipped',
                   'Placeholder photos added for testing',
-                  [{ text: 'OK', onPress: () => setCurrentStep(11) }]
+                  [{ text: 'OK', onPress: () => setCurrentStep(12) }]
                 );
               }}
               variant="secondary"
@@ -536,7 +562,7 @@ export default function CreateProfileScreen() {
           </View>
         );
 
-      case 11:
+      case 12:
         return (
           <View style={styles.stepContainer}>
             <OnboardingTitle title="Select 1-3 prompts for your profile" />
@@ -562,7 +588,7 @@ export default function CreateProfileScreen() {
           </View>
         );
 
-      case 12:
+      case 13:
         return (
           <View style={styles.stepContainer}>
             <OnboardingTitle
@@ -601,7 +627,7 @@ export default function CreateProfileScreen() {
           </View>
         );
 
-      case 13:
+      case 14:
         return (
           <View style={styles.stepContainer}>
             <OnboardingTitle
@@ -641,7 +667,7 @@ export default function CreateProfileScreen() {
           </View>
         );
 
-      case 14:
+      case 15:
         return (
           <View style={styles.stepContainer}>
             <OnboardingTitle
@@ -680,7 +706,7 @@ export default function CreateProfileScreen() {
           </View>
         );
 
-      case 15:
+      case 16:
         return (
           <View style={styles.stepContainer}>
             <OnboardingTitle title={`Welcome ${data.firstName}!`} />
@@ -705,17 +731,18 @@ export default function CreateProfileScreen() {
   };
 
   const getNextLabel = () => {
-    if (currentStep === 15) return 'Get Started';
+    if (currentStep === 16) return 'Get Started';
     return 'Next ▼';
   };
 
-  const showCheckbox = [3, 4, 5, 6, 8].includes(currentStep);
+  const showCheckbox = [3, 4, 5, 6, 8, 9].includes(currentStep);
   const getCheckboxLabel = () => {
     if (currentStep === 3) return 'Show on my profile';
     if (currentStep === 4) return 'Show on my profile';
     if (currentStep === 5) return 'Show on my profile';
     if (currentStep === 6) return 'Show on my profile';
     if (currentStep === 8) return 'Show on my profile';
+    if (currentStep === 9) return 'Show on my profile';
     return '';
   };
 
@@ -725,6 +752,7 @@ export default function CreateProfileScreen() {
     if (currentStep === 5) return data.showHometownOnProfile;
     if (currentStep === 6) return data.showCollegeOnProfile;
     if (currentStep === 8) return data.showSexualOrientationOnProfile;
+    if (currentStep === 9) return data.showEthnicityOnProfile;
     return false;
   };
 
@@ -735,6 +763,7 @@ export default function CreateProfileScreen() {
     if (currentStep === 6) updateField('showCollegeOnProfile', checked);
     if (currentStep === 8)
       updateField('showSexualOrientationOnProfile', checked);
+    if (currentStep === 9) updateField('showEthnicityOnProfile', checked);
   };
 
   return (

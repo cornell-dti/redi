@@ -175,6 +175,10 @@ export default function ProfileScreen() {
     profile?.interests && profile.interests.length > 0
       ? profile.interests
       : mockFallbackData.interests;
+  const displayEthnicity =
+    profile?.ethnicity && profile.ethnicity.length > 0
+      ? profile.ethnicity.join(', ')
+      : null;
 
   // Show loading spinner while fetching
   if (loading) {
@@ -289,6 +293,9 @@ export default function ProfileScreen() {
             <InfoRow label="School" value={displaySchool} />
             <InfoRow label="Major" value={displayMajor} />
             <InfoRow label="Graduation Year" value={displayYear} />
+            {displayEthnicity && profile?.showEthnicityOnProfile && (
+              <InfoRow label="Ethnicity" value={displayEthnicity} />
+            )}
           </InfoCard>
         </View>
 

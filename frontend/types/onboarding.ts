@@ -33,7 +33,11 @@ export interface OnboardingData {
   sexualOrientation: string[];
   showSexualOrientationOnProfile: boolean;
 
-  // Step 9: Interested In
+  // Step 9: Ethnicity
+  ethnicity?: string[];
+  showEthnicityOnProfile?: boolean;
+
+  // Step 10: Interested In
   interestedIn: string[];
 
   // Step 10: Photos
@@ -77,6 +81,8 @@ export const INITIAL_ONBOARDING_DATA: OnboardingData = {
   year: null,
   sexualOrientation: [],
   showSexualOrientationOnProfile: true,
+  ethnicity: [],
+  showEthnicityOnProfile: true,
   interestedIn: [],
   pictures: [],
   prompts: [],
@@ -110,6 +116,20 @@ export const SEXUAL_ORIENTATION_OPTIONS = [
   'Pansexual',
 ];
 export const INTERESTED_IN_OPTIONS = ['Men', 'Women', 'Non-Binary'];
+export const ETHNICITY_OPTIONS = [
+  'East Asian (Chinese, Japanese, Korean, etc.)',
+  'South Asian (Indian, Pakistani, Bangladeshi, etc.)',
+  'Southeast Asian (Filipino, Vietnamese, Thai, etc.)',
+  'Black or African American',
+  'Hispanic or Latino',
+  'Middle Eastern or North African',
+  'Native American or Alaska Native',
+  'Native Hawaiian or Pacific Islander',
+  'White or Caucasian',
+  'Mixed or Multiracial',
+  'Other',
+  'Prefer not to say',
+] as const;
 export const GRADUATION_YEARS = [2026, 2027, 2028, 2029, 2030];
 export const CORNELL_SCHOOLS: School[] = [
   'College of Agriculture and Life Sciences',

@@ -32,12 +32,14 @@ export interface ProfileDocWrite {
   birthdate: FirestoreTimestampType | Date;
   hometown?: string;
   pronouns?: string[];
+  ethnicity?: string[];
   sexualOrientation?: string[];
   interestedIn?: string[];
   showGenderOnProfile?: boolean;
   showPronounsOnProfile?: boolean;
   showHometownOnProfile?: boolean;
   showCollegeOnProfile?: boolean;
+  showEthnicityOnProfile?: boolean;
   showSexualOrientationOnProfile?: boolean;
   prompts?: { question: string; answer: string }[];
   instagram?: string;
@@ -82,12 +84,14 @@ export interface ProfileDoc {
   birthdate: FirestoreTimestampType;
   hometown?: string;
   pronouns?: string[];
+  ethnicity?: string[];
   sexualOrientation?: string[];
   interestedIn?: string[];
   showGenderOnProfile?: boolean;
   showPronounsOnProfile?: boolean;
   showHometownOnProfile?: boolean;
   showCollegeOnProfile?: boolean;
+  showEthnicityOnProfile?: boolean;
   showSexualOrientationOnProfile?: boolean;
   prompts?: { question: string; answer: string }[];
   instagram?: string;
@@ -125,12 +129,14 @@ export interface ProfileResponse {
   birthdate: string; // ISO string format for JSON
   hometown?: string;
   pronouns?: string[];
+  ethnicity?: string[];
   sexualOrientation?: string[];
   interestedIn?: string[];
   showGenderOnProfile?: boolean;
   showPronounsOnProfile?: boolean;
   showHometownOnProfile?: boolean;
   showCollegeOnProfile?: boolean;
+  showEthnicityOnProfile?: boolean;
   showSexualOrientationOnProfile?: boolean;
   prompts?: { question: string; answer: string }[];
   instagram?: string;
