@@ -38,7 +38,7 @@ const getChildWithRadius = (
   return child;
 };
 
-export default function wListItemWrapper({
+export default function ListItemWrapper({
   children,
   style,
 }: ListItemWrapperProps) {
