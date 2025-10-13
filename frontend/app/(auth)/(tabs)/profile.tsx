@@ -154,7 +154,7 @@ export default function ProfileScreen() {
             // Sign out from Firebase
             await signOutUser();
             console.log('Sign out successful');
-            router.replace('/home' as any)
+            router.replace('/home' as any);
           } catch (error) {
             console.error('Sign out error:', error);
             Alert.alert(

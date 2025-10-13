@@ -362,88 +362,83 @@ export default function CreateProfileScreen() {
         );
 
       case 6:
-  return (
-    <View style={styles.stepContainer}>
-      <OnboardingTitle title="What's your college and area of study?" />
-      <Button
-        title={data.school || 'Select college'}
-        onPress={() => setShowSchoolSheet(true)}
-        variant="secondary"
-        fullWidth
-        dropdown
-        iconRight={ChevronDown}
-      />
-      
-      <ListItemWrapper>
-        {data.major.length > 0 && (
-          <View style={styles.majorTags}>
-            {data.major.map((major, index) => (
-              <Tag
-                key={major}
-                variant="white"
-                label={major}
-                dismissible
-                onDismiss={() => removeMajor(index)}
-              />
-            ))}
-          </View>
-        )}
-        <Button
-          title="Add field of study"
-          iconLeft={Plus}
-          onPress={() => setShowMajorSheet(true)}
-          variant="secondary"
-          noRound
-        />
-      </ListItemWrapper>
-      
-      <Sheet
-        visible={showSchoolSheet}
-        onDismiss={() => setShowSchoolSheet(false)}
-        title="Select your college"
-        height={500}
-      >
-        <ListItemWrapper>
-          {CORNELL_SCHOOLS.map((school) => (
-            <ListItem
-              key={school}
-              title={school}
-              selected={data.school === school}
-              onPress={() => {
-                updateField('school', school);
-                setShowSchoolSheet(false);
-              }}
-              right={
-                data.school === school ? (
-                  <Check size={16} color={AppColors.backgroundDefault} />
-                ) : null
-              }
+        return (
+          <View style={styles.stepContainer}>
+            <OnboardingTitle title="What's your college and area of study?" />
+            <Button
+              title={data.school || 'Select college'}
+              onPress={() => setShowSchoolSheet(true)}
+              variant="secondary"
+              fullWidth
+              dropdown
+              iconRight={ChevronDown}
             />
-          ))}
-        </ListItemWrapper>
-      </Sheet>
-      
-      <Sheet
-        visible={showMajorSheet}
-        onDismiss={() => setShowMajorSheet(false)}
-        title="Add field of study"
-        height="80%"
-      >
-        <SearchableDropdown
-          options={ALL_MAJORS}
-          value=""
-          onSelect={(selectedMajor) => {
-            if (!data.major.includes(selectedMajor)) {
-              updateField('major', [...data.major, selectedMajor]);
-            }
-            setShowMajorSheet(false);
-          }}
-          placeholder="Search for your major"
-          allowOther={true}
-        />
-      </Sheet>
-    </View>
-  );
+
+            <ListItemWrapper>
+              {data.major.length > 0 && (
+                <View style={styles.majorTags}>
+                  {data.major.map((major, index) => (
+                    <Tag
+                      key={major}
+                      variant="white"
+                      label={major}
+                      dismissible
+                      onDismiss={() => removeMajor(index)}
+                    />
+                  ))}
+                </View>
+              )}
+              <Button
+                title="Add field of study"
+                iconLeft={Plus}
+                onPress={() => setShowMajorSheet(true)}
+                variant="secondary"
+                noRound
+              />
+            </ListItemWrapper>
+
+            <Sheet
+              visible={showSchoolSheet}
+              onDismiss={() => setShowSchoolSheet(false)}
+              title="Select your college"
+              height={500}
+            >
+              <ListItemWrapper>
+                {CORNELL_SCHOOLS.map((school) => (
+                  <ListItem
+                    key={school}
+                    title={school}
+                    selected={data.school === school}
+                    onPress={() => {
+                      updateField('school', school);
+                      setShowSchoolSheet(false);
+                    }}
+                    right={
+                      data.school === school ? (
+                        <Check size={16} color={AppColors.backgroundDefault} />
+                      ) : null
+                    }
+                  />
+                ))}
+              </ListItemWrapper>
+            </Sheet>
+
+            {showMajorSheet && (
+              <SearchableDropdown
+                options={ALL_MAJORS}
+                value=""
+                onSelect={(selectedMajor) => {
+                  if (!data.major.includes(selectedMajor)) {
+                    updateField('major', [...data.major, selectedMajor]);
+                  }
+                  setShowMajorSheet(false);
+                }}
+                placeholder="Search for your major"
+                allowOther={true}
+              />
+            )}
+          </View>
+        );
 
       case 7:
         return (

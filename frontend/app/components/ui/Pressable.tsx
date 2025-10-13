@@ -1,5 +1,9 @@
 import React, { useRef } from 'react';
-import { Animated, Pressable as RNPressable, PressableProps } from 'react-native';
+import {
+  Animated,
+  Pressable as RNPressable,
+  PressableProps,
+} from 'react-native';
 
 interface AnimatedPressableProps extends PressableProps {
   children: React.ReactNode;
