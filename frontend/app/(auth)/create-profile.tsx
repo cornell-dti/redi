@@ -1,5 +1,4 @@
 import {
-  CORNELL_SCHOOLS,
   ETHNICITY_OPTIONS,
   GENDER_OPTIONS,
   GRADUATION_YEARS,
@@ -20,8 +19,9 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ALL_MAJORS } from '../../constants/cornell';
+import { CORNELL_MAJORS, CORNELL_SCHOOLS } from '../../constants/cornell';
 import { getCurrentUser } from '../api/authService';
+import { updatePreferences } from '../api/preferencesApi';
 import { createProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import OnboardingFooter from '../components/onboarding/OnboardingFooter';
@@ -39,11 +39,10 @@ import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import { useOnboardingState } from '../hooks/useOnboardingState';
 import {
+  extractPreferencesFromOnboarding,
   transformOnboardingToProfilePayload,
   validateProfilePayload,
-  extractPreferencesFromOnboarding,
 } from '../utils/onboardingTransform';
-import { updatePreferences } from '../api/preferencesApi';
 
 const TOTAL_STEPS = 15; // Steps 2-16 (Step 1 is in home.tsx)
 
@@ -407,6 +406,7 @@ export default function CreateProfileScreen() {
                 onPress={() => setShowMajorSheet(true)}
                 variant="secondary"
                 noRound
+                disabled={!data.school} // Disable if no school selected
               />
             </ListItemWrapper>
 
@@ -438,7 +438,7 @@ export default function CreateProfileScreen() {
 
             {showMajorSheet && (
               <SearchableDropdown
-                options={ALL_MAJORS}
+                options={data.school ? CORNELL_MAJORS[data.school] : []}
                 value=""
                 onSelect={(selectedMajor) => {
                   if (!data.major.includes(selectedMajor)) {

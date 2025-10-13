@@ -136,21 +136,6 @@ export const ETHNICITY_OPTIONS = [
   'Prefer not to say',
 ] as const;
 export const GRADUATION_YEARS = [2026, 2027, 2028, 2029, 2030];
-export const CORNELL_SCHOOLS: School[] = [
-  'College of Agriculture and Life Sciences',
-  'College of Architecture, Art, and Planning',
-  'College of Arts and Sciences',
-  'Cornell SC Johnson College of Business',
-  'College of Engineering',
-  'College of Human Ecology',
-  'School of Industrial and Labor Relations',
-  'Graduate School',
-  'Law School',
-  'Nolan School of Hotel Administration',
-  'Brooks School of Public Policy',
-  'Weill Cornell Medical',
-  'College of Veterinary Medicine',
-];
 
 // Sample prompts for Step 11
 export const AVAILABLE_PROMPTS = [

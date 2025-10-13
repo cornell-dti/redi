@@ -1,8 +1,4 @@
-import {
-  Gender,
-  School,
-  UpdatePreferencesInput
-} from '@/types';
+import { Gender, School, UpdatePreferencesInput } from '@/types';
 import { Check } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {

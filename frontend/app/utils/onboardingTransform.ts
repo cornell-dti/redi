@@ -1,4 +1,9 @@
-import { OnboardingData, CreateProfileInput, Gender, UpdatePreferencesInput } from '@/types';
+import {
+  OnboardingData,
+  CreateProfileInput,
+  Gender,
+  UpdatePreferencesInput,
+} from '@/types';
 
 /**
  * Converts MM/DD/YYYY format to ISO date string
@@ -17,7 +22,11 @@ function normalizeGenderValue(gender: string): string {
   const normalized = gender.toLowerCase().trim();
 
   // Map variations to standard values
-  if (normalized === 'woman' || normalized === 'women' || normalized === 'female') {
+  if (
+    normalized === 'woman' ||
+    normalized === 'women' ||
+    normalized === 'female'
+  ) {
     return 'female';
   }
   if (normalized === 'man' || normalized === 'men' || normalized === 'male') {
