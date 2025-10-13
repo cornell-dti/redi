@@ -20,17 +20,6 @@ export default function OnboardingHeader({
 
   return (
     <View style={styles.container}>
-      <View style={styles.backButton}>
-        {!isFirstStep && (
-          <IconButton
-            icon={ChevronLeft}
-            onPress={onBack}
-            variant="secondary"
-            size="small"
-          />
-        )}
-      </View>
-
       <View style={styles.progressBarContainer}>
         <View style={styles.progressBarBackground}>
           <View
@@ -38,24 +27,20 @@ export default function OnboardingHeader({
           />
         </View>
       </View>
+
+      {!isFirstStep && (
+        <IconButton icon={ChevronLeft} onPress={onBack} variant="secondary" />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: AppColors.backgroundDefault,
-    gap: 12,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 24,
+    padding: 16,
   },
   progressBarContainer: {
     flex: 1,

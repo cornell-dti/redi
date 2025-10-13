@@ -38,7 +38,7 @@ const getChildWithRadius = (
   return child;
 };
 
-export default function ListItemWrapper({
+export default function wListItemWrapper({
   children,
   style,
 }: ListItemWrapperProps) {
@@ -57,5 +57,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 4,
+    overflow: 'scroll',
   },
 });

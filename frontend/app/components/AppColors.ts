@@ -7,7 +7,7 @@ export const AppColors = {
 
   // Foregrounds (Text)
   foregroundDefault: '#1F1F1F',
-  foregroundDimmer: '#ABABAB',
+  foregroundDimmer: '#929292',
 
   // Accent
   accentDefault: '#1B1B1B',

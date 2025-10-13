@@ -1,7 +1,7 @@
-import { X } from 'lucide-react-native';
+import { AVAILABLE_PROMPTS, PromptData } from '@/types';
+import { Quote, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { AVAILABLE_PROMPTS, PromptData } from '@/types';
 import { AppColors } from '../AppColors';
 import AppInput from '../ui/AppInput';
 import AppText from '../ui/AppText';
@@ -44,33 +44,39 @@ export default function PromptSelector({
   return (
     <View style={styles.container}>
       <View style={styles.promptHeader}>
-        <AppText variant="body" style={styles.promptQuestion}>
-          {prompt.question || 'No prompt selected'}
-        </AppText>
-        {canRemove && (
-          <IconButton
-            icon={X}
-            onPress={onRemove}
-            variant="secondary"
-            size="small"
-          />
-        )}
-      </View>
+        <View style={styles.promptTop}>
+          <AppText variant="subtitle" style={styles.promptQuestion}>
+            {prompt.question || 'No prompt selected'}
+          </AppText>
+          {canRemove && (
+            <IconButton
+              icon={X}
+              onPress={onRemove}
+              variant="secondary"
+              size="small"
+              style={styles.promptRemoveBtn}
+            />
+          )}
+        </View>
 
-      <AppInput
-        placeholder="Your answer..."
-        value={prompt.answer}
-        onChangeText={handleAnswerChange}
-        multiline
-        numberOfLines={3}
-        maxLength={150}
-      />
+        <AppInput
+          placeholder="Your answer..."
+          value={prompt.answer}
+          onChangeText={handleAnswerChange}
+          multiline
+          numberOfLines={3}
+          maxLength={150}
+          noRound
+        />
+      </View>
 
       <Button
         title={prompt.question ? 'Change prompt' : 'Select a prompt'}
         onPress={() => setShowPromptSheet(true)}
         variant="secondary"
         fullWidth
+        noRound
+        iconLeft={Quote}
       />
 
       <Sheet
@@ -96,19 +102,32 @@ export default function PromptSelector({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: AppColors.backgroundDimmer,
-    borderRadius: 12,
-    padding: 16,
-    gap: 12,
+    borderRadius: 24,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+    overflow: 'hidden',
   },
   promptHeader: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
+    borderRadius: 4,
+  },
+  promptTop: {
+    display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 8,
+    gap: 4,
+  },
+  promptRemoveBtn: {
+    borderRadius: 4,
+    minWidth: 56,
+    flex: 1,
   },
   promptQuestion: {
     flex: 1,
-    fontWeight: '600',
+    borderRadius: 4,
+    padding: 16,
+    backgroundColor: AppColors.backgroundDimmer,
   },
 });

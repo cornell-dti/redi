@@ -1,10 +1,12 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, X } from 'lucide-react-native';
 import React from 'react';
-import { Alert, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppText from '../ui/AppText';
 import IconButton from '../ui/IconButton';
+import Pressable from '../ui/Pressable';
+import Tag from '../ui/Tag';
 
 interface PhotoUploadGridProps {
   photos: string[];
@@ -17,7 +19,7 @@ export default function PhotoUploadGrid({
   photos,
   onPhotosChange,
   minPhotos = 3,
-  maxPhotos = 5,
+  maxPhotos = 6,
 }: PhotoUploadGridProps) {
   const requestPermission = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -53,40 +55,61 @@ export default function PhotoUploadGrid({
     onPhotosChange(newPhotos);
   };
 
-  const canAddMore = photos.length < maxPhotos;
+  // Create 6 slots (2x3 grid)
+  const GRID_SLOTS = 6;
+  const slots = Array.from({ length: GRID_SLOTS }, (_, index) => {
+    if (index < photos.length) {
+      return { type: 'photo' as const, photo: photos[index], index };
+    } else if (photos.length < maxPhotos) {
+      return { type: 'add' as const };
+    }
+    return { type: 'empty' as const };
+  });
 
   return (
     <View style={styles.container}>
       <View style={styles.grid}>
-        {photos.map((photo, index) => (
-          <View key={index} style={styles.photoContainer}>
-            <Image source={{ uri: photo }} style={styles.photo} />
-            {index === 0 && (
-              <View style={styles.mainBadge}>
-                <AppText variant="bodySmall" style={styles.mainBadgeText}>
-                  Main
-                </AppText>
-              </View>
-            )}
-            <View style={styles.removeButtonContainer}>
-              <IconButton
-                icon={X}
-                onPress={() => removePhoto(index)}
-                variant="negative"
-                size="small"
-              />
-            </View>
-          </View>
-        ))}
+        {slots.map((slot, slotIndex) => {
+          if (slot.type === 'photo') {
+            return (
+              <View key={slotIndex} style={styles.gridSlot}>
+                <Image source={{ uri: slot.photo }} style={styles.photo} />
 
-        {canAddMore && (
-          <TouchableOpacity style={styles.addButton} onPress={pickImage}>
-            <Camera size={32} color={AppColors.foregroundDimmer} />
-            <AppText variant="bodySmall" style={styles.addButtonText}>
-              {photos.length === 0 ? 'Add your first photo' : 'Add more'}
-            </AppText>
-          </TouchableOpacity>
-        )}
+                {slot.index === 0 && (
+                  <View style={styles.mainBadgeContainer}>
+                    <Tag label="Main" variant="accent" />
+                  </View>
+                )}
+
+                <View style={styles.removeButtonContainer}>
+                  <IconButton
+                    icon={X}
+                    onPress={() => removePhoto(slot.index)}
+                    variant="negative"
+                    size="small"
+                  />
+                </View>
+              </View>
+            );
+          }
+
+          if (slot.type === 'add') {
+            return (
+              <Pressable
+                key={slotIndex}
+                style={[styles.gridSlot, styles.addButton]}
+                onPress={pickImage}
+              >
+                <Camera size={32} color={AppColors.foregroundDimmer} />
+                <AppText variant="bodySmall" style={styles.addButtonText}>
+                  {photos.length === 0 ? 'Add photo' : 'Add more'}
+                </AppText>
+              </Pressable>
+            );
+          }
+
+          return <View key={slotIndex} style={styles.gridSlot} />;
+        })}
       </View>
 
       <AppText variant="bodySmall" style={styles.helperText}>
@@ -105,31 +128,27 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-  },
-  photoContainer: {
-    position: 'relative',
-    width: '47%',
-    aspectRatio: 0.75,
-    borderRadius: 12,
+    gap: 8,
+    borderRadius: 24,
     overflow: 'hidden',
+  },
+  gridSlot: {
+    width: '48.5%',
+    aspectRatio: 1,
+    borderRadius: 4,
+    overflow: 'hidden',
+    display: 'flex',
+    position: 'relative',
   },
   photo: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
-  mainBadge: {
+  mainBadgeContainer: {
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: AppColors.accentDefault,
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  mainBadgeText: {
-    color: AppColors.backgroundDefault,
-    fontWeight: '600',
   },
   removeButtonContainer: {
     position: 'absolute',
@@ -137,9 +156,6 @@ const styles = StyleSheet.create({
     right: 8,
   },
   addButton: {
-    width: '47%',
-    aspectRatio: 0.75,
-    borderRadius: 12,
     borderWidth: 2,
     borderStyle: 'dashed',
     borderColor: AppColors.backgroundDimmest,

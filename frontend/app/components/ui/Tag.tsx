@@ -7,7 +7,7 @@ import IconButton from './IconButton';
 interface TagProps {
   label: string;
   icon?: LucideIcon;
-  variant?: 'gray' | 'white';
+  variant?: 'gray' | 'white' | 'accent';
   dismissible?: boolean;
   onDismiss?: () => void;
   style?: ViewStyle;
@@ -35,7 +35,14 @@ export default function Tag({
   const backgroundColor =
     variant === 'white'
       ? AppColors.backgroundDefault
-      : AppColors.backgroundDimmer;
+      : variant === 'accent'
+        ? AppColors.accentDefault
+        : AppColors.backgroundDimmer;
+
+  const textColor =
+    variant === 'accent'
+      ? AppColors.backgroundDefault
+      : AppColors.foregroundDefault;
 
   return (
     <View style={[styles.container, { backgroundColor }, style]}>
@@ -44,11 +51,14 @@ export default function Tag({
           <>
             {React.createElement(IconComp, {
               size: 16,
+              color: textColor,
             })}
           </>
         )}
 
-        <Text numberOfLines={1}>{label}</Text>
+        <Text numberOfLines={1} style={{ color: textColor }}>
+          {label}
+        </Text>
       </View>
 
       {dismissible && (

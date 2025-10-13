@@ -13,12 +13,14 @@ interface AppInputProps extends TextInputProps {
   label?: string;
   error?: string;
   required?: boolean;
+  noRound?: boolean;
 }
 
 const AppInput: React.FC<AppInputProps> = ({
   label,
   error,
   required = false,
+  noRound,
   style,
   ...props
 }) => {
@@ -59,6 +61,7 @@ const AppInput: React.FC<AppInputProps> = ({
         style={[
           styles.inputWrapper,
           { borderColor: error ? AppColors.negativeDefault : borderColor },
+          noRound && { borderRadius: 4 },
         ]}
       >
         <TextInput
