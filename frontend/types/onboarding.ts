@@ -96,7 +96,12 @@ export const INITIAL_ONBOARDING_DATA: OnboardingData = {
 };
 
 // Available options for dropdowns and selections
-export const GENDER_OPTIONS = ['Man', 'Woman', 'Non-Binary'];
+// Gender options with display labels and values matching the Gender type
+export const GENDER_OPTIONS = [
+  { label: 'Man', value: 'male' },
+  { label: 'Woman', value: 'female' },
+  { label: 'Non-Binary', value: 'non-binary' },
+] as const;
 export const PRONOUN_OPTIONS = [
   'He',
   'Him',

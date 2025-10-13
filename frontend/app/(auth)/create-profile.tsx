@@ -309,12 +309,12 @@ export default function CreateProfileScreen() {
             <ListItemWrapper>
               {GENDER_OPTIONS.map((gender) => (
                 <ListItem
-                  key={gender}
-                  title={gender}
-                  selected={data.genders.includes(gender)}
-                  onPress={() => toggleArrayItem('genders', gender)}
+                  key={gender.value}
+                  title={gender.label}
+                  selected={data.genders.includes(gender.value)}
+                  onPress={() => toggleArrayItem('genders', gender.value)}
                   right={
-                    data.genders.includes(gender) ? (
+                    data.genders.includes(gender.value) ? (
                       <Check size={24} color={AppColors.backgroundDefault} />
                     ) : null
                   }

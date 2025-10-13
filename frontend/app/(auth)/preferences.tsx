@@ -1,8 +1,7 @@
 import {
   Gender,
-  PreferencesResponse,
   School,
-  UpdatePreferencesInput,
+  UpdatePreferencesInput
 } from '@/types';
 import { Check } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -58,6 +57,7 @@ export default function DatingPreferencesPage() {
         }
 
         const data = await getCurrentUserPreferences(currentUser.uid);
+        console.log('Fetched preferences:', data);
 
         if (data) {
           // Populate form
