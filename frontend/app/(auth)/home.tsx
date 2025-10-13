@@ -16,7 +16,9 @@ import {
   signInUser,
   signUpUser,
   validateCornellEmail,
+  getCurrentUser,
 } from '../api/authService';
+import { getCurrentUserProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import LegalFooterText from '../components/onboarding/LegalFooterText';
 import AppInput from '../components/ui/AppInput';
@@ -85,16 +87,20 @@ export default function HomePage() {
     try {
       await signInUser(email, password);
 
-      // Check onboarding completion status
-      const onboardingComplete = await AsyncStorage.getItem(
-        'onboarding_complete'
-      );
+      // Get the current user's Firebase UID
+      const user = getCurrentUser();
+      if (!user?.uid) {
+        throw new Error('Authentication failed. Please try again.');
+      }
 
-      if (onboardingComplete === 'true') {
-        // User has completed onboarding, go to main app
+      // Check if user has a profile in the database
+      const profile = await getCurrentUserProfile(user.uid);
+
+      if (profile) {
+        // User has a complete profile, go to main app
         router.replace('/(auth)/(tabs)');
       } else {
-        // User hasn't completed onboarding, go to create profile
+        // User doesn't have a profile yet, go to create profile
         router.replace('/(auth)/create-profile');
       }
     } catch (error) {

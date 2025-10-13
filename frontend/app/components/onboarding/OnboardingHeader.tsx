@@ -1,6 +1,6 @@
 import { ChevronLeft } from 'lucide-react-native';
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import IconButton from '../ui/IconButton';
 
@@ -17,45 +17,47 @@ export default function OnboardingHeader({
 }: OnboardingHeaderProps) {
   const progress = currentStep / totalSteps;
   const isFirstStep = currentStep === 1;
+  const animatedWidth = useRef(new Animated.Value(progress * 100)).current;
+
+  useEffect(() => {
+    Animated.timing(animatedWidth, {
+      toValue: progress * 100,
+      duration: 100,
+      useNativeDriver: false,
+    }).start();
+  }, [progress, animatedWidth]);
 
   return (
     <View style={styles.container}>
-      <View style={styles.backButton}>
-        {!isFirstStep && (
-          <IconButton
-            icon={ChevronLeft}
-            onPress={onBack}
-            variant="secondary"
-            size="small"
-          />
-        )}
-      </View>
-
       <View style={styles.progressBarContainer}>
         <View style={styles.progressBarBackground}>
-          <View
-            style={[styles.progressBarFill, { width: `${progress * 100}%` }]}
+          <Animated.View
+            style={[
+              styles.progressBarFill,
+              {
+                width: animatedWidth.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: ['0%', '100%'],
+                }),
+              },
+            ]}
           />
         </View>
       </View>
+
+      {!isFirstStep && (
+        <IconButton icon={ChevronLeft} onPress={onBack} variant="secondary" />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: AppColors.backgroundDefault,
-    gap: 12,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 24,
+    padding: 16,
   },
   progressBarContainer: {
     flex: 1,

@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
+import { ChevronRightIcon } from 'lucide-react-native';
 import { AppColors } from '../AppColors';
 import AppText from '../ui/AppText';
 import Button from '../ui/Button';
@@ -19,7 +20,7 @@ interface OnboardingFooterProps {
 export default function OnboardingFooter({
   onNext,
   nextDisabled = false,
-  nextLabel = 'Next ▼',
+  nextLabel = 'Next',
   showCheckbox = false,
   checkboxLabel,
   checkboxChecked = false,
@@ -44,6 +45,7 @@ export default function OnboardingFooter({
       )}
       <Button
         title={nextLabel}
+        iconRight={ChevronRightIcon}
         onPress={onNext}
         variant="primary"
         fullWidth
@@ -60,11 +62,10 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   checkboxRow: {
+    display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  checkboxLabel: {
-    flex: 1,
+    justifyContent: 'center',
+    textAlign: 'center',
+    gap: 8,
   },
 });

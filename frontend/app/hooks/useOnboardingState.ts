@@ -64,17 +64,18 @@ export function useOnboardingState() {
   ) => {
     setData((prev) => {
       const currentValue = prev[field];
+
+      // Initialize as empty array if undefined (for optional fields like ethnicity)
+      const arrayValue = Array.isArray(currentValue) ? currentValue : [];
+
       // Only allow toggling for fields that are string arrays
-      if (
-        !Array.isArray(currentValue) ||
-        !currentValue.every((v) => typeof v === 'string')
-      ) {
+      if (!arrayValue.every((v) => typeof v === 'string')) {
         return prev;
       }
 
-      const newValue = (currentValue as string[]).includes(item)
-        ? (currentValue as string[]).filter((i) => i !== item)
-        : [...(currentValue as string[]), item];
+      const newValue = arrayValue.includes(item)
+        ? arrayValue.filter((i) => i !== item)
+        : [...arrayValue, item];
 
       return { ...prev, [field]: newValue };
     });

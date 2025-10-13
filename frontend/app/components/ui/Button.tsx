@@ -20,6 +20,7 @@ interface ButtonProps {
   style?: ViewStyle;
   textStyle?: TextStyle;
   noRound?: boolean;
+  dropdown?: boolean;
 }
 
 export default function Button({
@@ -33,6 +34,7 @@ export default function Button({
   style,
   textStyle,
   noRound = false,
+  dropdown = false,
 }: ButtonProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isPressed, setIsPressed] = React.useState(false);
@@ -57,8 +59,8 @@ export default function Button({
     const baseStyle: ViewStyle = {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: noRound ? 4 : 128,
+      justifyContent: dropdown ? 'space-between' : 'center',
+      borderRadius: dropdown ? 12 : noRound ? 4 : 128,
       paddingHorizontal: 24,
       paddingVertical: 12,
       height: 48,

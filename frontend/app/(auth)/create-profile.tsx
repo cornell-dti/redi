@@ -8,9 +8,8 @@ import {
   PromptData,
   SEXUAL_ORIENTATION_OPTIONS,
 } from '@/types';
-import { ALL_MAJORS } from '../../constants/cornell';
 import { router } from 'expo-router';
-import { Check } from 'lucide-react-native';
+import { Check, ChevronDown, Plus } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -21,6 +20,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ALL_MAJORS } from '../../constants/cornell';
 import { getCurrentUser } from '../api/authService';
 import { createProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
@@ -34,8 +34,9 @@ import AppText from '../components/ui/AppText';
 import Button from '../components/ui/Button';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
-import Sheet from '../components/ui/Sheet';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
+import Sheet from '../components/ui/Sheet';
+import Tag from '../components/ui/Tag';
 import { useOnboardingState } from '../hooks/useOnboardingState';
 import {
   transformOnboardingToProfilePayload,
@@ -60,6 +61,7 @@ export default function CreateProfileScreen() {
   const [clubInput, setClubInput] = useState('');
   const [showInterestInput, setShowInterestInput] = useState(false);
   const [interestInput, setInterestInput] = useState('');
+  const [showMajorSheet, setShowMajorSheet] = useState(false);
 
   if (!isLoaded) {
     return null; // Wait for AsyncStorage to load
@@ -360,62 +362,88 @@ export default function CreateProfileScreen() {
         );
 
       case 6:
-        return (
-          <View style={styles.stepContainer}>
-            <OnboardingTitle title="What's your college and area of study?" />
-            <Button
-              title={data.school || 'Select college'}
-              onPress={() => setShowSchoolSheet(true)}
-              variant="secondary"
-              fullWidth
-            />
-            <View style={styles.majorContainer}>
-              {data.major.map((major, index) => (
-                <View key={index} style={styles.majorTag}>
-                  <AppText variant="body">{major}</AppText>
-                  <Button
-                    title="×"
-                    onPress={() => removeMajor(index)}
-                    variant="secondary"
-                  />
-                </View>
-              ))}
-              <SearchableDropdown
-                options={ALL_MAJORS}
-                value=""
-                onSelect={(selectedMajor) => {
-                  if (!data.major.includes(selectedMajor)) {
-                    updateField('major', [...data.major, selectedMajor]);
-                  }
-                }}
-                placeholder="Search for your major"
-                label="Add Major"
-                allowOther={true}
+  return (
+    <View style={styles.stepContainer}>
+      <OnboardingTitle title="What's your college and area of study?" />
+      <Button
+        title={data.school || 'Select college'}
+        onPress={() => setShowSchoolSheet(true)}
+        variant="secondary"
+        fullWidth
+        dropdown
+        iconRight={ChevronDown}
+      />
+      
+      <ListItemWrapper>
+        {data.major.length > 0 && (
+          <View style={styles.majorTags}>
+            {data.major.map((major, index) => (
+              <Tag
+                key={major}
+                variant="white"
+                label={major}
+                dismissible
+                onDismiss={() => removeMajor(index)}
               />
-            </View>
-
-            <Sheet
-              visible={showSchoolSheet}
-              onDismiss={() => setShowSchoolSheet(false)}
-              title="Select your college"
-              height={500}
-            >
-              <ListItemWrapper>
-                {CORNELL_SCHOOLS.map((school) => (
-                  <ListItem
-                    key={school}
-                    title={school}
-                    selected={data.school === school}
-                    onPress={() => {
-                      updateField('school', school);
-                      setShowSchoolSheet(false);
-                    }}
-                  />
-                ))}
-              </ListItemWrapper>
-            </Sheet>
+            ))}
           </View>
-        );
+        )}
+        <Button
+          title="Add field of study"
+          iconLeft={Plus}
+          onPress={() => setShowMajorSheet(true)}
+          variant="secondary"
+          noRound
+        />
+      </ListItemWrapper>
+      
+      <Sheet
+        visible={showSchoolSheet}
+        onDismiss={() => setShowSchoolSheet(false)}
+        title="Select your college"
+        height={500}
+      >
+        <ListItemWrapper>
+          {CORNELL_SCHOOLS.map((school) => (
+            <ListItem
+              key={school}
+              title={school}
+              selected={data.school === school}
+              onPress={() => {
+                updateField('school', school);
+                setShowSchoolSheet(false);
+              }}
+              right={
+                data.school === school ? (
+                  <Check size={16} color={AppColors.backgroundDefault} />
+                ) : null
+              }
+            />
+          ))}
+        </ListItemWrapper>
+      </Sheet>
+      
+      <Sheet
+        visible={showMajorSheet}
+        onDismiss={() => setShowMajorSheet(false)}
+        title="Add field of study"
+        height="80%"
+      >
+        <SearchableDropdown
+          options={ALL_MAJORS}
+          value=""
+          onSelect={(selectedMajor) => {
+            if (!data.major.includes(selectedMajor)) {
+              updateField('major', [...data.major, selectedMajor]);
+            }
+            setShowMajorSheet(false);
+          }}
+          placeholder="Search for your major"
+          allowOther={true}
+        />
+      </Sheet>
+    </View>
+  );
 
       case 7:
         return (
@@ -471,7 +499,7 @@ export default function CreateProfileScreen() {
           <View style={styles.stepContainer}>
             <OnboardingTitle
               title="What's your ethnicity?"
-              subtitle="Optional - This helps you connect with people who share similar cultural backgrounds. You can choose whether to display this on your profile."
+              subtitle="Optional - this helps you connect with people who share similar cultural backgrounds."
             />
             <ListItemWrapper>
               {ETHNICITY_OPTIONS.map((ethnicity) => (
@@ -519,13 +547,13 @@ export default function CreateProfileScreen() {
       case 11:
         return (
           <View style={styles.stepContainer}>
-            <OnboardingTitle title="Choose 3-5 photos for your profile" />
+            <OnboardingTitle title="Choose 3-6 photos for your profile" />
             {/* TODO: this is currently crashing every time I try to test on the app */}
             <PhotoUploadGrid
               photos={data.pictures}
               onPhotosChange={(photos) => updateField('pictures', photos)}
               minPhotos={3}
-              maxPhotos={5}
+              maxPhotos={6}
             />
             {/* Temporary skip button for testing */}
             <Button
@@ -565,10 +593,11 @@ export default function CreateProfileScreen() {
               ))}
               {data.prompts.length < 3 && (
                 <Button
-                  title="+ Add another prompt"
+                  title="Add another prompt"
                   onPress={addPrompt}
                   variant="secondary"
                   fullWidth
+                  iconLeft={Plus}
                 />
               )}
             </View>
@@ -584,7 +613,7 @@ export default function CreateProfileScreen() {
             />
             <View style={styles.majorContainer}>
               {data.clubs.map((club, index) => (
-                <View key={index} style={styles.majorTag}>
+                <View key={index} style={styles.majorTags}>
                   <AppText variant="body">{club}</AppText>
                   <Button
                     title="×"
@@ -663,7 +692,7 @@ export default function CreateProfileScreen() {
             />
             <View style={styles.majorContainer}>
               {data.interests.map((interest, index) => (
-                <View key={index} style={styles.majorTag}>
+                <View key={index} style={styles.majorTags}>
                   <AppText variant="body">{interest}</AppText>
                   <Button
                     title="×"
@@ -719,7 +748,7 @@ export default function CreateProfileScreen() {
 
   const getNextLabel = () => {
     if (currentStep === 16) return 'Get Started';
-    return 'Next ▼';
+    return 'Next';
   };
 
   const showCheckbox = [3, 4, 5, 6, 8, 9].includes(currentStep);
@@ -795,18 +824,23 @@ const styles = StyleSheet.create({
   majorContainer: {
     gap: 12,
   },
-  majorTag: {
+  majorTags: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
     backgroundColor: AppColors.backgroundDimmer,
-    borderRadius: 8,
-    padding: 12,
+    padding: 16,
+    gap: 16,
   },
   majorInputRow: {
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
+  },
+  majorSheetContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24',
   },
   promptsContainer: {
     gap: 16,
