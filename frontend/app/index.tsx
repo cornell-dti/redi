@@ -40,7 +40,7 @@ export default function Index() {
   }, []);
 
   const handleGetStarted = () => {
-    router.push('/(auth)/home');
+    router.push('/home');
   };
 
   // Show loading while checking authentication

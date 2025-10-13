@@ -8,12 +8,6 @@ export default function AuthLayout() {
       }}
     >
       <Stack.Screen
-        name="home"
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen
         name="create-profile"
         options={{
           headerShown: false,

@@ -2,7 +2,7 @@ import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import { ProfileResponse } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
+import { router, useRootNavigation } from 'expo-router';
 import {
   Bell,
   Camera,
@@ -80,6 +80,7 @@ const IconComponent = ({
 };
 
 export default function ProfileScreen() {
+  const rootNavigation = useRootNavigation();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -153,12 +154,7 @@ export default function ProfileScreen() {
             // Sign out from Firebase
             await signOutUser();
             console.log('Sign out successful');
-
-            // Navigate to the root index page
-            // Use dismiss to go back to root, then replace
-            console.log('Navigating to root...');
-            router.dismissAll();
-            router.replace('/');
+            router.replace('/home' as any)
           } catch (error) {
             console.error('Sign out error:', error);
             Alert.alert(
