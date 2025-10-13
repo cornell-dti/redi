@@ -81,7 +81,6 @@ const profileDocToResponse = (
   pronouns: doc.pronouns,
   ethnicity: doc.ethnicity,
   sexualOrientation: doc.sexualOrientation,
-  interestedIn: doc.interestedIn,
   showGenderOnProfile: doc.showGenderOnProfile,
   showPronounsOnProfile: doc.showPronounsOnProfile,
   showHometownOnProfile: doc.showHometownOnProfile,

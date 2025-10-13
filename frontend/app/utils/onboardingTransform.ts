@@ -1,4 +1,4 @@
-import { OnboardingData, CreateProfileInput } from '@/types';
+import { OnboardingData, CreateProfileInput, Gender, UpdatePreferencesInput } from '@/types';
 
 /**
  * Converts MM/DD/YYYY format to ISO date string
@@ -122,10 +122,6 @@ export function transformOnboardingToProfilePayload(
       onboardingData.sexualOrientation.length > 0
         ? onboardingData.sexualOrientation
         : undefined,
-    interestedIn:
-      onboardingData.interestedIn.length > 0
-        ? normalizeGenderArray(onboardingData.interestedIn)
-        : undefined,
     showGenderOnProfile: onboardingData.showGenderOnProfile,
     showPronounsOnProfile: onboardingData.showPronounsOnProfile,
     showHometownOnProfile: onboardingData.showHometownOnProfile,
@@ -151,6 +147,26 @@ export function transformOnboardingToProfilePayload(
   };
 
   return payload;
+}
+
+/**
+ * Extracts preferences data from onboarding data
+ * This is used to initialize user preferences during onboarding
+ */
+export function extractPreferencesFromOnboarding(
+  onboardingData: OnboardingData
+): UpdatePreferencesInput {
+  // Normalize interestedIn to Gender[] format
+  const genders: Gender[] =
+    onboardingData.interestedIn.length > 0
+      ? (normalizeGenderArray(onboardingData.interestedIn) as Gender[])
+      : [];
+
+  return {
+    genders,
+    // Could add other default preferences here in the future
+    // For now, we only set genders from the onboarding flow
+  };
 }
 
 /**

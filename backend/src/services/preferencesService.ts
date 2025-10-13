@@ -18,35 +18,13 @@ const PREFERENCES_COLLECTION = 'preferences';
 export async function createDefaultPreferences(
   netid: string
 ): Promise<PreferencesDoc> {
-  // Try to get interestedIn from the user's profile
-  let genders: string[] = [];
-  try {
-    const profileSnapshot = await db
-      .collection('profiles')
-      .where('netid', '==', netid)
-      .get();
-
-    if (!profileSnapshot.empty) {
-      const profileData = profileSnapshot.docs[0].data();
-      if (profileData.interestedIn && Array.isArray(profileData.interestedIn)) {
-        genders = profileData.interestedIn;
-      }
-    }
-  } catch (error) {
-    console.error(
-      'Error fetching profile for preferences initialization:',
-      error
-    );
-    // Continue with empty genders array if profile fetch fails
-  }
-
   const preferencesData: PreferencesDocWrite = {
     netid,
     ageRange: { min: 18, max: 25 },
     years: ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'],
     schools: [], // Empty = all schools
     majors: [], // Empty = all majors
-    genders, // Use interestedIn from profile, or empty array
+    genders: [], // Will be set by user during onboarding or later in preferences
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   };
@@ -71,26 +49,7 @@ export async function getPreferences(
     return null;
   }
 
-  const data = doc.data() as any;
-
-  // Migration: if genders is empty but interestedIn exists, use interestedIn
-  if (
-    (!data.genders || data.genders.length === 0) &&
-    data.interestedIn &&
-    Array.isArray(data.interestedIn)
-  ) {
-    data.genders = data.interestedIn;
-    // Update the document to migrate the data
-    try {
-      await db.collection(PREFERENCES_COLLECTION).doc(netid).update({
-        genders: data.interestedIn,
-      });
-    } catch (error) {
-      console.error('Error migrating interestedIn to genders:', error);
-    }
-  }
-
-  return data as PreferencesDoc;
+  return doc.data() as PreferencesDoc;
 }
 
 /**

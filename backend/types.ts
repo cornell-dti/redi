@@ -34,7 +34,6 @@ export interface ProfileDocWrite {
   pronouns?: string[];
   ethnicity?: string[];
   sexualOrientation?: string[];
-  interestedIn?: string[];
   showGenderOnProfile?: boolean;
   showPronounsOnProfile?: boolean;
   showHometownOnProfile?: boolean;
@@ -95,7 +94,6 @@ export interface ProfileDoc {
   pronouns?: string[];
   ethnicity?: string[];
   sexualOrientation?: string[];
-  interestedIn?: string[];
   showGenderOnProfile?: boolean;
   showPronounsOnProfile?: boolean;
   showHometownOnProfile?: boolean;
@@ -140,7 +138,6 @@ export interface ProfileResponse {
   pronouns?: string[];
   ethnicity?: string[];
   sexualOrientation?: string[];
-  interestedIn?: string[];
   showGenderOnProfile?: boolean;
   showPronounsOnProfile?: boolean;
   showHometownOnProfile?: boolean;

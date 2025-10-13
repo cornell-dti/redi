@@ -41,7 +41,9 @@ import { useOnboardingState } from '../hooks/useOnboardingState';
 import {
   transformOnboardingToProfilePayload,
   validateProfilePayload,
+  extractPreferencesFromOnboarding,
 } from '../utils/onboardingTransform';
+import { updatePreferences } from '../api/preferencesApi';
 
 const TOTAL_STEPS = 15; // Steps 2-16 (Step 1 is in home.tsx)
 
@@ -193,6 +195,17 @@ export default function CreateProfileScreen() {
       // Submit to backend - extract firebaseUid from payload
       const { firebaseUid: uid, ...profileData } = payload;
       await createProfile(uid, profileData);
+
+      // Save preferences (interestedIn -> preferences.genders)
+      try {
+        const preferencesData = extractPreferencesFromOnboarding(data);
+        if (preferencesData.genders && preferencesData.genders.length > 0) {
+          await updatePreferences(uid, preferencesData);
+        }
+      } catch (prefError) {
+        // Don't fail the whole onboarding if preferences save fails
+        console.error('Failed to save preferences:', prefError);
+      }
 
       // Clear storage and navigate to main app
       await clearStorage();
