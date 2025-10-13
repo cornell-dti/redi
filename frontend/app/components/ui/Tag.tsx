@@ -1,7 +1,8 @@
 import { LucideIcon, X as XIcon } from 'lucide-react-native';
 import React from 'react';
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import { AppColors } from '../AppColors';
+import AppText from './AppText';
 import IconButton from './IconButton';
 
 interface TagProps {
@@ -56,9 +57,9 @@ export default function Tag({
           </>
         )}
 
-        <Text numberOfLines={1} style={{ color: textColor }}>
+        <AppText numberOfLines={1} style={{ color: textColor }}>
           {label}
-        </Text>
+        </AppText>
       </View>
 
       {dismissible && (
@@ -67,6 +68,7 @@ export default function Tag({
           icon={XIcon}
           noRound
           size={40}
+          style={{ borderRadius: 24, marginLeft: 4, marginRight: 4 }}
           variant={variant === 'gray' ? 'secondary' : 'transparent'}
         />
       )}
@@ -79,7 +81,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 128,
-    height: 40,
+    height: 48,
     overflow: 'hidden',
   },
   left: {

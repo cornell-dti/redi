@@ -381,29 +381,25 @@ export default function CreateProfileScreen() {
               iconRight={ChevronDown}
             />
 
-            <ListItemWrapper>
-              {data.major.length > 0 && (
-                <View style={styles.majorTags}>
-                  {data.major.map((major, index) => (
-                    <Tag
-                      key={major}
-                      variant="white"
-                      label={major}
-                      dismissible
-                      onDismiss={() => removeMajor(index)}
-                    />
-                  ))}
-                </View>
-              )}
+            {data.major.length > 0 && (
+              <View style={styles.majorTags}>
+                {data.major.map((major, index) => (
+                  <Tag
+                    key={major}
+                    label={major}
+                    dismissible
+                    onDismiss={() => removeMajor(index)}
+                  />
+                ))}
+              </View>
+            )}
 
-              <Button
-                title="Add field of study"
-                iconLeft={Plus}
-                onPress={() => setShowMajorInput(true)}
-                variant="secondary"
-                noRound
-              />
-            </ListItemWrapper>
+            <Button
+              title="Add field of study"
+              iconLeft={Plus}
+              onPress={() => setShowMajorInput(true)}
+              variant="secondary"
+            />
 
             <Sheet
               visible={showSchoolSheet}
@@ -623,35 +619,50 @@ export default function CreateProfileScreen() {
               title="What clubs are you in?"
               subtitle="Optional - Add any Cornell clubs or organizations you're part of."
             />
-            <View style={styles.majorContainer}>
-              {data.clubs.map((club, index) => (
-                <View key={index} style={styles.majorTags}>
-                  <AppText variant="body">{club}</AppText>
-                  <Button
-                    title="×"
-                    onPress={() => removeClub(index)}
-                    variant="secondary"
+
+            {data.clubs.length > 0 && (
+              <View style={styles.majorTags}>
+                {data.clubs.map((club, index) => (
+                  <Tag
+                    key={club}
+                    label={club}
+                    dismissible
+                    onDismiss={() => removeClub(index)}
                   />
-                </View>
-              ))}
-              {showClubInput ? (
-                <View style={styles.majorInputRow}>
-                  <AppInput
-                    placeholder="Enter club name"
-                    value={clubInput}
-                    onChangeText={setClubInput}
-                    style={{ flex: 1 }}
-                  />
-                  <Button title="Add" onPress={addClub} variant="primary" />
-                </View>
-              ) : (
-                <Button
-                  title="+ Add club"
-                  onPress={() => setShowClubInput(true)}
-                  variant="secondary"
+                ))}
+              </View>
+            )}
+
+            <Button
+              title="Add club"
+              iconLeft={Plus}
+              onPress={() => setShowClubInput(true)}
+              variant="secondary"
+            />
+
+            <Sheet
+              visible={showClubInput}
+              onDismiss={() => {
+                setShowClubInput(false);
+                setClubInput('');
+              }}
+              title="Add club"
+              height={256}
+            >
+              <View style={styles.majorSheetContent}>
+                <AppInput
+                  placeholder="Enter club name"
+                  value={clubInput}
+                  onChangeText={setClubInput}
                 />
-              )}
-            </View>
+                <Button
+                  title="Add"
+                  onPress={addClub}
+                  variant="primary"
+                  fullWidth
+                />
+              </View>
+            </Sheet>
           </View>
         );
 
@@ -702,35 +713,50 @@ export default function CreateProfileScreen() {
               title="What are your interests?"
               subtitle="Share what you're passionate about"
             />
-            <View style={styles.majorContainer}>
-              {data.interests.map((interest, index) => (
-                <View key={index} style={styles.majorTags}>
-                  <AppText variant="body">{interest}</AppText>
-                  <Button
-                    title="×"
-                    onPress={() => removeInterest(index)}
-                    variant="secondary"
+
+            {data.interests.length > 0 && (
+              <View style={styles.majorTags}>
+                {data.interests.map((interest, index) => (
+                  <Tag
+                    key={interest}
+                    label={interest}
+                    dismissible
+                    onDismiss={() => removeInterest(index)}
                   />
-                </View>
-              ))}
-              {showInterestInput ? (
-                <View style={styles.majorInputRow}>
-                  <AppInput
-                    placeholder="Enter an interest"
-                    value={interestInput}
-                    onChangeText={setInterestInput}
-                    style={{ flex: 1 }}
-                  />
-                  <Button title="Add" onPress={addInterest} variant="primary" />
-                </View>
-              ) : (
-                <Button
-                  title="+ Add Interest"
-                  onPress={() => setShowInterestInput(true)}
-                  variant="secondary"
+                ))}
+              </View>
+            )}
+
+            <Button
+              title="Add interest"
+              iconLeft={Plus}
+              onPress={() => setShowInterestInput(true)}
+              variant="secondary"
+            />
+
+            <Sheet
+              visible={showInterestInput}
+              onDismiss={() => {
+                setShowInterestInput(false);
+                setInterestInput('');
+              }}
+              title="Add interest"
+              height={256}
+            >
+              <View style={styles.majorSheetContent}>
+                <AppInput
+                  placeholder="Enter an interest"
+                  value={interestInput}
+                  onChangeText={setInterestInput}
                 />
-              )}
-            </View>
+                <Button
+                  title="Add"
+                  onPress={addInterest}
+                  variant="primary"
+                  fullWidth
+                />
+              </View>
+            </Sheet>
           </View>
         );
 
@@ -840,8 +866,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
-    backgroundColor: AppColors.backgroundDimmer,
-    padding: 16,
     gap: 16,
   },
   majorInputRow: {
