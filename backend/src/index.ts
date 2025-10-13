@@ -4,6 +4,7 @@ import express from 'express';
 import landingPageRouter from './routes/landing-page';
 import profilesRouter from './routes/profiles';
 import usersRouter from './routes/users';
+import preferencesRouter from './routes/preferences';
 
 dotenv.config();
 
@@ -57,6 +58,7 @@ app.get('/ping', (_req, res) => res.send('pong'));
 app.use(landingPageRouter); // /api/landing-emails
 app.use(usersRouter); // User authentication
 app.use(profilesRouter);
+app.use(preferencesRouter); // /api/preferences
 
 app
   .listen(PORT, () => {

@@ -8,6 +8,7 @@ import {
   PromptData,
   SEXUAL_ORIENTATION_OPTIONS,
 } from '@/types';
+import { ALL_MAJORS } from '../../constants/cornell';
 import { router } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import React, { useState } from 'react';
@@ -34,6 +35,7 @@ import Button from '../components/ui/Button';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Sheet from '../components/ui/Sheet';
+import SearchableDropdown from '../components/ui/SearchableDropdown';
 import { useOnboardingState } from '../hooks/useOnboardingState';
 import {
   transformOnboardingToProfilePayload,
@@ -54,8 +56,6 @@ export default function CreateProfileScreen() {
   } = useOnboardingState();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSchoolSheet, setShowSchoolSheet] = useState(false);
-  const [showMajorInput, setShowMajorInput] = useState(false);
-  const [majorInput, setMajorInput] = useState('');
   const [showClubInput, setShowClubInput] = useState(false);
   const [clubInput, setClubInput] = useState('');
   const [showInterestInput, setShowInterestInput] = useState(false);
@@ -209,14 +209,6 @@ export default function CreateProfileScreen() {
       );
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const addMajor = () => {
-    if (majorInput.trim()) {
-      updateField('major', [...data.major, majorInput.trim()]);
-      setMajorInput('');
-      setShowMajorInput(false);
     }
   };
 
@@ -388,23 +380,18 @@ export default function CreateProfileScreen() {
                   />
                 </View>
               ))}
-              {showMajorInput ? (
-                <View style={styles.majorInputRow}>
-                  <AppInput
-                    placeholder="Enter major"
-                    value={majorInput}
-                    onChangeText={setMajorInput}
-                    style={{ flex: 1 }}
-                  />
-                  <Button title="Add" onPress={addMajor} variant="primary" />
-                </View>
-              ) : (
-                <Button
-                  title="+ Add major"
-                  onPress={() => setShowMajorInput(true)}
-                  variant="secondary"
-                />
-              )}
+              <SearchableDropdown
+                options={ALL_MAJORS}
+                value=""
+                onSelect={(selectedMajor) => {
+                  if (!data.major.includes(selectedMajor)) {
+                    updateField('major', [...data.major, selectedMajor]);
+                  }
+                }}
+                placeholder="Search for your major"
+                label="Add Major"
+                allowOther={true}
+              />
             </View>
 
             <Sheet

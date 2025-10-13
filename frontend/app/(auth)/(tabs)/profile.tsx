@@ -17,6 +17,7 @@ import {
   LogOut,
   MessageCircle,
   Shield,
+  Sliders,
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
@@ -412,6 +413,14 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <AppText style={styles.sectionTitle}>Settings</AppText>
           <InfoCard>
+            <TouchableOpacity
+              style={styles.settingRow}
+              onPress={() => router.push('/preferences' as any)}
+            >
+              <Sliders size={24} color={AppColors.foregroundDimmer} />
+              <AppText style={styles.settingText}>Dating Preferences</AppText>
+              <ChevronRight size={24} color={AppColors.foregroundDimmer} />
+            </TouchableOpacity>
             <TouchableOpacity style={styles.settingRow}>
               <Bell size={24} color={AppColors.foregroundDimmer} />
               <AppText style={styles.settingText}>Notifications</AppText>

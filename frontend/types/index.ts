@@ -8,6 +8,9 @@ export * from './user';
 // Profile types
 export * from './profile';
 
+// Preferences types
+export * from './preferences';
+
 // Onboarding types
 export * from './onboarding';
 
