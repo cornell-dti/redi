@@ -159,7 +159,7 @@ export default function Sheet({
           >
             <View style={styles.dragHandle} />
           </View>
-          <View>{title && <AppText variant="title">{title}</AppText>}</View>
+          <View>{title && <AppText variant="subtitle">{title}</AppText>}</View>
           <View style={styles.content}>{children}</View>
         </Animated.View>
       </View>
@@ -183,13 +183,14 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 48,
     borderBottomRightRadius: 48,
     padding: 16,
-    overflow: 'hidden',
+    overflow: 'scroll',
     margin: 8,
   },
   dragHandleContainer: {
     height: 24,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 16,
   },
   dragHandle: {
     width: 40,

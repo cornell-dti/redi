@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { AppColors } from '../AppColors';
 import AppText from '../ui/AppText';
 
 interface OnboardingTitleProps {
@@ -14,26 +13,17 @@ export default function OnboardingTitle({
 }: OnboardingTitleProps) {
   return (
     <View style={styles.container}>
-      <AppText variant="title" style={styles.title}>
-        {title}
-      </AppText>
-      {subtitle && (
-        <AppText variant="body" style={styles.subtitle}>
-          {subtitle}
-        </AppText>
-      )}
+      <AppText variant="title">{title}</AppText>
+      {subtitle && <AppText variant="body">{subtitle}</AppText>}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   title: {
     marginBottom: 8,
-  },
-  subtitle: {
-    color: AppColors.foregroundDimmer,
   },
 });
