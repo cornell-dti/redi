@@ -34,7 +34,6 @@ export interface ProfileDocWrite {
   pronouns?: string[];
   ethnicity?: string[];
   sexualOrientation?: string[];
-  interestedIn?: string[];
   showGenderOnProfile?: boolean;
   showPronounsOnProfile?: boolean;
   showHometownOnProfile?: boolean;
@@ -75,6 +74,15 @@ export type School =
   | 'College of Veterinary Medicine'
   | 'Nolan School of Hotel Administration';
 
+export type Year =
+  | 'Freshman'
+  | 'Sophomore'
+  | 'Junior'
+  | 'Senior'
+  | 'Graduate'
+  | 'PhD'
+  | 'Post-Doc';
+
 // Profile document in Firestore (profiles collection)
 export interface ProfileDoc {
   netid: string;
@@ -86,7 +94,6 @@ export interface ProfileDoc {
   pronouns?: string[];
   ethnicity?: string[];
   sexualOrientation?: string[];
-  interestedIn?: string[];
   showGenderOnProfile?: boolean;
   showPronounsOnProfile?: boolean;
   showHometownOnProfile?: boolean;
@@ -131,7 +138,6 @@ export interface ProfileResponse {
   pronouns?: string[];
   ethnicity?: string[];
   sexualOrientation?: string[];
-  interestedIn?: string[];
   showGenderOnProfile?: boolean;
   showPronounsOnProfile?: boolean;
   showHometownOnProfile?: boolean;
@@ -187,3 +193,63 @@ export type DocToResponse<T extends Record<string, any>> = {
 export type FirestoreDoc<T> = T & {
   id: string; // Firestore document ID
 };
+
+// =============================================================================
+// PREFERENCES MODELS (Dating Preferences)
+// =============================================================================
+
+// Preferences document in Firestore (preferences collection)
+export interface PreferencesDoc {
+  netid: string; // Use netid as document ID for efficient lookups
+  ageRange: {
+    min: number; // Minimum age (e.g., 18)
+    max: number; // Maximum age (e.g., 25)
+  };
+  years: Year[]; // Array of acceptable academic years
+  schools: School[]; // Array of acceptable schools (empty = all schools)
+  majors: string[]; // Array of acceptable majors (empty = all majors)
+  genders: Gender[]; // Array of genders user is interested in dating
+  createdAt: FirestoreTimestampType;
+  updatedAt: FirestoreTimestampType;
+}
+
+// Preferences document when writing to Firestore
+export interface PreferencesDocWrite {
+  netid: string;
+  ageRange: {
+    min: number;
+    max: number;
+  };
+  years: Year[];
+  schools: School[];
+  majors: string[];
+  genders: Gender[];
+  createdAt: FirestoreTimestampType | FieldValue;
+  updatedAt: FirestoreTimestampType | FieldValue;
+}
+
+// Preferences data for API responses
+export interface PreferencesResponse {
+  netid: string;
+  ageRange: {
+    min: number;
+    max: number;
+  };
+  years: Year[];
+  schools: School[];
+  majors: string[];
+  genders: Gender[];
+  createdAt: string; // ISO string format for JSON
+  updatedAt: string; // ISO string format for JSON
+}
+
+// For creating new preferences
+export type CreatePreferencesInput = Omit<
+  PreferencesDoc,
+  'createdAt' | 'updatedAt'
+>;
+
+// For updating preferences (all fields optional except netid)
+export type UpdatePreferencesInput = Partial<
+  Omit<PreferencesDoc, 'netid' | 'createdAt' | 'updatedAt'>
+>;

@@ -1,4 +1,9 @@
-import { OnboardingData, CreateProfileInput } from '@/types';
+import {
+  OnboardingData,
+  CreateProfileInput,
+  Gender,
+  UpdatePreferencesInput,
+} from '@/types';
 
 /**
  * Converts MM/DD/YYYY format to ISO date string
@@ -10,8 +15,47 @@ function convertBirthdateToISO(birthdate: string): string {
 }
 
 /**
+ * Normalizes gender values to lowercase format expected by backend
+ * Handles both old capitalized values and new lowercase values
+ */
+function normalizeGenderValue(gender: string): string {
+  const normalized = gender.toLowerCase().trim();
+
+  // Map variations to standard values
+  if (
+    normalized === 'woman' ||
+    normalized === 'women' ||
+    normalized === 'female'
+  ) {
+    return 'female';
+  }
+  if (normalized === 'man' || normalized === 'men' || normalized === 'male') {
+    return 'male';
+  }
+  if (normalized === 'non-binary' || normalized === 'nonbinary') {
+    return 'non-binary';
+  }
+
+  // If already normalized, return as-is
+  if (['female', 'male', 'non-binary'].includes(normalized)) {
+    return normalized;
+  }
+
+  // Default fallback
+  return 'non-binary';
+}
+
+/**
+ * Normalizes an array of gender values
+ */
+function normalizeGenderArray(genders: string[]): string[] {
+  return genders.map(normalizeGenderValue);
+}
+
+/**
  * Maps gender selection to backend enum
  * Takes the first selected gender since backend only supports single value
+ * Now expects lowercase values ('male', 'female', 'non-binary') from GENDER_OPTIONS
  */
 function mapGenderToBackend(
   genders: string[]
@@ -20,17 +64,9 @@ function mapGenderToBackend(
     throw new Error('At least one gender must be selected');
   }
 
-  const firstGender = genders[0];
-  switch (firstGender.toLowerCase()) {
-    case 'woman':
-      return 'female';
-    case 'man':
-      return 'male';
-    case 'non-binary':
-      return 'non-binary';
-    default:
-      return 'non-binary';
-  }
+  // Normalize the gender value before returning
+  const normalized = normalizeGenderValue(genders[0]);
+  return normalized as 'female' | 'male' | 'non-binary';
 }
 
 /**
@@ -95,10 +131,6 @@ export function transformOnboardingToProfilePayload(
       onboardingData.sexualOrientation.length > 0
         ? onboardingData.sexualOrientation
         : undefined,
-    interestedIn:
-      onboardingData.interestedIn.length > 0
-        ? onboardingData.interestedIn
-        : undefined,
     showGenderOnProfile: onboardingData.showGenderOnProfile,
     showPronounsOnProfile: onboardingData.showPronounsOnProfile,
     showHometownOnProfile: onboardingData.showHometownOnProfile,
@@ -124,6 +156,26 @@ export function transformOnboardingToProfilePayload(
   };
 
   return payload;
+}
+
+/**
+ * Extracts preferences data from onboarding data
+ * This is used to initialize user preferences during onboarding
+ */
+export function extractPreferencesFromOnboarding(
+  onboardingData: OnboardingData
+): UpdatePreferencesInput {
+  // Normalize interestedIn to Gender[] format
+  const genders: Gender[] =
+    onboardingData.interestedIn.length > 0
+      ? (normalizeGenderArray(onboardingData.interestedIn) as Gender[])
+      : [];
+
+  return {
+    genders,
+    // Could add other default preferences here in the future
+    // For now, we only set genders from the onboarding flow
+  };
 }
 
 /**

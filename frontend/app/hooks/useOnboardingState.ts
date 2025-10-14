@@ -58,10 +58,15 @@ export function useOnboardingState() {
     setData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const toggleArrayItem = <K extends keyof OnboardingData>(
-    field: K,
-    item: string
-  ) => {
+  type ArrayField =
+    | 'ethnicity'
+    | 'sexualOrientation'
+    | 'interestedIn'
+    | 'major'
+    | 'genders'
+    | 'pronouns';
+
+  const toggleArrayItem = <K extends ArrayField>(field: K, item: string) => {
     setData((prev) => {
       const currentValue = prev[field];
 

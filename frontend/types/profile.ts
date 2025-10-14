@@ -30,7 +30,6 @@ export interface ProfileResponse {
   pronouns?: string[];
   ethnicity?: string[];
   sexualOrientation?: string[];
-  interestedIn?: string[];
   showGenderOnProfile?: boolean;
   showPronounsOnProfile?: boolean;
   showHometownOnProfile?: boolean;
@@ -65,7 +64,6 @@ export interface CreateProfileInput {
   pronouns?: string[];
   ethnicity?: string[];
   sexualOrientation?: string[];
-  interestedIn?: string[];
   showGenderOnProfile?: boolean;
   showPronounsOnProfile?: boolean;
   showHometownOnProfile?: boolean;

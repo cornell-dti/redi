@@ -10,6 +10,7 @@ import {
   ProfileResponse,
   UpdateProfileInput,
 } from '../../types';
+import { createDefaultPreferences } from '../services/preferencesService';
 
 const router = express.Router();
 
@@ -80,7 +81,6 @@ const profileDocToResponse = (
   pronouns: doc.pronouns,
   ethnicity: doc.ethnicity,
   sexualOrientation: doc.sexualOrientation,
-  interestedIn: doc.interestedIn,
   showGenderOnProfile: doc.showGenderOnProfile,
   showPronounsOnProfile: doc.showPronounsOnProfile,
   showHometownOnProfile: doc.showHometownOnProfile,
@@ -328,6 +328,15 @@ router.post('/api/profiles', async (req, res) => {
     };
 
     const docRef = await db.collection('profiles').add(profileDoc);
+
+    // Create default preferences for the new user
+    try {
+      await createDefaultPreferences(netid);
+    } catch (error) {
+      console.error('Error creating default preferences:', error);
+      // Don't fail the profile creation if preferences fail
+    }
+
     res.status(201).json({
       id: docRef.id,
       netid,

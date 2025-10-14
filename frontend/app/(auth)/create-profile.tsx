@@ -1,5 +1,4 @@
 import {
-  CORNELL_SCHOOLS,
   ETHNICITY_OPTIONS,
   GENDER_OPTIONS,
   GRADUATION_YEARS,
@@ -20,7 +19,9 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CORNELL_MAJORS, CORNELL_SCHOOLS } from '../../constants/cornell';
 import { getCurrentUser } from '../api/authService';
+import { updatePreferences } from '../api/preferencesApi';
 import { createProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import OnboardingFooter from '../components/onboarding/OnboardingFooter';
@@ -33,10 +34,12 @@ import AppText from '../components/ui/AppText';
 import Button from '../components/ui/Button';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
+import SearchableDropdown from '../components/ui/SearchableDropdown';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import { useOnboardingState } from '../hooks/useOnboardingState';
 import {
+  extractPreferencesFromOnboarding,
   transformOnboardingToProfilePayload,
   validateProfilePayload,
 } from '../utils/onboardingTransform';
@@ -55,12 +58,11 @@ export default function CreateProfileScreen() {
   } = useOnboardingState();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSchoolSheet, setShowSchoolSheet] = useState(false);
-  const [showMajorInput, setShowMajorInput] = useState(false);
-  const [majorInput, setMajorInput] = useState('');
   const [showClubInput, setShowClubInput] = useState(false);
   const [clubInput, setClubInput] = useState('');
   const [showInterestInput, setShowInterestInput] = useState(false);
   const [interestInput, setInterestInput] = useState('');
+  const [showMajorSheet, setShowMajorSheet] = useState(false);
 
   if (!isLoaded) {
     return null; // Wait for AsyncStorage to load
@@ -193,6 +195,17 @@ export default function CreateProfileScreen() {
       const { firebaseUid: uid, ...profileData } = payload;
       await createProfile(uid, profileData);
 
+      // Save preferences (interestedIn -> preferences.genders)
+      try {
+        const preferencesData = extractPreferencesFromOnboarding(data);
+        if (preferencesData.genders && preferencesData.genders.length > 0) {
+          await updatePreferences(uid, preferencesData);
+        }
+      } catch (prefError) {
+        // Don't fail the whole onboarding if preferences save fails
+        console.error('Failed to save preferences:', prefError);
+      }
+
       // Clear storage and navigate to main app
       await clearStorage();
       Alert.alert('Welcome!', 'Your profile has been created successfully!', [
@@ -210,14 +223,6 @@ export default function CreateProfileScreen() {
       );
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const addMajor = () => {
-    if (majorInput.trim()) {
-      updateField('major', [...data.major, majorInput.trim()]);
-      setMajorInput('');
-      setShowMajorInput(false);
     }
   };
 
@@ -316,12 +321,12 @@ export default function CreateProfileScreen() {
             <ListItemWrapper>
               {GENDER_OPTIONS.map((gender) => (
                 <ListItem
-                  key={gender}
-                  title={gender}
-                  selected={data.genders.includes(gender)}
-                  onPress={() => toggleArrayItem('genders', gender)}
+                  key={gender.value}
+                  title={gender.label}
+                  selected={data.genders.includes(gender.value)}
+                  onPress={() => toggleArrayItem('genders', gender.value)}
                   right={
-                    data.genders.includes(gender) ? (
+                    data.genders.includes(gender.value) ? (
                       <Check size={24} color={AppColors.backgroundDefault} />
                     ) : null
                   }
@@ -381,25 +386,29 @@ export default function CreateProfileScreen() {
               iconRight={ChevronDown}
             />
 
-            {data.major.length > 0 && (
-              <View style={styles.majorTags}>
-                {data.major.map((major, index) => (
-                  <Tag
-                    key={major}
-                    label={major}
-                    dismissible
-                    onDismiss={() => removeMajor(index)}
-                  />
-                ))}
-              </View>
-            )}
-
-            <Button
-              title="Add field of study"
-              iconLeft={Plus}
-              onPress={() => setShowMajorInput(true)}
-              variant="secondary"
-            />
+            <ListItemWrapper>
+              {data.major.length > 0 && (
+                <View style={styles.majorTags}>
+                  {data.major.map((major, index) => (
+                    <Tag
+                      key={major}
+                      variant="white"
+                      label={major}
+                      dismissible
+                      onDismiss={() => removeMajor(index)}
+                    />
+                  ))}
+                </View>
+              )}
+              <Button
+                title="Add field of study"
+                iconLeft={Plus}
+                onPress={() => setShowMajorSheet(true)}
+                variant="secondary"
+                noRound
+                disabled={!data.school} // Disable if no school selected
+              />
+            </ListItemWrapper>
 
             <Sheet
               visible={showSchoolSheet}
@@ -427,29 +436,20 @@ export default function CreateProfileScreen() {
               </ListItemWrapper>
             </Sheet>
 
-            <Sheet
-              visible={showMajorInput}
-              onDismiss={() => {
-                setShowMajorInput(false);
-                setMajorInput('');
-              }}
-              title="Add field of study"
-              height={256}
-            >
-              <View style={styles.majorSheetContent}>
-                <AppInput
-                  placeholder="Enter major or minor"
-                  value={majorInput}
-                  onChangeText={setMajorInput}
-                />
-                <Button
-                  title="Add"
-                  onPress={addMajor}
-                  variant="primary"
-                  fullWidth
-                />
-              </View>
-            </Sheet>
+            {showMajorSheet && (
+              <SearchableDropdown
+                options={data.school ? CORNELL_MAJORS[data.school] : []}
+                value=""
+                onSelect={(selectedMajor) => {
+                  if (!data.major.includes(selectedMajor)) {
+                    updateField('major', [...data.major, selectedMajor]);
+                  }
+                  setShowMajorSheet(false);
+                }}
+                placeholder="Search for your major"
+                allowOther={true}
+              />
+            )}
           </View>
         );
 

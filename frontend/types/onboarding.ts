@@ -96,7 +96,12 @@ export const INITIAL_ONBOARDING_DATA: OnboardingData = {
 };
 
 // Available options for dropdowns and selections
-export const GENDER_OPTIONS = ['Man', 'Woman', 'Non-Binary'];
+// Gender options with display labels and values matching the Gender type
+export const GENDER_OPTIONS = [
+  { label: 'Man', value: 'male' },
+  { label: 'Woman', value: 'female' },
+  { label: 'Non-Binary', value: 'non-binary' },
+] as const;
 export const PRONOUN_OPTIONS = [
   'He',
   'Him',
@@ -131,21 +136,6 @@ export const ETHNICITY_OPTIONS = [
   'Prefer not to say',
 ] as const;
 export const GRADUATION_YEARS = [2026, 2027, 2028, 2029, 2030];
-export const CORNELL_SCHOOLS: School[] = [
-  'College of Agriculture and Life Sciences',
-  'College of Architecture, Art, and Planning',
-  'College of Arts and Sciences',
-  'Cornell SC Johnson College of Business',
-  'College of Engineering',
-  'College of Human Ecology',
-  'School of Industrial and Labor Relations',
-  'Graduate School',
-  'Law School',
-  'Nolan School of Hotel Administration',
-  'Brooks School of Public Policy',
-  'Weill Cornell Medical',
-  'College of Veterinary Medicine',
-];
 
 // Sample prompts for Step 11
 export const AVAILABLE_PROMPTS = [

@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -13,17 +12,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  getCurrentUser,
   signInUser,
   signUpUser,
   validateCornellEmail,
-  getCurrentUser,
-} from '../api/authService';
-import { getCurrentUserProfile } from '../api/profileApi';
-import { AppColors } from '../components/AppColors';
-import LegalFooterText from '../components/onboarding/LegalFooterText';
-import AppInput from '../components/ui/AppInput';
-import AppText from '../components/ui/AppText';
-import Button from '../components/ui/Button';
+} from './api/authService';
+import { getCurrentUserProfile } from './api/profileApi';
+import { AppColors } from './components/AppColors';
+import LegalFooterText from './components/onboarding/LegalFooterText';
+import AppInput from './components/ui/AppInput';
+import AppText from './components/ui/AppText';
+import Button from './components/ui/Button';
 
 type AuthMode = 'welcome' | 'signup' | 'login';
 
