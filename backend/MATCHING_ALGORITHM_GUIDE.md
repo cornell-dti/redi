@@ -636,11 +636,15 @@ firebase functions:log --only generateMatches --follow
 
 #### 3. Test in Production
 
+Project Console: https://console.firebase.google.com/project/redi-1c25e/overview
+
+https://us-central1-redi-1c25e.cloudfunctions.net/generateWeeklyMatches
+
 Trigger a test match generation:
 
 ```bash
 # Call your production cloud function
-curl -X POST https://YOUR-REGION-YOUR-PROJECT.cloudfunctions.net/generateMatches \
+curl -X POST https://YOUR-REGION-YOUR-PROJECT.cloudfunctions.net/generateWeeklyMatches \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
   -d '{"promptId": "TEST-W01"}'
