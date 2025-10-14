@@ -5,6 +5,8 @@ import landingPageRouter from './routes/landing-page';
 import profilesRouter from './routes/profiles';
 import usersRouter from './routes/users';
 import preferencesRouter from './routes/preferences';
+import promptsRouter from './routes/prompts';
+import adminPromptsRouter from './routes/admin-prompts';
 
 dotenv.config();
 
@@ -59,6 +61,8 @@ app.use(landingPageRouter); // /api/landing-emails
 app.use(usersRouter); // User authentication
 app.use(profilesRouter);
 app.use(preferencesRouter); // /api/preferences
+app.use(promptsRouter); // /api/prompts
+app.use(adminPromptsRouter); // /api/admin/prompts
 
 app
   .listen(PORT, () => {
