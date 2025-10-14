@@ -2,12 +2,14 @@
   "name": "functions",
   "scripts": {
     "lint": "eslint --ext .js,.ts .",
-    "build": "tsc",
+    "copy-shared": "cp ../src/services/matchingAlgorithm.ts ./src/services/matchingAlgorithm.ts && cp ../types.ts ./types.ts",
+    "build": "npm run copy-shared && tsc",
     "build:watch": "tsc --watch",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
+    "predeploy": "npm run build",
     "logs": "firebase functions:log"
   },
   "engines": {

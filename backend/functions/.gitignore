@@ -8,3 +8,7 @@ typings/
 # Node.js dependency directory
 node_modules/
 *.local
+
+# Copied shared files (source of truth is in /backend/)
+src/services/matchingAlgorithm.ts
+types.ts
