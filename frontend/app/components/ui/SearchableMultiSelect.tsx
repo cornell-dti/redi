@@ -1,17 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { Check } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
 import {
-  View,
+  ScrollView,
+  StyleSheet,
   TextInput,
   TouchableOpacity,
-  FlatList,
-  StyleSheet,
+  View,
 } from 'react-native';
-import { X, Check } from 'lucide-react-native';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 import Button from './Button';
-import Sheet from './Sheet';
 import ListItem from './ListItem';
+import ListItemWrapper from './ListItemWrapper';
+import Sheet from './Sheet';
+import Tag from './Tag';
 
 interface SearchableMultiSelectProps {
   options: string[];
@@ -74,7 +76,6 @@ export default function SearchableMultiSelect({
       >
         <AppText
           style={[
-            styles.displayText,
             selected.length === 0 && { color: AppColors.foregroundDimmer },
           ]}
         >
@@ -86,22 +87,13 @@ export default function SearchableMultiSelect({
       {selected.length > 0 && (
         <View style={styles.selectedContainer}>
           {selected.map((item) => (
-            <View key={item} style={styles.selectedChip}>
-              <AppText
-                style={styles.chipText}
-                numberOfLines={1}
-                color="inverse"
-              >
-                {item}
-              </AppText>
-              <TouchableOpacity
-                onPress={() => removeItem(item)}
-                style={styles.chipRemove}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <X size={16} color={AppColors.backgroundDefault} />
-              </TouchableOpacity>
-            </View>
+            <Tag
+              key={item}
+              label={item}
+              variant="accent"
+              dismissible
+              onDismiss={() => removeItem(item)}
+            />
           ))}
         </View>
       )}
@@ -127,28 +119,32 @@ export default function SearchableMultiSelect({
         />
 
         {/* Options List */}
-        <FlatList
-          data={filteredOptions}
-          keyExtractor={(item, index) => `${item}-${index}`}
-          renderItem={({ item }) => (
-            <ListItem
-              title={item}
-              selected={selected.includes(item)}
-              onPress={() => toggleOption(item)}
-              right={
-                selected.includes(item) ? (
-                  <Check size={20} color={AppColors.accentDefault} />
-                ) : null
-              }
-            />
-          )}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <AppText style={styles.emptyText}>No results found</AppText>
-            </View>
-          )}
-          style={styles.list}
-        />
+        {filteredOptions.length > 0 ? (
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
+            <ListItemWrapper>
+              {filteredOptions.map((item, index) => (
+                <ListItem
+                  key={`${item}-${index}`}
+                  title={item}
+                  selected={selected.includes(item)}
+                  onPress={() => toggleOption(item)}
+                  right={
+                    selected.includes(item) ? (
+                      <Check size={20} color={AppColors.accentDefault} />
+                    ) : null
+                  }
+                />
+              ))}
+            </ListItemWrapper>
+          </ScrollView>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <AppText style={styles.emptyText}>No results found</AppText>
+          </View>
+        )}
 
         {/* Actions */}
         <View style={styles.actions}>
@@ -183,33 +179,11 @@ const styles = StyleSheet.create({
     minHeight: 56,
     justifyContent: 'center',
   },
-  displayText: {
-    fontSize: 16,
-    color: AppColors.foregroundDefault,
-  },
   selectedContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginTop: 12,
     gap: 8,
-  },
-  selectedChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: AppColors.accentDefault,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingLeft: 16,
-    paddingRight: 12,
-    maxWidth: '100%',
-  },
-  chipText: {
-    fontSize: 14,
-    marginRight: 8,
-    flex: 1,
-  },
-  chipRemove: {
-    padding: 2,
   },
   searchInput: {
     backgroundColor: AppColors.backgroundDimmer,
@@ -220,6 +194,9 @@ const styles = StyleSheet.create({
     color: AppColors.foregroundDefault,
   },
   list: {
+    flex: 1,
+  },
+  scrollView: {
     flex: 1,
   },
   emptyContainer: {

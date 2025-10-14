@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  FlatList,
+  ScrollView,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -10,6 +10,7 @@ import { AppColors } from '../AppColors';
 import AppText from './AppText';
 import Button from './Button';
 import ListItem from './ListItem';
+import ListItemWrapper from './ListItemWrapper';
 import Sheet from './Sheet';
 
 interface SearchableDropdownProps {
@@ -94,30 +95,34 @@ export default function SearchableDropdown({
           autoFocus
         />
 
-        <FlatList
-          data={filteredOptions}
-          keyExtractor={(item, index) => `${item}-${index}`}
-          renderItem={({ item }) => (
-            <ListItem
-              title={item}
-              onPress={() => handleSelect(item)}
-              selected={false}
-            />
-          )}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <AppText style={styles.emptyText}>No results found</AppText>
-              {allowOther && searchQuery.trim() && (
-                <Button
-                  title={`Use "${searchQuery}"`}
-                  onPress={handleOther}
-                  variant="primary"
+        {filteredOptions.length > 0 ? (
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
+            <ListItemWrapper style={styles.list}>
+              {filteredOptions.map((item, index) => (
+                <ListItem
+                  key={`${item}-${index}`}
+                  title={item}
+                  onPress={() => handleSelect(item)}
+                  selected={false}
                 />
-              )}
-            </View>
-          )}
-          style={styles.list}
-        />
+              ))}
+            </ListItemWrapper>
+          </ScrollView>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <AppText style={styles.emptyText}>No results found</AppText>
+            {allowOther && searchQuery.trim() && (
+              <Button
+                title={`Use "${searchQuery}"`}
+                onPress={handleOther}
+                variant="primary"
+              />
+            )}
+          </View>
+        )}
       </Sheet>
     </View>
   );
@@ -152,6 +157,9 @@ const styles = StyleSheet.create({
     color: AppColors.foregroundDefault,
   },
   list: {
+    flex: 1,
+  },
+  scrollView: {
     flex: 1,
   },
   emptyContainer: {
