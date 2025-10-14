@@ -3,7 +3,7 @@ import {
   UserData,
   findMatchesForUser,
 } from "./matchingAlgorithm";
-import { PreferencesDoc } from "../../types";
+import { PreferencesDoc } from "../types";
 
 const MATCHES_COLLECTION = "weeklyMatches";
 const PROFILES_COLLECTION = "profiles";

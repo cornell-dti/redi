@@ -2,7 +2,7 @@
   "name": "functions",
   "scripts": {
     "lint": "eslint --ext .js,.ts .",
-    "copy-shared": "cp ../src/services/matchingAlgorithm.ts ./src/services/matchingAlgorithm.ts && cp ../types.ts ./types.ts",
+    "copy-shared": "cp ../src/services/matchingAlgorithm.ts ./src/services/matchingAlgorithm.ts && cp ../types.ts ./src/types.ts",
     "build": "npm run copy-shared && tsc",
     "build:watch": "tsc --watch",
     "serve": "npm run build && firebase emulators:start --only functions",

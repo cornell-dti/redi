@@ -4,12 +4,12 @@
  * Source of truth: /backend/src/services/matchingAlgorithm.ts
  * DO NOT EDIT the copy in /backend/functions/src/services/
  *
- * Note: This file imports from '../../types' which resolves to:
+ * Note: This file imports from '../types' which resolves to:
  * - /backend/types.ts when in /backend/src/services/
- * - /backend/functions/types.ts when in /backend/functions/src/services/ (copied during build)
+ * - /backend/functions/src/types.ts when in /backend/functions/src/services/ (copied during build)
  */
 
-import { ProfileDoc, PreferencesDoc, Year } from '../../types';
+import { ProfileDoc, PreferencesDoc, Year } from '../types';
 
 /**
  * UserData interface for matching algorithm
