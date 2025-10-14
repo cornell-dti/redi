@@ -426,44 +426,50 @@ router.get('/api/admin/prompts/generate-id/:date', async (req, res) => {
  * @returns {Error} 404 - Prompt not found
  * @returns {Error} 500 - Internal server error
  */
-router.post('/api/admin/prompts/:promptId/generate-matches', async (req, res) => {
-  try {
-    const { promptId } = req.params;
-    const { firebaseUid } = req.body;
+router.post(
+  '/api/admin/prompts/:promptId/generate-matches',
+  async (req, res) => {
+    try {
+      const { promptId } = req.params;
+      const { firebaseUid } = req.body;
 
-    if (!firebaseUid) {
-      return res.status(400).json({ error: 'firebaseUid is required' });
+      if (!firebaseUid) {
+        return res.status(400).json({ error: 'firebaseUid is required' });
+      }
+
+      // Verify admin access
+      const isAdmin = await verifyAdminAccess(firebaseUid);
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ error: 'Unauthorized: Admin access required' });
+      }
+
+      // Check if prompt exists
+      const existingPrompt = await getPromptById(promptId);
+      if (!existingPrompt) {
+        return res.status(404).json({ error: 'Prompt not found' });
+      }
+
+      console.log(
+        `Admin ${firebaseUid} manually triggering match generation for prompt ${promptId}`
+      );
+
+      // Generate matches (bypasses date validations)
+      const matchedCount = await generateMatchesForPrompt(promptId);
+
+      res.status(200).json({
+        message: 'Match generation completed',
+        promptId,
+        matchedCount,
+      });
+    } catch (error) {
+      console.error('Error generating matches:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      res.status(500).json({ error: errorMessage });
     }
-
-    // Verify admin access
-    const isAdmin = await verifyAdminAccess(firebaseUid);
-    if (!isAdmin) {
-      return res
-        .status(403)
-        .json({ error: 'Unauthorized: Admin access required' });
-    }
-
-    // Check if prompt exists
-    const existingPrompt = await getPromptById(promptId);
-    if (!existingPrompt) {
-      return res.status(404).json({ error: 'Prompt not found' });
-    }
-
-    console.log(`Admin ${firebaseUid} manually triggering match generation for prompt ${promptId}`);
-
-    // Generate matches (bypasses date validations)
-    const matchedCount = await generateMatchesForPrompt(promptId);
-
-    res.status(200).json({
-      message: 'Match generation completed',
-      promptId,
-      matchedCount,
-    });
-  } catch (error) {
-    console.error('Error generating matches:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 export default router;

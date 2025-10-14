@@ -9,10 +9,7 @@ import {
 import { FieldValue } from 'firebase-admin/firestore';
 import { getUsersWhoAnswered } from './promptsService';
 import { getPreferences } from './preferencesService';
-import {
-  UserData,
-  findMatchesForUser,
-} from './matchingAlgorithm';
+import { UserData, findMatchesForUser } from './matchingAlgorithm';
 
 const MATCHES_COLLECTION = 'weeklyMatches';
 const PROFILES_COLLECTION = 'profiles';
@@ -202,7 +199,6 @@ export async function generateMatchesForPrompt(
   return matchedCount;
 }
 
-
 // =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
@@ -282,4 +278,3 @@ async function getPreviousMatchesMap(
 
   return previousMatchesMap;
 }
-

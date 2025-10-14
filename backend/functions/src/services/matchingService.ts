@@ -1,14 +1,11 @@
-import * as admin from "firebase-admin";
-import {
-  UserData,
-  findMatchesForUser,
-} from "./matchingAlgorithm";
-import {PreferencesDoc} from "../types";
+import * as admin from 'firebase-admin';
+import { UserData, findMatchesForUser } from './matchingAlgorithm';
+import { PreferencesDoc } from '../types';
 
-const MATCHES_COLLECTION = "weeklyMatches";
-const PROFILES_COLLECTION = "profiles";
-const PREFERENCES_COLLECTION = "preferences";
-const ANSWERS_COLLECTION = "weeklyPromptAnswers";
+const MATCHES_COLLECTION = 'weeklyMatches';
+const PROFILES_COLLECTION = 'profiles';
+const PREFERENCES_COLLECTION = 'preferences';
+const ANSWERS_COLLECTION = 'weeklyPromptAnswers';
 
 /**
  * Generate matches for all users who answered a prompt
@@ -25,7 +22,7 @@ export async function generateMatchesForPrompt(
   // Get all users who answered the prompt
   const answersSnapshot = await db
     .collection(ANSWERS_COLLECTION)
-    .where("promptId", "==", promptId)
+    .where('promptId', '==', promptId)
     .get();
 
   const userNetids = answersSnapshot.docs.map(
@@ -122,7 +119,7 @@ async function getUserDataMap(
     const batch = netids.slice(i, i + 10);
     const profilesSnapshot = await db
       .collection(PROFILES_COLLECTION)
-      .where("netid", "in", batch)
+      .where('netid', 'in', batch)
       .get();
 
     profilesSnapshot.docs.forEach((doc) => {
@@ -140,8 +137,9 @@ async function getUserDataMap(
 
     userDataMap.set(netid, {
       profile: profiles.get(netid) || null,
-      preferences: preferencesDoc.exists ?
-        (preferencesDoc.data() as PreferencesDoc) : null,
+      preferences: preferencesDoc.exists
+        ? (preferencesDoc.data() as PreferencesDoc)
+        : null,
     });
   }
 
@@ -163,8 +161,8 @@ async function getPreviousMatchesMap(
   for (const netid of netids) {
     const matchesSnapshot = await db
       .collection(MATCHES_COLLECTION)
-      .where("netid", "==", netid)
-      .orderBy("createdAt", "desc")
+      .where('netid', '==', netid)
+      .orderBy('createdAt', 'desc')
       .limit(20) // Check last 20 weeks
       .get();
 
