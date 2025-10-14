@@ -3,7 +3,7 @@ import {
   UserData,
   findMatchesForUser,
 } from "./matchingAlgorithm";
-import { PreferencesDoc } from "../types";
+import {PreferencesDoc} from "../types";
 
 const MATCHES_COLLECTION = "weeklyMatches";
 const PROFILES_COLLECTION = "profiles";
@@ -14,7 +14,7 @@ const ANSWERS_COLLECTION = "weeklyPromptAnswers";
  * Generate matches for all users who answered a prompt
  * @param promptId - The prompt ID to generate matches for
  * @param db - Firestore database instance
- * @returns Promise resolving to number of users matched
+ * @return Promise resolving to number of users matched
  */
 export async function generateMatchesForPrompt(
   promptId: string,
@@ -107,7 +107,7 @@ async function createWeeklyMatch(
  * Get profiles and preferences for multiple users
  * @param netids - Array of netids
  * @param db - Firestore database instance
- * @returns Map of netid to user data
+ * @return Map of netid to user data
  */
 async function getUserDataMap(
   netids: string[],
@@ -152,7 +152,7 @@ async function getUserDataMap(
  * Get previous matches for multiple users
  * @param netids - Array of netids
  * @param db - Firestore database instance
- * @returns Map of netid to set of previously matched netids
+ * @return Map of netid to set of previously matched netids
  */
 async function getPreviousMatchesMap(
   netids: string[],
