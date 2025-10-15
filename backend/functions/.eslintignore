@@ -1,0 +1,13 @@
+# Compiled files
+lib/**/*
+**/*.js
+
+# Copied files (auto-generated during build)
+src/services/matchingAlgorithm.ts
+types.ts
+
+# Dependencies
+node_modules/**/*
+
+# Config files
+.eslintrc.js

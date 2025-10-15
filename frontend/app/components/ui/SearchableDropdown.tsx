@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import {
-  FlatList,
+  ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { AppColors } from '../AppColors';
+import AppInput from './AppInput';
 import AppText from './AppText';
 import Button from './Button';
 import ListItem from './ListItem';
+import ListItemWrapper from './ListItemWrapper';
 import Sheet from './Sheet';
 
 interface SearchableDropdownProps {
@@ -60,7 +61,7 @@ export default function SearchableDropdown({
 
   return (
     <View style={styles.container}>
-      {label && <AppText style={styles.label}>{label}</AppText>}
+      {label && <AppText variant="subtitle" style={styles.label}>{label}</AppText>}
       <TouchableOpacity
         style={styles.input}
         onPress={() => setIsOpen(true)}
@@ -85,8 +86,7 @@ export default function SearchableDropdown({
         title={label || 'Select an option'}
         height="80%"
       >
-        <TextInput
-          style={styles.searchInput}
+        <AppInput
           placeholder={placeholder}
           placeholderTextColor={AppColors.foregroundDimmer}
           value={searchQuery}
@@ -94,30 +94,34 @@ export default function SearchableDropdown({
           autoFocus
         />
 
-        <FlatList
-          data={filteredOptions}
-          keyExtractor={(item, index) => `${item}-${index}`}
-          renderItem={({ item }) => (
-            <ListItem
-              title={item}
-              onPress={() => handleSelect(item)}
-              selected={false}
-            />
-          )}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <AppText style={styles.emptyText}>No results found</AppText>
-              {allowOther && searchQuery.trim() && (
-                <Button
-                  title={`Use "${searchQuery}"`}
-                  onPress={handleOther}
-                  variant="primary"
+        {filteredOptions.length > 0 ? (
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
+            <ListItemWrapper style={styles.list}>
+              {filteredOptions.map((item, index) => (
+                <ListItem
+                  key={`${item}-${index}`}
+                  title={item}
+                  onPress={() => handleSelect(item)}
+                  selected={false}
                 />
-              )}
-            </View>
-          )}
-          style={styles.list}
-        />
+              ))}
+            </ListItemWrapper>
+          </ScrollView>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <AppText style={styles.emptyText}>No results found</AppText>
+            {allowOther && searchQuery.trim() && (
+              <Button
+                title={`Use "${searchQuery}"`}
+                onPress={handleOther}
+                variant="primary"
+              />
+            )}
+          </View>
+        )}
       </Sheet>
     </View>
   );
@@ -129,9 +133,6 @@ const styles = StyleSheet.create({
   },
   label: {
     marginBottom: 8,
-    fontSize: 16,
-    fontWeight: '600',
-    color: AppColors.foregroundDefault,
   },
   input: {
     backgroundColor: AppColors.backgroundDimmer,
@@ -143,15 +144,10 @@ const styles = StyleSheet.create({
   inputText: {
     fontSize: 16,
   },
-  searchInput: {
-    backgroundColor: AppColors.backgroundDimmer,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    fontSize: 16,
-    color: AppColors.foregroundDefault,
-  },
   list: {
+    flex: 1,
+  },
+  scrollView: {
     flex: 1,
   },
   emptyContainer: {

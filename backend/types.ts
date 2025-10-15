@@ -253,3 +253,123 @@ export type CreatePreferencesInput = Omit<
 export type UpdatePreferencesInput = Partial<
   Omit<PreferencesDoc, 'netid' | 'createdAt' | 'updatedAt'>
 >;
+
+// =============================================================================
+// WEEKLY PROMPTS MODELS
+// =============================================================================
+
+// Weekly prompt document in Firestore (weeklyPrompts collection)
+export interface WeeklyPromptDoc {
+  promptId: string; // Year-week format (e.g., "2025-W42")
+  question: string; // The prompt question text
+  releaseDate: FirestoreTimestampType; // Monday at 12:01 AM ET
+  matchDate: FirestoreTimestampType; // Friday at 12:01 AM ET
+  active: boolean; // Only one prompt should be active at a time
+  createdAt: FirestoreTimestampType;
+}
+
+// Weekly prompt document when writing to Firestore
+export interface WeeklyPromptDocWrite {
+  promptId: string;
+  question: string;
+  releaseDate: FirestoreTimestampType | Date;
+  matchDate: FirestoreTimestampType | Date;
+  active: boolean;
+  createdAt: FirestoreTimestampType | FieldValue;
+}
+
+// Weekly prompt data for API responses
+export interface WeeklyPromptResponse {
+  promptId: string;
+  question: string;
+  releaseDate: string; // ISO string format for JSON
+  matchDate: string; // ISO string format for JSON
+  active: boolean;
+  createdAt: string; // ISO string format for JSON
+}
+
+// For creating a new weekly prompt
+export type CreateWeeklyPromptInput = Omit<
+  WeeklyPromptDoc,
+  'createdAt' | 'active'
+>;
+
+// For updating a weekly prompt (all fields optional except promptId)
+export type UpdateWeeklyPromptInput = Partial<
+  Omit<WeeklyPromptDoc, 'promptId' | 'createdAt'>
+>;
+
+// =============================================================================
+// WEEKLY PROMPT ANSWERS MODELS
+// =============================================================================
+
+// Weekly prompt answer document in Firestore (weeklyPromptAnswers collection)
+// Document ID format: ${netid}_${promptId}
+export interface WeeklyPromptAnswerDoc {
+  netid: string; // User's Cornell NetID
+  promptId: string; // Reference to the prompt (e.g., "2025-W42")
+  answer: string; // User's answer text (max 500 characters)
+  createdAt: FirestoreTimestampType;
+}
+
+// Weekly prompt answer document when writing to Firestore
+export interface WeeklyPromptAnswerDocWrite {
+  netid: string;
+  promptId: string;
+  answer: string;
+  createdAt: FirestoreTimestampType | FieldValue;
+}
+
+// Weekly prompt answer data for API responses
+export interface WeeklyPromptAnswerResponse {
+  netid: string;
+  promptId: string;
+  answer: string;
+  createdAt: string; // ISO string format for JSON
+}
+
+// For creating a new prompt answer
+export type CreateWeeklyPromptAnswerInput = Omit<
+  WeeklyPromptAnswerDoc,
+  'createdAt'
+>;
+
+// =============================================================================
+// WEEKLY MATCHES MODELS
+// =============================================================================
+
+// Weekly match document in Firestore (weeklyMatches collection)
+// Document ID format: ${netid}_${promptId}
+export interface WeeklyMatchDoc {
+  netid: string; // User receiving the matches
+  promptId: string; // Reference to the prompt used for matching
+  matches: string[]; // Array of 3 matched user netids
+  revealed: boolean[]; // Array of 3 booleans indicating if match was viewed
+  createdAt: FirestoreTimestampType; // When matches were generated (Friday)
+}
+
+// Weekly match document when writing to Firestore
+export interface WeeklyMatchDocWrite {
+  netid: string;
+  promptId: string;
+  matches: string[];
+  revealed: boolean[];
+  createdAt: FirestoreTimestampType | FieldValue;
+}
+
+// Weekly match data for API responses
+export interface WeeklyMatchResponse {
+  netid: string;
+  promptId: string;
+  matches: string[];
+  revealed: boolean[];
+  createdAt: string; // ISO string format for JSON
+}
+
+// For creating new weekly matches
+export type CreateWeeklyMatchInput = Omit<WeeklyMatchDoc, 'createdAt'>;
+
+// For updating match revealed status
+export interface UpdateWeeklyMatchRevealedInput {
+  matchIndex: number; // Index of the match to reveal (0-2)
+}

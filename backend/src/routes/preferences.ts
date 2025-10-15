@@ -1,17 +1,11 @@
 import express from 'express';
 import { db } from '../../firebaseAdmin';
+import { PreferencesResponse, UpdatePreferencesInput } from '../../types';
 import {
-  UpdatePreferencesInput,
-  PreferencesResponse,
-  Year,
-  Gender,
-  School,
-} from '../../types';
-import {
-  getPreferences,
-  updatePreferences,
   createDefaultPreferences,
+  getPreferences,
   preferencesToResponse,
+  updatePreferences,
 } from '../services/preferencesService';
 
 const router = express.Router();
@@ -53,9 +47,7 @@ function validatePreferences(preferences: UpdatePreferencesInput): string[] {
   if (preferences.ageRange) {
     const { min, max } = preferences.ageRange;
     if (min < 16) errors.push('Minimum age must be at least 16');
-    if (max > 99) errors.push('Maximum age cannot exceed 99');
     if (min >= max) errors.push('Minimum age must be less than maximum age');
-    if (max - min > 50) errors.push('Age range is too broad');
   }
 
   // Gender validation

@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserNetid() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.netid;
+    }
+    
+    // TODO: Implement proper admin role checking before production
+    function isAdmin() {
+      return isAuthenticated();
+      // Later, use: request.auth.token.admin == true
+    }
+    
+    // Landing page email collection
+    match /landing-emails/{emailId} {
+      allow create: if true;
+      allow read, update, delete: if false;
+    }
+    
+    // User profiles
+    match /profiles/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // User accounts
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Preferences collection
+    match /preferences/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Weekly Prompts - all authenticated users can read, only admins can write
+    match /weeklyPrompts/{promptId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Weekly Prompt Answers - users can only access their own
+    match /weeklyPromptAnswers/{answerId} {
+      allow read: if isAuthenticated() && resource.data.netid == getUserNetid();
+      allow create: if isAuthenticated() && 
+        request.resource.data.netid == getUserNetid() &&
+        answerId == request.resource.data.netid + '_' + request.resource.data.promptId &&
+        request.resource.data.answer.size() <= 500 &&
+        request.resource.data.answer.size() > 0;
+      allow update, delete: if false;
+    }
+    
+    // Weekly Matches - users can only read their own, only update revealed array
+    match /weeklyMatches/{matchId} {
+      allow read: if isAuthenticated() && resource.data.netid == getUserNetid();
+      allow update: if isAuthenticated() &&
+        resource.data.netid == getUserNetid() &&
+        request.resource.data.netid == resource.data.netid &&
+        request.resource.data.promptId == resource.data.promptId &&
+        request.resource.data.matches == resource.data.matches &&
+        request.resource.data.createdAt == resource.data.createdAt;
+      allow create, delete: if false;
+    }
+    
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
