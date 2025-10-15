@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { AppColors } from '../AppColors';
+import AppInput from './AppInput';
 import AppText from './AppText';
 import Button from './Button';
 import ListItem from './ListItem';
@@ -61,7 +61,7 @@ export default function SearchableDropdown({
 
   return (
     <View style={styles.container}>
-      {label && <AppText style={styles.label}>{label}</AppText>}
+      {label && <AppText variant="subtitle" style={styles.label}>{label}</AppText>}
       <TouchableOpacity
         style={styles.input}
         onPress={() => setIsOpen(true)}
@@ -86,8 +86,7 @@ export default function SearchableDropdown({
         title={label || 'Select an option'}
         height="80%"
       >
-        <TextInput
-          style={styles.searchInput}
+        <AppInput
           placeholder={placeholder}
           placeholderTextColor={AppColors.foregroundDimmer}
           value={searchQuery}
@@ -134,9 +133,6 @@ const styles = StyleSheet.create({
   },
   label: {
     marginBottom: 8,
-    fontSize: 16,
-    fontWeight: '600',
-    color: AppColors.foregroundDefault,
   },
   input: {
     backgroundColor: AppColors.backgroundDimmer,
@@ -147,14 +143,6 @@ const styles = StyleSheet.create({
   },
   inputText: {
     fontSize: 16,
-  },
-  searchInput: {
-    backgroundColor: AppColors.backgroundDimmer,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    fontSize: 16,
-    color: AppColors.foregroundDefault,
   },
   list: {
     flex: 1,

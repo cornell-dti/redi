@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { AppColors } from '../AppColors';
+import AppInput from './AppInput';
 import AppText from './AppText';
 import Button from './Button';
 import ListItem from './ListItem';
@@ -66,7 +66,7 @@ export default function SearchableMultiSelect({
 
   return (
     <View style={styles.container}>
-      {label && <AppText style={styles.label}>{label}</AppText>}
+      {label && <AppText variant="subtitle" style={styles.label}>{label}</AppText>}
 
       {/* Display Button */}
       <TouchableOpacity
@@ -109,8 +109,7 @@ export default function SearchableMultiSelect({
         height="80%"
       >
         {/* Search Bar */}
-        <TextInput
-          style={styles.searchInput}
+        <AppInput
           placeholder={placeholder}
           placeholderTextColor={AppColors.foregroundDimmer}
           value={searchQuery}
@@ -168,9 +167,6 @@ const styles = StyleSheet.create({
   },
   label: {
     marginBottom: 8,
-    fontSize: 18,
-    fontWeight: '600',
-    color: AppColors.foregroundDefault,
   },
   displayButton: {
     backgroundColor: AppColors.backgroundDimmer,
@@ -184,14 +180,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     marginTop: 12,
     gap: 8,
-  },
-  searchInput: {
-    backgroundColor: AppColors.backgroundDimmer,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    fontSize: 16,
-    color: AppColors.foregroundDefault,
   },
   list: {
     flex: 1,
