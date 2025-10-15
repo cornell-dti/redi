@@ -20,6 +20,7 @@ interface ListItemProps {
   selected?: boolean;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
+  destructive?: boolean;
 }
 
 export default function ListItem({
@@ -30,6 +31,7 @@ export default function ListItem({
   selected = false,
   onPress,
   style,
+  destructive,
 }: ListItemProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isPressed, setIsPressed] = React.useState(false);
@@ -70,7 +72,10 @@ export default function ListItem({
         {left ? <View style={styles.left}>{left}</View> : null}
 
         <View style={styles.content}>
-          <AppText variant="body" color={selected ? 'inverse' : 'default'}>
+          <AppText
+            variant="body"
+            color={destructive ? 'negative' : selected ? 'inverse' : 'default'}
+          >
             {title}
           </AppText>
           {description ? <AppText color="dimmer">{description}</AppText> : null}
