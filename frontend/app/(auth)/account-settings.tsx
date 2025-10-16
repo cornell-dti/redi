@@ -175,39 +175,10 @@ export default function AccountSettingsPage() {
         visible={showSignOutSheet}
         onDismiss={() => setShowSignOutSheet(false)}
         title="Sign Out"
-        height={300}
+        height={265}
       >
         <View style={styles.sheetContent}>
           <AppText>Are you sure you want to sign out?</AppText>
-          <ListItemWrapper>
-            <Button
-              title="Sign Out"
-              onPress={confirmSignOut}
-              variant="negative"
-              iconLeft={LogOut}
-              noRound
-              fullWidth
-            />
-            <Button
-              title="Never mind"
-              onPress={() => setShowSignOutSheet(false)}
-              variant="secondary"
-              noRound
-              fullWidth
-            />
-          </ListItemWrapper>
-        </View>
-      </Sheet>
-
-      <Sheet
-        visible={showSignOutSheet}
-        onDismiss={() => setShowSignOutSheet(false)}
-        title="Sign Out"
-        height={300}
-      >
-        <View style={styles.sheetContent}>
-          <AppText>Are you sure you want to sign out?</AppText>
-
           <ListItemWrapper>
             <Button
               title="Sign Out"
@@ -233,7 +204,7 @@ export default function AccountSettingsPage() {
         visible={showDeleteSheet}
         onDismiss={() => setShowDeleteSheet(false)}
         title="Delete Account"
-        height={330}
+        height={315}
       >
         <View style={styles.sheetContent}>
           <AppText>
