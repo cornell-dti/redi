@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import {
   ChevronRight,
+  ExternalLink,
   Eye,
   Heart,
   LogOut,
@@ -193,14 +194,14 @@ export default function ProfileScreen() {
 
         <ListItemWrapper>
           <ListItem
-            onPress={() => {}}
+            onPress={() => router.push('/terms-and-conditions' as any)}
             title="Terms & Conditions"
             left={<Scroll />}
             right={<ChevronRight />}
           />
 
           <ListItem
-            onPress={() => {}}
+            onPress={() => router.push('/privacy-policy' as any)}
             title="Privacy Policy"
             left={<Scroll />}
             right={<ChevronRight />}
@@ -210,7 +211,7 @@ export default function ProfileScreen() {
             onPress={() => {}}
             title="Leave a rating"
             left={<StarIcon />}
-            right={<ChevronRight />}
+            right={<ExternalLink />}
           />
 
           <ListItem
