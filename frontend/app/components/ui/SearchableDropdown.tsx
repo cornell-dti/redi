@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppInput from './AppInput';
 import AppText from './AppText';
@@ -61,7 +56,11 @@ export default function SearchableDropdown({
 
   return (
     <View style={styles.container}>
-      {label && <AppText variant="subtitle" style={styles.label}>{label}</AppText>}
+      {label && (
+        <AppText variant="subtitle" style={styles.label}>
+          {label}
+        </AppText>
+      )}
       <TouchableOpacity
         style={styles.input}
         onPress={() => setIsOpen(true)}
