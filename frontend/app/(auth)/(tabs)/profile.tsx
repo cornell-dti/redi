@@ -177,7 +177,7 @@ export default function ProfileScreen() {
           />
 
           <ListItem
-            onPress={() => {}}
+            onPress={() => router.push('/account-settings' as any)}
             title="Account settings"
             left={<SettingsIcon />}
             right={<ChevronRight />}

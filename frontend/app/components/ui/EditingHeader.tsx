@@ -7,11 +7,12 @@ import AppText from './AppText';
 import Button from './Button';
 
 interface EditingHeaderProps {
-  onSave: () => void | Promise<void>;
+  onSave?: () => void | Promise<void>;
   isSaving?: boolean;
   backHref?: string; // Optional custom back route
   saveDisabled?: boolean;
   title?: string;
+  showSave?: boolean; // to only have a Back button
 }
 
 export default function EditingHeader({
@@ -20,6 +21,7 @@ export default function EditingHeader({
   backHref,
   saveDisabled = false,
   title,
+  showSave = true,
 }: EditingHeaderProps) {
   const router = useRouter();
 
@@ -45,7 +47,7 @@ export default function EditingHeader({
       <View style={styles.saveButtonContainer}>
         {isSaving ? (
           <ActivityIndicator color={AppColors.accentDefault} />
-        ) : (
+        ) : showSave ? (
           <Button
             title="Save"
             onPress={onSave}
@@ -53,7 +55,7 @@ export default function EditingHeader({
             disabled={saveDisabled}
             iconLeft={Check}
           />
-        )}
+        ) : null}
       </View>
     </View>
   );
