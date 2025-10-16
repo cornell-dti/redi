@@ -8,15 +8,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import {
   ChevronRight,
+  ClipboardList,
   ExternalLink,
   Eye,
   Heart,
+  Lock,
   LogOut,
   MailIcon,
   Pencil,
-  Scroll,
   SettingsIcon,
-  ShieldIcon,
+  ShieldCheck,
   StarIcon,
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -187,7 +188,7 @@ export default function ProfileScreen() {
           <ListItem
             onPress={() => router.push('/safety' as any)}
             title="Safety"
-            left={<ShieldIcon />}
+            left={<Lock />}
             right={<ChevronRight />}
           />
         </ListItemWrapper>
@@ -196,14 +197,14 @@ export default function ProfileScreen() {
           <ListItem
             onPress={() => router.push('/terms-and-conditions' as any)}
             title="Terms & Conditions"
-            left={<Scroll />}
+            left={<ClipboardList />}
             right={<ChevronRight />}
           />
 
           <ListItem
             onPress={() => router.push('/privacy-policy' as any)}
             title="Privacy Policy"
-            left={<Scroll />}
+            left={<ShieldCheck />}
             right={<ChevronRight />}
           />
 

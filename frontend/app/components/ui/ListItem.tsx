@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     backgroundColor: AppColors.backgroundDimmer,
-    borderRadius: 8,
+    borderRadius: 6,
   },
   selected: {
     backgroundColor: AppColors.accentDefault,

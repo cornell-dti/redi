@@ -69,7 +69,7 @@ const AppInput: React.FC<AppInputProps> = ({
                 ? AppColors.backgroundDefault
                 : AppColors.backgroundDimmer,
           },
-          noRound && { borderRadius: 4 },
+          noRound && { borderRadius: 6 },
         ]}
       >
         <TextInput
