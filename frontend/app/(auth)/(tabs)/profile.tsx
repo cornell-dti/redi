@@ -7,6 +7,7 @@ import { ProfileResponse } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import {
+  ChevronRight,
   Eye,
   Heart,
   LogOut,
@@ -169,18 +170,25 @@ export default function ProfileScreen() {
 
         <ListItemWrapper>
           <ListItem
-            onPress={() => {}}
+            onPress={() => router.push('/preferences' as any)}
             title="Dating preferences"
             left={<Heart />}
+            right={<ChevronRight />}
           />
 
           <ListItem
             onPress={() => {}}
             title="Account settings"
             left={<SettingsIcon />}
+            right={<ChevronRight />}
           />
 
-          <ListItem onPress={() => {}} title="Safety" left={<ShieldIcon />} />
+          <ListItem
+            onPress={() => {}}
+            title="Safety"
+            left={<ShieldIcon />}
+            right={<ChevronRight />}
+          />
         </ListItemWrapper>
 
         <ListItemWrapper>
@@ -188,24 +196,28 @@ export default function ProfileScreen() {
             onPress={() => {}}
             title="Terms & Conditions"
             left={<Scroll />}
+            right={<ChevronRight />}
           />
 
           <ListItem
             onPress={() => {}}
             title="Privacy Policy"
             left={<Scroll />}
+            right={<ChevronRight />}
           />
 
           <ListItem
             onPress={() => {}}
             title="Leave a rating"
             left={<StarIcon />}
+            right={<ChevronRight />}
           />
 
           <ListItem
             onPress={() => {}}
             title="Contact the team"
             left={<MailIcon />}
+            right={<ChevronRight />}
           />
         </ListItemWrapper>
 

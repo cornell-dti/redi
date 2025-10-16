@@ -1,12 +1,7 @@
-import React from 'react';
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
+import { Check, ChevronLeft } from 'lucide-react-native';
+import React from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 import Button from './Button';
@@ -38,16 +33,13 @@ export default function EditingHeader({
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
+      <Button
         onPress={handleBack}
-        style={styles.backButton}
         disabled={isSaving}
-        activeOpacity={0.7}
-      >
-        <ChevronLeft size={24} color={AppColors.foregroundDefault} />
-        <AppText style={styles.backText}>Back</AppText>
-      </TouchableOpacity>
-
+        variant="secondary"
+        title="Back"
+        iconLeft={ChevronLeft}
+      />
       {title && <AppText style={styles.title}>{title}</AppText>}
 
       <View style={styles.saveButtonContainer}>
@@ -59,6 +51,7 @@ export default function EditingHeader({
             onPress={onSave}
             variant="primary"
             disabled={saveDisabled}
+            iconLeft={Check}
           />
         )}
       </View>
@@ -72,21 +65,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     backgroundColor: AppColors.backgroundDefault,
-    borderBottomWidth: 1,
-    borderBottomColor: AppColors.backgroundDimmer,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    marginLeft: -8,
-  },
-  backText: {
-    fontSize: 17,
-    color: AppColors.foregroundDefault,
-    marginLeft: 4,
   },
   title: {
     fontSize: 18,

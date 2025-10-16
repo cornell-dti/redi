@@ -1,14 +1,7 @@
 import { Gender, School, UpdatePreferencesInput } from '@/types';
-import { Check } from 'lucide-react-native';
+import { Check, Square } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import {
-  Alert,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ALL_MAJORS,
@@ -22,6 +15,7 @@ import {
   updatePreferences,
 } from '../api/preferencesApi';
 import { AppColors } from '../components/AppColors';
+import AppInput from '../components/ui/AppInput';
 import AppText from '../components/ui/AppText';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItem from '../components/ui/ListItem';
@@ -159,19 +153,24 @@ export default function DatingPreferencesPage() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
-          <AppText variant="title" style={styles.title}>
-            Dating preferences
+          <AppText variant="title">Dating preferences</AppText>
+          <AppText variant="subtitle" color="dimmer">
+            Who would you like to date?
           </AppText>
-          <AppText style={styles.subtitle}>Who would you like to date?</AppText>
         </View>
 
         {/* Age Range */}
         <View style={styles.section}>
-          <AppText style={styles.sectionTitle}>Age</AppText>
+          <AppText variant="subtitle" style={styles.sectionTitle}>
+            Age
+          </AppText>
           <View style={styles.ageRow}>
             <View style={styles.ageInputContainer}>
-              <AppText style={styles.ageLabel}>Min</AppText>
-              <TextInput
+              <AppText variant="bodySmall" color="dimmer">
+                Min
+              </AppText>
+              <AppInput
+                variant="white"
                 style={styles.ageInput}
                 value={ageMinText}
                 onChangeText={(text) => {
@@ -194,10 +193,15 @@ export default function DatingPreferencesPage() {
                 maxLength={2}
               />
             </View>
-            <AppText style={styles.ageSeparator}>to</AppText>
+            <AppText style={styles.ageSeparator} color="dimmer">
+              to
+            </AppText>
             <View style={styles.ageInputContainer}>
-              <AppText style={styles.ageLabel}>Max</AppText>
-              <TextInput
+              <AppText variant="bodySmall" color="dimmer">
+                Max
+              </AppText>
+              <AppInput
+                variant="white"
                 style={styles.ageInput}
                 value={ageMaxText}
                 onChangeText={(text) => {
@@ -225,7 +229,9 @@ export default function DatingPreferencesPage() {
 
         {/* Year */}
         <View style={styles.section}>
-          <AppText style={styles.sectionTitle}>Year</AppText>
+          <AppText variant="subtitle" style={styles.sectionTitle}>
+            Year
+          </AppText>
           <ListItemWrapper>
             {YEARS.map((year) => (
               <ListItem
@@ -236,7 +242,9 @@ export default function DatingPreferencesPage() {
                 right={
                   selectedYears.includes(year) ? (
                     <Check size={24} color={AppColors.backgroundDefault} />
-                  ) : null
+                  ) : (
+                    <Square color={AppColors.foregroundDimmer} />
+                  )
                 }
               />
             ))}
@@ -252,12 +260,10 @@ export default function DatingPreferencesPage() {
               setSelectedSchools(selected as School[])
             }
             label="Schools"
+            description="Leave empty to see all schools or select specific ones to not get matched with."
             placeholder="Search for schools"
-            emptyText="All schools"
+            emptyText="Select specific schools"
           />
-          <AppText style={styles.helperText}>
-            Leave empty to see all schools, or select specific ones
-          </AppText>
         </View>
 
         {/* Majors */}
@@ -268,16 +274,16 @@ export default function DatingPreferencesPage() {
             onChange={setSelectedMajors}
             label="Majors"
             placeholder="Search for majors"
-            emptyText="All majors"
+            description="Leave empty to see all majors, or select specific ones to not get matched with."
+            emptyText="Select specific majors"
           />
-          <AppText style={styles.helperText}>
-            Leave empty to see all majors, or select specific ones
-          </AppText>
         </View>
 
         {/* Interested In (Gender) */}
         <View style={styles.section}>
-          <AppText style={styles.sectionTitle}>Interested in</AppText>
+          <AppText variant="subtitle" style={styles.sectionTitle}>
+            Interested in
+          </AppText>
           <ListItemWrapper>
             <ListItem
               title="Women"
@@ -286,7 +292,9 @@ export default function DatingPreferencesPage() {
               right={
                 selectedGenders.includes('female') ? (
                   <Check size={24} color={AppColors.backgroundDefault} />
-                ) : null
+                ) : (
+                  <Square color={AppColors.foregroundDimmer} />
+                )
               }
             />
             <ListItem
@@ -296,7 +304,9 @@ export default function DatingPreferencesPage() {
               right={
                 selectedGenders.includes('male') ? (
                   <Check size={24} color={AppColors.backgroundDefault} />
-                ) : null
+                ) : (
+                  <Square color={AppColors.foregroundDimmer} />
+                )
               }
             />
             <ListItem
@@ -306,7 +316,9 @@ export default function DatingPreferencesPage() {
               right={
                 selectedGenders.includes('non-binary') ? (
                   <Check size={24} color={AppColors.backgroundDefault} />
-                ) : null
+                ) : (
+                  <Square color={AppColors.foregroundDimmer} />
+                )
               }
             />
           </ListItemWrapper>
@@ -334,49 +346,34 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: AppColors.foregroundDimmer,
+    display: 'flex',
+    gap: 8,
+    flexDirection: 'column',
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
+    paddingLeft: 16,
   },
   ageRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    padding: 16,
+    borderRadius: 24,
+    backgroundColor: AppColors.backgroundDimmer,
   },
   ageInputContainer: {
     gap: 4,
-  },
-  ageLabel: {
-    fontSize: 14,
-    color: AppColors.foregroundDimmer,
+    display: 'flex',
+    alignItems: 'center',
+    flex: 1,
   },
   ageInput: {
-    backgroundColor: AppColors.backgroundDimmer,
-    borderRadius: 8,
-    padding: 12,
-    width: 80,
-    fontSize: 18,
+    width: 140,
+    justifyContent: 'center',
     textAlign: 'center',
-    color: AppColors.foregroundDefault,
   },
   ageSeparator: {
-    fontSize: 16,
-    color: AppColors.foregroundDimmer,
-  },
-  helperText: {
-    fontSize: 14,
-    color: AppColors.foregroundDimmer,
-    marginTop: 8,
+    position: 'relative',
+    top: 12,
   },
 });

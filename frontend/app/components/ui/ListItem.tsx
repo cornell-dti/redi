@@ -65,6 +65,7 @@ export default function ListItem({
           // keep original pressed styling logic; rely on pressed OR local isPressed
           (pressed || isPressed) &&
             (selected ? styles.selectedPressed : styles.pressed),
+          description ? { height: 'auto' } : { height: 54 },
           style,
         ]}
         accessibilityRole="button"
@@ -75,6 +76,7 @@ export default function ListItem({
           <AppText
             variant="body"
             color={destructive ? 'negative' : selected ? 'inverse' : 'default'}
+            style={description ? { fontWeight: 'semibold' } : undefined}
           >
             {title}
           </AppText>
