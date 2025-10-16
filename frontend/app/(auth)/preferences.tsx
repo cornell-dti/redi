@@ -1,4 +1,5 @@
 import { Gender, School, UpdatePreferencesInput } from '@/types';
+import { router } from 'expo-router';
 import { Check, Square } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
@@ -21,10 +22,12 @@ import EditingHeader from '../components/ui/EditingHeader';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import SearchableMultiSelect from '../components/ui/SearchableMultiSelect';
+import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 
 export default function DatingPreferencesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showUnsavedSheet, setShowUnsavedSheet] = useState(false);
 
   // Form state
   const [ageMin, setAgeMin] = useState(18);
@@ -35,6 +38,16 @@ export default function DatingPreferencesPage() {
   const [selectedSchools, setSelectedSchools] = useState<School[]>([]);
   const [selectedMajors, setSelectedMajors] = useState<string[]>([]);
   const [selectedGenders, setSelectedGenders] = useState<Gender[]>([]);
+
+  // Original values to track changes
+  const [originalValues, setOriginalValues] = useState({
+    ageMin: 18,
+    ageMax: 25,
+    years: [] as Year[],
+    schools: [] as School[],
+    majors: [] as string[],
+    genders: [] as Gender[],
+  });
 
   // Fetch preferences on mount
   useEffect(() => {
@@ -59,6 +72,16 @@ export default function DatingPreferencesPage() {
           setSelectedSchools(data.schools);
           setSelectedMajors(data.majors);
           setSelectedGenders(data.genders);
+
+          // Store original values
+          setOriginalValues({
+            ageMin: data.ageRange.min,
+            ageMax: data.ageRange.max,
+            years: data.years,
+            schools: data.schools,
+            majors: data.majors,
+            genders: data.genders,
+          });
         }
       } catch (error) {
         console.error('Failed to fetch preferences:', error);
@@ -105,7 +128,19 @@ export default function DatingPreferencesPage() {
       };
 
       await updatePreferences(currentUser.uid, updates);
+
+      // Update original values after successful save
+      setOriginalValues({
+        ageMin,
+        ageMax,
+        years: selectedYears,
+        schools: selectedSchools,
+        majors: selectedMajors,
+        genders: selectedGenders,
+      });
+
       Alert.alert('Success', 'Preferences saved!');
+      router.back();
     } catch (error) {
       console.error('Failed to save preferences:', error);
       Alert.alert(
@@ -115,6 +150,38 @@ export default function DatingPreferencesPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const hasUnsavedChanges = () => {
+    return (
+      ageMin !== originalValues.ageMin ||
+      ageMax !== originalValues.ageMax ||
+      JSON.stringify(selectedYears) !== JSON.stringify(originalValues.years) ||
+      JSON.stringify(selectedSchools) !==
+        JSON.stringify(originalValues.schools) ||
+      JSON.stringify(selectedMajors) !==
+        JSON.stringify(originalValues.majors) ||
+      JSON.stringify(selectedGenders) !== JSON.stringify(originalValues.genders)
+    );
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges()) {
+      setShowUnsavedSheet(true);
+    } else {
+      router.back();
+    }
+  };
+
+  const handleDiscardAndExit = () => {
+    setShowUnsavedSheet(false);
+    router.back();
+  };
+
+  const handleSaveAndExit = async () => {
+    await handleSave();
+    setShowUnsavedSheet(false);
+    router.back();
   };
 
   const toggleYear = (year: Year) => {
@@ -147,6 +214,7 @@ export default function DatingPreferencesPage() {
       <StatusBar barStyle="dark-content" />
       <EditingHeader
         onSave={handleSave}
+        onBack={handleBack}
         isSaving={saving}
         title="Preferences"
       />
@@ -326,6 +394,14 @@ export default function DatingPreferencesPage() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Unsaved Changes Confirmation Sheet */}
+      <UnsavedChangesSheet
+        visible={showUnsavedSheet}
+        onDiscard={handleDiscardAndExit}
+        onSave={handleSaveAndExit}
+        onDismiss={() => setShowUnsavedSheet(false)}
+      />
     </SafeAreaView>
   );
 }

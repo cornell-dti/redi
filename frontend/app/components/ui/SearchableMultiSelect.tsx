@@ -1,4 +1,4 @@
-import { Check, Square } from 'lucide-react-native';
+import { Check, Square, X } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
@@ -165,8 +165,9 @@ export default function SearchableMultiSelect({
             <Button
               title="Clear All"
               onPress={clearAll}
-              variant="secondary"
+              variant="negative"
               noRound
+              iconLeft={X}
             />
           )}
         </ListItemWrapper>

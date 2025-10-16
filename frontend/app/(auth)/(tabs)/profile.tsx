@@ -215,7 +215,7 @@ export default function ProfileScreen() {
           />
 
           <ListItem
-            onPress={() => {}}
+            onPress={() => router.push('/contact' as any)}
             title="Contact the team"
             left={<MailIcon />}
             right={<ChevronRight />}
@@ -227,6 +227,7 @@ export default function ProfileScreen() {
             onPress={() => setShowSignOutSheet(true)}
             title="Sign Out"
             left={<LogOut color={AppColors.negativeDefault} />}
+            right={<ChevronRight color={AppColors.negativeDefault} />}
             destructive
           />
         </ListItemWrapper>

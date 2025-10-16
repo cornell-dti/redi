@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Pencil,
+  Plus,
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
@@ -28,6 +29,7 @@ import Button from '../components/ui/Button';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Tag from '../components/ui/Tag';
+import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 
 // Mock fallback data for fields not in API
 const mockFallbackData = {
@@ -45,6 +47,8 @@ export default function EditProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [prompts, setPrompts] = useState<PromptData[]>([]);
+  const [showUnsavedSheet, setShowUnsavedSheet] = useState(false);
+  const [originalPrompts, setOriginalPrompts] = useState<PromptData[]>([]);
 
   // Fetch profile data on mount
   useEffect(() => {
@@ -68,22 +72,24 @@ export default function EditProfileScreen() {
         setProfile(profileData);
         // Initialize prompts from profile data
         if (profileData.prompts && profileData.prompts.length > 0) {
-          setPrompts(
-            profileData.prompts.map((p, index) => ({
-              id: index.toString(),
-              question: p.question,
-              answer: p.answer,
-            }))
-          );
+          const initialPrompts = profileData.prompts.map((p, index) => ({
+            id: index.toString(),
+            question: p.question,
+            answer: p.answer,
+          }));
+          setPrompts(initialPrompts);
+          setOriginalPrompts(initialPrompts);
         } else {
           // Initialize with at least one empty prompt
-          setPrompts([
+          const emptyPrompt = [
             {
               id: Date.now().toString(),
               question: '',
               answer: '',
             },
-          ]);
+          ];
+          setPrompts(emptyPrompt);
+          setOriginalPrompts(emptyPrompt);
         }
         setError(null);
       } else {
@@ -109,6 +115,31 @@ export default function EditProfileScreen() {
       Alert.alert('Error', 'Failed to open link');
       console.error('Error opening URL:', error);
     }
+  };
+
+  const hasUnsavedChanges = () => {
+    return JSON.stringify(prompts) !== JSON.stringify(originalPrompts);
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges()) {
+      setShowUnsavedSheet(true);
+    } else {
+      router.back();
+    }
+  };
+
+  const handleDiscardAndExit = () => {
+    setShowUnsavedSheet(false);
+    router.back();
+  };
+
+  const handleSaveAndExit = async () => {
+    // TODO: Implement save functionality
+    // await saveProfile();
+    setOriginalPrompts(prompts);
+    setShowUnsavedSheet(false);
+    router.back();
   };
 
   const addPrompt = () => {
@@ -184,7 +215,7 @@ export default function EditProfileScreen() {
       <View style={styles.buttonRow}>
         <Button
           title="Back"
-          onPress={() => router.back()}
+          onPress={handleBack}
           variant="secondary"
           iconLeft={ChevronLeft}
         />
@@ -230,19 +261,34 @@ export default function EditProfileScreen() {
                 prompts
                   .filter((p) => p.question && p.answer)
                   .map((prompt) => (
-                    <View key={prompt.id} style={styles.promptItem}>
-                      <AppText variant="subtitle" style={styles.promptQuestion}>
-                        {prompt.question}
-                      </AppText>
-                      <AppText style={styles.promptAnswer}>
-                        {prompt.answer}
-                      </AppText>
-                    </View>
+                    <ListItem
+                      key={prompt.id}
+                      title={prompt.question}
+                      description={prompt.answer}
+                      right={<ChevronRight />}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/edit-prompt',
+                          params: {
+                            promptId: prompt.id,
+                            question: prompt.question,
+                            answer: prompt.answer,
+                          },
+                        } as any)
+                      }
+                    />
                   ))}
               <Button
-                title="Edit prompts"
-                iconLeft={Pencil}
-                onPress={() => {}}
+                title="Add prompt"
+                iconLeft={Plus}
+                onPress={() =>
+                  router.push({
+                    pathname: '/edit-prompt',
+                    params: {
+                      promptId: `new-${Date.now()}`,
+                    },
+                  } as any)
+                }
                 variant="secondary"
                 noRound
               />
@@ -370,6 +416,14 @@ export default function EditProfileScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Unsaved Changes Confirmation Sheet */}
+      <UnsavedChangesSheet
+        visible={showUnsavedSheet}
+        onDiscard={handleDiscardAndExit}
+        onSave={handleSaveAndExit}
+        onDismiss={() => setShowUnsavedSheet(false)}
+      />
     </SafeAreaView>
   );
 }

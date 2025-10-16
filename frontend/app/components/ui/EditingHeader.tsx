@@ -8,6 +8,7 @@ import Button from './Button';
 
 interface EditingHeaderProps {
   onSave?: () => void | Promise<void>;
+  onBack?: () => void; // Optional custom back handler
   isSaving?: boolean;
   backHref?: string; // Optional custom back route
   saveDisabled?: boolean;
@@ -17,6 +18,7 @@ interface EditingHeaderProps {
 
 export default function EditingHeader({
   onSave,
+  onBack,
   isSaving = false,
   backHref,
   saveDisabled = false,
@@ -26,7 +28,9 @@ export default function EditingHeader({
   const router = useRouter();
 
   const handleBack = () => {
-    if (backHref) {
+    if (onBack) {
+      onBack();
+    } else if (backHref) {
       router.push(backHref as any);
     } else {
       router.back();
