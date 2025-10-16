@@ -60,7 +60,7 @@ export default function Button({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: dropdown ? 'space-between' : 'center',
-      borderRadius: dropdown ? 12 : noRound ? 4 : 128,
+      borderRadius: dropdown ? 12 : noRound ? 6 : 128,
       paddingHorizontal: 24,
       paddingVertical: 12,
       height: 48,

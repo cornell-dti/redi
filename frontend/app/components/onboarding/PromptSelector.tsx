@@ -1,15 +1,13 @@
-import { AVAILABLE_PROMPTS, PromptData } from '@/types';
+import { PromptData } from '@/types';
 import { Quote, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppInput from '../ui/AppInput';
 import AppText from '../ui/AppText';
+import AvailablePromptsSheet from '../ui/AvailablePromptsSheet';
 import Button from '../ui/Button';
 import IconButton from '../ui/IconButton';
-import ListItem from '../ui/ListItem';
-import ListItemWrapper from '../ui/ListItemWrapper';
-import Sheet from '../ui/Sheet';
 
 interface PromptSelectorProps {
   prompt: PromptData;
@@ -79,23 +77,12 @@ export default function PromptSelector({
         iconLeft={Quote}
       />
 
-      <Sheet
+      <AvailablePromptsSheet
         visible={showPromptSheet}
         onDismiss={() => setShowPromptSheet(false)}
-        title="Select a prompt"
-        height={500}
-      >
-        <ListItemWrapper>
-          {AVAILABLE_PROMPTS.map((promptOption, index) => (
-            <ListItem
-              key={index}
-              title={promptOption}
-              onPress={() => handlePromptSelect(promptOption)}
-              selected={prompt.question === promptOption}
-            />
-          ))}
-        </ListItemWrapper>
-      </Sheet>
+        onSelectPrompt={handlePromptSelect}
+        selectedPrompt={prompt.question}
+      />
     </View>
   );
 }

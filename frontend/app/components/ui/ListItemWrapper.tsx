@@ -58,5 +58,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 4,
     overflow: 'scroll',
+    borderRadius: 24,
   },
 });

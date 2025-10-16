@@ -183,6 +183,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 48,
     borderBottomRightRadius: 48,
     padding: 16,
+    paddingTop: 8,
     overflow: 'scroll',
     margin: 8,
   },
@@ -193,10 +194,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   dragHandle: {
-    width: 40,
+    width: 64,
     height: 6,
     borderRadius: 3,
-    backgroundColor: AppColors.foregroundDimmer,
+    backgroundColor: '#e0e0e0',
   },
   content: {
     flex: 1,

@@ -1,35 +1,36 @@
-import React from 'react';
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-} from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft } from 'lucide-react-native';
+import { Check, ChevronLeft } from 'lucide-react-native';
+import React from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 import Button from './Button';
 
 interface EditingHeaderProps {
-  onSave: () => void | Promise<void>;
+  onSave?: () => void | Promise<void>;
+  onBack?: () => void; // Optional custom back handler
   isSaving?: boolean;
   backHref?: string; // Optional custom back route
   saveDisabled?: boolean;
   title?: string;
+  showSave?: boolean; // to only have a Back button
 }
 
 export default function EditingHeader({
   onSave,
+  onBack,
   isSaving = false,
   backHref,
   saveDisabled = false,
   title,
+  showSave = true,
 }: EditingHeaderProps) {
   const router = useRouter();
 
   const handleBack = () => {
-    if (backHref) {
+    if (onBack) {
+      onBack();
+    } else if (backHref) {
       router.push(backHref as any);
     } else {
       router.back();
@@ -38,29 +39,27 @@ export default function EditingHeader({
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
+      <Button
         onPress={handleBack}
-        style={styles.backButton}
         disabled={isSaving}
-        activeOpacity={0.7}
-      >
-        <ChevronLeft size={24} color={AppColors.foregroundDefault} />
-        <AppText style={styles.backText}>Back</AppText>
-      </TouchableOpacity>
-
+        variant="secondary"
+        title="Back"
+        iconLeft={ChevronLeft}
+      />
       {title && <AppText style={styles.title}>{title}</AppText>}
 
       <View style={styles.saveButtonContainer}>
         {isSaving ? (
           <ActivityIndicator color={AppColors.accentDefault} />
-        ) : (
+        ) : showSave ? (
           <Button
             title="Save"
             onPress={onSave}
             variant="primary"
             disabled={saveDisabled}
+            iconLeft={Check}
           />
-        )}
+        ) : null}
       </View>
     </View>
   );
@@ -72,21 +71,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     backgroundColor: AppColors.backgroundDefault,
-    borderBottomWidth: 1,
-    borderBottomColor: AppColors.backgroundDimmer,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    marginLeft: -8,
-  },
-  backText: {
-    fontSize: 17,
-    color: AppColors.foregroundDefault,
-    marginLeft: 4,
   },
   title: {
     fontSize: 18,

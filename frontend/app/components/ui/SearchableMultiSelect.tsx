@@ -1,11 +1,6 @@
-import { Check } from 'lucide-react-native';
+import { Check, Square, X } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppInput from './AppInput';
 import AppText from './AppText';
@@ -22,6 +17,7 @@ interface SearchableMultiSelectProps {
   placeholder?: string;
   emptyText?: string; // Text to show when nothing selected (e.g., "All majors")
   label?: string;
+  description?: string; // Extra gray text below as a description
 }
 
 export default function SearchableMultiSelect({
@@ -31,6 +27,7 @@ export default function SearchableMultiSelect({
   placeholder = 'Search...',
   emptyText = 'All options',
   label,
+  description,
 }: SearchableMultiSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -66,37 +63,42 @@ export default function SearchableMultiSelect({
 
   return (
     <View style={styles.container}>
-      {label && <AppText variant="subtitle" style={styles.label}>{label}</AppText>}
-
+      <View style={styles.topTextContainer}>
+        {label && (
+          <AppText variant="subtitle" style={styles.label}>
+            {label}
+          </AppText>
+        )}
+        <AppText color="dimmer"> {description && description}</AppText>
+      </View>
       {/* Display Button */}
-      <TouchableOpacity
-        style={styles.displayButton}
-        onPress={() => setIsOpen(true)}
-        activeOpacity={0.7}
-      >
-        <AppText
-          style={[
-            selected.length === 0 && { color: AppColors.foregroundDimmer },
-          ]}
-        >
-          {selected.length === 0 ? emptyText : `${selected.length} selected`}
-        </AppText>
-      </TouchableOpacity>
+      <ListItemWrapper>
+        {/* Selected Items Display */}
+        {selected.length > 0 && (
+          <View style={styles.selectedContainer}>
+            {selected.map((item) => (
+              <Tag
+                key={item}
+                label={item}
+                dismissible
+                variant="white"
+                onDismiss={() => removeItem(item)}
+              />
+            ))}
+          </View>
+        )}
 
-      {/* Selected Items Display */}
-      {selected.length > 0 && (
-        <View style={styles.selectedContainer}>
-          {selected.map((item) => (
-            <Tag
-              key={item}
-              label={item}
-              variant="accent"
-              dismissible
-              onDismiss={() => removeItem(item)}
-            />
-          ))}
-        </View>
-      )}
+        <Button
+          onPress={() => setIsOpen(true)}
+          variant="secondary"
+          noRound
+          title={
+            selected.length === 0
+              ? emptyText
+              : `${selected.length} selected • Select more`
+          }
+        />
+      </ListItemWrapper>
 
       {/* Sheet Modal */}
       <Sheet
@@ -132,8 +134,10 @@ export default function SearchableMultiSelect({
                   onPress={() => toggleOption(item)}
                   right={
                     selected.includes(item) ? (
-                      <Check size={20} color={AppColors.accentDefault} />
-                    ) : null
+                      <Check size={20} color={AppColors.backgroundDefault} />
+                    ) : (
+                      <Square color={AppColors.foregroundDimmer} />
+                    )
                   }
                 />
               ))}
@@ -146,16 +150,27 @@ export default function SearchableMultiSelect({
         )}
 
         {/* Actions */}
-        <View style={styles.actions}>
-          {selected.length > 0 && (
-            <Button title="Clear All" onPress={clearAll} variant="secondary" />
-          )}
+
+        <ListItemWrapper style={styles.actions}>
           <Button
             title="Done"
+            iconLeft={Check}
             onPress={() => setIsOpen(false)}
             variant="primary"
+            fullWidth
+            noRound
           />
-        </View>
+
+          {selected.length > 0 && (
+            <Button
+              title="Clear All"
+              onPress={clearAll}
+              variant="negative"
+              noRound
+              iconLeft={X}
+            />
+          )}
+        </ListItemWrapper>
       </Sheet>
     </View>
   );
@@ -164,28 +179,32 @@ export default function SearchableMultiSelect({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+  topTextContainer: {
+    paddingLeft: 16,
+    display: 'flex',
+    flexDirection: 'column',
   },
   label: {
     marginBottom: 8,
   },
-  displayButton: {
-    backgroundColor: AppColors.backgroundDimmer,
-    borderRadius: 12,
-    padding: 16,
-    minHeight: 56,
-    justifyContent: 'center',
-  },
   selectedContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 12,
     gap: 8,
+    padding: 16,
+    backgroundColor: AppColors.backgroundDimmer,
+    borderRadius: 4,
   },
   list: {
     flex: 1,
   },
   scrollView: {
     flex: 1,
+    marginTop: 24,
   },
   emptyContainer: {
     padding: 32,
@@ -196,9 +215,6 @@ const styles = StyleSheet.create({
     color: AppColors.foregroundDimmer,
   },
   actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     paddingTop: 12,
-    gap: 12,
   },
 });

@@ -1,14 +1,8 @@
 import { Gender, School, UpdatePreferencesInput } from '@/types';
-import { Check } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { Check, Square } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import {
-  Alert,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ALL_MAJORS,
@@ -22,15 +16,18 @@ import {
   updatePreferences,
 } from '../api/preferencesApi';
 import { AppColors } from '../components/AppColors';
+import AppInput from '../components/ui/AppInput';
 import AppText from '../components/ui/AppText';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import SearchableMultiSelect from '../components/ui/SearchableMultiSelect';
+import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 
 export default function DatingPreferencesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showUnsavedSheet, setShowUnsavedSheet] = useState(false);
 
   // Form state
   const [ageMin, setAgeMin] = useState(18);
@@ -41,6 +38,16 @@ export default function DatingPreferencesPage() {
   const [selectedSchools, setSelectedSchools] = useState<School[]>([]);
   const [selectedMajors, setSelectedMajors] = useState<string[]>([]);
   const [selectedGenders, setSelectedGenders] = useState<Gender[]>([]);
+
+  // Original values to track changes
+  const [originalValues, setOriginalValues] = useState({
+    ageMin: 18,
+    ageMax: 25,
+    years: [] as Year[],
+    schools: [] as School[],
+    majors: [] as string[],
+    genders: [] as Gender[],
+  });
 
   // Fetch preferences on mount
   useEffect(() => {
@@ -65,6 +72,16 @@ export default function DatingPreferencesPage() {
           setSelectedSchools(data.schools);
           setSelectedMajors(data.majors);
           setSelectedGenders(data.genders);
+
+          // Store original values
+          setOriginalValues({
+            ageMin: data.ageRange.min,
+            ageMax: data.ageRange.max,
+            years: data.years,
+            schools: data.schools,
+            majors: data.majors,
+            genders: data.genders,
+          });
         }
       } catch (error) {
         console.error('Failed to fetch preferences:', error);
@@ -111,7 +128,19 @@ export default function DatingPreferencesPage() {
       };
 
       await updatePreferences(currentUser.uid, updates);
+
+      // Update original values after successful save
+      setOriginalValues({
+        ageMin,
+        ageMax,
+        years: selectedYears,
+        schools: selectedSchools,
+        majors: selectedMajors,
+        genders: selectedGenders,
+      });
+
       Alert.alert('Success', 'Preferences saved!');
+      router.back();
     } catch (error) {
       console.error('Failed to save preferences:', error);
       Alert.alert(
@@ -121,6 +150,38 @@ export default function DatingPreferencesPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const hasUnsavedChanges = () => {
+    return (
+      ageMin !== originalValues.ageMin ||
+      ageMax !== originalValues.ageMax ||
+      JSON.stringify(selectedYears) !== JSON.stringify(originalValues.years) ||
+      JSON.stringify(selectedSchools) !==
+        JSON.stringify(originalValues.schools) ||
+      JSON.stringify(selectedMajors) !==
+        JSON.stringify(originalValues.majors) ||
+      JSON.stringify(selectedGenders) !== JSON.stringify(originalValues.genders)
+    );
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges()) {
+      setShowUnsavedSheet(true);
+    } else {
+      router.back();
+    }
+  };
+
+  const handleDiscardAndExit = () => {
+    setShowUnsavedSheet(false);
+    router.back();
+  };
+
+  const handleSaveAndExit = async () => {
+    await handleSave();
+    setShowUnsavedSheet(false);
+    router.back();
   };
 
   const toggleYear = (year: Year) => {
@@ -153,25 +214,31 @@ export default function DatingPreferencesPage() {
       <StatusBar barStyle="dark-content" />
       <EditingHeader
         onSave={handleSave}
+        onBack={handleBack}
         isSaving={saving}
         title="Preferences"
       />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
-          <AppText variant="title" style={styles.title}>
-            Dating preferences
+          <AppText variant="title">Dating preferences</AppText>
+          <AppText variant="subtitle" color="dimmer">
+            Who would you like to date?
           </AppText>
-          <AppText style={styles.subtitle}>Who would you like to date?</AppText>
         </View>
 
         {/* Age Range */}
         <View style={styles.section}>
-          <AppText style={styles.sectionTitle}>Age</AppText>
+          <AppText variant="subtitle" style={styles.sectionTitle}>
+            Age
+          </AppText>
           <View style={styles.ageRow}>
             <View style={styles.ageInputContainer}>
-              <AppText style={styles.ageLabel}>Min</AppText>
-              <TextInput
+              <AppText variant="bodySmall" color="dimmer">
+                Min
+              </AppText>
+              <AppInput
+                variant="white"
                 style={styles.ageInput}
                 value={ageMinText}
                 onChangeText={(text) => {
@@ -194,10 +261,15 @@ export default function DatingPreferencesPage() {
                 maxLength={2}
               />
             </View>
-            <AppText style={styles.ageSeparator}>to</AppText>
+            <AppText style={styles.ageSeparator} color="dimmer">
+              to
+            </AppText>
             <View style={styles.ageInputContainer}>
-              <AppText style={styles.ageLabel}>Max</AppText>
-              <TextInput
+              <AppText variant="bodySmall" color="dimmer">
+                Max
+              </AppText>
+              <AppInput
+                variant="white"
                 style={styles.ageInput}
                 value={ageMaxText}
                 onChangeText={(text) => {
@@ -225,7 +297,9 @@ export default function DatingPreferencesPage() {
 
         {/* Year */}
         <View style={styles.section}>
-          <AppText style={styles.sectionTitle}>Year</AppText>
+          <AppText variant="subtitle" style={styles.sectionTitle}>
+            Year
+          </AppText>
           <ListItemWrapper>
             {YEARS.map((year) => (
               <ListItem
@@ -236,7 +310,9 @@ export default function DatingPreferencesPage() {
                 right={
                   selectedYears.includes(year) ? (
                     <Check size={24} color={AppColors.backgroundDefault} />
-                  ) : null
+                  ) : (
+                    <Square color={AppColors.foregroundDimmer} />
+                  )
                 }
               />
             ))}
@@ -252,12 +328,10 @@ export default function DatingPreferencesPage() {
               setSelectedSchools(selected as School[])
             }
             label="Schools"
+            description="Leave empty to see all schools or select specific ones to not get matched with."
             placeholder="Search for schools"
-            emptyText="All schools"
+            emptyText="Select specific schools"
           />
-          <AppText style={styles.helperText}>
-            Leave empty to see all schools, or select specific ones
-          </AppText>
         </View>
 
         {/* Majors */}
@@ -268,16 +342,16 @@ export default function DatingPreferencesPage() {
             onChange={setSelectedMajors}
             label="Majors"
             placeholder="Search for majors"
-            emptyText="All majors"
+            description="Leave empty to see all majors, or select specific ones to not get matched with."
+            emptyText="Select specific majors"
           />
-          <AppText style={styles.helperText}>
-            Leave empty to see all majors, or select specific ones
-          </AppText>
         </View>
 
         {/* Interested In (Gender) */}
         <View style={styles.section}>
-          <AppText style={styles.sectionTitle}>Interested in</AppText>
+          <AppText variant="subtitle" style={styles.sectionTitle}>
+            Interested in
+          </AppText>
           <ListItemWrapper>
             <ListItem
               title="Women"
@@ -286,7 +360,9 @@ export default function DatingPreferencesPage() {
               right={
                 selectedGenders.includes('female') ? (
                   <Check size={24} color={AppColors.backgroundDefault} />
-                ) : null
+                ) : (
+                  <Square color={AppColors.foregroundDimmer} />
+                )
               }
             />
             <ListItem
@@ -296,7 +372,9 @@ export default function DatingPreferencesPage() {
               right={
                 selectedGenders.includes('male') ? (
                   <Check size={24} color={AppColors.backgroundDefault} />
-                ) : null
+                ) : (
+                  <Square color={AppColors.foregroundDimmer} />
+                )
               }
             />
             <ListItem
@@ -306,7 +384,9 @@ export default function DatingPreferencesPage() {
               right={
                 selectedGenders.includes('non-binary') ? (
                   <Check size={24} color={AppColors.backgroundDefault} />
-                ) : null
+                ) : (
+                  <Square color={AppColors.foregroundDimmer} />
+                )
               }
             />
           </ListItemWrapper>
@@ -314,6 +394,14 @@ export default function DatingPreferencesPage() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Unsaved Changes Confirmation Sheet */}
+      <UnsavedChangesSheet
+        visible={showUnsavedSheet}
+        onDiscard={handleDiscardAndExit}
+        onSave={handleSaveAndExit}
+        onDismiss={() => setShowUnsavedSheet(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -334,49 +422,34 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: AppColors.foregroundDimmer,
+    display: 'flex',
+    gap: 8,
+    flexDirection: 'column',
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
+    paddingLeft: 16,
   },
   ageRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    padding: 16,
+    borderRadius: 24,
+    backgroundColor: AppColors.backgroundDimmer,
   },
   ageInputContainer: {
     gap: 4,
-  },
-  ageLabel: {
-    fontSize: 14,
-    color: AppColors.foregroundDimmer,
+    display: 'flex',
+    alignItems: 'center',
+    flex: 1,
   },
   ageInput: {
-    backgroundColor: AppColors.backgroundDimmer,
-    borderRadius: 8,
-    padding: 12,
-    width: 80,
-    fontSize: 18,
+    width: 140,
+    justifyContent: 'center',
     textAlign: 'center',
-    color: AppColors.foregroundDefault,
   },
   ageSeparator: {
-    fontSize: 16,
-    color: AppColors.foregroundDimmer,
-  },
-  helperText: {
-    fontSize: 14,
-    color: AppColors.foregroundDimmer,
-    marginTop: 8,
+    position: 'relative',
+    top: 12,
   },
 });
