@@ -1,11 +1,12 @@
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
+import DeleteAccountSheet from '@/app/components/ui/DeleteAccountSheet';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
-import Sheet from '@/app/components/ui/Sheet';
+import SignOutSheet from '@/app/components/ui/SignOutSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import { LogOut, Pencil, Trash2 } from 'lucide-react-native';
+import { ChevronRight, LogOut, Pencil, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -170,66 +171,18 @@ export default function AccountSettingsPage() {
       </ScrollView>
 
       {/* Sign Out Confirmation Sheet */}
-
-      <Sheet
+      <SignOutSheet
         visible={showSignOutSheet}
         onDismiss={() => setShowSignOutSheet(false)}
-        title="Sign Out"
-        height={265}
-      >
-        <View style={styles.sheetContent}>
-          <AppText>Are you sure you want to sign out?</AppText>
-          <ListItemWrapper>
-            <Button
-              title="Sign Out"
-              onPress={confirmSignOut}
-              variant="negative"
-              iconLeft={LogOut}
-              noRound
-              fullWidth
-            />
-            <Button
-              title="Never mind"
-              onPress={() => setShowSignOutSheet(false)}
-              variant="secondary"
-              noRound
-              fullWidth
-            />
-          </ListItemWrapper>
-        </View>
-      </Sheet>
+        onConfirm={confirmSignOut}
+      />
 
       {/* Delete Account Confirmation Sheet */}
-      <Sheet
+      <DeleteAccountSheet
         visible={showDeleteSheet}
         onDismiss={() => setShowDeleteSheet(false)}
-        title="Delete Account"
-        height={315}
-      >
-        <View style={styles.sheetContent}>
-          <AppText>
-            Are you sure you want to delete your account? This action cannot be
-            undone and all your data will be permanently deleted.
-          </AppText>
-          <ListItemWrapper>
-            <Button
-              title="Delete Account"
-              onPress={confirmDeleteAccount}
-              variant="negative"
-              fullWidth
-              noRound
-              iconLeft={Trash2}
-            />
-            <Button
-              title="Keep my account"
-              onPress={() => setShowDeleteSheet(false)}
-              variant="secondary"
-              fullWidth
-              noRound
-            />
-          </ListItemWrapper>
-        </View>
-      </Sheet>
+        onConfirm={confirmDeleteAccount}
+      />
     </SafeAreaView>
   );
 }

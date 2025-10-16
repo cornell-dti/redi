@@ -2,7 +2,7 @@ import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
-import Sheet from '@/app/components/ui/Sheet';
+import SignOutSheet from '@/app/components/ui/SignOutSheet';
 import { ProfileResponse } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -234,33 +234,11 @@ export default function ProfileScreen() {
         </ListItemWrapper>
       </View>
 
-      <Sheet
+      <SignOutSheet
         visible={showSignOutSheet}
         onDismiss={() => setShowSignOutSheet(false)}
-        title="Sign Out"
-        height={300}
-      >
-        <View style={styles.sheetContent}>
-          <AppText>Are you sure you want to sign out?</AppText>
-          <ListItemWrapper>
-            <Button
-              title="Sign Out"
-              onPress={confirmSignOut}
-              variant="negative"
-              iconLeft={LogOut}
-              noRound
-              fullWidth
-            />
-            <Button
-              title="Never mind"
-              onPress={() => setShowSignOutSheet(false)}
-              variant="secondary"
-              noRound
-              fullWidth
-            />
-          </ListItemWrapper>
-        </View>
-      </Sheet>
+        onConfirm={confirmSignOut}
+      />
     </SafeAreaView>
   );
 }
