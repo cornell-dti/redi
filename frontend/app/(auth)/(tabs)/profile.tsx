@@ -184,7 +184,7 @@ export default function ProfileScreen() {
           />
 
           <ListItem
-            onPress={() => {}}
+            onPress={() => router.push('/safety' as any)}
             title="Safety"
             left={<ShieldIcon />}
             right={<ChevronRight />}
