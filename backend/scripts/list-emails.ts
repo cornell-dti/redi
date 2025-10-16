@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import fetch from 'node-fetch';
+import { db } from '../firebaseAdmin';
 
 dotenv.config();
 
@@ -10,20 +10,10 @@ interface EmailDoc {
 }
 
 async function listEmails(): Promise<void> {
-  const apiBaseUrl = process.env.REACT_APP_API_URL;
-  if (!apiBaseUrl) {
-    throw new Error('REACT_APP_API_URL environment variable is required');
-  }
-
   try {
-    const response = await fetch(`${apiBaseUrl}/api/landing-emails`);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = (await response.json()) as EmailDoc[];
-    const emails = data.map((doc) => doc.email).join(' ');
+    const snapshot = await db.collection('landing-emails').get();
+    const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as EmailDoc[];
+    const emails = docs.map((doc) => doc.email).join(' ');
 
     console.log(emails);
   } catch (error) {
