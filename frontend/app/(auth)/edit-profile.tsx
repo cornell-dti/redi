@@ -30,17 +30,7 @@ import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
-
-// Mock fallback data for fields not in API
-const mockFallbackData = {
-  age: 22, // Not in ProfileResponse
-  images: [
-    'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
-    'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
-    'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
-  ],
-  interests: ['Hiking', 'Photography', 'Board Games', 'Business', 'Travel'], // Not in current schema
-};
+import { calculateAge } from '../utils/profileUtils';
 
 export default function EditProfileScreen() {
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
@@ -163,10 +153,10 @@ export default function EditProfileScreen() {
 
   // Get display data - use profile data if available, otherwise fallback
   const displayName = profile?.firstName || 'User';
-  const displayImages =
-    profile?.pictures && profile.pictures.length > 0
-      ? profile.pictures
-      : mockFallbackData.images;
+  const displayImages = profile?.pictures || [];
+  const displayAge = profile?.birthdate
+    ? calculateAge(profile.birthdate)
+    : null;
   const displayBio = profile?.bio || 'No bio yet';
   const displaySchool = profile?.school || 'School not set';
   const displayMajor =
@@ -180,14 +170,20 @@ export default function EditProfileScreen() {
   const displayGithub = profile?.github || null;
   const displayWebsite = profile?.website || null;
   const displayClubs = profile?.clubs || [];
-  const displayInterests =
-    profile?.interests && profile.interests.length > 0
-      ? profile.interests
-      : mockFallbackData.interests;
+  const displayInterests = profile?.interests || [];
   const displayEthnicity =
     profile?.ethnicity && profile.ethnicity.length > 0
       ? profile.ethnicity.join(', ')
       : null;
+
+  // Check if user has any social links
+  const hasSocialLinks = !!(
+    displayLinkedIn ||
+    displayInstagram ||
+    displaySnapchat ||
+    displayGithub ||
+    displayWebsite
+  );
 
   // Show loading spinner while fetching
   if (loading) {
@@ -233,7 +229,7 @@ export default function EditProfileScreen() {
               My photos
             </AppText>
             <View style={styles.imageGrid}>
-              {displayImages.map((image, index) => (
+              {displayImages.map((image: string, index: number) => (
                 <TouchableOpacity key={index} style={styles.imageContainer}>
                   <Image source={{ uri: image }} style={styles.image} />
                   {index === 0 && (
@@ -303,7 +299,7 @@ export default function EditProfileScreen() {
             <ListItemWrapper>
               <ListItem
                 title="Age"
-                description={`${mockFallbackData.age}`}
+                description={displayAge ? `${displayAge}` : 'Not set'}
                 right={<ChevronRight />}
                 onPress={() => {}}
               />
@@ -344,11 +340,7 @@ export default function EditProfileScreen() {
             </AppText>
 
             <ListItemWrapper>
-              {(displayLinkedIn ||
-                displayInstagram ||
-                displaySnapchat ||
-                displayGithub ||
-                displayWebsite) && (
+              {hasSocialLinks ? (
                 <View style={styles.tagsContainer}>
                   {displayLinkedIn && <Tag label="LinkedIn" variant="white" />}
                   {displayInstagram && (
@@ -357,6 +349,12 @@ export default function EditProfileScreen() {
                   {displaySnapchat && <Tag label="Snapchat" variant="white" />}
                   {displayGithub && <Tag label="GitHub" variant="white" />}
                   {displayWebsite && <Tag label="Website" variant="white" />}
+                </View>
+              ) : (
+                <View style={styles.emptyStateContainer}>
+                  <AppText style={styles.emptyStateText}>
+                    No social links yet - Add them here
+                  </AppText>
                 </View>
               )}
               <Button
@@ -375,11 +373,19 @@ export default function EditProfileScreen() {
             </AppText>
 
             <ListItemWrapper>
-              <View style={styles.tagsContainer}>
-                {displayInterests.map((interest, index) => (
-                  <Tag key={index} label={interest} variant="white" />
-                ))}
-              </View>
+              {displayInterests.length > 0 ? (
+                <View style={styles.tagsContainer}>
+                  {displayInterests.map((interest: string, index: number) => (
+                    <Tag key={index} label={interest} variant="white" />
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.emptyStateContainer}>
+                  <AppText style={styles.emptyStateText}>
+                    No interests yet - Add them here
+                  </AppText>
+                </View>
+              )}
 
               <Button
                 title="Edit"
@@ -391,29 +397,35 @@ export default function EditProfileScreen() {
             </ListItemWrapper>
           </View>
 
-          {displayClubs.length > 0 && (
-            <View style={styles.section}>
-              <AppText variant="subtitle" style={styles.subtitle}>
-                Clubs
-              </AppText>
+          <View style={styles.section}>
+            <AppText variant="subtitle" style={styles.subtitle}>
+              Clubs
+            </AppText>
 
-              <ListItemWrapper>
+            <ListItemWrapper>
+              {displayClubs.length > 0 ? (
                 <View style={styles.tagsContainer}>
-                  {displayClubs.map((club, index) => (
+                  {displayClubs.map((club: string, index: number) => (
                     <Tag key={index} label={club} variant="white" />
                   ))}
                 </View>
+              ) : (
+                <View style={styles.emptyStateContainer}>
+                  <AppText style={styles.emptyStateText}>
+                    No clubs yet - Add them here
+                  </AppText>
+                </View>
+              )}
 
-                <Button
-                  title="Edit"
-                  iconLeft={Pencil}
-                  onPress={() => {}}
-                  variant="secondary"
-                  noRound
-                />
-              </ListItemWrapper>
-            </View>
-          )}
+              <Button
+                title="Edit"
+                iconLeft={Pencil}
+                onPress={() => {}}
+                variant="secondary"
+                noRound
+              />
+            </ListItemWrapper>
+          </View>
         </View>
       </ScrollView>
 
@@ -567,5 +579,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexDirection: 'row',
     gap: 24,
+  },
+  emptyStateContainer: {
+    backgroundColor: AppColors.backgroundDimmer,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateText: {
+    color: AppColors.foregroundDimmer,
+    fontSize: 14,
+    textAlign: 'center',
   },
 });
