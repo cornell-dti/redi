@@ -66,6 +66,7 @@ export async function createWeeklyPrompt(
   const promptDoc: WeeklyPromptDocWrite = {
     ...promptData,
     active: false, // New prompts start as inactive
+    status: 'scheduled', // Initial status is scheduled
     createdAt: FieldValue.serverTimestamp(),
   };
 
@@ -201,7 +202,11 @@ export async function activatePrompt(
 
   // Activate the specified prompt
   const promptRef = db.collection(PROMPTS_COLLECTION).doc(promptId);
-  batch.update(promptRef, { active: true });
+  batch.update(promptRef, {
+    active: true,
+    status: 'active',
+    activatedAt: FieldValue.serverTimestamp()
+  });
 
   await batch.commit();
 
@@ -220,6 +225,9 @@ export function promptToResponse(doc: WeeklyPromptDoc): WeeklyPromptResponse {
     releaseDate: toDate(doc.releaseDate).toISOString(),
     matchDate: toDate(doc.matchDate).toISOString(),
     active: doc.active,
+    status: doc.status,
+    activatedAt: doc.activatedAt ? toDate(doc.activatedAt).toISOString() : undefined,
+    matchesGeneratedAt: doc.matchesGeneratedAt ? toDate(doc.matchesGeneratedAt).toISOString() : undefined,
     createdAt: toDate(doc.createdAt).toISOString(),
   };
 }
@@ -336,9 +344,9 @@ export function answerToResponse(
 // =============================================================================
 
 /**
- * Validate that release date is Monday and match date is Friday (4 days later)
- * @param releaseDate - The release date (should be Monday)
- * @param matchDate - The match date (should be Friday)
+ * Validate that match date is after release date
+ * @param releaseDate - The release date
+ * @param matchDate - The match date
  * @throws Error if dates are invalid
  */
 function validatePromptDates(
@@ -348,24 +356,10 @@ function validatePromptDates(
   const release = toDate(releaseDate);
   const match = toDate(matchDate);
 
-  // Check if release date is Monday (day 1)
-  if (release.getDay() !== 1) {
-    throw new Error('Release date must be a Monday');
+  // Validate that match date is after release date
+  if (match.getTime() <= release.getTime()) {
+    throw new Error('Match date must be after release date');
   }
-
-  //TEMP DISABLE FOR TESTING
-  // Check if match date is Friday (day 5)
-
-  // if (match.getDay() !== 5) {
-  //   throw new Error('Match date must be a Friday');
-  // }
-
-  // Check if match date is exactly 4 days after release date
-  // const daysDifference =
-  //   (match.getTime() - release.getTime()) / (1000 * 60 * 60 * 24);
-  // if (daysDifference !== 4) {
-  //   throw new Error('Match date must be exactly 4 days after release date');
-  // }
 }
 
 /**

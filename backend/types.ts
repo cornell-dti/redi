@@ -265,6 +265,9 @@ export interface WeeklyPromptDoc {
   releaseDate: FirestoreTimestampType; // Monday at 12:01 AM ET
   matchDate: FirestoreTimestampType; // Friday at 12:01 AM ET
   active: boolean; // Only one prompt should be active at a time
+  status?: 'scheduled' | 'active' | 'completed'; // Current status of the prompt
+  activatedAt?: FirestoreTimestampType; // When the prompt was activated
+  matchesGeneratedAt?: FirestoreTimestampType; // When matches were generated
   createdAt: FirestoreTimestampType;
 }
 
@@ -275,6 +278,9 @@ export interface WeeklyPromptDocWrite {
   releaseDate: FirestoreTimestampType | Date;
   matchDate: FirestoreTimestampType | Date;
   active: boolean;
+  status?: 'scheduled' | 'active' | 'completed';
+  activatedAt?: FirestoreTimestampType | FieldValue;
+  matchesGeneratedAt?: FirestoreTimestampType | FieldValue;
   createdAt: FirestoreTimestampType | FieldValue;
 }
 
@@ -285,6 +291,9 @@ export interface WeeklyPromptResponse {
   releaseDate: string; // ISO string format for JSON
   matchDate: string; // ISO string format for JSON
   active: boolean;
+  status?: 'scheduled' | 'active' | 'completed';
+  activatedAt?: string; // ISO string format for JSON
+  matchesGeneratedAt?: string; // ISO string format for JSON
   createdAt: string; // ISO string format for JSON
 }
 

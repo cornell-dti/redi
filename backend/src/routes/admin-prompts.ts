@@ -472,4 +472,59 @@ router.post(
   }
 );
 
+/**
+ * DELETE /api/admin/prompts/active
+ * Delete the currently active prompt
+ * @route DELETE /api/admin/prompts/active
+ * @group Admin - Admin prompt management
+ * @param {string} firebaseUid.body.required - Firebase authentication UID
+ * @returns {object} Success message with deleted prompt ID
+ * @returns {Error} 400 - Missing firebaseUid
+ * @returns {Error} 403 - Unauthorized (not admin)
+ * @returns {Error} 404 - No active prompt found
+ * @returns {Error} 500 - Internal server error
+ */
+router.delete('/api/admin/prompts/active', async (req, res) => {
+  try {
+    const { firebaseUid } = req.body;
+
+    if (!firebaseUid) {
+      return res.status(400).json({ error: 'firebaseUid is required' });
+    }
+
+    // Verify admin access
+    const isAdmin = await verifyAdminAccess(firebaseUid);
+    if (!isAdmin) {
+      return res
+        .status(403)
+        .json({ error: 'Unauthorized: Admin access required' });
+    }
+
+    // Find the active prompt
+    const activePrompts = await getAllPrompts({ active: true });
+
+    if (activePrompts.length === 0) {
+      return res.status(404).json({ error: 'No active prompt found' });
+    }
+
+    const activePrompt = activePrompts[0];
+
+    console.log(
+      `Admin ${firebaseUid} deleting active prompt: ${activePrompt.promptId}`
+    );
+
+    // Delete the active prompt
+    await deletePrompt(activePrompt.promptId);
+
+    res.status(200).json({
+      message: 'Active prompt deleted successfully',
+      promptId: activePrompt.promptId
+    });
+  } catch (error) {
+    console.error('Error deleting active prompt:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
 export default router;

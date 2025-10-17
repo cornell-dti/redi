@@ -1,5 +1,5 @@
 // Import the functions you need from the SDKs you need
-import { getAnalytics } from 'firebase/analytics';
+import { getAnalytics, type Analytics } from 'firebase/analytics';
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
@@ -23,4 +23,6 @@ export const FIREBASE_APP = initializeApp(firebaseConfig);
 export const FIREBASE_DB = getFirestore(FIREBASE_APP);
 export const FIREBASE_STORAGE = getStorage(FIREBASE_APP);
 
-export const analytics = getAnalytics(FIREBASE_APP);
+// Only initialize analytics in the browser
+export const analytics: Analytics | null =
+  typeof window !== 'undefined' ? getAnalytics(FIREBASE_APP) : null;
