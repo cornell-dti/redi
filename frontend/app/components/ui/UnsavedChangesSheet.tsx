@@ -3,7 +3,6 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import AppText from './AppText';
 import Button from './Button';
-import ListItemWrapper from './ListItemWrapper';
 import Sheet from './Sheet';
 
 interface UnsavedChangesSheetProps {
@@ -20,25 +19,19 @@ export default function UnsavedChangesSheet({
   onDismiss,
 }: UnsavedChangesSheetProps) {
   return (
-    <Sheet
-      visible={visible}
-      onDismiss={onDismiss}
-      title="Unsaved Changes"
-      height={340}
-    >
+    <Sheet visible={visible} onDismiss={onDismiss} title="Unsaved Changes">
       <View style={styles.sheetContent}>
         <AppText>
           You have unsaved changes. Do you want to save them before leaving?
         </AppText>
 
-        <ListItemWrapper>
+        <View style={styles.buttonRow}>
           <Button
             title="Save & Exit"
             onPress={onSave}
             variant="primary"
             fullWidth
             iconLeft={Check}
-            noRound
           />
 
           <Button
@@ -47,7 +40,6 @@ export default function UnsavedChangesSheet({
             variant="secondary"
             fullWidth
             iconLeft={Pencil}
-            noRound
           />
 
           <Button
@@ -55,10 +47,9 @@ export default function UnsavedChangesSheet({
             onPress={onDiscard}
             fullWidth
             iconLeft={Trash2}
-            noRound
             variant="negative"
           />
-        </ListItemWrapper>
+        </View>
       </View>
     </Sheet>
   );
@@ -69,5 +60,9 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 24,
+  },
+  buttonRow: {
+    display: 'flex',
+    gap: 12,
   },
 });

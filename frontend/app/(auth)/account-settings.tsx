@@ -102,73 +102,65 @@ export default function AccountSettingsPage() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <EditingHeader title="Account Settings" showSave={false} />
+      <EditingHeader showSave={false} title="Account settings" />
 
       <ScrollView
         style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          rowGap: 24,
+        }}
       >
-        <View style={styles.sectionsWrapper}>
-          <AppText variant="title">Account settings</AppText>
+        <View style={styles.section}>
+          <AppText variant="subtitle" style={styles.subtitle}>
+            Email
+          </AppText>
+          <ListItemWrapper>
+            <AppInput value={`${email}`} noRound />
+            <Button
+              noRound
+              disabled
+              iconLeft={Pencil}
+              variant="secondary"
+              title="Cannot change email address"
+              onPress={() => {}}
+            />
+          </ListItemWrapper>
         </View>
 
-        <View style={styles.sectionsWrapper}>
-          <View style={styles.section}>
-            <AppText variant="subtitle" style={styles.subtitle}>
-              Email
-            </AppText>
-            <ListItemWrapper>
-              <AppInput value={`${email}`} noRound />
-              <Button
-                noRound
-                disabled
-                iconLeft={Pencil}
-                variant="secondary"
-                title="Cannot change email address"
-                onPress={() => {}}
-              />
-            </ListItemWrapper>
-          </View>
+        <View style={styles.section}>
+          <AppText variant="subtitle" style={styles.subtitle}>
+            Password
+          </AppText>
+          <ListItemWrapper>
+            <AppInput value="••••••••••" noRound />
+            <Button
+              noRound
+              iconLeft={Pencil}
+              variant="secondary"
+              title="Edit"
+              onPress={() => router.push('/edit-password' as any)}
+            />
+          </ListItemWrapper>
+        </View>
 
-          <View style={styles.section}>
-            <AppText variant="subtitle" style={styles.subtitle}>
-              Password
-            </AppText>
-            <ListItemWrapper>
-              <AppInput value="••••••••••" noRound />
-              <Button
-                noRound
-                iconLeft={Pencil}
-                variant="secondary"
-                title="Edit"
-                onPress={() => router.push('/edit-password' as any)}
-              />
-            </ListItemWrapper>
-          </View>
-
-          <View style={styles.section}>
-            <AppText
-              variant="subtitle"
-              style={styles.subtitle}
-              color="negative"
-            >
-              Danger Zone
-            </AppText>
-            <ListItemWrapper>
-              <ListItem
-                title="Log Out"
-                left={<LogOut color={AppColors.negativeDefault} size={20} />}
-                onPress={() => setShowSignOutSheet(true)}
-                destructive
-              />
-              <ListItem
-                title="Delete Account"
-                left={<Trash2 color={AppColors.negativeDefault} size={20} />}
-                onPress={() => setShowDeleteSheet(true)}
-                destructive
-              />
-            </ListItemWrapper>
-          </View>
+        <View style={styles.section}>
+          <AppText variant="subtitle" style={styles.subtitle} color="negative">
+            Danger Zone
+          </AppText>
+          <ListItemWrapper>
+            <ListItem
+              title="Log Out"
+              left={<LogOut color={AppColors.negativeDefault} size={20} />}
+              onPress={() => setShowSignOutSheet(true)}
+              destructive
+            />
+            <ListItem
+              title="Delete Account"
+              left={<Trash2 color={AppColors.negativeDefault} size={20} />}
+              onPress={() => setShowDeleteSheet(true)}
+              destructive
+            />
+          </ListItemWrapper>
         </View>
       </ScrollView>
 
@@ -205,12 +197,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   scrollView: {
-    flex: 1,
-  },
-  sectionsWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 24,
     padding: 16,
   },
   section: {

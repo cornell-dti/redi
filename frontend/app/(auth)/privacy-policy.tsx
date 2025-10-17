@@ -2,10 +2,10 @@ import React from 'react';
 import { ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
-import { useThemeAware } from '../contexts/ThemeContext';
 import AppText from '../components/ui/AppText';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
+import { useThemeAware } from '../contexts/ThemeContext';
 
 export default function PrivacyPolicyPage() {
   useThemeAware(); // Force re-render when theme changes
@@ -13,15 +13,13 @@ export default function PrivacyPolicyPage() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <EditingHeader showSave={false} />
+      <EditingHeader showSave={false} title="Privacy Policy" />
 
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.mainContainer}>
-          <AppText variant="title">Privacy Policy</AppText>
-
           <ListItemWrapper style={styles.mainText}>
             <AppText>
               Your privacy matters to us at Redi. By using our app, you agree to
