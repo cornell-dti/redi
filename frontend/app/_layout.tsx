@@ -5,8 +5,10 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { onAuthStateChanged } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
+import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
 
-export default function RootLayout() {
+function RootNavigator() {
+  useThemeAware(); // This makes all screens theme-aware
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const router = useRouter();
@@ -96,6 +98,14 @@ export default function RootLayout() {
         }}
       />
     </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootNavigator />
+    </ThemeProvider>
   );
 }
 

@@ -29,6 +29,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
+import { useThemeAware } from '../../contexts/ThemeContext';
 import Header from '../../components/ui/Header';
 import MatchCard from '../../components/ui/MatchCard';
 import Tag from '../../components/ui/Tag';
@@ -65,8 +66,8 @@ const mockMatches = [
 ];
 
 export default function MatchesScreen() {
+  useThemeAware(); // Force re-render when theme changes
   const [sheetVisible1, setSheetVisible1] = useState(false);
-
   const [sheetVisible2, setSheetVisible2] = useState(false);
 
   return (
@@ -397,7 +398,9 @@ export default function MatchesScreen() {
         </View>
       </Sheet>
 
-      <TouchableOpacity style={styles.fab}>
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: AppColors.accentDefault }]}
+      >
         <Search size={28} color={AppColors.backgroundDefault} />
       </TouchableOpacity>
     </SafeAreaView>
@@ -422,7 +425,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: AppColors.accentDefault,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -15,10 +15,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
+import { useThemeAware } from '../contexts/ThemeContext';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 
 export default function EditPromptPage() {
+  useThemeAware(); // Force re-render when theme changes
   const params = useLocalSearchParams();
   const promptId = params.promptId as string;
   const initialQuestion = params.question as string | undefined;

@@ -12,9 +12,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
+import { useThemeAware } from '../contexts/ThemeContext';
 import EditingHeader from '../components/ui/EditingHeader';
 
 export default function EditPasswordPage() {
+  useThemeAware(); // Force re-render when theme changes
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [saving, setSaving] = useState(false);

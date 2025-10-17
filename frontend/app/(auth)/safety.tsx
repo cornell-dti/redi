@@ -9,9 +9,11 @@ import React, { useState } from 'react';
 import { ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
+import { useThemeAware } from '../contexts/ThemeContext';
 import EditingHeader from '../components/ui/EditingHeader';
 
 export default function SafetyPage() {
+  useThemeAware(); // Force re-render when theme changes
   const [blockedUsers, setBlockedUsers] = useState<string[]>([
     'john_doe',
     'jane_smith',

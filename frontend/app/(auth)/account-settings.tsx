@@ -19,10 +19,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser, signOutUser } from '../api/authService';
 import { AppColors } from '../components/AppColors';
+import { useThemeAware } from '../contexts/ThemeContext';
 import AppInput from '../components/ui/AppInput';
 import EditingHeader from '../components/ui/EditingHeader';
 
 export default function AccountSettingsPage() {
+  useThemeAware(); // Force re-render when theme changes
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
   const [showSignOutSheet, setShowSignOutSheet] = useState(false);

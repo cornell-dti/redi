@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
+import { useThemeAware } from '../../contexts/ThemeContext';
 import ChatItem from '../../components/ui/ChatItem';
 import Header from '../../components/ui/Header';
 
@@ -60,6 +61,7 @@ const mockChats = [
 ];
 
 export default function ChatScreen() {
+  useThemeAware(); // Force re-render when theme changes
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />

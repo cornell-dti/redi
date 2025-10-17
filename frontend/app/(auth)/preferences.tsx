@@ -23,8 +23,10 @@ import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import SearchableMultiSelect from '../components/ui/SearchableMultiSelect';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
+import { useThemeAware } from '../contexts/ThemeContext';
 
 export default function DatingPreferencesPage() {
+  useThemeAware(); // Force re-render when theme changes
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showUnsavedSheet, setShowUnsavedSheet] = useState(false);
@@ -309,7 +311,7 @@ export default function DatingPreferencesPage() {
                 onPress={() => toggleYear(year)}
                 right={
                   selectedYears.includes(year) ? (
-                    <Check size={24} color={AppColors.backgroundDefault} />
+                    <Check size={24} color={AppColors.accentDefault} />
                   ) : (
                     <Square color={AppColors.foregroundDimmer} />
                   )
@@ -359,7 +361,7 @@ export default function DatingPreferencesPage() {
               onPress={() => toggleGender('female')}
               right={
                 selectedGenders.includes('female') ? (
-                  <Check size={24} color={AppColors.backgroundDefault} />
+                  <Check size={24} color={AppColors.accentDefault} />
                 ) : (
                   <Square color={AppColors.foregroundDimmer} />
                 )
@@ -371,7 +373,7 @@ export default function DatingPreferencesPage() {
               onPress={() => toggleGender('male')}
               right={
                 selectedGenders.includes('male') ? (
-                  <Check size={24} color={AppColors.backgroundDefault} />
+                  <Check size={24} color={AppColors.accentDefault} />
                 ) : (
                   <Square color={AppColors.foregroundDimmer} />
                 )
@@ -383,7 +385,7 @@ export default function DatingPreferencesPage() {
               onPress={() => toggleGender('non-binary')}
               right={
                 selectedGenders.includes('non-binary') ? (
-                  <Check size={24} color={AppColors.backgroundDefault} />
+                  <Check size={24} color={AppColors.accentDefault} />
                 ) : (
                   <Square color={AppColors.foregroundDimmer} />
                 )
