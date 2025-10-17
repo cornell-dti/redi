@@ -181,28 +181,28 @@ export default function ProfileScreen() {
               onPress={() => router.push('/preferences' as any)}
               title="Dating preferences"
               left={<Heart />}
-              right={<ChevronRight />}
+              right={<ChevronRight size={20} />}
             />
 
             <ListItem
               onPress={() => router.push('/appearance' as any)}
               title="Appearance"
               left={<Palette />}
-              right={<ChevronRight />}
+              right={<ChevronRight size={20} />}
             />
 
             <ListItem
               onPress={() => router.push('/account-settings' as any)}
               title="Account settings"
               left={<SettingsIcon />}
-              right={<ChevronRight />}
+              right={<ChevronRight size={20} />}
             />
 
             <ListItem
               onPress={() => router.push('/safety' as any)}
               title="Safety"
               left={<Lock />}
-              right={<ChevronRight />}
+              right={<ChevronRight size={20} />}
             />
           </ListItemWrapper>
 
@@ -211,28 +211,28 @@ export default function ProfileScreen() {
               onPress={() => router.push('/terms-and-conditions' as any)}
               title="Terms & Conditions"
               left={<ClipboardList />}
-              right={<ChevronRight />}
+              right={<ChevronRight size={20} />}
             />
 
             <ListItem
               onPress={() => router.push('/privacy-policy' as any)}
               title="Privacy Policy"
               left={<ShieldCheck />}
-              right={<ChevronRight />}
+              right={<ChevronRight size={20} />}
             />
 
             <ListItem
               onPress={() => {}}
               title="Leave a rating"
               left={<StarIcon />}
-              right={<ExternalLink />}
+              right={<ExternalLink size={20} />}
             />
 
             <ListItem
               onPress={() => router.push('/contact' as any)}
               title="Contact the team"
               left={<MailIcon />}
-              right={<ChevronRight />}
+              right={<ChevronRight size={20} />}
             />
           </ListItemWrapper>
 
@@ -241,7 +241,9 @@ export default function ProfileScreen() {
               onPress={() => setShowSignOutSheet(true)}
               title="Sign Out"
               left={<LogOut color={AppColors.negativeDefault} />}
-              right={<ChevronRight color={AppColors.negativeDefault} />}
+              right={
+                <ChevronRight color={AppColors.negativeDefault} size={20} />
+              }
               destructive
             />
           </ListItemWrapper>
