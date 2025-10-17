@@ -28,3 +28,6 @@ export * from './notification';
 
 // API types
 export * from './api';
+
+// Weekly Prompts types
+export * from './prompts';
