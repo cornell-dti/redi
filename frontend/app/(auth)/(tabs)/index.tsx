@@ -1,401 +1,495 @@
+// Main Matches/Home Screen
+import { getProfileByNetid } from '@/app/api/profileApi';
+import {
+    getActivePrompt,
+    getMatchHistory,
+    getPromptAnswer,
+    getPromptMatches,
+    submitPromptAnswer,
+} from '@/app/api/promptsApi';
+import { AppColors } from '@/app/components/AppColors';
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
-import IconButton from '@/app/components/ui/IconButton';
-import IconWrapper from '@/app/components/ui/IconWrapper';
-import ListItem from '@/app/components/ui/ListItem';
-import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
+import CountdownTimer from '@/app/components/ui/CountdownTimer';
+import Header from '@/app/components/ui/Header';
 import Sheet from '@/app/components/ui/Sheet';
+import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
 import {
-  AirVent,
-  ArrowDownAZ,
-  Check,
-  ChevronRight,
-  Clapperboard,
-  Edit,
-  Plus,
-  RefreshCw,
-  Search,
-  SlidersHorizontal,
-  Square,
-} from 'lucide-react-native';
-import React, { useState } from 'react';
+    getNextFridayMidnight,
+    isCountdownPeriod,
+} from '@/app/utils/dateUtils';
+import { calculateAge } from '@/app/utils/profileUtils';
 import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    ProfileResponse,
+    WeeklyMatchResponse,
+    WeeklyPromptAnswerResponse,
+    WeeklyPromptResponse,
+} from '@/types';
+import { Eye, Search, Send } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Dimensions,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AppColors } from '../../components/AppColors';
-import { useThemeAware } from '../../contexts/ThemeContext';
-import Header from '../../components/ui/Header';
-import MatchCard from '../../components/ui/MatchCard';
-import Tag from '../../components/ui/Tag';
 
-// Mock data for matches
-const mockMatches = [
-  {
-    id: '1',
-    name: 'Abrar',
-    age: 210,
-    school: 'College of Arts and Sciences',
-    image:
-      'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
-    bio: "Love drinking matcha around Ithaca and sewing in my Grandma's sewing circle!",
-  },
-  {
-    id: '2',
-    name: 'Cleemmie',
-    age: 21,
-    school: 'Engineering',
-    image:
-      'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
-    bio: 'CS major who loves board games and bubble tea',
-  },
-  {
-    id: '3',
-    name: 'Arshie Barshie',
-    age: 93,
-    school: 'Dyson',
-    image:
-      'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
-    bio: 'Business student with a passion for sustainable fashion',
-  },
-];
+const { width } = Dimensions.get('window');
+
+interface MatchWithProfile {
+  netid: string;
+  profile: ProfileResponse | null;
+  revealed: boolean;
+}
 
 export default function MatchesScreen() {
-  useThemeAware(); // Force re-render when theme changes
-  const [sheetVisible1, setSheetVisible1] = useState(false);
-  const [sheetVisible2, setSheetVisible2] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [showCountdown, setShowCountdown] = useState(isCountdownPeriod());
+  const [activePrompt, setActivePrompt] = useState<WeeklyPromptResponse | null>(
+    null
+  );
+  const [userAnswer, setUserAnswer] = useState<string>('');
+  const [currentMatches, setCurrentMatches] = useState<MatchWithProfile[]>([]);
+  const [previousMatches, setPreviousMatches] = useState<MatchWithProfile[]>(
+    []
+  );
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [showPromptSheet, setShowPromptSheet] = useState(false);
+  const [showAnswerSheet, setShowAnswerSheet] = useState(false);
+  const [tempAnswer, setTempAnswer] = useState('');
+
+  useEffect(() => {
+    loadData();
+
+    // Update countdown state every minute
+    const interval = setInterval(() => {
+      setShowCountdown(isCountdownPeriod());
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      let prompt: WeeklyPromptResponse | null = null;
+
+      // Get active prompt
+      try {
+        prompt = await getActivePrompt();
+        setActivePrompt(prompt);
+      } catch (promptError) {
+        console.error('Error fetching active prompt:', promptError);
+        setActivePrompt(null);
+        setLoading(false);
+        return;
+      }
+
+      if (!prompt) {
+        setLoading(false);
+        return;
+      }
+
+      // Get user's answer to the prompt
+      try {
+        const answer: WeeklyPromptAnswerResponse = await getPromptAnswer(
+          prompt.promptId
+        );
+        setUserAnswer(answer.answer);
+      } catch {
+        // No answer yet
+        setUserAnswer('');
+      }
+
+      // Get current week's matches
+      try {
+        const matches: WeeklyMatchResponse = await getPromptMatches(
+          prompt.promptId
+        );
+        const matchesWithProfiles = await Promise.all(
+          matches.matches.map(async (netid: string, index: number) => {
+            try {
+              const profile = await getProfileByNetid(netid);
+              return {
+                netid,
+                profile,
+                revealed: matches.revealed[index],
+              };
+            } catch {
+              return {
+                netid,
+                profile: null,
+                revealed: matches.revealed[index],
+              };
+            }
+          })
+        );
+        setCurrentMatches(matchesWithProfiles);
+      } catch {
+        // No matches yet
+        setCurrentMatches([]);
+      }
+
+      // Get previous matches
+      // TODO: Idk if we want to reset previous matches every week or keep them displayed to users
+      // maybe if neither nudges after a week they go away?
+      try {
+        const history: WeeklyMatchResponse[] = await getMatchHistory(10);
+        // Filter out current week's matches
+        const oldMatches = history.filter(
+          (m: WeeklyMatchResponse) => m.promptId !== prompt.promptId
+        );
+
+        // Get profiles for previous matches
+        const previousMatchesWithProfiles = await Promise.all(
+          oldMatches.flatMap((matchRecord: WeeklyMatchResponse) =>
+            matchRecord.matches.map(async (netid: string, index: number) => {
+              try {
+                const profile = await getProfileByNetid(netid);
+                return {
+                  netid,
+                  profile,
+                  revealed: matchRecord.revealed[index],
+                };
+              } catch {
+                return {
+                  netid,
+                  profile: null,
+                  revealed: matchRecord.revealed[index],
+                };
+              }
+            })
+          )
+        );
+        setPreviousMatches(previousMatchesWithProfiles);
+      } catch {
+        setPreviousMatches([]);
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitAnswer = async () => {
+    if (!activePrompt || !tempAnswer.trim()) return;
+
+    try {
+      await submitPromptAnswer(activePrompt.promptId, tempAnswer);
+      setUserAnswer(tempAnswer);
+      setShowAnswerSheet(false);
+      setTempAnswer('');
+    } catch (error) {
+      console.error('Error submitting answer:', error);
+    }
+  };
+
+  const renderCountdownPeriod = () => (
+    <>
+      <View style={styles.countdownSection}>
+        <AppText variant="title" style={styles.sectionTitle}>
+          Matches dropping in
+        </AppText>
+        <CountdownTimer targetDate={getNextFridayMidnight()} />
+        <AppText variant="body" color="dimmer" style={styles.subtitle}>
+          Dropping Friday at 12:00 AM
+        </AppText>
+      </View>
+
+      {activePrompt && (
+        <View style={styles.promptSection}>
+          <AppText variant="subtitle" style={styles.promptLabel}>
+            This week&apos;s prompt
+          </AppText>
+          <View style={styles.promptCard}>
+            <AppText variant="body" style={styles.promptQuestion}>
+              {activePrompt.question}
+            </AppText>
+          </View>
+
+          {userAnswer ? (
+            <View style={styles.answerCard}>
+              <AppText variant="bodySmall" color="dimmer">
+                Your answer
+              </AppText>
+              <AppText variant="body" style={{ marginTop: 8 }}>
+                {userAnswer}
+              </AppText>
+            </View>
+          ) : (
+            <Button
+              title="Submit your answer"
+              onPress={() => {
+                setTempAnswer('');
+                setShowAnswerSheet(true);
+              }}
+              variant="primary"
+              iconLeft={Send}
+              fullWidth
+            />
+          )}
+
+          <Button
+            title="Show this week's prompt"
+            onPress={() => setShowPromptSheet(true)}
+            variant="secondary"
+            iconLeft={Eye}
+            fullWidth
+          />
+        </View>
+      )}
+    </>
+  );
+
+  const renderWeekendPeriod = () => (
+    <>
+      {currentMatches.length > 0 && (
+        <View style={styles.section}>
+          <AppText variant="subtitle" style={styles.sectionTitle}>
+            This Week&apos;s Matches
+          </AppText>
+        </View>
+      )}
+    </>
+  );
+
+  const renderCurrentMatch = () => {
+    if (currentMatches.length === 0) {
+      return (
+        <View style={styles.emptyState}>
+          <AppText variant="body" color="dimmer">
+            No matches available yet. Check back after submitting your answer!
+          </AppText>
+        </View>
+      );
+    }
+
+    const yearLabels: Record<number, string> = {
+      1: 'Freshman',
+      2: 'Sophomore',
+      3: 'Junior',
+      4: 'Senior',
+      5: 'Graduate',
+      6: 'PhD',
+      7: 'PostDoc',
+    };
+
+    return (
+      <View style={styles.matchContainer}>
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(event) => {
+            const index = Math.round(event.nativeEvent.contentOffset.x / width);
+            setCurrentMatchIndex(index);
+          }}
+          contentOffset={{ x: currentMatchIndex * width, y: 0 }}
+        >
+          {currentMatches.map((m, index) => {
+            if (!m.profile) return null;
+            const matchProfile = m.profile;
+            const matchAge = calculateAge(matchProfile.birthdate);
+
+            return (
+              <View key={index} style={{ width: width - 40 }}>
+                <WeeklyMatchCard
+                  name={matchProfile.firstName}
+                  age={matchAge}
+                  year={yearLabels[matchProfile.year] || 'Student'}
+                  major={matchProfile.major.join(', ')}
+                  image={
+                    matchProfile.pictures[0] ||
+                    'https://via.placeholder.com/400'
+                  }
+                  onNudge={() => console.log('Nudge', matchProfile.netid)}
+                  onViewProfile={() =>
+                    console.log('View profile', matchProfile.netid)
+                  }
+                />
+              </View>
+            );
+          })}
+        </ScrollView>
+
+        {currentMatches.length > 1 && (
+          <View style={styles.pagination}>
+            {currentMatches.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.paginationDot,
+                  index === currentMatchIndex && styles.paginationDotActive,
+                ]}
+              />
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  const renderPreviousMatches = () => {
+    if (previousMatches.length === 0) return null;
+
+    return (
+      <View style={styles.section}>
+        <View style={styles.divider} />
+        <AppText variant="subtitle" style={styles.sectionTitle}>
+          Previous Matches
+        </AppText>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.previousMatchesGrid}>
+            {previousMatches.slice(0, 6).map((match, index) => {
+              if (!match.profile) return null;
+              const profile = match.profile;
+
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.previousMatchCard}
+                  onPress={() => console.log('View match', profile.netid)}
+                >
+                  <View style={styles.previousMatchImage}>
+                    <AppText variant="title">{profile.firstName[0]}</AppText>
+                  </View>
+                  <AppText variant="bodySmall" numberOfLines={1}>
+                    {profile.firstName}
+                  </AppText>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </View>
+    );
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <Header title="Matches" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={AppColors.accentDefault} />
+          <AppText variant="body" color="dimmer" style={{ marginTop: 16 }}>
+            Loading matches...
+          </AppText>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show error state if no active prompt
+  if (!activePrompt) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <Header title="Matches" />
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.content}>
+            <View style={styles.emptyState}>
+              <AppText variant="title" style={{ marginBottom: 12 }}>
+                Unable to load matches
+              </AppText>
+              <Button
+                title="Retry"
+                onPress={loadData}
+                variant="primary"
+                style={{ marginTop: 24 }}
+              />
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-
-      <Header
-        title="Discover"
-        right={
-          <TouchableOpacity>
-            <SlidersHorizontal size={24} color={AppColors.foregroundDimmer} />
-          </TouchableOpacity>
-        }
-      />
+      <Header title="Matches" />
 
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          <AppText variant="subtitle">New Matches</AppText>
-          {mockMatches.map((match) => (
-            <MatchCard
-              key={match.id}
-              name={match.name}
-              age={match.age}
-              school={match.school}
-              bio={match.bio}
-              image={match.image}
-            />
-          ))}
-        </View>
+          {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()}
 
-        <Button
-          title="Load More Profiles"
-          onPress={() => {}}
-          iconLeft={RefreshCw}
-          fullWidth
-        />
+          {renderCurrentMatch()}
 
-        <View
-          style={{
-            display: 'flex',
-            gap: 12,
-            padding: 24,
-            paddingBottom: 128,
-            backgroundColor: 'white',
-          }}
-        >
-          <Button title="Button" noRound onPress={() => {}} />
-
-          <Button
-            title="Button"
-            noRound
-            variant="negative"
-            onPress={() => {}}
-          />
-
-          <Button title="Button" onPress={() => {}} />
-
-          <Button title="Button" onPress={() => {}} variant="secondary" />
-
-          <Button title="Button" onPress={() => {}} variant="negative" />
-          <Button title="Button" onPress={() => {}} iconLeft={Clapperboard} />
-
-          <Button
-            title="Button"
-            onPress={() => {}}
-            iconLeft={Plus}
-            variant="secondary"
-          />
-
-          <Button
-            title="Button"
-            onPress={() => {}}
-            iconLeft={AirVent}
-            variant="negative"
-          />
-
-          <Button title="Button" onPress={() => {}} iconRight={Plus} />
-
-          <Button
-            title="Button"
-            onPress={() => {}}
-            iconRight={ArrowDownAZ}
-            variant="secondary"
-          />
-
-          <Button
-            title="Button"
-            onPress={() => {}}
-            iconRight={Plus}
-            variant="negative"
-          />
-          <AppText variant="subtitle">Icon Buttons</AppText>
-
-          <View
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 12,
-            }}
-          >
-            <IconButton onPress={() => {}} icon={Plus} />
-
-            <IconButton
-              onPress={() => {}}
-              icon={RefreshCw}
-              variant="secondary"
-            />
-
-            <IconButton onPress={() => {}} icon={AirVent} variant="negative" />
-
-            <IconButton onPress={() => {}} icon={Plus} noRound />
-
-            <IconButton
-              onPress={() => {}}
-              icon={RefreshCw}
-              variant="secondary"
-              noRound
-            />
-
-            <IconButton
-              onPress={() => {}}
-              icon={AirVent}
-              variant="negative"
-              noRound
-            />
-
-            <IconButton onPress={() => {}} icon={Search} size="small" />
-
-            <IconButton
-              onPress={() => {}}
-              icon={Search}
-              variant="secondary"
-              size="small"
-            />
-
-            <IconButton
-              onPress={() => {}}
-              icon={Search}
-              variant="negative"
-              size="small"
-            />
-          </View>
-
-          <AppText variant="title">Title Text</AppText>
-          <AppText variant="subtitle">Subtitle Text</AppText>
-          <AppText variant="body">Body Text</AppText>
-          <AppText variant="bodySmall">Body Small Text</AppText>
-
-          <Button
-            title="Open Sheet 1"
-            onPress={() => setSheetVisible1(true)}
-            variant="secondary"
-          />
-
-          <Button
-            title="Open Sheet 2"
-            onPress={() => setSheetVisible2(true)}
-            variant="secondary"
-          />
-
-          <AppInput onChangeText={() => {}} placeholder="Placeholder" />
-
-          <AppInput
-            onChangeText={() => {}}
-            placeholder="Placeholder (no label)"
-            required
-          />
-
-          <AppInput
-            label="Label"
-            onChangeText={() => {}}
-            placeholder="Placeholder (no label)"
-          />
-
-          <AppInput
-            label="Label"
-            onChangeText={() => {}}
-            placeholder="Placeholder"
-            required
-          />
-
-          <AppInput
-            label="Label"
-            onChangeText={() => {}}
-            placeholder="Placeholder (no label)"
-            error="This is an error message"
-          />
-
-          <AppInput
-            label="Label"
-            onChangeText={() => {}}
-            placeholder="Placeholder"
-            required
-            error="This is an error message"
-          />
-
-          <View style={{ marginTop: 20 }}>
-            <AppText variant="subtitle">ListItem Examples</AppText>
-
-            <ListItemWrapper>
-              <ListItem title="Default item" onPress={() => {}} />
-
-              <ListItem
-                title="With description"
-                description="This is a secondary description"
-                onPress={() => {}}
-              />
-
-              <ListItem
-                title="Left and right elements"
-                left={
-                  <IconWrapper variant="white">
-                    <Edit />
-                  </IconWrapper>
-                }
-                right={<ChevronRight />}
-                onPress={() => {}}
-              />
-
-              <ListItem
-                title="Selected item"
-                description="Selected variant should have dimmer background"
-                selected
-                onPress={() => {}}
-                right={<Check color={AppColors.backgroundDefault} />}
-              />
-            </ListItemWrapper>
-            <AppText variant="subtitle">Tags</AppText>
-            <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-              <Tag label="Student" />
-
-              <Tag label="Verified" icon={SlidersHorizontal} />
-
-              <Tag label="Removable" dismissible onDismiss={() => {}} />
-            </View>
-
-            <View
-              style={{
-                backgroundColor: AppColors.backgroundDimmer,
-                flexDirection: 'row',
-                gap: 8,
-                flexWrap: 'wrap',
-                padding: 12,
-              }}
-            >
-              <Tag variant="white" label="Student" />
-
-              <Tag variant="white" label="Verified" icon={SlidersHorizontal} />
-
-              <Tag
-                variant="white"
-                label="Removable"
-                dismissible
-                onDismiss={() => {}}
-              />
-            </View>
-          </View>
+          {renderPreviousMatches()}
         </View>
       </ScrollView>
 
+      {/* Prompt Details Sheet */}
       <Sheet
-        visible={sheetVisible1}
-        onDismiss={() => setSheetVisible1(false)}
-        height={500}
-        title="Example sheet title"
+        visible={showPromptSheet}
+        onDismiss={() => setShowPromptSheet(false)}
+        height={300}
+        title="This Week's Prompt"
       >
-        <View style={{ display: 'flex', gap: 24 }}>
-          <AppText variant="body">
-            This sheet was opened from the Discover screen.
-          </AppText>
-
-          <Button variant="primary" title="Hi" onPress={() => {}} />
-
-          <Button variant="negative" title="Hi" onPress={() => {}} />
-
-          <ListItemWrapper>
-            <Button variant="primary" title="Hi" onPress={() => {}} noRound />
-
-            <Button variant="secondary" title="Hi" onPress={() => {}} noRound />
-
-            <Button variant="negative" title="Hi" onPress={() => {}} noRound />
-          </ListItemWrapper>
-        </View>
+        {activePrompt && (
+          <View style={{ gap: 16 }}>
+            <AppText variant="body">{activePrompt.question}</AppText>
+            {userAnswer && (
+              <>
+                <AppText variant="subtitle">Your Answer</AppText>
+                <View style={styles.answerCard}>
+                  <AppText variant="body">{userAnswer}</AppText>
+                </View>
+              </>
+            )}
+          </View>
+        )}
       </Sheet>
 
+      {/* Submit Answer Sheet */}
       <Sheet
-        visible={sheetVisible2}
-        onDismiss={() => setSheetVisible2(false)}
-        height={500}
-        title="Another sheet"
+        visible={showAnswerSheet}
+        onDismiss={() => setShowAnswerSheet(false)}
+        height={400}
+        title="Submit Your Answer"
       >
-        <View
-          style={{ display: 'flex', justifyContent: 'space-between', flex: 1 }}
-        >
-          <ListItemWrapper>
-            <ListItem
-              title="Default item"
-              right={<Square />}
-              onPress={() => {}}
+        {activePrompt && (
+          <View style={{ gap: 16, flex: 1 }}>
+            <AppText variant="body" color="dimmer">
+              {activePrompt.question}
+            </AppText>
+            <AppInput
+              placeholder="Your answer..."
+              value={tempAnswer}
+              onChangeText={setTempAnswer}
+              multiline
+              numberOfLines={4}
+              maxLength={500}
+              style={{ height: 120 }}
             />
-
-            <ListItem
-              title="Default item"
-              right={<Square />}
-              onPress={() => {}}
+            <AppText variant="bodySmall" color="dimmer">
+              {tempAnswer.length}/500 characters
+            </AppText>
+            <Button
+              title="Submit"
+              onPress={handleSubmitAnswer}
+              variant="primary"
+              fullWidth
+              disabled={!tempAnswer.trim()}
             />
-
-            <ListItem
-              title="Selected item"
-              description="Selected variant should have dimmer background"
-              selected
-              onPress={() => {}}
-              right={<Check color={AppColors.backgroundDefault} />}
-            />
-          </ListItemWrapper>
-
-          <Button
-            title="Select"
-            iconLeft={Check}
-            variant="primary"
-            onPress={() => {}}
-            fullWidth
-          />
-        </View>
+          </View>
+        )}
       </Sheet>
 
       <TouchableOpacity
@@ -417,6 +511,98 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+    paddingBottom: 100,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  countdownSection: {
+    backgroundColor: AppColors.backgroundDefault,
+    borderRadius: 12,
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 16,
+  },
+  sectionTitle: {
+    marginBottom: 8,
+  },
+  subtitle: {
+    marginTop: 8,
+  },
+  promptSection: {
+    gap: 12,
+    marginBottom: 24,
+  },
+  promptLabel: {
+    marginLeft: 4,
+  },
+  promptCard: {
+    backgroundColor: AppColors.backgroundDefault,
+    borderRadius: 12,
+    padding: 20,
+  },
+  promptQuestion: {
+    lineHeight: 22,
+  },
+  answerCard: {
+    backgroundColor: AppColors.backgroundDefault,
+    borderRadius: 12,
+    padding: 16,
+  },
+  section: {
+    marginTop: 24,
+  },
+  matchContainer: {
+    marginBottom: 24,
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 16,
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: AppColors.backgroundDimmest,
+  },
+  paginationDotActive: {
+    backgroundColor: AppColors.accentDefault,
+    width: 24,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: AppColors.backgroundDimmest,
+    marginVertical: 24,
+  },
+  emptyState: {
+    backgroundColor: AppColors.backgroundDefault,
+    borderRadius: 12,
+    padding: 40,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  previousMatchesGrid: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  previousMatchCard: {
+    alignItems: 'center',
+    gap: 8,
+    width: 80,
+  },
+  previousMatchImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: AppColors.backgroundDimmer,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   fab: {
     position: 'absolute',

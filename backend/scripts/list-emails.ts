@@ -12,7 +12,10 @@ interface EmailDoc {
 async function listEmails(): Promise<void> {
   try {
     const snapshot = await db.collection('landing-emails').get();
-    const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as EmailDoc[];
+    const docs = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as EmailDoc[];
     const emails = docs.map((doc) => doc.email).join(' ');
 
     console.log(emails);
