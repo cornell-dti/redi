@@ -289,35 +289,35 @@ export default function EditProfileScreen() {
               title="Age"
               description={displayAge ? `${displayAge}` : 'Not set'}
               right={<ChevronRight size={20} />}
-              onPress={() => {}}
+              onPress={() => router.push('/edit-age' as any)}
             />
 
             <ListItem
               title="Gender"
               description={profile?.gender}
               right={<ChevronRight size={20} />}
-              onPress={() => {}}
+              onPress={() => router.push('/edit-gender' as any)}
             />
 
             <ListItem
               title="Sexuality"
-              description={`${profile?.sexualOrientation || undefined}`}
+              description={profile?.sexualOrientation?.join(', ') || 'Not set'}
               right={<ChevronRight size={20} />}
-              onPress={() => {}}
+              onPress={() => router.push('/edit-sexuality' as any)}
             />
 
             <ListItem
               title="Hometown"
-              description={profile?.hometown}
+              description={profile?.hometown || 'Not set'}
               right={<ChevronRight size={20} />}
-              onPress={() => {}}
+              onPress={() => router.push('/edit-hometown' as any)}
             />
 
             <ListItem
               title="Education"
               description={`${profile?.year} in ${profile?.school} studying ${profile?.major?.join(', ')}`}
               right={<ChevronRight size={20} />}
-              onPress={() => {}}
+              onPress={() => router.push('/edit-education' as any)}
             />
           </ListItemWrapper>
         </View>

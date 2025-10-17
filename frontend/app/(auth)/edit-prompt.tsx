@@ -15,9 +15,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
-import { useThemeAware } from '../contexts/ThemeContext';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
+import { useThemeAware } from '../contexts/ThemeContext';
 
 export default function EditPromptPage() {
   useThemeAware(); // Force re-render when theme changes
@@ -45,7 +45,7 @@ export default function EditPromptPage() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <EditingHeader onBack={() => router.back()} />
+      <EditingHeader onBack={() => router.back()} title="Edit prompt" />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -56,8 +56,6 @@ export default function EditPromptPage() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          <AppText variant="title">Edit prompt</AppText>
-
           <View style={styles.part}>
             <AppText color="dimmer" style={styles.subtitle}>
               Prompt question

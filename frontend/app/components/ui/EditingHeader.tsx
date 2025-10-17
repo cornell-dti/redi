@@ -62,7 +62,9 @@ export default function EditingHeader({
             disabled={saveDisabled}
             iconLeft={Check}
           />
-        ) : null}
+        ) : (
+          <View style={styles.placeholder} />
+        )}
       </View>
     </View>
   );
@@ -82,7 +84,12 @@ const styles = StyleSheet.create({
   },
   title: {
     position: 'absolute',
-    transform: 'translateX(-50%)',
-    left: '50%',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    zIndex: -1,
+  },
+  placeholder: {
+    width: 44, // Same width as IconButton to maintain symmetry
   },
 });
