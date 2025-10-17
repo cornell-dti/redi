@@ -25,12 +25,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
-import { useThemeAware } from '../contexts/ThemeContext';
 import Button from '../components/ui/Button';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
+import { useThemeAware } from '../contexts/ThemeContext';
 import { calculateAge } from '../utils/profileUtils';
 
 export default function EditProfileScreen() {
