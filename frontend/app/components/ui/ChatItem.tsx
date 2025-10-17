@@ -26,7 +26,14 @@ export default function ChatItem({
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={styles.avatarContainer}>
         <Image source={{ uri: image }} style={styles.avatar} />
-        {online && <View style={styles.onlineIndicator} />}
+        {online && (
+          <View
+            style={[
+              styles.onlineIndicator,
+              { backgroundColor: AppColors.accentDefault },
+            ]}
+          />
+        )}
       </View>
       <View style={styles.content}>
         <View style={styles.header}>
@@ -43,7 +50,14 @@ export default function ChatItem({
           >
             {lastMessage}
           </AppText>
-          {unread && <View style={styles.unreadDot} />}
+          {unread && (
+            <View
+              style={[
+                styles.unreadDot,
+                { backgroundColor: AppColors.accentDefault },
+              ]}
+            />
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -73,7 +87,6 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: AppColors.accentDefault,
     borderWidth: 2,
     borderColor: AppColors.backgroundDefault,
   },
@@ -98,7 +111,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: AppColors.accentDefault,
     marginLeft: 8,
   },
 });

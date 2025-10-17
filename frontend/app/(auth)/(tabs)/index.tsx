@@ -1,11 +1,11 @@
 // Main Matches/Home Screen
 import { getProfileByNetid } from '@/app/api/profileApi';
 import {
-  getActivePrompt,
-  getMatchHistory,
-  getPromptAnswer,
-  getPromptMatches,
-  submitPromptAnswer,
+    getActivePrompt,
+    getMatchHistory,
+    getPromptAnswer,
+    getPromptMatches,
+    submitPromptAnswer,
 } from '@/app/api/promptsApi';
 import { AppColors } from '@/app/components/AppColors';
 import AppInput from '@/app/components/ui/AppInput';
@@ -16,26 +16,26 @@ import Header from '@/app/components/ui/Header';
 import Sheet from '@/app/components/ui/Sheet';
 import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
 import {
-  getNextFridayMidnight,
-  isCountdownPeriod,
+    getNextFridayMidnight,
+    isCountdownPeriod,
 } from '@/app/utils/dateUtils';
 import { calculateAge } from '@/app/utils/profileUtils';
 import {
-  ProfileResponse,
-  WeeklyMatchResponse,
-  WeeklyPromptAnswerResponse,
-  WeeklyPromptResponse,
+    ProfileResponse,
+    WeeklyMatchResponse,
+    WeeklyPromptAnswerResponse,
+    WeeklyPromptResponse,
 } from '@/types';
-import { Eye, Send } from 'lucide-react-native';
+import { Eye, Search, Send } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Dimensions,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Dimensions,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -491,6 +491,12 @@ export default function MatchesScreen() {
           </View>
         )}
       </Sheet>
+
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: AppColors.accentDefault }]}
+      >
+        <Search size={28} color={AppColors.backgroundDefault} />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -595,6 +601,16 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     backgroundColor: AppColors.backgroundDimmer,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 90,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
   },

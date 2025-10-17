@@ -68,7 +68,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: AppColors.backgroundDefault,
         tabBarInactiveTintColor: AppColors.foregroundDimmer,
         tabBarStyle: {
-          backgroundColor: AppColors.accentDefault,
+          backgroundColor: AppColors.foregroundDefault,
           paddingTop: 16,
           paddingBottom: 16,
           height: 100,

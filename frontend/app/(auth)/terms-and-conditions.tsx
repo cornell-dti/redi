@@ -2,11 +2,13 @@ import React from 'react';
 import { ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
+import { useThemeAware } from '../contexts/ThemeContext';
 import AppText from '../components/ui/AppText';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 
 export default function TermsAndConditionsPage() {
+  useThemeAware(); // Force re-render when theme changes
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />

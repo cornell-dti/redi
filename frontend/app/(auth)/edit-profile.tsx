@@ -25,6 +25,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
+import { useThemeAware } from '../contexts/ThemeContext';
 import Button from '../components/ui/Button';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
@@ -33,6 +34,7 @@ import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { calculateAge } from '../utils/profileUtils';
 
 export default function EditProfileScreen() {
+  useThemeAware(); // Force re-render when theme changes
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

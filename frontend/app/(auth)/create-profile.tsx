@@ -37,6 +37,7 @@ import ListItemWrapper from '../components/ui/ListItemWrapper';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
+import { useThemeAware } from '../contexts/ThemeContext';
 import { useOnboardingState } from '../hooks/useOnboardingState';
 import {
   extractPreferencesFromOnboarding,
@@ -47,6 +48,7 @@ import {
 const TOTAL_STEPS = 15; // Steps 2-16 (Step 1 is in home.tsx)
 
 export default function CreateProfileScreen() {
+  useThemeAware(); // Force re-render when theme changes
   const [currentStep, setCurrentStep] = useState(2); // Start at step 2
   const {
     data,
@@ -327,7 +329,7 @@ export default function CreateProfileScreen() {
                   onPress={() => toggleArrayItem('genders', gender.value)}
                   right={
                     data.genders.includes(gender.value) ? (
-                      <Check size={24} color={AppColors.backgroundDefault} />
+                      <Check size={24} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -356,7 +358,7 @@ export default function CreateProfileScreen() {
                   onPress={() => toggleArrayItem('pronouns', pronoun)}
                   right={
                     data.pronouns.includes(pronoun) ? (
-                      <Check size={24} color={AppColors.backgroundDefault} />
+                      <Check size={24} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -470,7 +472,7 @@ export default function CreateProfileScreen() {
                   onPress={() => updateField('year', year)}
                   right={
                     data.year === year ? (
-                      <Check size={24} color={AppColors.backgroundDefault} />
+                      <Check size={24} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -497,7 +499,7 @@ export default function CreateProfileScreen() {
                   }
                   right={
                     data.sexualOrientation.includes(orientation) ? (
-                      <Check size={24} color={AppColors.backgroundDefault} />
+                      <Check size={24} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -522,7 +524,7 @@ export default function CreateProfileScreen() {
                   onPress={() => toggleArrayItem('ethnicity', ethnicity)}
                   right={
                     data.ethnicity?.includes(ethnicity) ? (
-                      <Check size={24} color={AppColors.backgroundDefault} />
+                      <Check size={24} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -547,7 +549,7 @@ export default function CreateProfileScreen() {
                   onPress={() => toggleArrayItem('interestedIn', option)}
                   right={
                     data.interestedIn.includes(option) ? (
-                      <Check size={24} color={AppColors.backgroundDefault} />
+                      <Check size={24} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />

@@ -5,12 +5,14 @@ import { AppTypography } from '../AppTypography';
 
 interface AppTextProps extends TextProps {
   variant?: 'title' | 'subtitle' | 'body' | 'bodySmall';
-  color?: 'default' | 'dimmer' | 'negative' | 'inverse';
+  color?: 'default' | 'dimmer' | 'negative' | 'inverse' | 'accent';
+  indented?: boolean;
 }
 
 export default function AppText({
   variant = 'body',
   color = 'default',
+  indented = false,
   style,
   ...props
 }: AppTextProps) {
@@ -21,11 +23,18 @@ export default function AppText({
         ? AppColors.negativeDefault
         : color === 'dimmer'
           ? AppColors.foregroundDimmer
-          : AppColors.foregroundDefault;
+          : color === 'accent'
+            ? AppColors.accentDefault
+            : AppColors.foregroundDefault;
 
   return (
     <Text
-      style={[AppTypography[variant], { color: resolvedColor }, style]}
+      style={[
+        AppTypography[variant],
+        { color: resolvedColor },
+        indented && { marginLeft: 16 },
+        style,
+      ]}
       {...props}
     />
   );
