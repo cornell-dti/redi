@@ -175,7 +175,11 @@ export default function ProductionModeSection({
   );
 
   // Format date to ET timezone
-  const formatDateET = (dateValue: any) => {
+  type FirestoreTimestamp = { toDate: () => Date } | { seconds: number };
+
+  const formatDateET = (
+    dateValue: string | Date | FirestoreTimestamp | null | undefined
+  ) => {
     if (!dateValue) return 'N/A';
 
     let date: Date;
