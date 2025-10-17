@@ -17,22 +17,15 @@ export const apiAddEmail = async (email: string): Promise<void> => {
 
 // Get Total Amount of Users
 export const getSignedUpCount = async (): Promise<number> => {
-  try {
-    const res = await Promise.race([
-      fetch(`${API_BASE_URL}/api/registered-count`),
-      new Promise<never>((_, reject) => setTimeout(() => reject(), 4000)),
-    ]);
+  const res = await fetch(`${API_BASE_URL}/api/registered-count`);
 
-    if (!res.ok) {
-      const msg = `apiGetSignedUpCount failed – status ${res.status}`;
-      console.error(msg);
-      throw new Error(msg);
-    }
-
-    const data = await res.json();
-    console.log(data);
-    return data.userCount;
-  } catch {
-    return 173;
+  if (!res.ok) {
+    const msg = `apiGetSignedUpCount failed – status ${res.status}`;
+    console.error(msg);
+    throw new Error(msg);
   }
+
+  const data = await res.json();
+  console.log(data);
+  return data.userCount;
 };
