@@ -24,7 +24,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 export default function Sheet({
   visible,
   onDismiss,
-  height = 400,
+  height,
   children,
   title,
 }: SheetProps) {
@@ -200,7 +200,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
   },
   content: {
-    flex: 1,
     marginTop: 24,
   },
 });
