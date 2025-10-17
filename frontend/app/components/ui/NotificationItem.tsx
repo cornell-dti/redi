@@ -66,7 +66,14 @@ export default function NotificationItem({
           </AppText>
         </View>
         <AppText variant="body">{message}</AppText>
-        {!read && <View style={styles.unreadDot} />}
+        {!read && (
+          <View
+            style={[
+              styles.unreadDot,
+              { backgroundColor: AppColors.accentDefault },
+            ]}
+          />
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -128,6 +135,5 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: AppColors.accentDefault,
   },
 });

@@ -15,6 +15,7 @@ import {
   Lock,
   LogOut,
   MailIcon,
+  Palette,
   Pencil,
   SettingsIcon,
   ShieldCheck,
@@ -25,6 +26,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  ScrollView,
   StatusBar,
   StyleSheet,
   View,
@@ -33,6 +35,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser, signOutUser } from '../../api/authService';
 import { getCurrentUserProfile } from '../../api/profileApi';
 import { AppColors } from '../../components/AppColors';
+import { useThemeAware } from '../../contexts/ThemeContext';
 
 // Mock fallback data for fields not in API
 const mockFallbackData = {
@@ -42,6 +45,7 @@ const mockFallbackData = {
 };
 
 export default function ProfileScreen() {
+  useThemeAware(); // Force re-render when theme changes
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -141,6 +145,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
+
       <View style={styles.profileTop}>
         <Image source={{ uri: displayImages[0] }} style={styles.profilePic} />
 
@@ -152,87 +157,96 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <View style={styles.sectionsWrapper}>
-        <View style={styles.buttonRow}>
-          <Button
-            iconLeft={Pencil}
-            title="Edit Profile"
-            onPress={() => router.push('/edit-profile' as any)}
-            fullWidth
-          />
+      <ScrollView>
+        <View style={styles.sectionsWrapper}>
+          <View style={styles.buttonRow}>
+            <Button
+              iconLeft={Pencil}
+              title="Edit Profile"
+              onPress={() => router.push('/edit-profile' as any)}
+              fullWidth
+            />
 
-          <Button
-            iconLeft={Eye}
-            variant="secondary"
-            title="Preview profile"
-            onPress={() => {}}
-            fullWidth
-          />
+            <Button
+              iconLeft={Eye}
+              variant="secondary"
+              title="Preview profile"
+              onPress={() => {}}
+              fullWidth
+            />
+          </View>
+
+          <ListItemWrapper>
+            <ListItem
+              onPress={() => router.push('/preferences' as any)}
+              title="Dating preferences"
+              left={<Heart />}
+              right={<ChevronRight />}
+            />
+
+            <ListItem
+              onPress={() => router.push('/appearance' as any)}
+              title="Appearance"
+              left={<Palette />}
+              right={<ChevronRight />}
+            />
+
+            <ListItem
+              onPress={() => router.push('/account-settings' as any)}
+              title="Account settings"
+              left={<SettingsIcon />}
+              right={<ChevronRight />}
+            />
+
+            <ListItem
+              onPress={() => router.push('/safety' as any)}
+              title="Safety"
+              left={<Lock />}
+              right={<ChevronRight />}
+            />
+          </ListItemWrapper>
+
+          <ListItemWrapper>
+            <ListItem
+              onPress={() => router.push('/terms-and-conditions' as any)}
+              title="Terms & Conditions"
+              left={<ClipboardList />}
+              right={<ChevronRight />}
+            />
+
+            <ListItem
+              onPress={() => router.push('/privacy-policy' as any)}
+              title="Privacy Policy"
+              left={<ShieldCheck />}
+              right={<ChevronRight />}
+            />
+
+            <ListItem
+              onPress={() => {}}
+              title="Leave a rating"
+              left={<StarIcon />}
+              right={<ExternalLink />}
+            />
+
+            <ListItem
+              onPress={() => router.push('/contact' as any)}
+              title="Contact the team"
+              left={<MailIcon />}
+              right={<ChevronRight />}
+            />
+          </ListItemWrapper>
+
+          <ListItemWrapper>
+            <ListItem
+              onPress={() => setShowSignOutSheet(true)}
+              title="Sign Out"
+              left={<LogOut color={AppColors.negativeDefault} />}
+              right={<ChevronRight color={AppColors.negativeDefault} />}
+              destructive
+            />
+          </ListItemWrapper>
         </View>
-
-        <ListItemWrapper>
-          <ListItem
-            onPress={() => router.push('/preferences' as any)}
-            title="Dating preferences"
-            left={<Heart />}
-            right={<ChevronRight />}
-          />
-
-          <ListItem
-            onPress={() => router.push('/account-settings' as any)}
-            title="Account settings"
-            left={<SettingsIcon />}
-            right={<ChevronRight />}
-          />
-
-          <ListItem
-            onPress={() => router.push('/safety' as any)}
-            title="Safety"
-            left={<Lock />}
-            right={<ChevronRight />}
-          />
-        </ListItemWrapper>
-
-        <ListItemWrapper>
-          <ListItem
-            onPress={() => router.push('/terms-and-conditions' as any)}
-            title="Terms & Conditions"
-            left={<ClipboardList />}
-            right={<ChevronRight />}
-          />
-
-          <ListItem
-            onPress={() => router.push('/privacy-policy' as any)}
-            title="Privacy Policy"
-            left={<ShieldCheck />}
-            right={<ChevronRight />}
-          />
-
-          <ListItem
-            onPress={() => {}}
-            title="Leave a rating"
-            left={<StarIcon />}
-            right={<ExternalLink />}
-          />
-
-          <ListItem
-            onPress={() => router.push('/contact' as any)}
-            title="Contact the team"
-            left={<MailIcon />}
-            right={<ChevronRight />}
-          />
-        </ListItemWrapper>
-
-        <ListItemWrapper>
-          <ListItem
-            onPress={() => setShowSignOutSheet(true)}
-            title="Sign Out"
-            left={<LogOut color={AppColors.negativeDefault} />}
-            right={<ChevronRight color={AppColors.negativeDefault} />}
-            destructive
-          />
-        </ListItemWrapper>
-      </View>
+      </ScrollView>
 
       <SignOutSheet
         visible={showSignOutSheet}

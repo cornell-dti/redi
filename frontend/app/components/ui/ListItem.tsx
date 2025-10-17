@@ -61,10 +61,12 @@ export default function ListItem({
         android_ripple={{ color: AppColors.backgroundDimmest }}
         style={({ pressed }) => [
           styles.container,
-          selected && styles.selected,
+          selected && { backgroundColor: AppColors.accentAlpha },
           // keep original pressed styling logic; rely on pressed OR local isPressed
           (pressed || isPressed) &&
-            (selected ? styles.selectedPressed : styles.pressed),
+            (selected
+              ? { backgroundColor: AppColors.accentAlpha }
+              : styles.pressed),
           description ? { height: 'auto' } : { height: 54 },
           style,
         ]}
@@ -75,7 +77,7 @@ export default function ListItem({
         <View style={styles.content}>
           <AppText
             variant="body"
-            color={destructive ? 'negative' : selected ? 'inverse' : 'default'}
+            color={destructive ? 'negative' : selected ? 'accent' : 'default'}
             style={description ? { fontWeight: 'semibold' } : undefined}
           >
             {title}
@@ -97,14 +99,8 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 6,
   },
-  selected: {
-    backgroundColor: AppColors.accentDefault,
-  },
   pressed: {
     backgroundColor: AppColors.backgroundDimmest,
-  },
-  selectedPressed: {
-    backgroundColor: AppColors.accentDefault,
   },
   left: {
     marginRight: 12,

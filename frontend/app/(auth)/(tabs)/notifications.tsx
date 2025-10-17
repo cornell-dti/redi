@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
+import { useThemeAware } from '../../contexts/ThemeContext';
 import Header from '../../components/ui/Header';
 import NotificationItem from '../../components/ui/NotificationItem';
 
@@ -89,6 +90,7 @@ const mockNotifications: Notification[] = [
 ];
 
 export default function NotificationsScreen() {
+  useThemeAware(); // Force re-render when theme changes
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
