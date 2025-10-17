@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   content: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 24,
+    gap: 16,
     padding: 16,
   },
   backButton: {

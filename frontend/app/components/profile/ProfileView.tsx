@@ -101,11 +101,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ profile }) => {
       )}
 
       <View style={styles.contentContainer}>
-        <View style={styles.headerSection}>
-          <AppText variant="title" style={styles.name}>
-            {profile.firstName}, {age}
-          </AppText>
-        </View>
+        <AppText variant="title">{profile.firstName}</AppText>
 
         <View style={styles.section}>
           <AppText variant="subtitle" indented>
@@ -233,14 +229,16 @@ const ProfileView: React.FC<ProfileViewProps> = ({ profile }) => {
               Prompts
             </AppText>
 
-            {profile.prompts.map((prompt, index) => (
-              <View style={styles.tagsContainer} key={index}>
-                <AppText variant="body" color="dimmer">
-                  {prompt.question}
-                </AppText>
-                <AppText variant="subtitle">{prompt.answer}</AppText>
-              </View>
-            ))}
+            <View style={styles.promptCards}>
+              {profile.prompts.map((prompt, index) => (
+                <View style={styles.promptCard} key={index}>
+                  <AppText variant="body" color="dimmer">
+                    {prompt.question}
+                  </AppText>
+                  <AppText variant="subtitle">{prompt.answer}</AppText>
+                </View>
+              ))}
+            </View>
           </View>
         )}
       </View>
@@ -264,14 +262,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 24,
-  },
-  headerSection: {
-    marginBottom: 20,
-  },
-  name: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
   },
   section: {
     display: 'flex',
@@ -329,6 +319,24 @@ const styles = StyleSheet.create({
     gap: 4,
     borderTopRightRadius: 24,
     overflow: 'hidden',
+  },
+  promptCards: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 24,
+  },
+  promptCard: {
+    borderRadius: 8,
+    padding: 16,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+    backgroundColor: AppColors.backgroundDefault,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 8,
+    elevation: 4,
   },
 });
 
