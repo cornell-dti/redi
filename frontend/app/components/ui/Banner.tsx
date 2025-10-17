@@ -5,11 +5,18 @@ import AppText from './AppText';
 
 interface BannerProps {
   text: string;
+  color?: 'accent' | 'default';
 }
 
-const Banner: React.FC<BannerProps> = ({ text }) => {
+const Banner: React.FC<BannerProps> = ({ text, color = 'accent' }) => {
+  const backgroundColor =
+    color === 'accent' ? AppColors.accentAlpha : AppColors.backgroundDimmer;
+
+  const borderColor =
+    color === 'accent' ? AppColors.accentDefault : AppColors.backgroundDimmest;
+
   return (
-    <View style={styles.banner}>
+    <View style={[styles.banner, { backgroundColor, borderColor }]}>
       <AppText color="accent" variant="body">
         {text}
       </AppText>
@@ -21,16 +28,12 @@ const styles = StyleSheet.create({
   banner: {
     width: '100%',
     borderRadius: 6,
-    backgroundColor: AppColors.accentAlpha,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingLeft: 16,
-    paddingRight: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderWidth: 1,
-    borderColor: AppColors.accentDefault,
   },
 });
 
