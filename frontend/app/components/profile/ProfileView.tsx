@@ -1,5 +1,5 @@
 import AppText from '@/app/components/ui/AppText';
-import { getYearString } from '@/app/utils/profileUtils';
+import { calculateAge, getYearString } from '@/app/utils/profileUtils';
 import { ProfileResponse } from '@/types';
 import {
   Cake,
@@ -34,21 +34,6 @@ interface ProfileViewProps {
 
 const ProfileView: React.FC<ProfileViewProps> = ({ profile }) => {
   const screenWidth = Dimensions.get('window').width;
-
-  const calculateAge = (birthdate: string): number => {
-    const today = new Date();
-    const birth = new Date(birthdate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birth.getDate())
-    ) {
-      age--;
-    }
-    return age;
-  };
-
   const age = calculateAge(profile.birthdate);
 
   type SocialItem = {

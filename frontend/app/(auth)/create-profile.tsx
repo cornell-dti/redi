@@ -329,7 +329,7 @@ export default function CreateProfileScreen() {
                   onPress={() => updateField('genders', [gender.value])}
                   right={
                     data.genders.includes(gender.value) ? (
-                      <Check size={2204} color={AppColors.accentDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
