@@ -10,6 +10,7 @@ import { ChevronLeft, PencilIcon } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Banner from '../components/ui/Banner';
 
 /**
  * Profile Preview Page
@@ -91,21 +92,25 @@ export default function ProfilePreviewScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Header with back button */}
-      <View style={styles.header}>
-        <Button
-          title="Exit preview"
-          iconLeft={ChevronLeft}
-          onPress={() => router.back()}
-          variant="secondary"
-        />
+      <View style={styles.content}>
+        {/* Header with back button */}
+        <View style={styles.header}>
+          <Button
+            title="Exit preview"
+            iconLeft={ChevronLeft}
+            onPress={() => router.back()}
+            variant="secondary"
+          />
 
-        <Button
-          title="Edit profile"
-          iconLeft={PencilIcon}
-          onPress={() => router.push('/edit-profile' as any)}
-          variant="secondary"
-        />
+          <Button
+            title="Edit profile"
+            iconLeft={PencilIcon}
+            onPress={() => router.push('/edit-profile' as any)}
+            variant="secondary"
+          />
+        </View>
+
+        <Banner text="Preview mode" />
       </View>
 
       {/* Profile view */}
@@ -126,9 +131,14 @@ const styles = StyleSheet.create({
   },
   header: {
     display: 'flex',
-    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  content: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 24,
+    padding: 16,
   },
   backButton: {
     padding: 8,
