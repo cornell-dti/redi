@@ -6,7 +6,7 @@ import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import SignOutSheet from '@/app/components/ui/SignOutSheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import { ChevronRight, LogOut, Pencil, Trash2 } from 'lucide-react-native';
+import { LogOut, Pencil, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -19,9 +19,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser, signOutUser } from '../api/authService';
 import { AppColors } from '../components/AppColors';
-import { useThemeAware } from '../contexts/ThemeContext';
 import AppInput from '../components/ui/AppInput';
 import EditingHeader from '../components/ui/EditingHeader';
+import { useThemeAware } from '../contexts/ThemeContext';
 
 export default function AccountSettingsPage() {
   useThemeAware(); // Force re-render when theme changes
@@ -157,13 +157,13 @@ export default function AccountSettingsPage() {
             <ListItemWrapper>
               <ListItem
                 title="Log Out"
-                left={<LogOut color={AppColors.negativeDefault} />}
+                left={<LogOut color={AppColors.negativeDefault} size={20} />}
                 onPress={() => setShowSignOutSheet(true)}
                 destructive
               />
               <ListItem
                 title="Delete Account"
-                left={<Trash2 color={AppColors.negativeDefault} />}
+                left={<Trash2 color={AppColors.negativeDefault} size={20} />}
                 onPress={() => setShowDeleteSheet(true)}
                 destructive
               />
