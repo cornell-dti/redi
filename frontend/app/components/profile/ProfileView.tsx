@@ -1,4 +1,5 @@
 import AppText from '@/app/components/ui/AppText';
+import { getYearString } from '@/app/utils/profileUtils';
 import { ProfileResponse } from '@/types';
 import {
   Cake,
@@ -31,17 +32,9 @@ interface ProfileViewProps {
   isLoading?: boolean;
 }
 
-/**
- * Reusable ProfileView component that displays a full profile.
- * This component can be used for:
- * - Preview of your own profile
- * - Public profile pages of other users
- * - Any other context where a full profile needs to be displayed
- */
 const ProfileView: React.FC<ProfileViewProps> = ({ profile }) => {
   const screenWidth = Dimensions.get('window').width;
 
-  // Calculate age from birthdate
   const calculateAge = (birthdate: string): number => {
     const today = new Date();
     const birth = new Date(birthdate);
@@ -58,9 +51,37 @@ const ProfileView: React.FC<ProfileViewProps> = ({ profile }) => {
 
   const age = calculateAge(profile.birthdate);
 
+  type SocialItem = {
+    icon: React.ReactNode;
+    url: string;
+  };
+
+  const socialItems: SocialItem[] = [
+    profile.instagram && {
+      icon: <Instagram size={24} />,
+      url: `https://instagram.com/${profile.instagram}`,
+    },
+    profile.snapchat && {
+      icon: <Ghost size={24} />,
+      url: `https://snapchat.com/add/${profile.snapchat}`,
+    },
+    profile.linkedIn && {
+      icon: <Linkedin size={24} />,
+      url: profile.linkedIn,
+    },
+    profile.github && {
+      icon: <Github size={24} />,
+      url: profile.github,
+    },
+    profile.website && {
+      icon: <Globe size={24} color={AppColors.foregroundDefault} />,
+      url: profile.website,
+    },
+  ].filter(Boolean) as SocialItem[];
+
   return (
     <ScrollView style={styles.container}>
-      {/* Image carousel/gallery */}
+      {/* Image carousel */}
       {profile.pictures && profile.pictures.length > 0 && (
         <ScrollView
           horizontal
@@ -79,21 +100,12 @@ const ProfileView: React.FC<ProfileViewProps> = ({ profile }) => {
         </ScrollView>
       )}
 
-      {/* Profile content */}
       <View style={styles.contentContainer}>
-        {/* Name and basic info */}
         <View style={styles.headerSection}>
           <AppText variant="title" style={styles.name}>
             {profile.firstName}, {age}
           </AppText>
         </View>
-
-        {/* Bio */}
-        {profile.bio && (
-          <View style={styles.section}>
-            <AppText variant="body">{profile.bio}</AppText>
-          </View>
-        )}
 
         <View style={styles.section}>
           <AppText variant="subtitle" indented>
@@ -101,26 +113,33 @@ const ProfileView: React.FC<ProfileViewProps> = ({ profile }) => {
           </AppText>
 
           <ListItemWrapper>
-            <View style={styles.subSection}>
-              <Cake size={20} />
-              <AppText>{age} y/o</AppText>
-            </View>
-
-            {profile.showGenderOnProfile && profile.gender && (
+            <View style={styles.detailRow}>
               <View style={styles.subSection}>
-                <GenderIcon gender={profile.gender} size={20} />
-                <AppText>{profile.gender}</AppText>
+                <Cake size={20} />
+                <AppText>{age} y/o</AppText>
               </View>
-            )}
 
-            {profile.showSexualOrientationOnProfile &&
-              profile.sexualOrientation &&
-              profile.sexualOrientation.length > 0 && (
+              {profile.showGenderOnProfile && profile.gender && (
                 <View style={styles.subSection}>
-                  <Magnet size={20} />
-                  <AppText>{profile.sexualOrientation}</AppText>
+                  <GenderIcon gender={profile.gender} size={20} />
+                  <AppText>
+                    {profile.gender
+                      ? profile.gender.charAt(0).toUpperCase() +
+                        profile.gender.slice(1)
+                      : ''}
+                  </AppText>
                 </View>
               )}
+
+              {profile.showSexualOrientationOnProfile &&
+                profile.sexualOrientation &&
+                profile.sexualOrientation.length > 0 && (
+                  <View style={styles.subSection}>
+                    <Magnet size={20} />
+                    <AppText>{profile.sexualOrientation}</AppText>
+                  </View>
+                )}
+            </View>
 
             {profile.showHometownOnProfile && profile.hometown && (
               <View style={styles.subSection}>
@@ -132,72 +151,36 @@ const ProfileView: React.FC<ProfileViewProps> = ({ profile }) => {
             {profile.showCollegeOnProfile && profile.school && (
               <View style={styles.subSection}>
                 <GraduationCap size={20} />
-                <AppText>{`${profile?.year} in ${profile?.school} studying ${profile?.major?.join(', ')}`}</AppText>
+                <AppText>{`${getYearString(profile.year)} in ${profile?.school} studying ${profile?.major?.join(', ')}`}</AppText>
               </View>
             )}
           </ListItemWrapper>
         </View>
 
-        {/* Social links - Only show if at least one is available */}
-        {(profile.instagram ||
-          profile.snapchat ||
-          profile.linkedIn ||
-          profile.github ||
-          profile.website) && (
+        {socialItems.length > 0 && (
           <View style={styles.section}>
             <AppText variant="subtitle" indented>
               Socials
             </AppText>
 
             <View style={styles.socialRow}>
-              {profile.instagram && (
-                <Pressable
-                  style={styles.socialItem}
-                  onPress={() =>
-                    Linking.openURL(
-                      `https://instagram.com/${profile.instagram}`
-                    )
-                  }
-                >
-                  <Instagram size={24} />
-                </Pressable>
-              )}
-              {profile.snapchat && (
-                <Pressable
-                  style={styles.socialItem}
-                  onPress={() =>
-                    Linking.openURL(
-                      `https://snapchat.com/add/${profile.snapchat}`
-                    )
-                  }
-                >
-                  <Ghost size={24} />
-                </Pressable>
-              )}
-              {profile.linkedIn && (
-                <Pressable
-                  style={styles.socialItem}
-                  onPress={() => Linking.openURL(profile.linkedIn!)}
-                >
-                  <Linkedin size={24} />
-                </Pressable>
-              )}
-              {profile.github && (
-                <Pressable
-                  style={styles.socialItem}
-                  onPress={() => Linking.openURL(profile.github!)}
-                >
-                  <Github size={24} />
-                </Pressable>
-              )}
-              {profile.website && (
-                <Pressable
-                  style={styles.socialItem}
-                  onPress={() => Linking.openURL(profile.website!)}
-                >
-                  <Globe size={24} color={AppColors.foregroundDefault} />
-                </Pressable>
-              )}
+              {socialItems.map((item, index) => {
+                const isFirst = index === 0;
+                const isLast = index === socialItems.length - 1;
+                return (
+                  <Pressable
+                    key={index}
+                    style={[
+                      styles.socialItem,
+                      isFirst && styles.firstItem,
+                      isLast && styles.lastItem,
+                    ]}
+                    onPress={() => Linking.openURL(item.url!)}
+                  >
+                    {item.icon}
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
         )}
@@ -255,7 +238,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({ profile }) => {
                 <AppText variant="body" color="dimmer">
                   {prompt.question}
                 </AppText>
-
                 <AppText variant="subtitle">{prompt.answer}</AppText>
               </View>
             ))}
@@ -303,30 +285,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 4,
     backgroundColor: AppColors.backgroundDimmer,
-  },
-  tagContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  tag: {
-    backgroundColor: AppColors.backgroundDimmer,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  tagText: {
-    fontSize: 14,
-  },
-  promptCard: {
-    backgroundColor: AppColors.backgroundDimmer,
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  promptQuestion: {
-    fontWeight: '600',
-    marginBottom: 8,
+    flex: 1,
   },
   tagsContainer: {
     display: 'flex',
@@ -339,17 +298,37 @@ const styles = StyleSheet.create({
   },
   socialRow: {
     display: 'flex',
-    gap: 4,
+    flexDirection: 'row',
     borderRadius: 24,
     overflow: 'hidden',
+    gap: 4,
+    flex: 1,
+    width: '100%',
   },
   socialItem: {
     display: 'flex',
+    backgroundColor: AppColors.backgroundDimmer,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 4,
+    flex: 1,
+  },
+  firstItem: {
+    borderTopLeftRadius: 24,
+    borderBottomLeftRadius: 24,
+  },
+  lastItem: {
+    borderTopRightRadius: 24,
+    borderBottomRightRadius: 24,
+    borderRightWidth: 0,
+  },
+  detailRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 4,
+    borderTopRightRadius: 24,
+    overflow: 'hidden',
   },
 });
 
