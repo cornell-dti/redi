@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { WeeklyPrompt } from '@/types/admin';
 import { activatePrompt, generateMatches, deleteActivePrompt } from '@/api/admin';
 import ConfirmationModal from './ConfirmationModal';
+import PromptAnswersViewer from './PromptAnswersViewer';
 
 interface TestingSectionProps {
   prompts: WeeklyPrompt[];
@@ -25,6 +26,7 @@ export default function TestingSection({
   const [showActivateModal, setShowActivateModal] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedPromptForAnswers, setSelectedPromptForAnswers] = useState<WeeklyPrompt | null>(null);
 
   const selectedPrompt = prompts.find((p) => p.id === selectedPromptId);
 
@@ -93,7 +95,7 @@ export default function TestingSection({
   };
 
   // Format date to ET timezone
-  const formatDateET = (dateValue: any) => {
+  const formatDateET = (dateValue: unknown) => {
     if (!dateValue) return 'N/A';
 
     let date: Date;
@@ -256,10 +258,20 @@ export default function TestingSection({
               </p>
             )}
             {selectedPrompt.answerCount !== undefined && (
-              <p className="text-gray-700">
-                <span className="font-medium">Answers Received:</span>{' '}
-                {selectedPrompt.answerCount}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-gray-700">
+                  <span className="font-medium">Answers Received:</span>{' '}
+                  {selectedPrompt.answerCount}
+                </p>
+                {selectedPrompt.answerCount > 0 && (
+                  <button
+                    onClick={() => setSelectedPromptForAnswers(selectedPrompt)}
+                    className="px-3 py-1 text-xs rounded-full bg-white text-black hover:bg-gray-100 transition border border-gray-300"
+                  >
+                    View Answers
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -378,6 +390,15 @@ export default function TestingSection({
         onCancel={() => setShowDeleteModal(false)}
         isLoading={isDeleting}
       />
+
+      {/* Prompt Answers Viewer Modal */}
+      {selectedPromptForAnswers && (
+        <PromptAnswersViewer
+          promptId={selectedPromptForAnswers.promptId}
+          promptQuestion={selectedPromptForAnswers.question}
+          onClose={() => setSelectedPromptForAnswers(null)}
+        />
+      )}
     </div>
   );
 }

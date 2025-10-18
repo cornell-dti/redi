@@ -15,6 +15,10 @@ import {
   CreateWeeklyPromptInput,
   UpdateWeeklyPromptInput,
   WeeklyPromptResponse,
+  WeeklyPromptAnswerWithProfile,
+  MatchStatsResponse,
+  PromptMatchDetailResponse,
+  MatchWithProfile,
 } from '../../types';
 import { AdminRequest, requireAdmin } from '../middleware/adminAuth';
 import { getIpAddress, getUserAgent, logAdminAction } from '../services/auditLog';
@@ -29,6 +33,7 @@ import {
   promptToResponse,
   updatePrompt,
 } from '../services/promptsService';
+import { db } from '../../firebaseAdmin';
 
 const router = express.Router();
 
@@ -579,6 +584,428 @@ router.delete('/api/admin/prompts/active', async (req: AdminRequest, res) => {
       req.user!.email,
       'prompt',
       'active',
+      { error: errorMessage },
+      getIpAddress(req),
+      getUserAgent(req),
+      false,
+      errorMessage
+    );
+
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+/**
+ * GET /api/admin/prompts/:promptId/answers
+ * Get all answers for a specific prompt with user profile information
+ *
+ * @secured Requires admin authentication
+ * @audit Logs VIEW_PROMPT_ANSWERS action
+ *
+ * @param {string} promptId.path.required - Prompt ID (year-week format)
+ * @returns {WeeklyPromptAnswerWithProfile[]} 200 - Array of answers with profile data
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
+ * @returns {Error} 404 - Prompt not found
+ * @returns {Error} 500 - Internal server error
+ */
+router.get('/api/admin/prompts/:promptId/answers', async (req: AdminRequest, res) => {
+  try {
+    const { promptId } = req.params;
+
+    // Check if prompt exists
+    const existingPrompt = await getPromptById(promptId);
+    if (!existingPrompt) {
+      return res.status(404).json({ error: 'Prompt not found' });
+    }
+
+    console.log(`📥 Admin ${req.user?.email} fetching answers for prompt ${promptId}`);
+
+    // Fetch all answers for this prompt
+    console.log(`🔍 Querying weeklyPromptAnswers collection with promptId: "${promptId}"`);
+
+    // Try without orderBy first in case Firestore index doesn't exist
+    let answersSnapshot;
+    try {
+      answersSnapshot = await db
+        .collection('weeklyPromptAnswers')
+        .where('promptId', '==', promptId)
+        .orderBy('createdAt', 'desc')
+        .get();
+      console.log('✅ Query with orderBy succeeded');
+    } catch (indexError) {
+      // If orderBy fails due to missing index, try without it
+      console.warn('⚠️  Firestore index missing for orderBy, fetching without ordering');
+      console.warn('⚠️  Error details:', indexError);
+      answersSnapshot = await db
+        .collection('weeklyPromptAnswers')
+        .where('promptId', '==', promptId)
+        .get();
+      console.log('✅ Query without orderBy succeeded');
+    }
+
+    console.log(`📊 Found ${answersSnapshot.size} answers for prompt ${promptId}`);
+
+    // Debug: Log all document IDs found
+    if (answersSnapshot.size > 0) {
+      console.log('📋 Answer document IDs:', answersSnapshot.docs.map(d => d.id));
+      console.log('📋 Sample answer data:', answersSnapshot.docs[0]?.data());
+    }
+
+    // Build array of answers with profile data
+    const answersWithProfiles: WeeklyPromptAnswerWithProfile[] = [];
+
+    for (const answerDoc of answersSnapshot.docs) {
+      const answerData = answerDoc.data();
+      const netid = answerData.netid;
+
+      console.log(`📄 Processing answer document ${answerDoc.id} from netid: ${netid}`);
+
+      // Fetch user profile
+      const profileDoc = await db.collection('profiles').doc(netid).get();
+
+      let firstName = 'Unknown';
+      let profilePicture: string | undefined = undefined;
+      let uuid = netid;
+
+      if (profileDoc.exists) {
+        const profileData = profileDoc.data();
+        firstName = profileData?.firstName || 'Unknown';
+        profilePicture = profileData?.pictures?.[0]; // First picture
+
+        // Get uuid from users collection
+        const userDoc = await db.collection('users').doc(netid).get();
+        if (userDoc.exists) {
+          uuid = userDoc.data()?.firebaseUid || netid;
+        }
+      } else {
+        console.warn(`⚠️  Profile not found for netid: ${netid}`);
+      }
+
+      answersWithProfiles.push({
+        netid,
+        promptId,
+        answer: answerData.answer || '',
+        createdAt: answerData.createdAt?.toDate ? answerData.createdAt.toDate().toISOString() : new Date().toISOString(),
+        uuid,
+        firstName,
+        profilePicture,
+      });
+    }
+
+    console.log(`✅ Returning ${answersWithProfiles.length} answers with profile data`);
+
+    // Log successful action
+    await logAdminAction(
+      'VIEW_PROMPT_ANSWERS',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      promptId,
+      { answerCount: answersWithProfiles.length },
+      getIpAddress(req),
+      getUserAgent(req)
+    );
+
+    res.status(200).json(answersWithProfiles);
+  } catch (error) {
+    console.error('❌ Error fetching prompt answers:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Log failed action
+    await logAdminAction(
+      'VIEW_PROMPT_ANSWERS',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      req.params.promptId,
+      { error: errorMessage },
+      getIpAddress(req),
+      getUserAgent(req),
+      false,
+      errorMessage
+    );
+
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+/**
+ * GET /api/admin/matches/stats
+ * Get overall match statistics across all prompts
+ *
+ * @secured Requires admin authentication
+ * @audit Logs VIEW_MATCH_STATS action
+ *
+ * @returns {MatchStatsResponse} 200 - Overall match statistics
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
+ * @returns {Error} 500 - Internal server error
+ */
+router.get('/api/admin/matches/stats', async (req: AdminRequest, res) => {
+  try {
+    console.log(`📊 Admin ${req.user?.email} fetching match statistics`);
+
+    // Fetch all match documents
+    const matchesSnapshot = await db.collection('weeklyMatches').get();
+
+    console.log(`📊 Found ${matchesSnapshot.size} total match documents`);
+
+    // Debug: Log sample match document structure
+    if (matchesSnapshot.size > 0) {
+      const sampleDoc = matchesSnapshot.docs[0];
+      console.log('📋 Sample match document ID:', sampleDoc.id);
+      console.log('📋 Sample revealed field:', sampleDoc.data().revealed, 'Type:', typeof sampleDoc.data().revealed, 'IsArray:', Array.isArray(sampleDoc.data().revealed));
+    }
+
+    const totalMatches = matchesSnapshot.size;
+    const uniqueUsers = new Set<string>();
+    let totalReveals = 0;
+    const promptMatchCounts: { [promptId: string]: { count: number; reveals: number } } = {};
+
+    // Calculate stats
+    for (const matchDoc of matchesSnapshot.docs) {
+      const matchData = matchDoc.data();
+      uniqueUsers.add(matchData.netid);
+
+      // Debug: Log if revealed is not an array
+      if (!Array.isArray(matchData.revealed)) {
+        console.warn(`⚠️  Match stats - Document ${matchDoc.id} has non-array revealed field:`, matchData.revealed);
+      }
+
+      // Count reveals (true values in revealed array) - DEFENSIVE PROGRAMMING
+      const revealed = Array.isArray(matchData.revealed) ? matchData.revealed : [];
+      const revealsForThisMatch = revealed.filter((r: boolean) => r === true).length;
+      totalReveals += revealsForThisMatch;
+
+      // Track per-prompt stats
+      const promptId = matchData.promptId;
+      if (!promptMatchCounts[promptId]) {
+        promptMatchCounts[promptId] = { count: 0, reveals: 0 };
+      }
+      promptMatchCounts[promptId].count++;
+      promptMatchCounts[promptId].reveals += revealsForThisMatch;
+    }
+
+    console.log(`📊 Total reveals: ${totalReveals}, Total possible reveals: ${totalMatches * 3}`);
+
+    const totalUsersMatched = uniqueUsers.size;
+    const totalPossibleReveals = totalMatches * 3; // Each match has 3 potential reveals
+    const revealRate = totalPossibleReveals > 0 ? (totalReveals / totalPossibleReveals) * 100 : 0;
+    const averageMatchesPerPrompt = Object.keys(promptMatchCounts).length > 0
+      ? totalMatches / Object.keys(promptMatchCounts).length
+      : 0;
+
+    // Build prompt-specific stats
+    const promptStats = [];
+    for (const [promptId, stats] of Object.entries(promptMatchCounts)) {
+      const promptDoc = await db.collection('weeklyPrompts').doc(promptId).get();
+      const promptData = promptDoc.data();
+
+      const totalPossibleRevealsForPrompt = stats.count * 3;
+      const promptRevealRate = totalPossibleRevealsForPrompt > 0
+        ? (stats.reveals / totalPossibleRevealsForPrompt) * 100
+        : 0;
+
+      promptStats.push({
+        promptId,
+        question: promptData?.question || 'Unknown',
+        matchDate: promptData?.matchDate?.toDate ? promptData.matchDate.toDate().toISOString() : '',
+        totalMatchDocuments: stats.count,
+        totalUsersMatched: stats.count, // Each match doc is for one user
+        totalReveals: stats.reveals,
+        revealRate: Math.round(promptRevealRate * 100) / 100,
+      });
+    }
+
+    // Sort by match date (most recent first)
+    promptStats.sort((a, b) => new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime());
+
+    const response: MatchStatsResponse = {
+      totalMatches,
+      totalUsersMatched,
+      averageMatchesPerPrompt: Math.round(averageMatchesPerPrompt * 100) / 100,
+      totalReveals,
+      revealRate: Math.round(revealRate * 100) / 100,
+      promptStats,
+    };
+
+    // Log successful action
+    await logAdminAction(
+      'VIEW_MATCH_STATS',
+      req.user!.uid,
+      req.user!.email,
+      'matches',
+      'all',
+      { totalMatches, totalUsersMatched },
+      getIpAddress(req),
+      getUserAgent(req)
+    );
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Error fetching match stats:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Log failed action
+    await logAdminAction(
+      'VIEW_MATCH_STATS',
+      req.user!.uid,
+      req.user!.email,
+      'matches',
+      'all',
+      { error: errorMessage },
+      getIpAddress(req),
+      getUserAgent(req),
+      false,
+      errorMessage
+    );
+
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+/**
+ * GET /api/admin/prompts/:promptId/matches
+ * Get detailed match data for a specific prompt with user profiles
+ *
+ * @secured Requires admin authentication
+ * @audit Logs VIEW_PROMPT_MATCHES action
+ *
+ * @param {string} promptId.path.required - Prompt ID (year-week format)
+ * @returns {PromptMatchDetailResponse} 200 - Detailed match data with profiles
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
+ * @returns {Error} 404 - Prompt not found
+ * @returns {Error} 500 - Internal server error
+ */
+router.get('/api/admin/prompts/:promptId/matches', async (req: AdminRequest, res) => {
+  try {
+    const { promptId } = req.params;
+
+    // Check if prompt exists
+    const existingPrompt = await getPromptById(promptId);
+    if (!existingPrompt) {
+      return res.status(404).json({ error: 'Prompt not found' });
+    }
+
+    console.log(`🎯 Admin ${req.user?.email} fetching matches for prompt ${promptId}`);
+
+    // Fetch all match documents for this prompt
+    // Try without orderBy first in case Firestore index doesn't exist
+    let matchesSnapshot;
+    try {
+      matchesSnapshot = await db
+        .collection('weeklyMatches')
+        .where('promptId', '==', promptId)
+        .orderBy('createdAt', 'desc')
+        .limit(100) // Limit for performance
+        .get();
+    } catch (indexError) {
+      // If orderBy fails due to missing index, try without it
+      console.warn('⚠️  Firestore index missing for orderBy, fetching without ordering:', indexError);
+      matchesSnapshot = await db
+        .collection('weeklyMatches')
+        .where('promptId', '==', promptId)
+        .limit(100)
+        .get();
+    }
+
+    console.log(`🎯 Found ${matchesSnapshot.size} match documents for prompt ${promptId}`);
+
+    // Debug: Log sample match document structure
+    if (matchesSnapshot.size > 0) {
+      const sampleDoc = matchesSnapshot.docs[0];
+      console.log('📋 Sample match document ID:', sampleDoc.id);
+      console.log('📋 Sample match data:', sampleDoc.data());
+      console.log('📋 Revealed field type:', typeof sampleDoc.data().revealed, 'IsArray:', Array.isArray(sampleDoc.data().revealed));
+    }
+
+    const totalMatchDocuments = matchesSnapshot.size;
+    let totalReveals = 0;
+    const matchesWithProfiles: MatchWithProfile[] = [];
+
+    // Build matches array with profile data
+    for (const matchDoc of matchesSnapshot.docs) {
+      const matchData = matchDoc.data();
+      const userNetid = matchData.netid;
+      const matchedNetids = Array.isArray(matchData.matches) ? matchData.matches : [];
+      const revealed = Array.isArray(matchData.revealed) ? matchData.revealed : [];
+
+      // Debug: Log if revealed is not an array
+      if (!Array.isArray(matchData.revealed)) {
+        console.warn(`⚠️  Document ${matchDoc.id} has non-array revealed field:`, matchData.revealed);
+      }
+
+      // Count reveals for this match - DEFENSIVE PROGRAMMING
+      totalReveals += revealed.filter((r: boolean) => r === true).length;
+
+      // Fetch user profile
+      const userProfileDoc = await db.collection('profiles').doc(userNetid).get();
+      const userProfileData = userProfileDoc.data();
+
+      // Fetch matched users' profiles
+      const matchedProfiles = [];
+      for (let i = 0; i < matchedNetids.length; i++) {
+        const matchedNetid = matchedNetids[i];
+        const matchedProfileDoc = await db.collection('profiles').doc(matchedNetid).get();
+        const matchedProfileData = matchedProfileDoc.data();
+
+        matchedProfiles.push({
+          netid: matchedNetid,
+          firstName: matchedProfileData?.firstName || 'Unknown',
+          profilePicture: matchedProfileData?.pictures?.[0],
+          revealed: Boolean(revealed[i]), // Ensure it's a boolean
+        });
+      }
+
+      matchesWithProfiles.push({
+        netid: userNetid,
+        firstName: userProfileData?.firstName || 'Unknown',
+        profilePicture: userProfileData?.pictures?.[0],
+        matches: matchedProfiles,
+        createdAt: matchData.createdAt?.toDate ? matchData.createdAt.toDate().toISOString() : new Date().toISOString(),
+      });
+    }
+
+    console.log(`✅ Processed ${matchesWithProfiles.length} matches with profiles`);
+    console.log(`📊 Total reveals: ${totalReveals} out of ${totalMatchDocuments * 3} possible`);
+
+    const totalPossibleReveals = totalMatchDocuments * 3;
+    const revealRate = totalPossibleReveals > 0 ? (totalReveals / totalPossibleReveals) * 100 : 0;
+
+    const response: PromptMatchDetailResponse = {
+      promptId,
+      question: existingPrompt.question,
+      totalMatchDocuments,
+      totalUsersMatched: totalMatchDocuments, // Each match doc is for one user
+      totalPossibleReveals,
+      totalReveals,
+      revealRate: Math.round(revealRate * 100) / 100,
+      matches: matchesWithProfiles,
+    };
+
+    // Log successful action
+    await logAdminAction(
+      'VIEW_PROMPT_MATCHES',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      promptId,
+      { totalMatchDocuments, totalReveals },
+      getIpAddress(req),
+      getUserAgent(req)
+    );
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error('Error fetching prompt matches:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Log failed action
+    await logAdminAction(
+      'VIEW_PROMPT_MATCHES',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      req.params.promptId,
       { error: errorMessage },
       getIpAddress(req),
       getUserAgent(req),

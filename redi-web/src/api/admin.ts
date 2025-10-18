@@ -3,7 +3,10 @@ import {
   ApiResponse,
   CreatePromptRequest,
   GenerateMatchesResponse,
+  MatchStatsResponse,
+  PromptMatchDetailResponse,
   WeeklyPrompt,
+  WeeklyPromptAnswerWithProfile,
 } from '@/types/admin';
 import { getAuth } from 'firebase/auth';
 import {
@@ -175,7 +178,8 @@ export const fetchAnswerCount = async (promptId: string): Promise<number> => {
     return snapshot.size;
   } catch (error) {
     console.error('Error fetching answer count:', error);
-    return 0;
+    // TEMP FIX: Return 1 if error occurs to avoid blocking prompt display
+    return 1;
   }
 };
 
@@ -378,6 +382,98 @@ export const deletePrompt = async (promptId: string): Promise<ApiResponse<{ mess
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.error || 'Failed to delete prompt');
+  }
+
+  return res.json();
+};
+
+/**
+ * Fetch all answers for a specific prompt with user profile information
+ */
+export const fetchPromptAnswers = async (
+  promptId: string
+): Promise<WeeklyPromptAnswerWithProfile[]> => {
+  console.log('📤 Fetching answers for prompt:', promptId);
+
+  const token = await getAuthToken();
+
+  const res = await fetch(
+    `${API_BASE_URL}/api/admin/prompts/${promptId}/answers`,
+    {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    }
+  );
+
+  console.log('📥 Response status:', res.status, res.statusText);
+
+  if (!res.ok) {
+    const error = await res.json();
+    console.error('❌ Error response:', error);
+    throw new Error(error.error || 'Failed to fetch prompt answers');
+  }
+
+  const data = await res.json();
+  console.log('✅ Received answers:', data.length, 'answers');
+  console.log('📊 Sample answer:', data[0]);
+
+  return data;
+};
+
+/**
+ * Fetch overall match statistics across all prompts
+ */
+export const fetchMatchStats = async (): Promise<MatchStatsResponse> => {
+  console.log('📤 Fetching match statistics');
+
+  const token = await getAuthToken();
+
+  const res = await fetch(`${API_BASE_URL}/api/admin/matches/stats`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  console.log('📥 Response status:', res.status, res.statusText);
+
+  if (!res.ok) {
+    const error = await res.json();
+    console.error('❌ Error response:', error);
+    throw new Error(error.error || 'Failed to fetch match statistics');
+  }
+
+  const data = await res.json();
+  console.log('✅ Received match stats:', data);
+
+  return data;
+};
+
+/**
+ * Fetch detailed match data for a specific prompt
+ */
+export const fetchPromptMatches = async (
+  promptId: string
+): Promise<PromptMatchDetailResponse> => {
+  console.log('📤 Fetching matches for prompt:', promptId);
+
+  const token = await getAuthToken();
+
+  const res = await fetch(
+    `${API_BASE_URL}/api/admin/prompts/${promptId}/matches`,
+    {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to fetch prompt matches');
   }
 
   return res.json();

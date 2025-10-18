@@ -3,6 +3,7 @@
 import { createPrompt } from '@/api/admin';
 import { PromptStatus, WeeklyPrompt } from '@/types/admin';
 import { useState } from 'react';
+import PromptAnswersViewer from './PromptAnswersViewer';
 
 interface ProductionModeSectionProps {
   prompts: WeeklyPrompt[];
@@ -21,6 +22,7 @@ export default function ProductionModeSection({
   const [success, setSuccess] = useState<string | null>(null);
   const [releaseDateWarning, setReleaseDateWarning] = useState<string | null>(null);
   const [matchDateWarning, setMatchDateWarning] = useState<string | null>(null);
+  const [selectedPromptForAnswers, setSelectedPromptForAnswers] = useState<WeeklyPrompt | null>(null);
 
   // Get next Monday's date as default
   const getNextMonday = () => {
@@ -245,9 +247,19 @@ export default function ProductionModeSection({
         </p>
       )}
       {prompt.answerCount !== undefined && (
-        <p className="text-sm text-gray-600">
-          Answers: {prompt.answerCount}
-        </p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm text-gray-600">
+            Answers: {prompt.answerCount}
+          </p>
+          {prompt.answerCount > 0 && (
+            <button
+              onClick={() => setSelectedPromptForAnswers(prompt)}
+              className="px-3 py-1 text-xs rounded-full bg-gray-100 text-black hover:bg-gray-200 transition border border-gray-300"
+            >
+              View Answers
+            </button>
+          )}
+        </div>
       )}
       {prompt.activatedAt && (
         <p className="text-xs text-gray-500 mt-2">
@@ -455,6 +467,15 @@ export default function ProductionModeSection({
           )}
         </div>
       </div>
+
+      {/* Prompt Answers Viewer Modal */}
+      {selectedPromptForAnswers && (
+        <PromptAnswersViewer
+          promptId={selectedPromptForAnswers.promptId}
+          promptQuestion={selectedPromptForAnswers.question}
+          onClose={() => setSelectedPromptForAnswers(null)}
+        />
+      )}
     </div>
   );
 }

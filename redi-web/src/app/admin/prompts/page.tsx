@@ -7,6 +7,7 @@ import { FIREBASE_APP } from '../../../../firebase';
 import AdminProtectedRoute from '@/components/AdminProtectedRoute';
 import ProductionModeSection from '@/components/ProductionModeSection';
 import TestingSection from '@/components/TestingSection';
+import MatchesDashboard from '@/components/MatchesDashboard';
 import { WeeklyPrompt } from '@/types/admin';
 import { fetchAllPrompts, fetchAnswerCount } from '@/api/admin';
 
@@ -182,6 +183,9 @@ export default function AdminPromptsPage() {
                 prompts={prompts}
                 onPromptCreated={loadPrompts}
               />
+
+              {/* Matches Dashboard */}
+              <MatchesDashboard />
 
               {/* Testing Section */}
               <TestingSection

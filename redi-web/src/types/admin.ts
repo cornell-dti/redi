@@ -153,3 +153,75 @@ export interface GenerateMatchesResponse {
   generatedAt?: string;
   message?: string;
 }
+
+// =============================================================================
+// ADMIN DASHBOARD - VIEW PROMPT ANSWERS TYPES
+// =============================================================================
+
+/**
+ * Prompt answer with user profile information for admin view
+ */
+export interface WeeklyPromptAnswerWithProfile {
+  netid: string;
+  promptId: string;
+  answer: string;
+  createdAt: string;
+  // Profile information
+  uuid: string;
+  firstName: string;
+  profilePicture?: string;
+}
+
+// =============================================================================
+// ADMIN DASHBOARD - MATCHES TRACKING TYPES
+// =============================================================================
+
+/**
+ * Match document with profile information for admin view
+ */
+export interface MatchWithProfile {
+  netid: string; // User who received the matches
+  firstName: string;
+  profilePicture?: string;
+  matches: Array<{
+    netid: string;
+    firstName: string;
+    profilePicture?: string;
+    revealed: boolean;
+  }>;
+  createdAt: string;
+}
+
+/**
+ * Overall match statistics for admin dashboard
+ */
+export interface MatchStatsResponse {
+  totalMatches: number;
+  totalUsersMatched: number;
+  averageMatchesPerPrompt: number;
+  totalReveals: number;
+  revealRate: number;
+  promptStats: Array<{
+    promptId: string;
+    question: string;
+    matchDate: string;
+    totalMatchDocuments: number;
+    totalUsersMatched: number;
+    totalReveals: number;
+    revealRate: number;
+  }>;
+}
+
+/**
+ * Detailed match data for a specific prompt
+ */
+export interface PromptMatchDetailResponse {
+  promptId: string;
+  question: string;
+  totalMatchDocuments: number;
+  totalUsersMatched: number;
+  totalPossibleReveals: number;
+  totalReveals: number;
+  revealRate: number;
+  matches: MatchWithProfile[];
+}

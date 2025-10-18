@@ -12,7 +12,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 /**
  * Types of resources that can be audited
  */
-export type AuditResourceType = 'prompt' | 'match' | 'user' | 'admin' | 'system';
+export type AuditResourceType = 'prompt' | 'match' | 'matches' | 'user' | 'admin' | 'system';
 
 /**
  * Types of actions that can be logged
@@ -24,6 +24,7 @@ export type AuditAction =
   | 'DELETE_PROMPT'
   | 'ACTIVATE_PROMPT'
   | 'GENERATE_MATCHES'
+  | 'VIEW_PROMPT_ANSWERS'
   // Admin actions
   | 'ADD_ADMIN'
   | 'REMOVE_ADMIN'
@@ -32,6 +33,9 @@ export type AuditAction =
   | 'VIEW_USER'
   | 'UPDATE_USER'
   | 'DELETE_USER'
+  // Match actions
+  | 'VIEW_MATCH_STATS'
+  | 'VIEW_PROMPT_MATCHES'
   // System actions
   | 'ADMIN_LOGIN'
   | 'ADMIN_LOGOUT'
@@ -108,21 +112,24 @@ export async function logAdminAction(
   errorMessage?: string
 ): Promise<string> {
   try {
-    const logEntry: AuditLogEntry = {
+    // Build log entry with only defined fields to avoid Firestore undefined errors
+    const logEntry: Record<string, any> = {
       action,
       adminUid,
-      adminEmail,
       resourceType,
       resourceId,
-      details: sanitizeDetails(details),
       timestamp: Timestamp.now(),
-      ipAddress,
-      userAgent,
       success,
-      errorMessage,
     };
 
-    const docRef = await db.collection('adminAuditLogs').add(logEntry);
+    // Only add optional fields if they have defined values
+    if (adminEmail !== undefined) logEntry.adminEmail = adminEmail;
+    if (details !== undefined) logEntry.details = sanitizeDetails(details);
+    if (ipAddress !== undefined) logEntry.ipAddress = ipAddress;
+    if (userAgent !== undefined) logEntry.userAgent = userAgent;
+    if (errorMessage !== undefined) logEntry.errorMessage = errorMessage;
+
+    const docRef = await db.collection('adminAuditLogs').add(logEntry as AuditLogEntry);
 
     console.log(`📝 [Audit Log] ${action} by ${adminEmail || adminUid} on ${resourceType}:${resourceId}`);
 
@@ -259,23 +266,32 @@ function sanitizeDetails(details?: Record<string, any>): Record<string, any> | u
     }
 
     // Handle different value types
-    if (value === null || value === undefined) {
-      sanitized[key] = value;
+    if (value === undefined) {
+      // Skip undefined values - Firestore doesn't allow them
+      continue;
+    } else if (value === null) {
+      // null is allowed in Firestore
+      sanitized[key] = null;
     } else if (typeof value === 'object' && !Array.isArray(value)) {
       // Recursively sanitize nested objects
-      sanitized[key] = sanitizeDetails(value);
+      const nestedSanitized = sanitizeDetails(value);
+      if (nestedSanitized !== undefined) {
+        sanitized[key] = nestedSanitized;
+      }
     } else if (Array.isArray(value)) {
-      // Sanitize arrays
-      sanitized[key] = value.map(item =>
-        typeof item === 'object' ? sanitizeDetails(item) : item
-      );
+      // Sanitize arrays, filtering out undefined values
+      sanitized[key] = value
+        .map(item =>
+          typeof item === 'object' && item !== null ? sanitizeDetails(item) : item
+        )
+        .filter(item => item !== undefined);
     } else {
       // Primitive values
       sanitized[key] = value;
     }
   }
 
-  return sanitized;
+  return Object.keys(sanitized).length > 0 ? sanitized : undefined;
 }
 
 /**
