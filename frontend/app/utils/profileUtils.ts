@@ -36,32 +36,3 @@ export function getYearString(year: number): Year {
 
   return 'Freshman'; // Fallback for edge cases
 }
-
-/**
- * Format ethnicity for display in profile view
- * - Removes content in parentheses
- * - Removes text after "or"
- * - Filters out "Other" and "Prefer not to say"
- * @param ethnicities - Array of ethnicity strings
- * @returns Formatted ethnicity strings for display
- * @example
- * formatEthnicityForDisplay(['East Asian (Chinese, Japanese, Korean, etc.)'])
- * // Returns: ['East Asian']
- * formatEthnicityForDisplay(['Black or African American'])
- * // Returns: ['Black']
- */
-export function formatEthnicityForDisplay(ethnicities: string[]): string[] {
-  return ethnicities
-    .filter((eth) => eth !== 'Other' && eth !== 'Prefer not to say')
-    .map((eth) => {
-      // Remove parentheses and their content
-      let formatted = eth.replace(/\s*\([^)]*\)/g, '');
-
-      // Remove text after "or" (including "or")
-      formatted = formatted.split(' or ')[0];
-
-      // Trim any extra whitespace
-      return formatted.trim();
-    })
-    .filter((eth) => eth.length > 0); // Remove empty strings
-}
