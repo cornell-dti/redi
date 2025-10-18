@@ -1,14 +1,7 @@
 import AppText from '@/app/components/ui/AppText';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import {
-  Alert,
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile } from '../api/profileApi';
@@ -24,7 +17,6 @@ export default function EditAgePage() {
   const [saving, setSaving] = useState(false);
   const [birthdate, setBirthdate] = useState<Date>(new Date());
   const [originalBirthdate, setOriginalBirthdate] = useState<Date>(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(Platform.OS === 'ios');
 
   useEffect(() => {
     fetchProfile();
@@ -98,15 +90,6 @@ export default function EditAgePage() {
       );
     } else {
       router.back();
-    }
-  };
-
-  const onDateChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
-    if (selectedDate) {
-      setBirthdate(selectedDate);
     }
   };
 
