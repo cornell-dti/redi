@@ -318,7 +318,7 @@ export default function CreateProfileScreen() {
           <View style={styles.stepContainer}>
             <OnboardingTitle
               title="What's your gender?"
-              subtitle="Select all that describe you to help us show your profile to the right people."
+              subtitle="Select what best describes you to help us show your profile to the right people."
             />
             <ListItemWrapper>
               {GENDER_OPTIONS.map((gender) => (
@@ -326,10 +326,10 @@ export default function CreateProfileScreen() {
                   key={gender.value}
                   title={gender.label}
                   selected={data.genders.includes(gender.value)}
-                  onPress={() => toggleArrayItem('genders', gender.value)}
+                  onPress={() => updateField('genders', [gender.value])}
                   right={
                     data.genders.includes(gender.value) ? (
-                      <Check size={24} color={AppColors.accentDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -358,7 +358,7 @@ export default function CreateProfileScreen() {
                   onPress={() => toggleArrayItem('pronouns', pronoun)}
                   right={
                     data.pronouns.includes(pronoun) ? (
-                      <Check size={24} color={AppColors.accentDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -394,7 +394,7 @@ export default function CreateProfileScreen() {
 
             <ListItemWrapper>
               {data.major.length > 0 && (
-                <View style={styles.majorTags}>
+                <View style={styles.majorTagsFilled}>
                   {data.major.map((major, index) => (
                     <Tag
                       key={major}
@@ -434,7 +434,7 @@ export default function CreateProfileScreen() {
                     }}
                     right={
                       data.school === school ? (
-                        <Check size={16} color={AppColors.backgroundDefault} />
+                        <Check size={16} color={AppColors.accentDefault} />
                       ) : null
                     }
                   />
@@ -452,8 +452,10 @@ export default function CreateProfileScreen() {
                   }
                   setShowMajorSheet(false);
                 }}
+                onDismiss={() => setShowMajorSheet(false)}
                 placeholder="Search for your major"
                 allowOther={true}
+                autoOpen={true}
               />
             )}
           </View>
@@ -472,7 +474,7 @@ export default function CreateProfileScreen() {
                   onPress={() => updateField('year', year)}
                   right={
                     data.year === year ? (
-                      <Check size={24} color={AppColors.accentDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -486,7 +488,7 @@ export default function CreateProfileScreen() {
           <View style={styles.stepContainer}>
             <OnboardingTitle
               title="What's your sexual orientation?"
-              subtitle="Select all that describe you to help us show your profile to the right people."
+              subtitle="Select the option that best describes you to help us show your profile to the right people."
             />
             <ListItemWrapper>
               {SEXUAL_ORIENTATION_OPTIONS.map((orientation) => (
@@ -495,11 +497,11 @@ export default function CreateProfileScreen() {
                   title={orientation}
                   selected={data.sexualOrientation.includes(orientation)}
                   onPress={() =>
-                    toggleArrayItem('sexualOrientation', orientation)
+                    updateField('sexualOrientation', [orientation])
                   }
                   right={
                     data.sexualOrientation.includes(orientation) ? (
-                      <Check size={24} color={AppColors.accentDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -524,7 +526,7 @@ export default function CreateProfileScreen() {
                   onPress={() => toggleArrayItem('ethnicity', ethnicity)}
                   right={
                     data.ethnicity?.includes(ethnicity) ? (
-                      <Check size={24} color={AppColors.accentDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -549,7 +551,7 @@ export default function CreateProfileScreen() {
                   onPress={() => toggleArrayItem('interestedIn', option)}
                   right={
                     data.interestedIn.includes(option) ? (
-                      <Check size={24} color={AppColors.accentDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -680,12 +682,6 @@ export default function CreateProfileScreen() {
               subtitle="All fields are optional - add any you'd like to share"
             />
             <AppInput
-              label="LinkedIn"
-              placeholder="linkedin.com/in/username"
-              value={data.linkedIn}
-              onChangeText={(text) => updateField('linkedIn', text)}
-            />
-            <AppInput
               label="Instagram"
               placeholder="@username"
               value={data.instagram}
@@ -696,6 +692,12 @@ export default function CreateProfileScreen() {
               placeholder="username"
               value={data.snapchat}
               onChangeText={(text) => updateField('snapchat', text)}
+            />
+            <AppInput
+              label="LinkedIn"
+              placeholder="linkedin.com/in/username"
+              value={data.linkedIn}
+              onChangeText={(text) => updateField('linkedIn', text)}
             />
             <AppInput
               label="GitHub"
@@ -873,6 +875,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: 16,
+  },
+  majorTagsFilled: {
+    backgroundColor: AppColors.backgroundDimmer,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 16,
+    padding: 16,
   },
   majorInputRow: {
     flexDirection: 'row',

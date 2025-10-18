@@ -14,7 +14,11 @@ export default function OnboardingTitle({
   return (
     <View style={styles.container}>
       <AppText variant="title">{title}</AppText>
-      {subtitle && <AppText variant="body">{subtitle}</AppText>}
+      {subtitle && (
+        <AppText variant="subtitle" color="dimmer">
+          {subtitle}
+        </AppText>
+      )}
     </View>
   );
 }
@@ -22,8 +26,8 @@ export default function OnboardingTitle({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 24,
-  },
-  title: {
-    marginBottom: 8,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
   },
 });

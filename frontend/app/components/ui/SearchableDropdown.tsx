@@ -15,6 +15,8 @@ interface SearchableDropdownProps {
   placeholder?: string;
   label?: string;
   allowOther?: boolean; // Allow custom text input
+  autoOpen?: boolean; // Automatically open the sheet on mount
+  onDismiss?: () => void; // Called when sheet is dismissed
 }
 
 export default function SearchableDropdown({
@@ -24,10 +26,18 @@ export default function SearchableDropdown({
   placeholder = 'Search...',
   label,
   allowOther = false,
+  autoOpen = false,
+  onDismiss,
 }: SearchableDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(autoOpen);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredOptions, setFilteredOptions] = useState(options);
+
+  useEffect(() => {
+    if (autoOpen) {
+      setIsOpen(true);
+    }
+  }, [autoOpen]);
 
   useEffect(() => {
     if (searchQuery) {
@@ -56,31 +66,36 @@ export default function SearchableDropdown({
 
   return (
     <View style={styles.container}>
-      {label && (
-        <AppText variant="subtitle" style={styles.label}>
-          {label}
-        </AppText>
+      {!autoOpen && (
+        <>
+          {label && (
+            <AppText variant="subtitle" style={styles.label}>
+              {label}
+            </AppText>
+          )}
+          <TouchableOpacity
+            style={styles.input}
+            onPress={() => setIsOpen(true)}
+            activeOpacity={0.7}
+          >
+            <AppText
+              style={[
+                styles.inputText,
+                !value && { color: AppColors.foregroundDimmer },
+              ]}
+            >
+              {value || placeholder}
+            </AppText>
+          </TouchableOpacity>
+        </>
       )}
-      <TouchableOpacity
-        style={styles.input}
-        onPress={() => setIsOpen(true)}
-        activeOpacity={0.7}
-      >
-        <AppText
-          style={[
-            styles.inputText,
-            !value && { color: AppColors.foregroundDimmer },
-          ]}
-        >
-          {value || placeholder}
-        </AppText>
-      </TouchableOpacity>
 
       <Sheet
         visible={isOpen}
         onDismiss={() => {
           setIsOpen(false);
           setSearchQuery('');
+          onDismiss?.();
         }}
         title={label || 'Select an option'}
         height="80%"

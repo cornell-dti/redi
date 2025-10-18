@@ -171,7 +171,7 @@ export default function ProfileScreen() {
               iconLeft={Eye}
               variant="secondary"
               title="Preview profile"
-              onPress={() => {}}
+              onPress={() => router.push('/profile-preview' as any)}
               fullWidth
             />
           </View>
@@ -180,28 +180,28 @@ export default function ProfileScreen() {
             <ListItem
               onPress={() => router.push('/preferences' as any)}
               title="Dating preferences"
-              left={<Heart />}
+              left={<Heart size={20} />}
               right={<ChevronRight />}
             />
 
             <ListItem
               onPress={() => router.push('/appearance' as any)}
               title="Appearance"
-              left={<Palette />}
+              left={<Palette size={20} />}
               right={<ChevronRight />}
             />
 
             <ListItem
               onPress={() => router.push('/account-settings' as any)}
               title="Account settings"
-              left={<SettingsIcon />}
+              left={<SettingsIcon size={20} />}
               right={<ChevronRight />}
             />
 
             <ListItem
               onPress={() => router.push('/safety' as any)}
               title="Safety"
-              left={<Lock />}
+              left={<Lock size={20} />}
               right={<ChevronRight />}
             />
           </ListItemWrapper>
@@ -210,28 +210,28 @@ export default function ProfileScreen() {
             <ListItem
               onPress={() => router.push('/terms-and-conditions' as any)}
               title="Terms & Conditions"
-              left={<ClipboardList />}
+              left={<ClipboardList size={20} />}
               right={<ChevronRight />}
             />
 
             <ListItem
               onPress={() => router.push('/privacy-policy' as any)}
               title="Privacy Policy"
-              left={<ShieldCheck />}
+              left={<ShieldCheck size={20} />}
               right={<ChevronRight />}
             />
 
             <ListItem
               onPress={() => {}}
               title="Leave a rating"
-              left={<StarIcon />}
+              left={<StarIcon size={20} />}
               right={<ExternalLink />}
             />
 
             <ListItem
               onPress={() => router.push('/contact' as any)}
               title="Contact the team"
-              left={<MailIcon />}
+              left={<MailIcon size={20} />}
               right={<ChevronRight />}
             />
           </ListItemWrapper>
@@ -240,7 +240,7 @@ export default function ProfileScreen() {
             <ListItem
               onPress={() => setShowSignOutSheet(true)}
               title="Sign Out"
-              left={<LogOut color={AppColors.negativeDefault} />}
+              left={<LogOut color={AppColors.negativeDefault} size={20} />}
               right={<ChevronRight color={AppColors.negativeDefault} />}
               destructive
             />
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     gap: 16,
-    maxWidth: '55%',
+    maxWidth: '53%',
   },
   sheetContent: {
     display: 'flex',
