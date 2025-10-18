@@ -318,7 +318,7 @@ export default function CreateProfileScreen() {
           <View style={styles.stepContainer}>
             <OnboardingTitle
               title="What's your gender?"
-              subtitle="Select the gender that best matches you."
+              subtitle="Select what best describes you to help us show your profile to the right people."
             />
             <ListItemWrapper>
               {GENDER_OPTIONS.map((gender) => (
