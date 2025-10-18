@@ -7,6 +7,7 @@ import usersRouter from './routes/users';
 import preferencesRouter from './routes/preferences';
 import promptsRouter from './routes/prompts';
 import adminPromptsRouter from './routes/admin-prompts';
+import imagesRouter from './routes/images';
 
 dotenv.config();
 
@@ -63,6 +64,7 @@ app.use(profilesRouter);
 app.use(preferencesRouter); // /api/preferences
 app.use(promptsRouter); // /api/prompts
 app.use(adminPromptsRouter); // /api/admin/prompts
+app.use(imagesRouter); // /api/images
 
 app
   .listen(PORT, () => {

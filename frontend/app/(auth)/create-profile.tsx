@@ -21,6 +21,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CORNELL_MAJORS, CORNELL_SCHOOLS } from '../../constants/cornell';
 import { getCurrentUser } from '../api/authService';
+import { uploadImages } from '../api/imageApi';
 import { updatePreferences } from '../api/preferencesApi';
 import { createProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
@@ -59,6 +60,7 @@ export default function CreateProfileScreen() {
     isLoaded,
   } = useOnboardingState();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
   const [showSchoolSheet, setShowSchoolSheet] = useState(false);
   const [showClubInput, setShowClubInput] = useState(false);
   const [clubInput, setClubInput] = useState('');
@@ -183,8 +185,29 @@ export default function CreateProfileScreen() {
     try {
       setIsSubmitting(true);
 
-      // Transform data to API payload
+      // Step 1: Upload images to Firebase Storage
+      let uploadedImageUrls: string[] = [];
+      if (data.pictures.length > 0) {
+        try {
+          setUploadingImages(true);
+          uploadedImageUrls = await uploadImages(data.pictures);
+          setUploadingImages(false);
+        } catch (uploadError) {
+          setUploadingImages(false);
+          Alert.alert(
+            'Upload Error',
+            'Failed to upload images. Please try again.'
+          );
+          console.error('Image upload failed:', uploadError);
+          return;
+        }
+      }
+
+      // Step 2: Transform data to API payload with uploaded image URLs
       const payload = transformOnboardingToProfilePayload(data, firebaseUid);
+
+      // Replace local image URIs with uploaded URLs
+      payload.pictures = uploadedImageUrls;
 
       // Validate payload
       const validation = validateProfilePayload(payload);
@@ -193,11 +216,11 @@ export default function CreateProfileScreen() {
         return;
       }
 
-      // Submit to backend - extract firebaseUid from payload
+      // Step 3: Submit profile to backend
       const { firebaseUid: uid, ...profileData } = payload;
       await createProfile(uid, profileData);
 
-      // Save preferences (interestedIn -> preferences.genders)
+      // Step 4: Save preferences (interestedIn -> preferences.genders)
       try {
         const preferencesData = extractPreferencesFromOnboarding(data);
         if (preferencesData.genders && preferencesData.genders.length > 0) {
@@ -793,6 +816,8 @@ export default function CreateProfileScreen() {
   };
 
   const getNextLabel = () => {
+    if (uploadingImages) return 'Uploading images...';
+    if (isSubmitting) return 'Creating profile...';
     if (currentStep === 16) return 'Get Started';
     return 'Next';
   };
