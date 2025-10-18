@@ -9,7 +9,6 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-// import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile } from '../api/profileApi';
