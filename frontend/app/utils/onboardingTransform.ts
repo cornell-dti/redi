@@ -101,7 +101,7 @@ export function transformOnboardingToProfilePayload(
 
   // Ensure year is set
   if (onboardingData.year === null) {
-    throw new Error('Graduation year is required');
+    throw new Error('Year is required');
   }
 
   // Get netid from user email (will be set by backend, but we need a placeholder)
@@ -193,7 +193,7 @@ export function validateProfilePayload(
   if (!payload.bio) errors.push('Bio is required');
   if (!payload.gender) errors.push('Gender is required');
   if (!payload.birthdate) errors.push('Birthdate is required');
-  if (!payload.year) errors.push('Graduation year is required');
+  if (!payload.year) errors.push('Year is required');
   if (!payload.school) errors.push('School is required');
   if (!payload.major || payload.major.length === 0)
     errors.push('At least one major is required');

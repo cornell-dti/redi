@@ -1,7 +1,7 @@
 import AppText from '@/app/components/ui/AppText';
 import { School } from '@/types';
 import { router } from 'expo-router';
-import { Check, Plus } from 'lucide-react-native';
+import { Check, ChevronDown, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,15 +12,20 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CORNELL_MAJORS, CORNELL_SCHOOLS } from '../../constants/cornell';
+import {
+  CORNELL_MAJORS,
+  CORNELL_SCHOOLS,
+  Year,
+  YEARS,
+} from '../../constants/cornell';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
+import AppInput from '../components/ui/AppInput';
 import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
-import SearchableDropdown from '../components/ui/SearchableDropdown';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import { useThemeAware } from '../contexts/ThemeContext';
@@ -33,17 +38,18 @@ export default function EditEducationPage() {
   // Current values
   const [school, setSchool] = useState<School | ''>('');
   const [majors, setMajors] = useState<string[]>([]);
-  const [year, setYear] = useState<number | null>(null);
+  const [year, setYear] = useState<Year | null>(null);
 
   // Original values for comparison
   const [originalSchool, setOriginalSchool] = useState<School | ''>('');
   const [originalMajors, setOriginalMajors] = useState<string[]>([]);
-  const [originalYear, setOriginalYear] = useState<number | null>(null);
+  const [originalYear, setOriginalYear] = useState<Year | null>(null);
 
   // Sheet states
   const [showSchoolSheet, setShowSchoolSheet] = useState(false);
   const [showMajorSheet, setShowMajorSheet] = useState(false);
   const [showYearSheet, setShowYearSheet] = useState(false);
+  const [majorSearchQuery, setMajorSearchQuery] = useState('');
 
   useEffect(() => {
     fetchProfile();
@@ -88,7 +94,7 @@ export default function EditEducationPage() {
       return;
     }
     if (!year) {
-      Alert.alert('Required', 'Please select a graduation year');
+      Alert.alert('Required', 'Please select a year');
       return;
     }
 
@@ -150,8 +156,6 @@ export default function EditEducationPage() {
     );
   }
 
-  const GRADUATION_YEARS = [2025, 2026, 2027, 2028];
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -170,23 +174,20 @@ export default function EditEducationPage() {
         <View style={styles.content}>
           {/* School */}
           <View style={styles.section}>
-            <AppText variant="subtitle" color="dimmer">
-              College
-            </AppText>
-            <ListItemWrapper>
-              <ListItem
-                title={school || 'Select college'}
-                onPress={() => setShowSchoolSheet(true)}
-                right={<Check size={20} color={AppColors.accentDefault} />}
-              />
-            </ListItemWrapper>
+            <AppText indented>College</AppText>
+
+            <Button
+              title={school || 'Select college'}
+              onPress={() => setShowSchoolSheet(true)}
+              iconRight={ChevronDown}
+              dropdown
+              variant="secondary"
+            />
           </View>
 
           {/* Majors */}
           <View style={styles.section}>
-            <AppText variant="subtitle" color="dimmer">
-              Field(s) of study
-            </AppText>
+            <AppText indented>Field(s) of study</AppText>
             <ListItemWrapper>
               {majors.length > 0 && (
                 <View style={styles.tagsContainer}>
@@ -212,18 +213,17 @@ export default function EditEducationPage() {
             </ListItemWrapper>
           </View>
 
-          {/* Graduation Year */}
+          {/* Year */}
           <View style={styles.section}>
-            <AppText variant="subtitle" color="dimmer">
-              Graduation year
-            </AppText>
-            <ListItemWrapper>
-              <ListItem
-                title={year ? year.toString() : 'Select year'}
-                onPress={() => setShowYearSheet(true)}
-                right={<Check size={20} color={AppColors.accentDefault} />}
-              />
-            </ListItemWrapper>
+            <AppText indented>Year</AppText>
+
+            <Button
+              title={year || 'Select year'}
+              onPress={() => setShowYearSheet(true)}
+              iconRight={ChevronDown}
+              dropdown
+              variant="secondary"
+            />
           </View>
         </View>
       </ScrollView>
@@ -233,60 +233,106 @@ export default function EditEducationPage() {
         visible={showSchoolSheet}
         onDismiss={() => setShowSchoolSheet(false)}
         title="Select your college"
-        height={500}
       >
-        <ListItemWrapper>
-          {CORNELL_SCHOOLS.map((schoolOption) => (
-            <ListItem
-              key={schoolOption}
-              title={schoolOption}
-              selected={school === schoolOption}
-              onPress={() => {
-                setSchool(schoolOption);
-                // Clear majors if school changes
-                if (school !== schoolOption) {
-                  setMajors([]);
+        <ScrollView style={styles.scrollView}>
+          <ListItemWrapper>
+            {CORNELL_SCHOOLS.map((schoolOption) => (
+              <ListItem
+                key={schoolOption}
+                title={schoolOption}
+                selected={school === schoolOption}
+                onPress={() => {
+                  setSchool(schoolOption);
+                  // Clear majors if school changes
+                  if (school !== schoolOption) {
+                    setMajors([]);
+                  }
+                  setShowSchoolSheet(false);
+                }}
+                right={
+                  school === schoolOption ? (
+                    <Check size={16} color={AppColors.accentDefault} />
+                  ) : null
                 }
-                setShowSchoolSheet(false);
-              }}
-              right={
-                school === schoolOption ? (
-                  <Check size={16} color={AppColors.accentDefault} />
-                ) : null
-              }
-            />
-          ))}
-        </ListItemWrapper>
+              />
+            ))}
+          </ListItemWrapper>
+        </ScrollView>
       </Sheet>
 
       {/* Major Selection Sheet */}
-      {showMajorSheet && school && (
-        <SearchableDropdown
-          options={CORNELL_MAJORS[school] || []}
-          value=""
-          onSelect={(selectedMajor) => {
-            if (!majors.includes(selectedMajor)) {
-              setMajors([...majors, selectedMajor]);
-            }
-            setShowMajorSheet(false);
-          }}
-          placeholder="Search for your major"
-          allowOther={true}
-        />
-      )}
+      <Sheet
+        visible={showMajorSheet && !!school}
+        onDismiss={() => {
+          setShowMajorSheet(false);
+          setMajorSearchQuery('');
+        }}
+        title="Select your major"
+      >
+        <View style={styles.majorSheetContent}>
+          <AppInput
+            placeholder="Search for your major"
+            value={majorSearchQuery}
+            onChangeText={setMajorSearchQuery}
+            autoFocus
+          />
+
+          <ScrollView style={styles.majorScrollView}>
+            <ListItemWrapper>
+              {school &&
+                (CORNELL_MAJORS[school] || [])
+                  .filter((major) =>
+                    major.toLowerCase().includes(majorSearchQuery.toLowerCase())
+                  )
+                  .map((major) => (
+                    <ListItem
+                      key={major}
+                      title={major}
+                      onPress={() => {
+                        if (!majors.includes(major)) {
+                          setMajors([...majors, major]);
+                        }
+                        setShowMajorSheet(false);
+                        setMajorSearchQuery('');
+                      }}
+                    />
+                  ))}
+              {majorSearchQuery.trim() &&
+                school &&
+                (CORNELL_MAJORS[school] || []).filter((major) =>
+                  major.toLowerCase().includes(majorSearchQuery.toLowerCase())
+                ).length === 0 && (
+                  <View style={styles.emptyState}>
+                    <AppText style={styles.emptyText}>No results found</AppText>
+                    <Button
+                      title={`Use "${majorSearchQuery}"`}
+                      onPress={() => {
+                        if (!majors.includes(majorSearchQuery.trim())) {
+                          setMajors([...majors, majorSearchQuery.trim()]);
+                        }
+                        setShowMajorSheet(false);
+                        setMajorSearchQuery('');
+                      }}
+                      variant="primary"
+                    />
+                  </View>
+                )}
+            </ListItemWrapper>
+          </ScrollView>
+        </View>
+      </Sheet>
 
       {/* Year Selection Sheet */}
       <Sheet
         visible={showYearSheet}
         onDismiss={() => setShowYearSheet(false)}
-        title="Select graduation year"
-        height={400}
+        title="Select year"
       >
         <ListItemWrapper>
-          {GRADUATION_YEARS.map((yearOption) => (
+          {YEARS.map((yearOption) => (
             <ListItem
               key={yearOption}
-              title={yearOption.toString()}
+              title={yearOption}
               selected={year === yearOption}
               onPress={() => {
                 setYear(yearOption);
@@ -335,5 +381,21 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     backgroundColor: AppColors.backgroundDimmer,
     padding: 16,
+  },
+  majorSheetContent: {
+    flex: 1,
+    gap: 16,
+  },
+  majorScrollView: {
+    flex: 1,
+  },
+  emptyState: {
+    padding: 32,
+    alignItems: 'center',
+    gap: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: AppColors.foregroundDimmer,
   },
 });

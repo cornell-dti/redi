@@ -186,6 +186,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     overflow: 'scroll',
     margin: 8,
+    maxHeight: 800,
   },
   dragHandleContainer: {
     height: 24,

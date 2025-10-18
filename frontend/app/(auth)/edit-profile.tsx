@@ -294,7 +294,12 @@ export default function EditProfileScreen() {
 
             <ListItem
               title="Gender"
-              description={profile?.gender}
+              description={
+                profile?.gender
+                  ? profile.gender.charAt(0).toUpperCase() +
+                    profile.gender.slice(1)
+                  : ''
+              }
               right={<ChevronRight size={20} />}
               onPress={() => router.push('/edit-gender' as any)}
             />

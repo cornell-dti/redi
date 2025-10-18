@@ -2,6 +2,8 @@
 // PROFILE TYPES
 // =============================================================================
 
+import type { Year } from '../constants/cornell';
+
 export type Gender = 'female' | 'male' | 'non-binary';
 
 export type School =
@@ -45,7 +47,7 @@ export interface ProfileResponse {
   website?: string;
   clubs?: string[];
   interests?: string[];
-  year: number;
+  year: Year;
   school: School;
   major: string[];
   pictures: string[];
@@ -79,7 +81,7 @@ export interface CreateProfileInput {
   website?: string;
   clubs?: string[];
   interests?: string[];
-  year: number;
+  year: Year;
   school: School;
   major: string[];
   pictures: string[];

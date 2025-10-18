@@ -1,5 +1,7 @@
 import { AVAILABLE_PROMPTS } from '@/types';
+import { Check } from 'lucide-react-native';
 import React from 'react';
+import { AppColors } from '../AppColors';
 import ListItem from './ListItem';
 import ListItemWrapper from './ListItemWrapper';
 import Sheet from './Sheet';
@@ -18,12 +20,7 @@ export default function AvailablePromptsSheet({
   selectedPrompt,
 }: AvailablePromptsSheetProps) {
   return (
-    <Sheet
-      visible={visible}
-      onDismiss={onDismiss}
-      title="Select a prompt"
-      height={500}
-    >
+    <Sheet visible={visible} onDismiss={onDismiss} title="Select a prompt">
       <ListItemWrapper>
         {AVAILABLE_PROMPTS.map((promptOption, index) => (
           <ListItem
@@ -31,6 +28,11 @@ export default function AvailablePromptsSheet({
             title={promptOption}
             onPress={() => onSelectPrompt(promptOption)}
             selected={selectedPrompt === promptOption}
+            right={
+              selectedPrompt === promptOption ? (
+                <Check size={20} color={AppColors.accentDefault} />
+              ) : null
+            }
           />
         ))}
       </ListItemWrapper>

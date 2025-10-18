@@ -273,16 +273,6 @@ export default function MatchesScreen() {
       );
     }
 
-    const yearLabels: Record<number, string> = {
-      1: 'Freshman',
-      2: 'Sophomore',
-      3: 'Junior',
-      4: 'Senior',
-      5: 'Graduate',
-      6: 'PhD',
-      7: 'PostDoc',
-    };
-
     return (
       <View style={styles.matchContainer}>
         <ScrollView
@@ -305,7 +295,7 @@ export default function MatchesScreen() {
                 <WeeklyMatchCard
                   name={matchProfile.firstName}
                   age={matchAge}
-                  year={yearLabels[matchProfile.year] || 'Student'}
+                  year={matchProfile.year}
                   major={matchProfile.major.join(', ')}
                   image={
                     matchProfile.pictures[0] ||

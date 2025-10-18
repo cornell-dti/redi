@@ -22,5 +22,3 @@ export interface PaginatedResponse<T = any> {
     hasNext: boolean;
   };
 }
-
-export type GraduationYear = 2025 | 2026 | 2027 | 2028;

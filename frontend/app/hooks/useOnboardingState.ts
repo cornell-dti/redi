@@ -120,7 +120,7 @@ export function useOnboardingState() {
         return data.school !== '' && data.major.length > 0;
 
       case 7:
-        // Graduation year: Must be selected
+        // Year: Must be selected
         return data.year !== null;
 
       case 8:
