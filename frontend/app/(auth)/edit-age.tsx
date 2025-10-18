@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile } from '../api/profileApi';
+import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import AppInput from '../components/ui/AppInput';
 import EditingHeader from '../components/ui/EditingHeader';
@@ -17,6 +17,7 @@ export default function EditAgePage() {
   const [saving, setSaving] = useState(false);
   const [birthdate, setBirthdate] = useState<Date>(new Date());
   const [originalBirthdate, setOriginalBirthdate] = useState<Date>(new Date());
+  const [age, setAge] = useState<string>('');
 
   useEffect(() => {
     fetchProfile();
@@ -38,6 +39,8 @@ export default function EditAgePage() {
         const birthdateDate = new Date(profileData.birthdate);
         setBirthdate(birthdateDate);
         setOriginalBirthdate(birthdateDate);
+        const currentAge = calculateAge(profileData.birthdate);
+        setAge(currentAge.toString());
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -47,17 +50,37 @@ export default function EditAgePage() {
     }
   };
 
+  const handleAgeChange = (text: string) => {
+    setAge(text);
+    const ageNum = parseInt(text, 10);
+    if (!isNaN(ageNum) && ageNum > 0) {
+      // Calculate birthdate from age (assuming birthday hasn't happened yet this year)
+      const today = new Date();
+      const birthYear = today.getFullYear() - ageNum;
+      const newBirthdate = new Date(birthYear, today.getMonth(), today.getDate());
+      setBirthdate(newBirthdate);
+    }
+  };
+
   const handleSave = async () => {
+    const user = getCurrentUser();
+    if (!user?.uid) {
+      Alert.alert('Error', 'User not authenticated');
+      return;
+    }
+
     // Validate age (must be 18+)
-    const age = calculateAge(birthdate.toISOString());
-    if (age < 18) {
+    const calculatedAge = calculateAge(birthdate.toISOString());
+    if (calculatedAge < 18) {
       Alert.alert('Invalid Age', 'You must be at least 18 years old');
       return;
     }
 
     setSaving(true);
     try {
-      // TODO: Implement save to backend
+      await updateProfile(user.uid, {
+        birthdate: birthdate.toISOString(),
+      });
 
       setOriginalBirthdate(birthdate);
       Alert.alert('Success', 'Age updated successfully');
@@ -110,7 +133,13 @@ export default function EditAgePage() {
       >
         <View style={styles.sentence}>
           <AppText>I'm</AppText>
-          <AppInput value="19" />
+          <AppInput
+            value={age}
+            onChangeText={handleAgeChange}
+            keyboardType="numeric"
+            placeholder="18"
+            maxLength={2}
+          />
           <AppText>years old.</AppText>
         </View>
       </ScrollView>

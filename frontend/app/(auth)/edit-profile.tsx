@@ -1,8 +1,8 @@
 import AppText from '@/app/components/ui/AppText';
 import { ProfileResponse, PromptData } from '@/types';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Camera, ChevronRight, Pencil, Plus } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -36,10 +36,12 @@ export default function EditProfileScreen() {
   const [showUnsavedSheet, setShowUnsavedSheet] = useState(false);
   const [originalPrompts, setOriginalPrompts] = useState<PromptData[]>([]);
 
-  // Fetch profile data on mount
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  // Fetch profile data on mount and when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [])
+  );
 
   const fetchProfile = async () => {
     const user = getCurrentUser();
