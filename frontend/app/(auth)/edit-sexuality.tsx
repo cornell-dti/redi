@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StatusBar, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile } from '../api/profileApi';
+import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItem from '../components/ui/ListItem';
@@ -54,6 +54,12 @@ export default function EditSexualityPage() {
   };
 
   const handleSave = async () => {
+    const user = getCurrentUser();
+    if (!user?.uid) {
+      Alert.alert('Error', 'User not authenticated');
+      return;
+    }
+
     if (!selectedOrientation) {
       Alert.alert('Required', 'Please select a sexual orientation');
       return;
@@ -61,8 +67,9 @@ export default function EditSexualityPage() {
 
     setSaving(true);
     try {
-      // TODO: Implement save to backend
-      // await updateProfile({ sexualOrientation: [selectedOrientation] });
+      await updateProfile(user.uid, {
+        sexualOrientation: [selectedOrientation],
+      });
 
       setOriginalOrientation(selectedOrientation);
       Alert.alert('Success', 'Sexual orientation updated successfully');

@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StatusBar, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile } from '../api/profileApi';
+import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItem from '../components/ui/ListItem';
@@ -49,6 +49,12 @@ export default function EditGenderPage() {
   };
 
   const handleSave = async () => {
+    const user = getCurrentUser();
+    if (!user?.uid) {
+      Alert.alert('Error', 'User not authenticated');
+      return;
+    }
+
     if (!selectedGender) {
       Alert.alert('Required', 'Please select a gender');
       return;
@@ -56,7 +62,9 @@ export default function EditGenderPage() {
 
     setSaving(true);
     try {
-      // TODO: Implement save to backend
+      await updateProfile(user.uid, {
+        gender: selectedGender,
+      });
 
       setOriginalGender(selectedGender);
       Alert.alert('Success', 'Gender updated successfully');
