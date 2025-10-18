@@ -23,46 +23,6 @@ router.get('/api/registered-count', async (req, res) => {
   }
 });
 
-// POST a new document
-router.post('/api/landing-emails', async (req, res) => {
-  try {
-    const data = req.body;
-    if (
-      !data.email ||
-      typeof data.email !== 'string' ||
-      !data.email.includes('@')
-    ) {
-      return res.status(400).json({ error: 'Invalid email' });
-    }
-    const existingDoc = await db
-      .collection('landing-emails')
-      .where('email', '==', data.email.toLowerCase())
-      .get();
-
-    if (!existingDoc.empty) {
-      return res.status(409).json({ error: 'Email already exists' });
-    }
-    const docRef = await db.collection('landing-emails').add(data);
-
-    // Update or create the stats document
-    const statsDoc = db.collection('stats').doc('global');
-    try {
-      await statsDoc.update({
-        userCount: admin.firestore.FieldValue.increment(1),
-      });
-    } catch (error) {
-      // If document doesn't exist, create it with count 1
-      await statsDoc.set({ userCount: 1 });
-    }
-
-    res.status(201).json({ id: docRef.id });
-  } catch (error) {
-    console.error('Error adding email:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
-  }
-});
-
 router.post('/api/landing-emails/bulk-upload', async (req, res) => {
   try {
     const { emails, adminKey } = req.body;
