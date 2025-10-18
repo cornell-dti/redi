@@ -24,7 +24,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 export default function Sheet({
   visible,
   onDismiss,
-  height = 400,
+  height,
   children,
   title,
 }: SheetProps) {
@@ -186,6 +186,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     overflow: 'scroll',
     margin: 8,
+    maxHeight: 800,
   },
   dragHandleContainer: {
     height: 24,
@@ -200,7 +201,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
   },
   content: {
-    flex: 1,
     marginTop: 24,
   },
 });

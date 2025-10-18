@@ -214,21 +214,20 @@ export default function DatingPreferencesPage() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
+
       <EditingHeader
         onSave={handleSave}
         onBack={handleBack}
         isSaving={saving}
-        title="Preferences"
+        title="Dating preferences"
       />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.section}>
-          <AppText variant="title">Dating preferences</AppText>
-          <AppText variant="subtitle" color="dimmer">
-            Who would you like to date?
-          </AppText>
-        </View>
-
+      <ScrollView
+        contentContainerStyle={{
+          rowGap: 24,
+        }}
+        style={styles.scrollView}
+      >
         {/* Age Range */}
         <View style={styles.section}>
           <AppText variant="subtitle" style={styles.sectionTitle}>
@@ -393,8 +392,6 @@ export default function DatingPreferencesPage() {
             />
           </ListItemWrapper>
         </View>
-
-        <View style={{ height: 40 }} />
       </ScrollView>
 
       {/* Unsaved Changes Confirmation Sheet */}
@@ -419,14 +416,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   content: {
-    flex: 1,
+    display: 'flex',
+    gap: 24,
+    padding: 16,
   },
   section: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
     display: 'flex',
     gap: 8,
-    flexDirection: 'column',
   },
   sectionTitle: {
     paddingLeft: 16,
@@ -453,5 +449,8 @@ const styles = StyleSheet.create({
   ageSeparator: {
     position: 'relative',
     top: 12,
+  },
+  scrollView: {
+    padding: 16,
   },
 });

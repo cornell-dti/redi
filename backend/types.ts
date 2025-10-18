@@ -49,7 +49,7 @@ export interface ProfileDocWrite {
   website?: string;
   clubs?: string[];
   interests?: string[];
-  year: number;
+  year: Year;
   school: School;
   major: string[];
   pictures: string[];
@@ -109,7 +109,7 @@ export interface ProfileDoc {
   website?: string;
   clubs?: string[];
   interests?: string[];
-  year: number;
+  year: Year;
   school: School;
   major: string[];
   pictures: string[]; // URLs to images in Firebase Storage
@@ -153,7 +153,7 @@ export interface ProfileResponse {
   website?: string;
   clubs?: string[];
   interests?: string[];
-  year: number;
+  year: Year;
   school: School;
   major: string[];
   pictures: string[];

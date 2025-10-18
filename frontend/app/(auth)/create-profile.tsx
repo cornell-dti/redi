@@ -1,11 +1,11 @@
 import {
   ETHNICITY_OPTIONS,
   GENDER_OPTIONS,
-  GRADUATION_YEARS,
   INTERESTED_IN_OPTIONS,
   PRONOUN_OPTIONS,
   PromptData,
   SEXUAL_ORIENTATION_OPTIONS,
+  YEAR_OPTIONS,
 } from '@/types';
 import { router } from 'expo-router';
 import { Check, ChevronDown, Plus } from 'lucide-react-native';
@@ -21,6 +21,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CORNELL_MAJORS, CORNELL_SCHOOLS } from '../../constants/cornell';
 import { getCurrentUser } from '../api/authService';
+import { uploadImages } from '../api/imageApi';
 import { updatePreferences } from '../api/preferencesApi';
 import { createProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
@@ -59,6 +60,7 @@ export default function CreateProfileScreen() {
     isLoaded,
   } = useOnboardingState();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
   const [showSchoolSheet, setShowSchoolSheet] = useState(false);
   const [showClubInput, setShowClubInput] = useState(false);
   const [clubInput, setClubInput] = useState('');
@@ -183,8 +185,29 @@ export default function CreateProfileScreen() {
     try {
       setIsSubmitting(true);
 
-      // Transform data to API payload
+      // Step 1: Upload images to Firebase Storage
+      let uploadedImageUrls: string[] = [];
+      if (data.pictures.length > 0) {
+        try {
+          setUploadingImages(true);
+          uploadedImageUrls = await uploadImages(data.pictures);
+          setUploadingImages(false);
+        } catch (uploadError) {
+          setUploadingImages(false);
+          Alert.alert(
+            'Upload Error',
+            'Failed to upload images. Please try again.'
+          );
+          console.error('Image upload failed:', uploadError);
+          return;
+        }
+      }
+
+      // Step 2: Transform data to API payload with uploaded image URLs
       const payload = transformOnboardingToProfilePayload(data, firebaseUid);
+
+      // Replace local image URIs with uploaded URLs
+      payload.pictures = uploadedImageUrls;
 
       // Validate payload
       const validation = validateProfilePayload(payload);
@@ -193,11 +216,11 @@ export default function CreateProfileScreen() {
         return;
       }
 
-      // Submit to backend - extract firebaseUid from payload
+      // Step 3: Submit profile to backend
       const { firebaseUid: uid, ...profileData } = payload;
       await createProfile(uid, profileData);
 
-      // Save preferences (interestedIn -> preferences.genders)
+      // Step 4: Save preferences (interestedIn -> preferences.genders)
       try {
         const preferencesData = extractPreferencesFromOnboarding(data);
         if (preferencesData.genders && preferencesData.genders.length > 0) {
@@ -318,7 +341,7 @@ export default function CreateProfileScreen() {
           <View style={styles.stepContainer}>
             <OnboardingTitle
               title="What's your gender?"
-              subtitle="Select all that describe you to help us show your profile to the right people."
+              subtitle="Select what best describes you to help us show your profile to the right people."
             />
             <ListItemWrapper>
               {GENDER_OPTIONS.map((gender) => (
@@ -326,10 +349,10 @@ export default function CreateProfileScreen() {
                   key={gender.value}
                   title={gender.label}
                   selected={data.genders.includes(gender.value)}
-                  onPress={() => toggleArrayItem('genders', gender.value)}
+                  onPress={() => updateField('genders', [gender.value])}
                   right={
                     data.genders.includes(gender.value) ? (
-                      <Check size={24} color={AppColors.accentDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -358,7 +381,7 @@ export default function CreateProfileScreen() {
                   onPress={() => toggleArrayItem('pronouns', pronoun)}
                   right={
                     data.pronouns.includes(pronoun) ? (
-                      <Check size={24} color={AppColors.accentDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -394,7 +417,7 @@ export default function CreateProfileScreen() {
 
             <ListItemWrapper>
               {data.major.length > 0 && (
-                <View style={styles.majorTags}>
+                <View style={styles.majorTagsFilled}>
                   {data.major.map((major, index) => (
                     <Tag
                       key={major}
@@ -434,7 +457,7 @@ export default function CreateProfileScreen() {
                     }}
                     right={
                       data.school === school ? (
-                        <Check size={16} color={AppColors.backgroundDefault} />
+                        <Check size={16} color={AppColors.accentDefault} />
                       ) : null
                     }
                   />
@@ -452,8 +475,10 @@ export default function CreateProfileScreen() {
                   }
                   setShowMajorSheet(false);
                 }}
+                onDismiss={() => setShowMajorSheet(false)}
                 placeholder="Search for your major"
                 allowOther={true}
+                autoOpen={true}
               />
             )}
           </View>
@@ -462,17 +487,17 @@ export default function CreateProfileScreen() {
       case 7:
         return (
           <View style={styles.stepContainer}>
-            <OnboardingTitle title="What's your graduation year?" />
+            <OnboardingTitle title="What year are you in?" />
             <ListItemWrapper>
-              {GRADUATION_YEARS.map((year) => (
+              {YEAR_OPTIONS.map((year) => (
                 <ListItem
                   key={year}
-                  title={year.toString()}
+                  title={year}
                   selected={data.year === year}
                   onPress={() => updateField('year', year)}
                   right={
                     data.year === year ? (
-                      <Check size={24} color={AppColors.accentDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -486,7 +511,7 @@ export default function CreateProfileScreen() {
           <View style={styles.stepContainer}>
             <OnboardingTitle
               title="What's your sexual orientation?"
-              subtitle="Select all that describe you to help us show your profile to the right people."
+              subtitle="Select the option that best describes you to help us show your profile to the right people."
             />
             <ListItemWrapper>
               {SEXUAL_ORIENTATION_OPTIONS.map((orientation) => (
@@ -495,11 +520,11 @@ export default function CreateProfileScreen() {
                   title={orientation}
                   selected={data.sexualOrientation.includes(orientation)}
                   onPress={() =>
-                    toggleArrayItem('sexualOrientation', orientation)
+                    updateField('sexualOrientation', [orientation])
                   }
                   right={
                     data.sexualOrientation.includes(orientation) ? (
-                      <Check size={24} color={AppColors.accentDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -524,7 +549,7 @@ export default function CreateProfileScreen() {
                   onPress={() => toggleArrayItem('ethnicity', ethnicity)}
                   right={
                     data.ethnicity?.includes(ethnicity) ? (
-                      <Check size={24} color={AppColors.accentDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -549,7 +574,7 @@ export default function CreateProfileScreen() {
                   onPress={() => toggleArrayItem('interestedIn', option)}
                   right={
                     data.interestedIn.includes(option) ? (
-                      <Check size={24} color={AppColors.accentDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
                 />
@@ -653,10 +678,10 @@ export default function CreateProfileScreen() {
                 setClubInput('');
               }}
               title="Add club"
-              height={256}
             >
               <View style={styles.majorSheetContent}>
                 <AppInput
+                  autoFocus
                   placeholder="Enter club name"
                   value={clubInput}
                   onChangeText={setClubInput}
@@ -680,12 +705,6 @@ export default function CreateProfileScreen() {
               subtitle="All fields are optional - add any you'd like to share"
             />
             <AppInput
-              label="LinkedIn"
-              placeholder="linkedin.com/in/username"
-              value={data.linkedIn}
-              onChangeText={(text) => updateField('linkedIn', text)}
-            />
-            <AppInput
               label="Instagram"
               placeholder="@username"
               value={data.instagram}
@@ -696,6 +715,12 @@ export default function CreateProfileScreen() {
               placeholder="username"
               value={data.snapchat}
               onChangeText={(text) => updateField('snapchat', text)}
+            />
+            <AppInput
+              label="LinkedIn"
+              placeholder="linkedin.com/in/username"
+              value={data.linkedIn}
+              onChangeText={(text) => updateField('linkedIn', text)}
             />
             <AppInput
               label="GitHub"
@@ -747,10 +772,10 @@ export default function CreateProfileScreen() {
                 setInterestInput('');
               }}
               title="Add interest"
-              height={256}
             >
               <View style={styles.majorSheetContent}>
                 <AppInput
+                  autoFocus
                   placeholder="Enter an interest"
                   value={interestInput}
                   onChangeText={setInterestInput}
@@ -791,6 +816,8 @@ export default function CreateProfileScreen() {
   };
 
   const getNextLabel = () => {
+    if (uploadingImages) return 'Uploading images...';
+    if (isSubmitting) return 'Creating profile...';
     if (currentStep === 16) return 'Get Started';
     return 'Next';
   };
@@ -873,6 +900,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: 16,
+  },
+  majorTagsFilled: {
+    backgroundColor: AppColors.backgroundDimmer,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 16,
+    padding: 16,
   },
   majorInputRow: {
     flexDirection: 'row',

@@ -40,77 +40,74 @@ export default function AppearanceScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <EditingHeader showSave={false} />
+
+      <EditingHeader showSave={false} title="Appearance" />
 
       <ScrollView
         style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          rowGap: 24,
+        }}
       >
-        <View style={styles.content}>
-          <AppText variant="title" indented>
-            Appearance
+        <View style={styles.section}>
+          <AppText variant="subtitle" indented>
+            Accent color
           </AppText>
 
-          <View style={styles.section}>
-            <AppText variant="subtitle" indented>
-              Accent color
-            </AppText>
+          <View style={styles.colorGridAll}>
+            {themeRows.map((row, rowIndex) => (
+              <View key={rowIndex} style={styles.colorGridRow}>
+                {row.map((theme, index) => {
+                  const isFirstRow = rowIndex === 0;
+                  const isLastRow = rowIndex === themeRows.length - 1;
+                  const isFirstItem = index === 0;
+                  const isLastItem = index === row.length - 1;
 
-            <View style={styles.colorGridAll}>
-              {themeRows.map((row, rowIndex) => (
-                <View key={rowIndex} style={styles.colorGridRow}>
-                  {row.map((theme, index) => {
-                    const isFirstRow = rowIndex === 0;
-                    const isLastRow = rowIndex === themeRows.length - 1;
-                    const isFirstItem = index === 0;
-                    const isLastItem = index === row.length - 1;
+                  const isSelected = currentTheme.name === theme.name;
 
-                    const isSelected = currentTheme.name === theme.name;
-
-                    return (
-                      <Pressable
-                        key={theme.name}
-                        onPress={() => setTheme(theme.name)}
-                        style={({ pressed }) => [
-                          styles.colorOption,
-                          isSelected && {
-                            backgroundColor: AppColors.accentAlpha,
+                  return (
+                    <Pressable
+                      key={theme.name}
+                      onPress={() => setTheme(theme.name)}
+                      style={({ pressed }) => [
+                        styles.colorOption,
+                        isSelected && {
+                          backgroundColor: AppColors.accentAlpha,
+                        },
+                        pressed && !isSelected && styles.pressed,
+                        isFirstRow &&
+                          isFirstItem && { borderTopLeftRadius: 24 },
+                        isFirstRow &&
+                          isLastItem && { borderTopRightRadius: 24 },
+                        isLastRow &&
+                          isFirstItem && { borderBottomLeftRadius: 24 },
+                        isLastRow &&
+                          isLastItem && { borderBottomRightRadius: 24 },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.colorPreview,
+                          {
+                            backgroundColor: themes[theme.name].accentDefault,
                           },
-                          pressed && !isSelected && styles.pressed,
-                          isFirstRow &&
-                            isFirstItem && { borderTopLeftRadius: 24 },
-                          isFirstRow &&
-                            isLastItem && { borderTopRightRadius: 24 },
-                          isLastRow &&
-                            isFirstItem && { borderBottomLeftRadius: 24 },
-                          isLastRow &&
-                            isLastItem && { borderBottomRightRadius: 24 },
                         ]}
                       >
-                        <View
-                          style={[
-                            styles.colorPreview,
-                            {
-                              backgroundColor: themes[theme.name].accentDefault,
-                            },
-                          ]}
-                        >
-                          {isSelected && (
-                            <Check color={AppColors.backgroundDefault} />
-                          )}
-                        </View>
-                        <AppText
-                          variant="body"
-                          color={isSelected ? 'accent' : 'default'}
-                        >
-                          {theme.label}
-                        </AppText>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              ))}
-            </View>
+                        {isSelected && (
+                          <Check color={AppColors.backgroundDefault} />
+                        )}
+                      </View>
+                      <AppText
+                        variant="body"
+                        color={isSelected ? 'accent' : 'default'}
+                      >
+                        {theme.label}
+                      </AppText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ))}
           </View>
         </View>
       </ScrollView>
@@ -124,12 +121,6 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDefault,
   },
   scrollView: {
-    flex: 1,
-  },
-  content: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 24,
     padding: 16,
   },
   subtitle: {

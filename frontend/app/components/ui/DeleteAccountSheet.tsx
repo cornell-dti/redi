@@ -3,7 +3,6 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import AppText from './AppText';
 import Button from './Button';
-import ListItemWrapper from './ListItemWrapper';
 import Sheet from './Sheet';
 
 interface DeleteAccountSheetProps {
@@ -18,24 +17,19 @@ export default function DeleteAccountSheet({
   onConfirm,
 }: DeleteAccountSheetProps) {
   return (
-    <Sheet
-      visible={visible}
-      onDismiss={onDismiss}
-      title="Delete Account"
-      height={315}
-    >
+    <Sheet visible={visible} onDismiss={onDismiss} title="Delete Account">
       <View style={styles.sheetContent}>
         <AppText>
           Are you sure you want to delete your account? This action cannot be
           undone and all your data will be permanently deleted.
         </AppText>
-        <ListItemWrapper>
+
+        <View style={styles.buttonRow}>
           <Button
             title="Delete Account"
             onPress={onConfirm}
             variant="negative"
             fullWidth
-            noRound
             iconLeft={Trash2}
           />
           <Button
@@ -43,9 +37,8 @@ export default function DeleteAccountSheet({
             onPress={onDismiss}
             variant="secondary"
             fullWidth
-            noRound
           />
-        </ListItemWrapper>
+        </View>
       </View>
     </Sheet>
   );
@@ -56,5 +49,9 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 24,
+  },
+  buttonRow: {
+    display: 'flex',
+    gap: 12,
   },
 });

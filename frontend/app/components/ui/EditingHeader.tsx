@@ -5,6 +5,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 import Button from './Button';
+import IconButton from './IconButton';
 
 interface EditingHeaderProps {
   onSave?: () => void | Promise<void>;
@@ -39,16 +40,18 @@ export default function EditingHeader({
 
   return (
     <View style={styles.container}>
-      <Button
-        onPress={handleBack}
-        disabled={isSaving}
-        variant="secondary"
-        title="Back"
-        iconLeft={ChevronLeft}
-      />
-      {title && <AppText style={styles.title}>{title}</AppText>}
+      <View style={styles.buttonRow}>
+        <IconButton
+          onPress={handleBack}
+          disabled={isSaving}
+          variant="secondary"
+          icon={ChevronLeft}
+        />
 
-      <View style={styles.saveButtonContainer}>
+        <AppText variant="subtitle" style={styles.title}>
+          {title}
+        </AppText>
+
         {isSaving ? (
           <ActivityIndicator color={AppColors.accentDefault} />
         ) : showSave ? (
@@ -59,7 +62,9 @@ export default function EditingHeader({
             disabled={saveDisabled}
             iconLeft={Check}
           />
-        ) : null}
+        ) : (
+          <View style={styles.placeholder} />
+        )}
       </View>
     </View>
   );
@@ -67,24 +72,24 @@ export default function EditingHeader({
 
 const styles = StyleSheet.create({
   container: {
+    display: 'flex',
+    padding: 16,
+    position: 'relative',
+  },
+  buttonRow: {
+    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: AppColors.backgroundDefault,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '600',
     position: 'absolute',
     left: 0,
     right: 0,
     textAlign: 'center',
     zIndex: -1,
   },
-  saveButtonContainer: {
-    minWidth: 80,
-    alignItems: 'flex-end',
+  placeholder: {
+    width: 44, // Same width as IconButton to maintain symmetry
   },
 });

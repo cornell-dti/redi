@@ -5,7 +5,12 @@
 expo-env.d.ts
 # @end expo-cli
 
+# Environment files
 .env.local
 .env.development.local
 .env.test.local
 .env
+
+# Firebase configuration files (contain sensitive API keys)
+GoogleService-Info.plist
+google-services.json

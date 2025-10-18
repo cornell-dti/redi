@@ -64,11 +64,7 @@ export default function SearchableMultiSelect({
   return (
     <View style={styles.container}>
       <View style={styles.topTextContainer}>
-        {label && (
-          <AppText variant="subtitle" style={styles.label}>
-            {label}
-          </AppText>
-        )}
+        {label && <AppText variant="subtitle">{label}</AppText>}
         <AppText color="dimmer"> {description && description}</AppText>
       </View>
       {/* Display Button */}
@@ -186,10 +182,8 @@ const styles = StyleSheet.create({
   topTextContainer: {
     paddingLeft: 16,
     display: 'flex',
+    gap: 4,
     flexDirection: 'column',
-  },
-  label: {
-    marginBottom: 8,
   },
   selectedContainer: {
     flexDirection: 'row',

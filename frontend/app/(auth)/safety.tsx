@@ -9,8 +9,8 @@ import React, { useState } from 'react';
 import { ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
-import { useThemeAware } from '../contexts/ThemeContext';
 import EditingHeader from '../components/ui/EditingHeader';
+import { useThemeAware } from '../contexts/ThemeContext';
 
 export default function SafetyPage() {
   useThemeAware(); // Force re-render when theme changes
@@ -37,23 +37,25 @@ export default function SafetyPage() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <EditingHeader title="Safety" showSave={false} />
+      <EditingHeader showSave={false} title="Safety" />
 
       <ScrollView
         style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          rowGap: 24,
+        }}
       >
         <View style={styles.sectionsWrapper}>
-          <AppText variant="title">Safety</AppText>
-        </View>
-
-        <View style={styles.sectionsWrapper}>
           <View style={styles.section}>
-            <AppText variant="subtitle">Blocked Users</AppText>
-            <AppText color="dimmer">
-              These are users that you won’t be matched with. They also cannot
-              be matched with you.
-            </AppText>
+            <View style={styles.topText}>
+              <AppText variant="subtitle" indented>
+                Blocked Users
+              </AppText>
+              <AppText color="dimmer" indented>
+                These are users that you won’t be matched with. They also cannot
+                be matched with you.
+              </AppText>
+            </View>
 
             <ListItemWrapper>
               {blockedUsers.length > 0 && (
@@ -132,13 +134,17 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDefault,
   },
   scrollView: {
-    flex: 1,
+    padding: 16,
   },
   sectionsWrapper: {
     display: 'flex',
     flexDirection: 'column',
     gap: 4,
-    padding: 16,
+  },
+  topText: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 4,
   },
   section: {
     display: 'flex',
