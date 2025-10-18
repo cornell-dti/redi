@@ -351,7 +351,7 @@ export default function EditProfileScreen() {
             <Button
               title="Edit"
               iconLeft={Pencil}
-              onPress={() => {}}
+              onPress={() => router.push('/edit-socials' as any)}
               variant="secondary"
               noRound
             />
@@ -381,7 +381,7 @@ export default function EditProfileScreen() {
             <Button
               title="Edit"
               iconLeft={Pencil}
-              onPress={() => {}}
+              onPress={() => router.push('/edit-interests' as any)}
               variant="secondary"
               noRound
             />
@@ -411,7 +411,7 @@ export default function EditProfileScreen() {
             <Button
               title="Edit"
               iconLeft={Pencil}
-              onPress={() => {}}
+              onPress={() => router.push('/edit-clubs' as any)}
               variant="secondary"
               noRound
             />
