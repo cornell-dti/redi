@@ -154,13 +154,13 @@ export default function Button({
       >
         {iconLeft &&
           React.createElement(iconLeft, {
-            size: 16,
+            size: 20,
             color: getIconColor(),
           })}
         <Text style={[getTextStyle(), textStyle]}>{title}</Text>
         {iconRight &&
           React.createElement(iconRight, {
-            size: 16,
+            size: 20,
             color: getIconColor(),
           })}
       </TouchableOpacity>

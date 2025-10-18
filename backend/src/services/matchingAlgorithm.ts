@@ -9,7 +9,7 @@
  * - /backend/functions/src/types.ts when in /backend/functions/src/services/ (copied during build)
  */
 
-import { ProfileDoc, PreferencesDoc, Year } from '../types';
+import { PreferencesDoc, ProfileDoc, Year } from '../../types';
 
 /**
  * UserData interface for matching algorithm
@@ -127,6 +127,7 @@ export function checkCompatibility(
     return false;
   }
 
+  //TODO don't get rid of all schools, just add points 
   // Check school preference (empty array means all schools accepted)
   if (
     preferences.schools.length > 0 &&
@@ -137,7 +138,7 @@ export function checkCompatibility(
 
   // Check major preference (empty array means all majors accepted)
   if (preferences.majors.length > 0) {
-    const hasMatchingMajor = profile.major.some((userMajor) =>
+    const hasMatchingMajor = profile.major.some((userMajor : string) =>
       preferences.majors.includes(userMajor)
     );
     if (!hasMatchingMajor) {
@@ -167,7 +168,7 @@ export function calculateCompatibilityScore(
   }
 
   // Major overlap (15 points)
-  const majorOverlap = profileA.major.filter((major) =>
+  const majorOverlap = profileA.major.filter((major : string) =>
     profileB.major.includes(major)
   ).length;
   if (majorOverlap > 0) {
@@ -186,7 +187,7 @@ export function calculateCompatibilityScore(
 
   // Interest overlap (20 points)
   if (profileA.interests && profileB.interests) {
-    const interestOverlap = profileA.interests.filter((interest) =>
+    const interestOverlap = profileA.interests.filter((interest : string) =>
       profileB.interests?.includes(interest)
     ).length;
     score += Math.min(20, interestOverlap * 4);
@@ -194,7 +195,7 @@ export function calculateCompatibilityScore(
 
   // Club overlap (15 points)
   if (profileA.clubs && profileB.clubs) {
-    const clubOverlap = profileA.clubs.filter((club) =>
+    const clubOverlap = profileA.clubs.filter((club : string) =>
       profileB.clubs?.includes(club)
     ).length;
     score += Math.min(15, clubOverlap * 5);
