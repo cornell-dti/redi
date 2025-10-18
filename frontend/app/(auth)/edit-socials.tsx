@@ -162,6 +162,15 @@ export default function EditSocialsPage() {
     setInputValue('');
   };
 
+  const removeSocialLink = () => {
+    if (selectedSocial) {
+      setSocials({ ...socials, [selectedSocial]: '' });
+      setInputValue('');
+      setSheetVisible(false);
+      setSelectedSocial(null);
+    }
+  };
+
   const socialButtons = [
     {
       type: 'instagram' as SocialType,
@@ -282,7 +291,7 @@ export default function EditSocialsPage() {
           {inputValue.length > 0 && (
             <Button
               title="Remove"
-              onPress={() => {}}
+              onPress={removeSocialLink}
               variant="negative"
               iconLeft={Trash2}
             />
