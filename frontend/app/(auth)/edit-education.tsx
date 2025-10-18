@@ -19,7 +19,7 @@ import {
   YEARS,
 } from '../../constants/cornell';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile } from '../api/profileApi';
+import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import AppInput from '../components/ui/AppInput';
 import Button from '../components/ui/Button';
@@ -85,6 +85,12 @@ export default function EditEducationPage() {
   };
 
   const handleSave = async () => {
+    const user = getCurrentUser();
+    if (!user?.uid) {
+      Alert.alert('Error', 'User not authenticated');
+      return;
+    }
+
     if (!school) {
       Alert.alert('Required', 'Please select a school');
       return;
@@ -100,8 +106,11 @@ export default function EditEducationPage() {
 
     setSaving(true);
     try {
-      // TODO: Implement save to backend
-      // await updateProfile({ school, major: majors, year });
+      await updateProfile(user.uid, {
+        school,
+        major: majors,
+        year,
+      });
 
       setOriginalSchool(school);
       setOriginalMajors(majors);

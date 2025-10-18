@@ -22,7 +22,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile } from '../api/profileApi';
+import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
@@ -97,16 +97,21 @@ export default function EditSocialsPage() {
   };
 
   const handleSave = async () => {
+    const user = getCurrentUser();
+    if (!user?.uid) {
+      Alert.alert('Error', 'User not authenticated');
+      return;
+    }
+
     setSaving(true);
     try {
-      // TODO: Implement save to backend
-      // await updateProfile({
-      //   instagram: socials.instagram,
-      //   snapchat: socials.snapchat,
-      //   linkedIn: socials.linkedin,
-      //   github: socials.github,
-      //   website: socials.website,
-      // });
+      await updateProfile(user.uid, {
+        instagram: socials.instagram,
+        snapchat: socials.snapchat,
+        linkedIn: socials.linkedin,
+        github: socials.github,
+        website: socials.website,
+      });
 
       setOriginalSocials(socials);
       Alert.alert('Success', 'Social links updated successfully');
@@ -155,6 +160,15 @@ export default function EditSocialsPage() {
     setSheetVisible(false);
     setSelectedSocial(null);
     setInputValue('');
+  };
+
+  const removeSocialLink = () => {
+    if (selectedSocial) {
+      setSocials({ ...socials, [selectedSocial]: '' });
+      setInputValue('');
+      setSheetVisible(false);
+      setSelectedSocial(null);
+    }
   };
 
   const socialButtons = [
@@ -277,7 +291,7 @@ export default function EditSocialsPage() {
           {inputValue.length > 0 && (
             <Button
               title="Remove"
-              onPress={() => {}}
+              onPress={removeSocialLink}
               variant="negative"
               iconLeft={Trash2}
             />

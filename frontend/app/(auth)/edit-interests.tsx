@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile } from '../api/profileApi';
+import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
@@ -60,10 +60,17 @@ export default function EditInterestsPage() {
   };
 
   const handleSave = async () => {
+    const user = getCurrentUser();
+    if (!user?.uid) {
+      Alert.alert('Error', 'User not authenticated');
+      return;
+    }
+
     setSaving(true);
     try {
-      // TODO: Implement save to backend
-      // await updateProfile({ interests });
+      await updateProfile(user.uid, {
+        interests,
+      });
 
       setOriginalInterests(interests);
       Alert.alert('Success', 'Interests updated successfully');
@@ -131,9 +138,9 @@ export default function EditInterestsPage() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.tagsContainer}>
-          {interests.map((interest, index) => (
+          {interests.map((interest) => (
             <Tag
-              key={index}
+              key={interest}
               label={interest}
               variant="gray"
               dismissible

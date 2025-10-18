@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile } from '../api/profileApi';
+import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
@@ -60,10 +60,17 @@ export default function EditClubsPage() {
   };
 
   const handleSave = async () => {
+    const user = getCurrentUser();
+    if (!user?.uid) {
+      Alert.alert('Error', 'User not authenticated');
+      return;
+    }
+
     setSaving(true);
     try {
-      // TODO: Implement save to backend
-      // await updateProfile({ clubs });
+      await updateProfile(user.uid, {
+        clubs,
+      });
 
       setOriginalClubs(clubs);
       Alert.alert('Success', 'Clubs updated successfully');
@@ -131,9 +138,9 @@ export default function EditClubsPage() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.tagsContainer}>
-          {clubs.map((club, index) => (
+          {clubs.map((club) => (
             <Tag
-              key={index}
+              key={club}
               label={club}
               variant="gray"
               dismissible

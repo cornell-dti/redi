@@ -4,7 +4,6 @@ import React from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
-import Button from './Button';
 import IconButton from './IconButton';
 
 interface EditingHeaderProps {
@@ -55,12 +54,11 @@ export default function EditingHeader({
         {isSaving ? (
           <ActivityIndicator color={AppColors.accentDefault} />
         ) : showSave ? (
-          <Button
-            title="Save"
-            onPress={onSave}
+          <IconButton
+            onPress={async () => onSave?.()}
             variant="primary"
             disabled={saveDisabled}
-            iconLeft={Check}
+            icon={Check}
           />
         ) : (
           <View style={styles.placeholder} />

@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile } from '../api/profileApi';
+import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import { useThemeAware } from '../contexts/ThemeContext';
@@ -55,6 +55,12 @@ export default function EditHometownPage() {
   };
 
   const handleSave = async () => {
+    const user = getCurrentUser();
+    if (!user?.uid) {
+      Alert.alert('Error', 'User not authenticated');
+      return;
+    }
+
     if (!hometown.trim()) {
       Alert.alert('Required', 'Please enter your hometown');
       return;
@@ -62,8 +68,9 @@ export default function EditHometownPage() {
 
     setSaving(true);
     try {
-      // TODO: Implement save to backend
-      // await updateProfile({ hometown: hometown.trim() });
+      await updateProfile(user.uid, {
+        hometown: hometown.trim(),
+      });
 
       setOriginalHometown(hometown);
       Alert.alert('Success', 'Hometown updated successfully');

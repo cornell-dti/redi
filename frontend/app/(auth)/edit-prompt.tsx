@@ -5,8 +5,9 @@ import Button from '@/app/components/ui/Button';
 import Sheet from '@/app/components/ui/Sheet';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Quote, Trash2 } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,6 +16,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getCurrentUser } from '../api/authService';
+import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
@@ -31,10 +34,87 @@ export default function EditPromptPage() {
   const [answer, setAnswer] = useState(initialAnswer || '');
   const [showPromptsSheet, setShowPromptsSheet] = useState(false);
   const [showDeleteSheet, setShowDeleteSheet] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [currentPrompts, setCurrentPrompts] = useState<
+    { question: string; answer: string }[]
+  >([]);
 
-  const handleSave = () => {
-    // Navigate back with the updated prompt data
-    router.back();
+  const isNewPrompt = promptId?.startsWith('new-');
+
+  useEffect(() => {
+    fetchPrompts();
+  }, []);
+
+  const fetchPrompts = async () => {
+    const user = getCurrentUser();
+    if (!user?.uid) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const profileData = await getCurrentUserProfile(user.uid);
+
+      if (profileData) {
+        setCurrentPrompts(profileData.prompts || []);
+      }
+    } catch (err) {
+      console.error('Error fetching prompts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    const user = getCurrentUser();
+    if (!user?.uid) {
+      Alert.alert('Error', 'User not authenticated');
+      return;
+    }
+
+    if (!question.trim()) {
+      Alert.alert('Required', 'Please select a prompt question');
+      return;
+    }
+
+    if (!answer.trim()) {
+      Alert.alert('Required', 'Please enter an answer');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      let updatedPrompts: { question: string; answer: string }[];
+
+      if (isNewPrompt) {
+        // Add new prompt
+        updatedPrompts = [
+          ...currentPrompts,
+          { question: question.trim(), answer: answer.trim() },
+        ];
+      } else {
+        // Update existing prompt - find by matching the original question
+        updatedPrompts = currentPrompts.map((p) =>
+          p.question === initialQuestion && p.answer === initialAnswer
+            ? { question: question.trim(), answer: answer.trim() }
+            : p
+        );
+      }
+
+      await updateProfile(user.uid, {
+        prompts: updatedPrompts,
+      });
+
+      Alert.alert('Success', 'Prompt saved successfully');
+      router.back();
+    } catch (error) {
+      console.error('Failed to save prompt:', error);
+      Alert.alert('Error', 'Failed to save prompt');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSelectPrompt = (selectedPrompt: string) => {
@@ -42,17 +122,45 @@ export default function EditPromptPage() {
     setShowPromptsSheet(false);
   };
 
-  const handleConfirmDelete = () => {
-    // Placeholder: simulate deletion, then close the sheet and go back
-    setShowDeleteSheet(false);
-    router.back();
+  const handleConfirmDelete = async () => {
+    const user = getCurrentUser();
+    if (!user?.uid) {
+      Alert.alert('Error', 'User not authenticated');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Remove the prompt by filtering it out
+      const updatedPrompts = currentPrompts.filter(
+        (p) => !(p.question === initialQuestion && p.answer === initialAnswer)
+      );
+
+      await updateProfile(user.uid, {
+        prompts: updatedPrompts,
+      });
+
+      Alert.alert('Success', 'Prompt deleted successfully');
+      setShowDeleteSheet(false);
+      router.back();
+    } catch (error) {
+      console.error('Failed to delete prompt:', error);
+      Alert.alert('Error', 'Failed to delete prompt');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <EditingHeader onBack={() => router.back()} title="Edit prompt" />
+      <EditingHeader
+        onBack={() => router.back()}
+        onSave={handleSave}
+        title={isNewPrompt ? 'Add prompt' : 'Edit prompt'}
+        isSaving={saving}
+      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -111,14 +219,16 @@ export default function EditPromptPage() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <View style={styles.buttonWrapper}>
-        <Button
-          iconLeft={Trash2}
-          title="Delete prompt"
-          onPress={() => setShowDeleteSheet(true)}
-          variant="negative"
-        />
-      </View>
+      {!isNewPrompt && (
+        <View style={styles.buttonWrapper}>
+          <Button
+            iconLeft={Trash2}
+            title="Delete prompt"
+            onPress={() => setShowDeleteSheet(true)}
+            variant="negative"
+          />
+        </View>
+      )}
 
       {/* Delete Confirmation Sheet */}
       <Sheet
