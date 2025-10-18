@@ -2,11 +2,16 @@
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { FIREBASE_APP } from '../../firebase';
 
-// Admin UUID from specs
-export const ADMIN_UUID = 'JPc53Ry1kJO52nW0t8ZB8898vuB3';
+// Admin UUID from environment variable (not hardcoded)
+export const ADMIN_UUID = process.env.NEXT_PUBLIC_ADMIN_UID;
 
 // Check if a user ID is the admin
 export const isAdmin = (userId: string | undefined | null): boolean => {
+  if (!ADMIN_UUID) {
+    console.error('❌ ADMIN_UUID not configured in environment');
+    return false;
+  }
+
   console.log('🔍 isAdmin called with userId:', userId);
   console.log('🔍 Comparing with ADMIN_UUID:', ADMIN_UUID);
   const result = userId === ADMIN_UUID;

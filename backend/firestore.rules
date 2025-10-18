@@ -11,10 +11,9 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.netid;
     }
     
-    // TODO: Implement proper admin role checking before production
+    // Admin role checking using Firebase custom claims
     function isAdmin() {
-      return isAuthenticated();
-      // Later, use: request.auth.token.admin == true
+      return isAuthenticated() && request.auth.token.admin == true;
     }
     
     // Landing page email collection
@@ -66,7 +65,19 @@ service cloud.firestore {
         request.resource.data.createdAt == resource.data.createdAt;
       allow create, delete: if false;
     }
-    
+
+    // Admins collection - only admins can read their own document
+    match /admins/{adminId} {
+      allow read: if isAuthenticated() && request.auth.uid == adminId;
+      allow write: if false; // Only server-side writes allowed
+    }
+
+    // Admin audit logs - only admins can read
+    match /adminAuditLogs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false; // Only server-side writes allowed
+    }
+
     // Deny all other access by default
     match /{document=**} {
       allow read, write: if false;

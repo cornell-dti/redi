@@ -1,7 +1,6 @@
 'use client';
 
-import { isAdmin } from '@/utils/auth';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { useEffect, useState } from 'react';
 import { FIREBASE_APP } from '../../firebase';
 import AdminSignIn from './AdminSignIn';
@@ -16,42 +15,46 @@ export default function AdminProtectedRoute({
   children,
 }: AdminProtectedRouteProps) {
   const [authState, setAuthState] = useState<AuthState>('loading');
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {
-    console.log('🔐 AdminProtectedRoute useEffect running');
-    
     const auth = getAuth(FIREBASE_APP);
-    
-    // Immediately check current user
-    const currentUser = auth.currentUser;
-    console.log('👤 Current user (immediate):', currentUser?.uid);
-    
-    if (currentUser) {
-      console.log('✅ User already signed in on mount');
-      if (isAdmin(currentUser.uid)) {
-        console.log('✅ Setting to authorized immediately');
-        setAuthState('authorized');
-      } else {
-        console.log('❌ Setting to unauthorized immediately');
-        setAuthState('unauthorized');
-      }
-    }
 
-    // Also set up listener for changes
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log('🔄 onAuthStateChanged fired with user:', user?.uid);
-      
+    const verifyAdminStatus = async (user: User | null) => {
       if (!user) {
-        console.log('❌ No user - setting unauthenticated');
         setAuthState('unauthenticated');
-      } else if (isAdmin(user.uid)) {
-        console.log('✅ Admin user - setting authorized');
-        setAuthState('authorized');
-      } else {
-        console.log('❌ Non-admin user - setting unauthorized');
-        setAuthState('unauthorized');
+        return;
       }
-    });
+
+      try {
+        console.log('🔍 Verifying admin status for user:', user.uid);
+
+        // Force token refresh to get latest custom claims
+        const tokenResult = await user.getIdTokenResult(true);
+
+        console.log('🔍 Token claims:', tokenResult.claims);
+
+        // Check custom claim
+        if (tokenResult.claims.admin === true) {
+          console.log('✅ User has admin custom claim');
+          setAuthState('authorized');
+        } else {
+          console.log('⛔ User does NOT have admin custom claim');
+          setAuthState('unauthorized');
+          setErrorMessage('Your account does not have admin privileges');
+        }
+      } catch (error) {
+        console.error('❌ Error verifying admin status:', error);
+        setAuthState('unauthorized');
+        setErrorMessage('Failed to verify admin status');
+      }
+    };
+
+    // Initial check
+    verifyAdminStatus(auth.currentUser);
+
+    // Listen for auth state changes
+    const unsubscribe = onAuthStateChanged(auth, verifyAdminStatus);
 
     return () => unsubscribe();
   }, []);
@@ -116,7 +119,7 @@ export default function AdminProtectedRoute({
           </svg>
           <h1 className="text-2xl font-bold text-black">Access Denied</h1>
           <p className="text-lg text-black opacity-70">
-            You do not have permission to access this page.
+            {errorMessage || 'You do not have permission to access this page.'}
           </p>
           <p className="text-sm text-gray-500 mb-4">
             Only authorized administrators can access this dashboard.

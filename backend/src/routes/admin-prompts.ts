@@ -1,10 +1,24 @@
+/**
+ * Admin Prompts Routes
+ *
+ * Secure admin endpoints for managing weekly prompts.
+ * All routes are protected by requireAdmin middleware which:
+ * - Verifies Bearer token
+ * - Checks admin custom claim
+ * - Verifies user in admins collection
+ *
+ * All admin actions are logged to audit log for security and compliance.
+ */
+
 import express from 'express';
-import { db } from '../../firebaseAdmin';
 import {
   CreateWeeklyPromptInput,
   UpdateWeeklyPromptInput,
   WeeklyPromptResponse,
 } from '../../types';
+import { AdminRequest, requireAdmin } from '../middleware/adminAuth';
+import { getIpAddress, getUserAgent, logAdminAction } from '../services/auditLog';
+import { generateMatchesForPrompt } from '../services/matchingService';
 import {
   activatePrompt,
   createWeeklyPrompt,
@@ -15,64 +29,30 @@ import {
   promptToResponse,
   updatePrompt,
 } from '../services/promptsService';
-import { generateMatchesForPrompt } from '../services/matchingService';
 
 const router = express.Router();
 
-/**
- * Verifies that a user has admin privileges
- * @param firebaseUid - The Firebase authentication UID for the user
- * @returns Promise resolving to boolean indicating admin status
- * @todo Implement proper admin role checking (for now, returns true)
- */
-const verifyAdminAccess = async (firebaseUid: string): Promise<boolean> => {
-  // TODO: Implement admin role checking
-  // For now, allow all authenticated users
-  // In production, check against an 'admins' collection or custom claims
-  try {
-    const userSnapshot = await db
-      .collection('users')
-      .where('firebaseUid', '==', firebaseUid)
-      .get();
-
-    return !userSnapshot.empty;
-  } catch (error) {
-    console.error('Error verifying admin access:', error);
-    return false;
-  }
-};
+// Apply admin middleware to ALL routes in this router
+// This ensures every endpoint requires valid admin authentication
+router.use(requireAdmin);
 
 /**
  * POST /api/admin/prompts
  * Create a new weekly prompt
- * @route POST /api/admin/prompts
- * @group Admin - Admin prompt management
- * @param {string} firebaseUid.body.required - Firebase authentication UID
+ *
+ * @secured Requires admin authentication (Bearer token + admin claim)
+ * @audit Logs CREATE_PROMPT action
+ *
  * @param {CreateWeeklyPromptInput} promptData.body.required - Prompt data
- * @returns {WeeklyPromptResponse} Created prompt
+ * @returns {WeeklyPromptResponse} 201 - Created prompt
  * @returns {Error} 400 - Invalid data or validation errors
- * @returns {Error} 403 - Unauthorized (not admin)
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
  * @returns {Error} 409 - Prompt already exists for this week
  * @returns {Error} 500 - Internal server error
  */
-router.post('/api/admin/prompts', async (req, res) => {
+router.post('/api/admin/prompts', async (req: AdminRequest, res) => {
   try {
-    const {
-      firebaseUid,
-      ...promptData
-    }: { firebaseUid: string } & CreateWeeklyPromptInput = req.body;
-
-    if (!firebaseUid) {
-      return res.status(400).json({ error: 'firebaseUid is required' });
-    }
-
-    // Verify admin access
-    const isAdmin = await verifyAdminAccess(firebaseUid);
-    if (!isAdmin) {
-      return res
-        .status(403)
-        .json({ error: 'Unauthorized: Admin access required' });
-    }
+    const promptData: CreateWeeklyPromptInput = req.body;
 
     // Validate required fields
     if (
@@ -89,6 +69,19 @@ router.post('/api/admin/prompts', async (req, res) => {
     // Check if prompt already exists
     const existingPrompt = await getPromptById(promptData.promptId);
     if (existingPrompt) {
+      await logAdminAction(
+        'CREATE_PROMPT',
+        req.user!.uid,
+        req.user!.email,
+        'prompt',
+        promptData.promptId,
+        { error: 'Prompt already exists' },
+        getIpAddress(req),
+        getUserAgent(req),
+        false,
+        'Prompt already exists for this week'
+      );
+
       return res.status(409).json({
         error: 'A prompt already exists for this week',
       });
@@ -111,10 +104,45 @@ router.post('/api/admin/prompts', async (req, res) => {
     const prompt = await createWeeklyPrompt(promptDataWithDates);
     const response = promptToResponse(prompt);
 
+    // Log successful action
+    await logAdminAction(
+  'CREATE_PROMPT',
+  req.user!.uid,
+  req.user!.email,
+  'prompt',
+  promptData.promptId,
+  {
+    question: promptData.question,
+    releaseDate: promptDataWithDates.releaseDate instanceof Date 
+      ? promptDataWithDates.releaseDate.toISOString() 
+      : promptDataWithDates.releaseDate,
+    matchDate: promptDataWithDates.matchDate instanceof Date 
+      ? promptDataWithDates.matchDate.toISOString() 
+      : promptDataWithDates.matchDate,
+  },
+  getIpAddress(req),
+  getUserAgent(req)
+);
+
     res.status(201).json(response);
   } catch (error) {
     console.error('Error creating prompt:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Log failed action
+    await logAdminAction(
+      'CREATE_PROMPT',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      req.body.promptId || 'unknown',
+      { error: errorMessage },
+      getIpAddress(req),
+      getUserAgent(req),
+      false,
+      errorMessage
+    );
+
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -122,33 +150,20 @@ router.post('/api/admin/prompts', async (req, res) => {
 /**
  * GET /api/admin/prompts
  * Get all prompts with optional filtering
- * @route GET /api/admin/prompts
- * @group Admin - Admin prompt management
- * @param {string} firebaseUid.query.required - Firebase authentication UID
+ *
+ * @secured Requires admin authentication
+ *
  * @param {boolean} [active] - Filter by active status
  * @param {string} [startDate] - Filter by start date (ISO string)
  * @param {string} [endDate] - Filter by end date (ISO string)
  * @param {number} [limit=50] - Maximum number of prompts to return
- * @returns {WeeklyPromptResponse[]} Array of prompts
- * @returns {Error} 400 - Missing firebaseUid
- * @returns {Error} 403 - Unauthorized (not admin)
+ * @returns {WeeklyPromptResponse[]} 200 - Array of prompts
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
  * @returns {Error} 500 - Internal server error
  */
-router.get('/api/admin/prompts', async (req, res) => {
+router.get('/api/admin/prompts', async (req: AdminRequest, res) => {
   try {
-    const { firebaseUid, active, startDate, endDate, limit = '50' } = req.query;
-
-    if (!firebaseUid || typeof firebaseUid !== 'string') {
-      return res.status(400).json({ error: 'firebaseUid is required' });
-    }
-
-    // Verify admin access
-    const isAdmin = await verifyAdminAccess(firebaseUid);
-    if (!isAdmin) {
-      return res
-        .status(403)
-        .json({ error: 'Unauthorized: Admin access required' });
-    }
+    const { active, startDate, endDate, limit = '50' } = req.query;
 
     // Build filter options
     const options: any = {
@@ -181,32 +196,18 @@ router.get('/api/admin/prompts', async (req, res) => {
 /**
  * GET /api/admin/prompts/:promptId
  * Get a specific prompt by ID
- * @route GET /api/admin/prompts/:promptId
- * @group Admin - Admin prompt management
+ *
+ * @secured Requires admin authentication
+ *
  * @param {string} promptId.path.required - Prompt ID (year-week format)
- * @param {string} firebaseUid.query.required - Firebase authentication UID
- * @returns {WeeklyPromptResponse} Prompt data
- * @returns {Error} 400 - Missing firebaseUid
- * @returns {Error} 403 - Unauthorized (not admin)
+ * @returns {WeeklyPromptResponse} 200 - Prompt data
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
  * @returns {Error} 404 - Prompt not found
  * @returns {Error} 500 - Internal server error
  */
-router.get('/api/admin/prompts/:promptId', async (req, res) => {
+router.get('/api/admin/prompts/:promptId', async (req: AdminRequest, res) => {
   try {
     const { promptId } = req.params;
-    const { firebaseUid } = req.query;
-
-    if (!firebaseUid || typeof firebaseUid !== 'string') {
-      return res.status(400).json({ error: 'firebaseUid is required' });
-    }
-
-    // Verify admin access
-    const isAdmin = await verifyAdminAccess(firebaseUid);
-    if (!isAdmin) {
-      return res
-        .status(403)
-        .json({ error: 'Unauthorized: Admin access required' });
-    }
 
     const prompt = await getPromptById(promptId);
 
@@ -226,36 +227,21 @@ router.get('/api/admin/prompts/:promptId', async (req, res) => {
 /**
  * PUT /api/admin/prompts/:promptId
  * Update an existing prompt
- * @route PUT /api/admin/prompts/:promptId
- * @group Admin - Admin prompt management
+ *
+ * @secured Requires admin authentication
+ * @audit Logs UPDATE_PROMPT action
+ *
  * @param {string} promptId.path.required - Prompt ID (year-week format)
- * @param {string} firebaseUid.body.required - Firebase authentication UID
  * @param {UpdateWeeklyPromptInput} updates.body - Partial prompt data to update
- * @returns {WeeklyPromptResponse} Updated prompt
- * @returns {Error} 400 - Missing firebaseUid or invalid data
- * @returns {Error} 403 - Unauthorized (not admin)
+ * @returns {WeeklyPromptResponse} 200 - Updated prompt
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
  * @returns {Error} 404 - Prompt not found
  * @returns {Error} 500 - Internal server error
  */
-router.put('/api/admin/prompts/:promptId', async (req, res) => {
+router.put('/api/admin/prompts/:promptId', async (req: AdminRequest, res) => {
   try {
     const { promptId } = req.params;
-    const {
-      firebaseUid,
-      ...updates
-    }: { firebaseUid: string } & UpdateWeeklyPromptInput = req.body;
-
-    if (!firebaseUid) {
-      return res.status(400).json({ error: 'firebaseUid is required' });
-    }
-
-    // Verify admin access
-    const isAdmin = await verifyAdminAccess(firebaseUid);
-    if (!isAdmin) {
-      return res
-        .status(403)
-        .json({ error: 'Unauthorized: Admin access required' });
-    }
+    const updates: UpdateWeeklyPromptInput = req.body;
 
     // Check if prompt exists
     const existingPrompt = await getPromptById(promptId);
@@ -267,10 +253,37 @@ router.put('/api/admin/prompts/:promptId', async (req, res) => {
     const updatedPrompt = await updatePrompt(promptId, updates);
     const response = promptToResponse(updatedPrompt);
 
+    // Log successful action
+    await logAdminAction(
+      'UPDATE_PROMPT',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      promptId,
+      updates,
+      getIpAddress(req),
+      getUserAgent(req)
+    );
+
     res.status(200).json(response);
   } catch (error) {
     console.error('Error updating prompt:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Log failed action
+    await logAdminAction(
+      'UPDATE_PROMPT',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      req.params.promptId,
+      { error: errorMessage },
+      getIpAddress(req),
+      getUserAgent(req),
+      false,
+      errorMessage
+    );
+
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -278,32 +291,19 @@ router.put('/api/admin/prompts/:promptId', async (req, res) => {
 /**
  * DELETE /api/admin/prompts/:promptId
  * Delete a prompt
- * @route DELETE /api/admin/prompts/:promptId
- * @group Admin - Admin prompt management
+ *
+ * @secured Requires admin authentication
+ * @audit Logs DELETE_PROMPT action
+ *
  * @param {string} promptId.path.required - Prompt ID (year-week format)
- * @param {string} firebaseUid.body.required - Firebase authentication UID
- * @returns {object} Success message
- * @returns {Error} 400 - Missing firebaseUid
- * @returns {Error} 403 - Unauthorized (not admin)
+ * @returns {object} 200 - Success message
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
  * @returns {Error} 404 - Prompt not found
  * @returns {Error} 500 - Internal server error
  */
-router.delete('/api/admin/prompts/:promptId', async (req, res) => {
+router.delete('/api/admin/prompts/:promptId', async (req: AdminRequest, res) => {
   try {
     const { promptId } = req.params;
-    const { firebaseUid } = req.body;
-
-    if (!firebaseUid) {
-      return res.status(400).json({ error: 'firebaseUid is required' });
-    }
-
-    // Verify admin access
-    const isAdmin = await verifyAdminAccess(firebaseUid);
-    if (!isAdmin) {
-      return res
-        .status(403)
-        .json({ error: 'Unauthorized: Admin access required' });
-    }
 
     // Check if prompt exists
     const existingPrompt = await getPromptById(promptId);
@@ -313,10 +313,37 @@ router.delete('/api/admin/prompts/:promptId', async (req, res) => {
 
     await deletePrompt(promptId);
 
-    res.status(200).json({ message: 'Prompt deleted successfully' });
+    // Log successful action
+    await logAdminAction(
+      'DELETE_PROMPT',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      promptId,
+      { question: existingPrompt.question },
+      getIpAddress(req),
+      getUserAgent(req)
+    );
+
+    res.status(200).json({ message: 'Prompt deleted successfully', promptId });
   } catch (error) {
     console.error('Error deleting prompt:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Log failed action
+    await logAdminAction(
+      'DELETE_PROMPT',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      req.params.promptId,
+      { error: errorMessage },
+      getIpAddress(req),
+      getUserAgent(req),
+      false,
+      errorMessage
+    );
+
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -324,32 +351,19 @@ router.delete('/api/admin/prompts/:promptId', async (req, res) => {
 /**
  * POST /api/admin/prompts/:promptId/activate
  * Activate a prompt (deactivates all others)
- * @route POST /api/admin/prompts/:promptId/activate
- * @group Admin - Admin prompt management
+ *
+ * @secured Requires admin authentication
+ * @audit Logs ACTIVATE_PROMPT action
+ *
  * @param {string} promptId.path.required - Prompt ID (year-week format)
- * @param {string} firebaseUid.body.required - Firebase authentication UID
- * @returns {WeeklyPromptResponse} Activated prompt
- * @returns {Error} 400 - Missing firebaseUid
- * @returns {Error} 403 - Unauthorized (not admin)
+ * @returns {WeeklyPromptResponse} 200 - Activated prompt
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
  * @returns {Error} 404 - Prompt not found
  * @returns {Error} 500 - Internal server error
  */
-router.post('/api/admin/prompts/:promptId/activate', async (req, res) => {
+router.post('/api/admin/prompts/:promptId/activate', async (req: AdminRequest, res) => {
   try {
     const { promptId } = req.params;
-    const { firebaseUid } = req.body;
-
-    if (!firebaseUid) {
-      return res.status(400).json({ error: 'firebaseUid is required' });
-    }
-
-    // Verify admin access
-    const isAdmin = await verifyAdminAccess(firebaseUid);
-    if (!isAdmin) {
-      return res
-        .status(403)
-        .json({ error: 'Unauthorized: Admin access required' });
-    }
 
     // Check if prompt exists
     const existingPrompt = await getPromptById(promptId);
@@ -360,10 +374,37 @@ router.post('/api/admin/prompts/:promptId/activate', async (req, res) => {
     const activatedPrompt = await activatePrompt(promptId);
     const response = promptToResponse(activatedPrompt);
 
+    // Log successful action
+    await logAdminAction(
+      'ACTIVATE_PROMPT',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      promptId,
+      { question: existingPrompt.question },
+      getIpAddress(req),
+      getUserAgent(req)
+    );
+
     res.status(200).json(response);
   } catch (error) {
     console.error('Error activating prompt:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Log failed action
+    await logAdminAction(
+      'ACTIVATE_PROMPT',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      req.params.promptId,
+      { error: errorMessage },
+      getIpAddress(req),
+      getUserAgent(req),
+      false,
+      errorMessage
+    );
+
     res.status(500).json({ error: errorMessage });
   }
 });
@@ -371,31 +412,18 @@ router.post('/api/admin/prompts/:promptId/activate', async (req, res) => {
 /**
  * GET /api/admin/prompts/generate-id/:date
  * Generate a prompt ID from a date
- * @route GET /api/admin/prompts/generate-id/:date
- * @group Admin - Admin prompt management
+ *
+ * @secured Requires admin authentication
+ *
  * @param {string} date.path.required - Date in ISO format
- * @param {string} firebaseUid.query.required - Firebase authentication UID
- * @returns {object} Generated prompt ID
- * @returns {Error} 400 - Invalid date or missing firebaseUid
- * @returns {Error} 403 - Unauthorized (not admin)
+ * @returns {object} 200 - Generated prompt ID
+ * @returns {Error} 400 - Invalid date
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
  * @returns {Error} 500 - Internal server error
  */
-router.get('/api/admin/prompts/generate-id/:date', async (req, res) => {
+router.get('/api/admin/prompts/generate-id/:date', async (req: AdminRequest, res) => {
   try {
     const { date } = req.params;
-    const { firebaseUid } = req.query;
-
-    if (!firebaseUid || typeof firebaseUid !== 'string') {
-      return res.status(400).json({ error: 'firebaseUid is required' });
-    }
-
-    // Verify admin access
-    const isAdmin = await verifyAdminAccess(firebaseUid);
-    if (!isAdmin) {
-      return res
-        .status(403)
-        .json({ error: 'Unauthorized: Admin access required' });
-    }
 
     const dateObj = new Date(date);
     if (isNaN(dateObj.getTime())) {
@@ -415,35 +443,24 @@ router.get('/api/admin/prompts/generate-id/:date', async (req, res) => {
 /**
  * POST /api/admin/prompts/:promptId/generate-matches
  * Manually trigger match generation for a specific prompt (for testing)
- * This bypasses date validations and can be run anytime
- * @route POST /api/admin/prompts/:promptId/generate-matches
- * @group Admin - Admin prompt management
+ *
+ * This bypasses date validations and can be run anytime.
+ * Useful for testing the matching algorithm without waiting for Friday.
+ *
+ * @secured Requires admin authentication
+ * @audit Logs GENERATE_MATCHES action
+ *
  * @param {string} promptId.path.required - Prompt ID (year-week format)
- * @param {string} firebaseUid.body.required - Firebase authentication UID
- * @returns {object} Match generation results
- * @returns {Error} 400 - Missing firebaseUid
- * @returns {Error} 403 - Unauthorized (not admin)
+ * @returns {object} 200 - Match generation results
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
  * @returns {Error} 404 - Prompt not found
  * @returns {Error} 500 - Internal server error
  */
 router.post(
   '/api/admin/prompts/:promptId/generate-matches',
-  async (req, res) => {
+  async (req: AdminRequest, res) => {
     try {
       const { promptId } = req.params;
-      const { firebaseUid } = req.body;
-
-      if (!firebaseUid) {
-        return res.status(400).json({ error: 'firebaseUid is required' });
-      }
-
-      // Verify admin access
-      const isAdmin = await verifyAdminAccess(firebaseUid);
-      if (!isAdmin) {
-        return res
-          .status(403)
-          .json({ error: 'Unauthorized: Admin access required' });
-      }
 
       // Check if prompt exists
       const existingPrompt = await getPromptById(promptId);
@@ -452,11 +469,27 @@ router.post(
       }
 
       console.log(
-        `Admin ${firebaseUid} manually triggering match generation for prompt ${promptId}`
+        `🎯 Admin ${req.user?.email} manually triggering match generation for prompt ${promptId}`
       );
 
       // Generate matches (bypasses date validations)
       const matchedCount = await generateMatchesForPrompt(promptId);
+
+      // Log successful action
+      await logAdminAction(
+        'GENERATE_MATCHES',
+        req.user!.uid,
+        req.user!.email,
+        'prompt',
+        promptId,
+        {
+          matchedCount,
+          manual: true,
+          question: existingPrompt.question,
+        },
+        getIpAddress(req),
+        getUserAgent(req)
+      );
 
       res.status(200).json({
         message: 'Match generation completed',
@@ -465,8 +498,22 @@ router.post(
       });
     } catch (error) {
       console.error('Error generating matches:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      // Log failed action
+      await logAdminAction(
+        'GENERATE_MATCHES',
+        req.user!.uid,
+        req.user!.email,
+        'prompt',
+        req.params.promptId,
+        { error: errorMessage, manual: true },
+        getIpAddress(req),
+        getUserAgent(req),
+        false,
+        errorMessage
+      );
+
       res.status(500).json({ error: errorMessage });
     }
   }
@@ -475,31 +522,17 @@ router.post(
 /**
  * DELETE /api/admin/prompts/active
  * Delete the currently active prompt
- * @route DELETE /api/admin/prompts/active
- * @group Admin - Admin prompt management
- * @param {string} firebaseUid.body.required - Firebase authentication UID
- * @returns {object} Success message with deleted prompt ID
- * @returns {Error} 400 - Missing firebaseUid
- * @returns {Error} 403 - Unauthorized (not admin)
+ *
+ * @secured Requires admin authentication
+ * @audit Logs DELETE_PROMPT action
+ *
+ * @returns {object} 200 - Success message with deleted prompt ID
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
  * @returns {Error} 404 - No active prompt found
  * @returns {Error} 500 - Internal server error
  */
-router.delete('/api/admin/prompts/active', async (req, res) => {
+router.delete('/api/admin/prompts/active', async (req: AdminRequest, res) => {
   try {
-    const { firebaseUid } = req.body;
-
-    if (!firebaseUid) {
-      return res.status(400).json({ error: 'firebaseUid is required' });
-    }
-
-    // Verify admin access
-    const isAdmin = await verifyAdminAccess(firebaseUid);
-    if (!isAdmin) {
-      return res
-        .status(403)
-        .json({ error: 'Unauthorized: Admin access required' });
-    }
-
     // Find the active prompt
     const activePrompts = await getAllPrompts({ active: true });
 
@@ -510,19 +543,49 @@ router.delete('/api/admin/prompts/active', async (req, res) => {
     const activePrompt = activePrompts[0];
 
     console.log(
-      `Admin ${firebaseUid} deleting active prompt: ${activePrompt.promptId}`
+      `🗑️ Admin ${req.user?.email} deleting active prompt: ${activePrompt.promptId}`
     );
 
     // Delete the active prompt
     await deletePrompt(activePrompt.promptId);
 
+    // Log successful action
+    await logAdminAction(
+      'DELETE_PROMPT',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      activePrompt.promptId,
+      {
+        active: true,
+        question: activePrompt.question,
+      },
+      getIpAddress(req),
+      getUserAgent(req)
+    );
+
     res.status(200).json({
       message: 'Active prompt deleted successfully',
-      promptId: activePrompt.promptId
+      promptId: activePrompt.promptId,
     });
   } catch (error) {
     console.error('Error deleting active prompt:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Log failed action
+    await logAdminAction(
+      'DELETE_PROMPT',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      'active',
+      { error: errorMessage },
+      getIpAddress(req),
+      getUserAgent(req),
+      false,
+      errorMessage
+    );
+
     res.status(500).json({ error: errorMessage });
   }
 });
