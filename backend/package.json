@@ -20,14 +20,18 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@types/multer": "^2.0.0",
     "@types/react": "^19.1.15",
+    "@types/uuid": "^10.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "firebase": "^12.2.1",
     "firebase-admin": "^13.5.0",
+    "multer": "^2.0.2",
     "node-fetch": "^3.3.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
