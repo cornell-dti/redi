@@ -1,9 +1,5 @@
 import AppText from '@/app/components/ui/AppText';
-import {
-  calculateAge,
-  formatEthnicityForDisplay,
-  getYearString,
-} from '@/app/utils/profileUtils';
+import { calculateAge, getYearString } from '@/app/utils/profileUtils';
 import { ProfileResponse } from '@/types';
 import {
   Cake,
@@ -197,23 +193,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({ profile }) => {
             </View>
           </View>
         )}
-
-        {profile.showEthnicityOnProfile &&
-          profile.ethnicity &&
-          profile.ethnicity.length > 0 &&
-          formatEthnicityForDisplay(profile.ethnicity).length > 0 && (
-            <View style={styles.section}>
-              <AppText variant="subtitle" indented>
-                Ethnicity
-              </AppText>
-
-              <View style={styles.tagsContainer}>
-                {formatEthnicityForDisplay(profile.ethnicity).map((eth, index) => (
-                  <Tag key={index} label={eth} variant="white" />
-                ))}
-              </View>
-            </View>
-          )}
 
         {profile.prompts && profile.prompts.length > 0 && (
           <View style={styles.section}>
