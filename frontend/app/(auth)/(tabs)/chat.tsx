@@ -1,6 +1,6 @@
 import AppText from '@/app/components/ui/AppText';
 import { router } from 'expo-router';
-import { Edit, Search } from 'lucide-react-native';
+import { Search } from 'lucide-react-native';
 import React from 'react';
 import {
   FlatList,
@@ -12,9 +12,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
-import { useThemeAware } from '../../contexts/ThemeContext';
 import ChatItem from '../../components/ui/ChatItem';
 import Header from '../../components/ui/Header';
+import { useThemeAware } from '../../contexts/ThemeContext';
 
 // Mock chat data
 const mockChats = [
@@ -126,10 +126,6 @@ export default function ChatScreen() {
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       </View>
-
-      <TouchableOpacity style={styles.fab}>
-        <Edit size={24} color={AppColors.backgroundDefault} />
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -178,16 +174,5 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: AppColors.backgroundDimmer,
     marginLeft: 82,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 90,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: AppColors.accentDefault,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

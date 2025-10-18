@@ -2,6 +2,7 @@ import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import AvailablePromptsSheet from '@/app/components/ui/AvailablePromptsSheet';
 import Button from '@/app/components/ui/Button';
+import Sheet from '@/app/components/ui/Sheet';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Quote, Trash2 } from 'lucide-react-native';
 import React, { useState } from 'react';
@@ -15,9 +16,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
-import { useThemeAware } from '../contexts/ThemeContext';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
+import { useThemeAware } from '../contexts/ThemeContext';
 
 export default function EditPromptPage() {
   useThemeAware(); // Force re-render when theme changes
@@ -29,10 +30,10 @@ export default function EditPromptPage() {
   const [question, setQuestion] = useState(initialQuestion || '');
   const [answer, setAnswer] = useState(initialAnswer || '');
   const [showPromptsSheet, setShowPromptsSheet] = useState(false);
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false);
 
   const handleSave = () => {
     // Navigate back with the updated prompt data
-    // Note: You'll need to implement a way to pass this data back
     router.back();
   };
 
@@ -41,11 +42,17 @@ export default function EditPromptPage() {
     setShowPromptsSheet(false);
   };
 
+  const handleConfirmDelete = () => {
+    // Placeholder: simulate deletion, then close the sheet and go back
+    setShowDeleteSheet(false);
+    router.back();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <EditingHeader onBack={() => router.back()} />
+      <EditingHeader onBack={() => router.back()} title="Edit prompt" />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -56,26 +63,34 @@ export default function EditPromptPage() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          <AppText variant="title">Edit prompt</AppText>
-
           <View style={styles.part}>
             <AppText color="dimmer" style={styles.subtitle}>
               Prompt question
             </AppText>
-            <ListItemWrapper>
-              <View style={styles.section}>
-                <AppText variant="subtitle">{question}</AppText>
-              </View>
+            {question ? (
+              <ListItemWrapper>
+                <View style={styles.section}>
+                  <AppText variant="subtitle">{question}</AppText>
+                </View>
 
+                <Button
+                  title="Change prompt"
+                  onPress={() => setShowPromptsSheet(true)}
+                  variant="secondary"
+                  fullWidth
+                  iconLeft={Quote}
+                  noRound
+                />
+              </ListItemWrapper>
+            ) : (
               <Button
-                title="Change prompt"
+                title="Choose prompt"
                 onPress={() => setShowPromptsSheet(true)}
                 variant="secondary"
                 fullWidth
                 iconLeft={Quote}
-                noRound
               />
-            </ListItemWrapper>
+            )}
           </View>
 
           <View style={styles.part}>
@@ -84,7 +99,7 @@ export default function EditPromptPage() {
             </AppText>
 
             <AppInput
-              placeholder="Your answer..."
+              placeholder="Be creative, go crazy..."
               value={answer}
               onChangeText={setAnswer}
               multiline
@@ -100,10 +115,40 @@ export default function EditPromptPage() {
         <Button
           iconLeft={Trash2}
           title="Delete prompt"
-          onPress={() => {}}
+          onPress={() => setShowDeleteSheet(true)}
           variant="negative"
         />
       </View>
+
+      {/* Delete Confirmation Sheet */}
+      <Sheet
+        visible={showDeleteSheet}
+        onDismiss={() => setShowDeleteSheet(false)}
+        title="Delete prompt"
+      >
+        <View style={styles.sheetContent}>
+          <AppText>
+            Are you sure you want to delete this prompt? You'll lose your
+            answer.
+          </AppText>
+
+          <View style={styles.buttonRow}>
+            <Button
+              title="Delete Prompt"
+              onPress={handleConfirmDelete}
+              variant="negative"
+              iconLeft={Trash2}
+              fullWidth
+            />
+            <Button
+              title="Cancel"
+              onPress={() => setShowDeleteSheet(false)}
+              variant="secondary"
+              fullWidth
+            />
+          </View>
+        </View>
+      </Sheet>
 
       <AvailablePromptsSheet
         visible={showPromptsSheet}
@@ -146,6 +191,16 @@ const styles = StyleSheet.create({
   part: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 8,
+    gap: 4,
+  },
+  sheetContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
+  },
+  buttonRow: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
   },
 });

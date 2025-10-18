@@ -5,7 +5,7 @@ export const AppTypography = {
     lineHeight: 40,
   },
   subtitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '600' as const,
     lineHeight: 28,
   },

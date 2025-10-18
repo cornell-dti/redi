@@ -3,7 +3,6 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import AppText from './AppText';
 import Button from './Button';
-import ListItemWrapper from './ListItemWrapper';
 import Sheet from './Sheet';
 
 interface SignOutSheetProps {
@@ -18,31 +17,25 @@ export default function SignOutSheet({
   onConfirm,
 }: SignOutSheetProps) {
   return (
-    <Sheet
-      visible={visible}
-      onDismiss={onDismiss}
-      title="Sign Out"
-      height={265}
-    >
+    <Sheet visible={visible} onDismiss={onDismiss} title="Sign Out">
       <View style={styles.sheetContent}>
         <AppText>Are you sure you want to sign out?</AppText>
-        <ListItemWrapper>
+
+        <View style={styles.buttonRow}>
           <Button
             title="Sign Out"
             onPress={onConfirm}
             variant="negative"
             iconLeft={LogOut}
-            noRound
             fullWidth
           />
           <Button
             title="Never mind"
             onPress={onDismiss}
             variant="secondary"
-            noRound
             fullWidth
           />
-        </ListItemWrapper>
+        </View>
       </View>
     </Sheet>
   );
@@ -53,5 +46,9 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 24,
+  },
+  buttonRow: {
+    display: 'flex',
+    gap: 12,
   },
 });

@@ -118,8 +118,8 @@ const profileDocToResponse = (
  * @param {string} [limit=50] - Maximum number of profiles to return
  * @param {Gender} [gender] - Filter by gender (female, male, non-binary)
  * @param {School} [school] - Filter by Cornell school
- * @param {string} [minYear] - Filter by minimum graduation year
- * @param {string} [maxYear] - Filter by maximum graduation year
+ * @param {string} [minYear] - Filter by minimum year (class standing)
+ * @param {string} [maxYear] - Filter by maximum year (class standing)
  * @param {string} [excludeNetid] - Exclude specific user by NetID
  * @returns {ProfileResponse[]} Array of profile objects
  * @returns {Error} 500 - Internal server error

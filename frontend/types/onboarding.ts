@@ -26,8 +26,8 @@ export interface OnboardingData {
   major: string[];
   showCollegeOnProfile: boolean;
 
-  // Step 7: Graduation Year
-  year: number | null;
+  // Step 7: Year
+  year: string | null;
 
   // Step 8: Sexual Orientation
   sexualOrientation: string[];
@@ -135,7 +135,7 @@ export const ETHNICITY_OPTIONS = [
   'Other',
   'Prefer not to say',
 ] as const;
-export const GRADUATION_YEARS = [2026, 2027, 2028, 2029, 2030];
+export const YEAR_OPTIONS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'];
 
 // Sample prompts for Step 11
 export const AVAILABLE_PROMPTS = [

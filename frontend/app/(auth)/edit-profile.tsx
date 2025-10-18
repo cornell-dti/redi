@@ -1,14 +1,7 @@
 import AppText from '@/app/components/ui/AppText';
 import { ProfileResponse, PromptData } from '@/types';
 import { router } from 'expo-router';
-import {
-  Camera,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Pencil,
-  Plus,
-} from 'lucide-react-native';
+import { Camera, ChevronRight, Pencil, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -26,6 +19,7 @@ import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import Button from '../components/ui/Button';
+import EditingHeader from '../components/ui/EditingHeader';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Tag from '../components/ui/Tag';
@@ -210,224 +204,218 @@ export default function EditProfileScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <View style={styles.buttonRow}>
-        <Button
-          title="Back"
-          onPress={handleBack}
-          variant="secondary"
-          iconLeft={ChevronLeft}
-        />
-
-        <Button title="Save" onPress={() => {}} iconLeft={Check} />
-      </View>
+      <EditingHeader showSave={false} title="Edit profile" />
 
       <ScrollView
         style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          rowGap: 24,
+        }}
       >
-        <View style={styles.sectionsWrapper}>
-          <View style={styles.section}>
-            <AppText variant="subtitle" style={styles.subtitle}>
-              My photos
-            </AppText>
-            <View style={styles.imageGrid}>
-              {displayImages.map((image: string, index: number) => (
-                <TouchableOpacity key={index} style={styles.imageContainer}>
-                  <Image source={{ uri: image }} style={styles.image} />
-                  {index === 0 && (
-                    <View style={styles.badge}>
-                      <AppText style={styles.badgeText}>Main</AppText>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
-              {displayImages.length < 5 && (
-                <TouchableOpacity style={styles.addImage}>
-                  <Camera size={32} color={AppColors.foregroundDimmer} />
-                </TouchableOpacity>
-              )}
-            </View>
+        <View style={styles.section}>
+          <AppText variant="subtitle" style={styles.subtitle}>
+            My photos
+          </AppText>
+          <View style={styles.imageGrid}>
+            {displayImages.map((image: string, index: number) => (
+              <TouchableOpacity key={index} style={styles.imageContainer}>
+                <Image source={{ uri: image }} style={styles.image} />
+                {index === 0 && (
+                  <View style={styles.badge}>
+                    <AppText style={styles.badgeText}>Main</AppText>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+            {displayImages.length < 5 && (
+              <TouchableOpacity style={styles.addImage}>
+                <Camera size={32} color={AppColors.foregroundDimmer} />
+              </TouchableOpacity>
+            )}
           </View>
+        </View>
 
-          <View style={styles.section}>
-            <AppText variant="subtitle" style={styles.subtitle}>
-              Written prompts
-            </AppText>
+        <View style={styles.section}>
+          <AppText variant="subtitle" style={styles.subtitle}>
+            Written prompts
+          </AppText>
 
-            <ListItemWrapper>
-              {prompts.length > 0 &&
-                prompts
-                  .filter((p) => p.question && p.answer)
-                  .map((prompt) => (
-                    <ListItem
-                      key={prompt.id}
-                      title={prompt.question}
-                      description={prompt.answer}
-                      right={<ChevronRight />}
-                      onPress={() =>
-                        router.push({
-                          pathname: '/edit-prompt',
-                          params: {
-                            promptId: prompt.id,
-                            question: prompt.question,
-                            answer: prompt.answer,
-                          },
-                        } as any)
-                      }
-                    />
-                  ))}
-              <Button
-                title="Add prompt"
-                iconLeft={Plus}
-                onPress={() =>
-                  router.push({
-                    pathname: '/edit-prompt',
-                    params: {
-                      promptId: `new-${Date.now()}`,
-                    },
-                  } as any)
-                }
-                variant="secondary"
-                noRound
-              />
-            </ListItemWrapper>
-          </View>
+          <ListItemWrapper>
+            {prompts.length > 0 &&
+              prompts
+                .filter((p) => p.question && p.answer)
+                .map((prompt) => (
+                  <ListItem
+                    key={prompt.id}
+                    title={prompt.question}
+                    description={prompt.answer}
+                    right={<ChevronRight size={20} />}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/edit-prompt',
+                        params: {
+                          promptId: prompt.id,
+                          question: prompt.question,
+                          answer: prompt.answer,
+                        },
+                      } as any)
+                    }
+                  />
+                ))}
+            <Button
+              title="Add prompt"
+              iconLeft={Plus}
+              onPress={() =>
+                router.push({
+                  pathname: '/edit-prompt',
+                  params: {
+                    promptId: `new-${Date.now()}`,
+                  },
+                } as any)
+              }
+              variant="secondary"
+              noRound
+            />
+          </ListItemWrapper>
+        </View>
 
-          <View style={styles.section}>
-            <AppText variant="subtitle" style={styles.subtitle}>
-              Details
-            </AppText>
+        <View style={styles.section}>
+          <AppText variant="subtitle" style={styles.subtitle}>
+            Details
+          </AppText>
 
-            <ListItemWrapper>
-              <ListItem
-                title="Age"
-                description={displayAge ? `${displayAge}` : 'Not set'}
-                right={<ChevronRight />}
-                onPress={() => {}}
-              />
+          <ListItemWrapper>
+            <ListItem
+              title="Age"
+              description={displayAge ? `${displayAge}` : 'Not set'}
+              right={<ChevronRight size={20} />}
+              onPress={() => router.push('/edit-age' as any)}
+            />
 
-              <ListItem
-                title="Gender"
-                description={profile?.gender}
-                right={<ChevronRight />}
-                onPress={() => {}}
-              />
+            <ListItem
+              title="Gender"
+              description={
+                profile?.gender
+                  ? profile.gender.charAt(0).toUpperCase() +
+                    profile.gender.slice(1)
+                  : ''
+              }
+              right={<ChevronRight size={20} />}
+              onPress={() => router.push('/edit-gender' as any)}
+            />
 
-              <ListItem
-                title="Sexuality"
-                description={`${profile?.sexualOrientation || undefined}`}
-                right={<ChevronRight />}
-                onPress={() => {}}
-              />
+            <ListItem
+              title="Sexuality"
+              description={profile?.sexualOrientation?.join(', ') || 'Not set'}
+              right={<ChevronRight size={20} />}
+              onPress={() => router.push('/edit-sexuality' as any)}
+            />
 
-              <ListItem
-                title="Hometown"
-                description={profile?.hometown}
-                right={<ChevronRight />}
-                onPress={() => {}}
-              />
+            <ListItem
+              title="Hometown"
+              description={profile?.hometown || 'Not set'}
+              right={<ChevronRight size={20} />}
+              onPress={() => router.push('/edit-hometown' as any)}
+            />
 
-              <ListItem
-                title="Education"
-                description={`${profile?.year} in ${profile?.school} studying ${profile?.major?.join(', ')}`}
-                right={<ChevronRight />}
-                onPress={() => {}}
-              />
-            </ListItemWrapper>
-          </View>
+            <ListItem
+              title="Education"
+              description={`${profile?.year} in ${profile?.school} studying ${profile?.major?.join(', ')}`}
+              right={<ChevronRight size={20} />}
+              onPress={() => router.push('/edit-education' as any)}
+            />
+          </ListItemWrapper>
+        </View>
 
-          <View style={styles.section}>
-            <AppText variant="subtitle" style={styles.subtitle}>
-              Socials
-            </AppText>
+        <View style={styles.section}>
+          <AppText variant="subtitle" style={styles.subtitle}>
+            Socials
+          </AppText>
 
-            <ListItemWrapper>
-              {hasSocialLinks ? (
-                <View style={styles.tagsContainer}>
-                  {displayLinkedIn && <Tag label="LinkedIn" variant="white" />}
-                  {displayInstagram && (
-                    <Tag label="Instagram" variant="white" />
-                  )}
-                  {displaySnapchat && <Tag label="Snapchat" variant="white" />}
-                  {displayGithub && <Tag label="GitHub" variant="white" />}
-                  {displayWebsite && <Tag label="Website" variant="white" />}
-                </View>
-              ) : (
-                <View style={styles.emptyStateContainer}>
-                  <AppText style={styles.emptyStateText}>
-                    No social links yet - Add them here
-                  </AppText>
-                </View>
-              )}
-              <Button
-                title="Edit"
-                iconLeft={Pencil}
-                onPress={() => {}}
-                variant="secondary"
-                noRound
-              />
-            </ListItemWrapper>
-          </View>
+          <ListItemWrapper>
+            {hasSocialLinks ? (
+              <View style={styles.tagsContainer}>
+                {displayLinkedIn && <Tag label="LinkedIn" variant="white" />}
+                {displayInstagram && <Tag label="Instagram" variant="white" />}
+                {displaySnapchat && <Tag label="Snapchat" variant="white" />}
+                {displayGithub && <Tag label="GitHub" variant="white" />}
+                {displayWebsite && <Tag label="Website" variant="white" />}
+              </View>
+            ) : (
+              <View style={styles.emptyStateContainer}>
+                <AppText style={styles.emptyStateText}>
+                  No social links yet - Add them here
+                </AppText>
+              </View>
+            )}
+            <Button
+              title="Edit"
+              iconLeft={Pencil}
+              onPress={() => router.push('/edit-socials' as any)}
+              variant="secondary"
+              noRound
+            />
+          </ListItemWrapper>
+        </View>
 
-          <View style={styles.section}>
-            <AppText variant="subtitle" style={styles.subtitle}>
-              Interests
-            </AppText>
+        <View style={styles.section}>
+          <AppText variant="subtitle" style={styles.subtitle}>
+            Interests
+          </AppText>
 
-            <ListItemWrapper>
-              {displayInterests.length > 0 ? (
-                <View style={styles.tagsContainer}>
-                  {displayInterests.map((interest: string, index: number) => (
-                    <Tag key={index} label={interest} variant="white" />
-                  ))}
-                </View>
-              ) : (
-                <View style={styles.emptyStateContainer}>
-                  <AppText style={styles.emptyStateText}>
-                    No interests yet - Add them here
-                  </AppText>
-                </View>
-              )}
+          <ListItemWrapper>
+            {displayInterests.length > 0 ? (
+              <View style={styles.tagsContainer}>
+                {displayInterests.map((interest: string, index: number) => (
+                  <Tag key={index} label={interest} variant="white" />
+                ))}
+              </View>
+            ) : (
+              <View style={styles.emptyStateContainer}>
+                <AppText style={styles.emptyStateText}>
+                  No interests yet - Add them here
+                </AppText>
+              </View>
+            )}
 
-              <Button
-                title="Edit"
-                iconLeft={Pencil}
-                onPress={() => {}}
-                variant="secondary"
-                noRound
-              />
-            </ListItemWrapper>
-          </View>
+            <Button
+              title="Edit"
+              iconLeft={Pencil}
+              onPress={() => router.push('/edit-interests' as any)}
+              variant="secondary"
+              noRound
+            />
+          </ListItemWrapper>
+        </View>
 
-          <View style={styles.section}>
-            <AppText variant="subtitle" style={styles.subtitle}>
-              Clubs
-            </AppText>
+        <View style={styles.section}>
+          <AppText variant="subtitle" style={styles.subtitle}>
+            Clubs
+          </AppText>
 
-            <ListItemWrapper>
-              {displayClubs.length > 0 ? (
-                <View style={styles.tagsContainer}>
-                  {displayClubs.map((club: string, index: number) => (
-                    <Tag key={index} label={club} variant="white" />
-                  ))}
-                </View>
-              ) : (
-                <View style={styles.emptyStateContainer}>
-                  <AppText style={styles.emptyStateText}>
-                    No clubs yet - Add them here
-                  </AppText>
-                </View>
-              )}
+          <ListItemWrapper>
+            {displayClubs.length > 0 ? (
+              <View style={styles.tagsContainer}>
+                {displayClubs.map((club: string, index: number) => (
+                  <Tag key={index} label={club} variant="white" />
+                ))}
+              </View>
+            ) : (
+              <View style={styles.emptyStateContainer}>
+                <AppText style={styles.emptyStateText}>
+                  No clubs yet - Add them here
+                </AppText>
+              </View>
+            )}
 
-              <Button
-                title="Edit"
-                iconLeft={Pencil}
-                onPress={() => {}}
-                variant="secondary"
-                noRound
-              />
-            </ListItemWrapper>
-          </View>
+            <Button
+              title="Edit"
+              iconLeft={Pencil}
+              onPress={() => router.push('/edit-clubs' as any)}
+              variant="secondary"
+              noRound
+            />
+          </ListItemWrapper>
         </View>
       </ScrollView>
 
@@ -446,10 +434,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: AppColors.backgroundDefault,
-    padding: 16,
     display: 'flex',
     flexDirection: 'column',
-    gap: 24,
   },
   centerContent: {
     justifyContent: 'center',
@@ -469,12 +455,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   scrollView: {
-    flex: 1,
-  },
-  sectionsWrapper: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 24,
+    padding: 16,
   },
   section: {
     display: 'flex',
@@ -575,12 +556,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderWidth: 1,
     borderColor: AppColors.backgroundDimmer,
-  },
-  buttonRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-    gap: 24,
   },
   emptyStateContainer: {
     backgroundColor: AppColors.backgroundDimmer,

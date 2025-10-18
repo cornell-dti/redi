@@ -1,11 +1,11 @@
 import {
   ETHNICITY_OPTIONS,
   GENDER_OPTIONS,
-  GRADUATION_YEARS,
   INTERESTED_IN_OPTIONS,
   PRONOUN_OPTIONS,
   PromptData,
   SEXUAL_ORIENTATION_OPTIONS,
+  YEAR_OPTIONS,
 } from '@/types';
 import { router } from 'expo-router';
 import { Check, ChevronDown, Plus } from 'lucide-react-native';
@@ -487,12 +487,12 @@ export default function CreateProfileScreen() {
       case 7:
         return (
           <View style={styles.stepContainer}>
-            <OnboardingTitle title="What's your graduation year?" />
+            <OnboardingTitle title="What year are you in?" />
             <ListItemWrapper>
-              {GRADUATION_YEARS.map((year) => (
+              {YEAR_OPTIONS.map((year) => (
                 <ListItem
                   key={year}
-                  title={year.toString()}
+                  title={year}
                   selected={data.year === year}
                   onPress={() => updateField('year', year)}
                   right={
@@ -678,10 +678,10 @@ export default function CreateProfileScreen() {
                 setClubInput('');
               }}
               title="Add club"
-              height={256}
             >
               <View style={styles.majorSheetContent}>
                 <AppInput
+                  autoFocus
                   placeholder="Enter club name"
                   value={clubInput}
                   onChangeText={setClubInput}
@@ -772,10 +772,10 @@ export default function CreateProfileScreen() {
                 setInterestInput('');
               }}
               title="Add interest"
-              height={256}
             >
               <View style={styles.majorSheetContent}>
                 <AppInput
+                  autoFocus
                   placeholder="Enter an interest"
                   value={interestInput}
                   onChangeText={setInterestInput}
