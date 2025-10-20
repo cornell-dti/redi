@@ -89,7 +89,9 @@ export default function AdminProtectedRoute({
     return (
       <AdminSignIn
         onSignInSuccess={() => {
-          console.log('✅ Sign in success - auth state will update via onAuthStateChanged');
+          console.log(
+            '✅ Sign in success - auth state will update via onAuthStateChanged'
+          );
           // Don't set state here - let onAuthStateChanged handle it
         }}
       />

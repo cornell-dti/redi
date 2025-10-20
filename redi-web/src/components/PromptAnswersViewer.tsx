@@ -45,8 +45,10 @@ export default function PromptAnswersViewer({
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
 
-    if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+    if (diffMinutes < 60)
+      return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+    if (diffHours < 24)
+      return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
     if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
 
     return date.toLocaleDateString('en-US', {
@@ -62,7 +64,9 @@ export default function PromptAnswersViewer({
         {/* Header */}
         <div className="p-6 border-b border-gray-200 flex justify-between items-start">
           <div className="flex-1 pr-4">
-            <h2 className="text-2xl font-bold text-black mb-2">Prompt Answers</h2>
+            <h2 className="text-2xl font-bold text-black mb-2">
+              Prompt Answers
+            </h2>
             <p className="text-gray-600 mb-1">{promptQuestion}</p>
             <p className="text-sm text-gray-500">
               {answers.length} {answers.length === 1 ? 'answer' : 'answers'}

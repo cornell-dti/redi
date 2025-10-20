@@ -10,7 +10,8 @@ export default function MatchesDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPromptId, setSelectedPromptId] = useState<string | null>(null);
-  const [selectedPromptQuestion, setSelectedPromptQuestion] = useState<string>('');
+  const [selectedPromptQuestion, setSelectedPromptQuestion] =
+    useState<string>('');
 
   useEffect(() => {
     loadStats();
@@ -24,7 +25,9 @@ export default function MatchesDashboard() {
       setStats(data);
     } catch (err) {
       console.error('Error loading match stats:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load match statistics');
+      setError(
+        err instanceof Error ? err.message : 'Failed to load match statistics'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -53,7 +56,9 @@ export default function MatchesDashboard() {
   return (
     <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
       <div className="mb-6">
-        <h2 className="text-3xl font-bold text-black mb-2">Matches Dashboard</h2>
+        <h2 className="text-3xl font-bold text-black mb-2">
+          Matches Dashboard
+        </h2>
         <p className="text-gray-600">
           Track match generation and reveal statistics across all prompts
         </p>
@@ -145,7 +150,9 @@ export default function MatchesDashboard() {
             </div>
 
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <div className="text-sm text-gray-600 mb-1">Avg Matches/Prompt</div>
+              <div className="text-sm text-gray-600 mb-1">
+                Avg Matches/Prompt
+              </div>
               <div className="text-3xl font-bold text-black">
                 {stats.averageMatchesPerPrompt.toFixed(1)}
               </div>
@@ -154,7 +161,9 @@ export default function MatchesDashboard() {
 
           {/* Per-Prompt Breakdown */}
           <div>
-            <h3 className="text-xl font-bold text-black mb-4">Per-Prompt Breakdown</h3>
+            <h3 className="text-xl font-bold text-black mb-4">
+              Per-Prompt Breakdown
+            </h3>
 
             {stats.promptStats.length === 0 ? (
               <div className="text-center py-12 bg-gray-50 rounded-lg">
@@ -173,7 +182,9 @@ export default function MatchesDashboard() {
                   <path d="M3 3v18h18" />
                   <path d="m19 9-5 5-4-4-3 3" />
                 </svg>
-                <p className="text-gray-500">No matches have been generated yet</p>
+                <p className="text-gray-500">
+                  No matches have been generated yet
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -221,7 +232,8 @@ export default function MatchesDashboard() {
                           {promptStat.totalUsersMatched}
                         </td>
                         <td className="py-4 px-4 text-center text-gray-600">
-                          {promptStat.totalReveals} / {promptStat.totalMatchDocuments * 3}
+                          {promptStat.totalReveals} /{' '}
+                          {promptStat.totalMatchDocuments * 3}
                         </td>
                         <td className="py-4 px-4 text-center">
                           <div className="flex items-center justify-center gap-2">
@@ -241,7 +253,10 @@ export default function MatchesDashboard() {
                         <td className="py-4 px-4 text-center">
                           <button
                             onClick={() =>
-                              handleViewDetails(promptStat.promptId, promptStat.question)
+                              handleViewDetails(
+                                promptStat.promptId,
+                                promptStat.question
+                              )
                             }
                             className="px-4 py-1.5 text-sm rounded-full bg-gray-100 text-black hover:bg-gray-200 transition border border-gray-300"
                           >

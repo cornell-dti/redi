@@ -59,7 +59,7 @@ export const createPrompt = async (
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(data), // No firebaseUid needed
   });
@@ -88,7 +88,7 @@ export const activatePrompt = async (
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({}), // Empty body, no firebaseUid
     }
@@ -118,7 +118,7 @@ export const generateMatches = async (
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({}), // Empty body, no firebaseUid
     }
@@ -151,13 +151,23 @@ export const fetchAllPrompts = async (): Promise<WeeklyPrompt[]> => {
       id: doc.id,
       promptId: doc.id,
       question: data.question,
-      releaseDate: data.releaseDate?.toDate ? data.releaseDate.toDate().toISOString() : data.releaseDate || null,
-      matchDate: data.matchDate?.toDate ? data.matchDate.toDate().toISOString() : data.matchDate || null,
+      releaseDate: data.releaseDate?.toDate
+        ? data.releaseDate.toDate().toISOString()
+        : data.releaseDate || null,
+      matchDate: data.matchDate?.toDate
+        ? data.matchDate.toDate().toISOString()
+        : data.matchDate || null,
       active: data.active || false,
       status: data.status || 'scheduled',
-      activatedAt: data.activatedAt?.toDate ? data.activatedAt.toDate().toISOString() : data.activatedAt || null,
-      matchesGeneratedAt: data.matchesGeneratedAt?.toDate ? data.matchesGeneratedAt.toDate().toISOString() : data.matchesGeneratedAt || null,
-      createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt || null,
+      activatedAt: data.activatedAt?.toDate
+        ? data.activatedAt.toDate().toISOString()
+        : data.activatedAt || null,
+      matchesGeneratedAt: data.matchesGeneratedAt?.toDate
+        ? data.matchesGeneratedAt.toDate().toISOString()
+        : data.matchesGeneratedAt || null,
+      createdAt: data.createdAt?.toDate
+        ? data.createdAt.toDate().toISOString()
+        : data.createdAt || null,
       answerCount,
     });
   }
@@ -203,13 +213,23 @@ export const fetchPromptById = async (
     id: promptId,
     promptId,
     question: data.question,
-    releaseDate: data.releaseDate?.toDate ? data.releaseDate.toDate().toISOString() : data.releaseDate || null,
-    matchDate: data.matchDate?.toDate ? data.matchDate.toDate().toISOString() : data.matchDate || null,
+    releaseDate: data.releaseDate?.toDate
+      ? data.releaseDate.toDate().toISOString()
+      : data.releaseDate || null,
+    matchDate: data.matchDate?.toDate
+      ? data.matchDate.toDate().toISOString()
+      : data.matchDate || null,
     active: data.active || false,
     status: data.status || 'scheduled',
-    activatedAt: data.activatedAt?.toDate ? data.activatedAt.toDate().toISOString() : data.activatedAt || null,
-    matchesGeneratedAt: data.matchesGeneratedAt?.toDate ? data.matchesGeneratedAt.toDate().toISOString() : data.matchesGeneratedAt || null,
-    createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt || null,
+    activatedAt: data.activatedAt?.toDate
+      ? data.activatedAt.toDate().toISOString()
+      : data.activatedAt || null,
+    matchesGeneratedAt: data.matchesGeneratedAt?.toDate
+      ? data.matchesGeneratedAt.toDate().toISOString()
+      : data.matchesGeneratedAt || null,
+    createdAt: data.createdAt?.toDate
+      ? data.createdAt.toDate().toISOString()
+      : data.createdAt || null,
     answerCount,
   };
 };
@@ -217,7 +237,9 @@ export const fetchPromptById = async (
 /**
  * Delete the currently active prompt
  */
-export const deleteActivePrompt = async (): Promise<ApiResponse<{ message: string; promptId: string }>> => {
+export const deleteActivePrompt = async (): Promise<
+  ApiResponse<{ message: string; promptId: string }>
+> => {
   console.log('📤 Deleting active prompt');
 
   const token = await getAuthToken();
@@ -226,7 +248,7 @@ export const deleteActivePrompt = async (): Promise<ApiResponse<{ message: strin
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({}), // Empty body, no firebaseUid
   });
@@ -252,7 +274,7 @@ export const generatePromptId = async (date: Date): Promise<string> => {
     {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     }
   );
@@ -298,7 +320,7 @@ export const getPrompts = async (filters?: {
   const res = await fetch(url, {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -313,7 +335,9 @@ export const getPrompts = async (filters?: {
 /**
  * Get a single prompt from backend API
  */
-export const getPrompt = async (promptId: string): Promise<ApiResponse<WeeklyPrompt>> => {
+export const getPrompt = async (
+  promptId: string
+): Promise<ApiResponse<WeeklyPrompt>> => {
   console.log('📤 Getting prompt:', promptId);
 
   const token = await getAuthToken();
@@ -321,7 +345,7 @@ export const getPrompt = async (promptId: string): Promise<ApiResponse<WeeklyPro
   const res = await fetch(`${API_BASE_URL}/api/admin/prompts/${promptId}`, {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -348,7 +372,7 @@ export const updatePrompt = async (
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify(updates), // No firebaseUid needed
   });
@@ -364,7 +388,9 @@ export const updatePrompt = async (
 /**
  * Delete a prompt
  */
-export const deletePrompt = async (promptId: string): Promise<ApiResponse<{ message: string }>> => {
+export const deletePrompt = async (
+  promptId: string
+): Promise<ApiResponse<{ message: string }>> => {
   console.log('📤 Deleting prompt:', promptId);
 
   const token = await getAuthToken();
@@ -373,7 +399,7 @@ export const deletePrompt = async (promptId: string): Promise<ApiResponse<{ mess
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({}), // Empty body, no firebaseUid
   });
@@ -401,7 +427,7 @@ export const fetchPromptAnswers = async (
     {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     }
   );
@@ -432,7 +458,7 @@ export const fetchMatchStats = async (): Promise<MatchStatsResponse> => {
   const res = await fetch(`${API_BASE_URL}/api/admin/matches/stats`, {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
 
@@ -465,7 +491,7 @@ export const fetchPromptMatches = async (
     {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     }
   );

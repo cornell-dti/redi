@@ -20,9 +20,12 @@ export default function ProductionModeSection({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [releaseDateWarning, setReleaseDateWarning] = useState<string | null>(null);
+  const [releaseDateWarning, setReleaseDateWarning] = useState<string | null>(
+    null
+  );
   const [matchDateWarning, setMatchDateWarning] = useState<string | null>(null);
-  const [selectedPromptForAnswers, setSelectedPromptForAnswers] = useState<WeeklyPrompt | null>(null);
+  const [selectedPromptForAnswers, setSelectedPromptForAnswers] =
+    useState<WeeklyPrompt | null>(null);
 
   // Get next Monday's date as default
   const getNextMonday = () => {
@@ -48,12 +51,15 @@ export default function ProductionModeSection({
   const generatePromptId = (dateString: string): string => {
     const date = new Date(dateString);
     const year = date.getFullYear();
-    
+
     // Calculate ISO week number
     const firstDayOfYear = new Date(year, 0, 1);
-    const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-    const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-    
+    const pastDaysOfYear =
+      (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+    const weekNumber = Math.ceil(
+      (pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7
+    );
+
     return `${year}-${String(weekNumber).padStart(2, '0')}`;
   };
 
@@ -81,7 +87,15 @@ export default function ProductionModeSection({
   const getDayName = (dateString: string): string => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const days = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
     return days[date.getDay()];
   };
 
@@ -89,7 +103,9 @@ export default function ProductionModeSection({
   const handleReleaseDateChange = (date: string) => {
     setReleaseDate(date);
     if (date && !isMonday(date)) {
-      setReleaseDateWarning(`⚠️ Warning: ${getDayName(date)} is not a Monday. Auto-activation scheduled for Mondays.`);
+      setReleaseDateWarning(
+        `⚠️ Warning: ${getDayName(date)} is not a Monday. Auto-activation scheduled for Mondays.`
+      );
     } else {
       setReleaseDateWarning(null);
     }
@@ -99,7 +115,9 @@ export default function ProductionModeSection({
   const handleMatchDateChange = (date: string) => {
     setMatchDate(date);
     if (date && !isFriday(date)) {
-      setMatchDateWarning(`⚠️ Warning: ${getDayName(date)} is not a Friday. Auto-generation scheduled for Fridays.`);
+      setMatchDateWarning(
+        `⚠️ Warning: ${getDayName(date)} is not a Friday. Auto-generation scheduled for Fridays.`
+      );
     } else {
       setMatchDateWarning(null);
     }
@@ -157,9 +175,7 @@ export default function ProductionModeSection({
       onPromptCreated();
     } catch (err) {
       console.error('❌ Error creating prompt:', err);
-      setError(
-        err instanceof Error ? err.message : 'Failed to create prompt'
-      );
+      setError(err instanceof Error ? err.message : 'Failed to create prompt');
     } finally {
       setIsSubmitting(false);
     }
@@ -169,9 +185,7 @@ export default function ProductionModeSection({
   const scheduledPrompts = prompts.filter(
     (p) => p.status === PromptStatus.SCHEDULED
   );
-  const activePrompts = prompts.filter(
-    (p) => p.status === PromptStatus.ACTIVE
-  );
+  const activePrompts = prompts.filter((p) => p.status === PromptStatus.ACTIVE);
   const completedPrompts = prompts.filter(
     (p) => p.status === PromptStatus.COMPLETED
   );
@@ -191,7 +205,11 @@ export default function ProductionModeSection({
       date = dateValue.toDate();
     }
     // Handle Firestore Timestamp-like objects with seconds
-    else if (dateValue && typeof dateValue === 'object' && 'seconds' in dateValue) {
+    else if (
+      dateValue &&
+      typeof dateValue === 'object' &&
+      'seconds' in dateValue
+    ) {
       date = new Date(dateValue.seconds * 1000);
     }
     // Handle string dates
@@ -201,8 +219,7 @@ export default function ProductionModeSection({
     // Handle Date objects
     else if (dateValue instanceof Date) {
       date = dateValue;
-    }
-    else {
+    } else {
       return 'Invalid Date';
     }
 
@@ -251,7 +268,8 @@ export default function ProductionModeSection({
           onClick={() => setSelectedPromptForAnswers(prompt)}
           className="px-3 py-1 text-xs rounded-full bg-gray-100 text-black hover:bg-gray-200 transition border border-gray-300"
         >
-          View Answers {prompt.answerCount !== undefined && `(${prompt.answerCount})`}
+          View Answers{' '}
+          {prompt.answerCount !== undefined && `(${prompt.answerCount})`}
         </button>
       </div>
       {prompt.activatedAt && (
@@ -269,9 +287,7 @@ export default function ProductionModeSection({
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-      <h2 className="text-2xl font-bold text-black mb-2">
-        Production Mode
-      </h2>
+      <h2 className="text-2xl font-bold text-black mb-2">Production Mode</h2>
       <p className="text-sm text-gray-600 mb-6">
         Create prompts and view automated workflow
       </p>
@@ -294,7 +310,8 @@ export default function ProductionModeSection({
             <polyline points="12 6 12 12 16 14" />
           </svg>
           <span className="font-medium">
-            Auto-activates Monday 12:01 AM ET → Auto-generates matches Friday 12:01 AM ET
+            Auto-activates Monday 12:01 AM ET → Auto-generates matches Friday
+            12:01 AM ET
           </span>
         </div>
       </div>

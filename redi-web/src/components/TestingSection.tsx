@@ -1,6 +1,10 @@
 'use client';
 
-import { activatePrompt, deleteActivePrompt, generateMatches } from '@/api/admin';
+import {
+  activatePrompt,
+  deleteActivePrompt,
+  generateMatches,
+} from '@/api/admin';
 import { WeeklyPrompt } from '@/types/admin';
 import { useState } from 'react';
 import ConfirmationModal from './ConfirmationModal';
@@ -26,7 +30,8 @@ export default function TestingSection({
   const [showActivateModal, setShowActivateModal] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedPromptForAnswers, setSelectedPromptForAnswers] = useState<WeeklyPrompt | null>(null);
+  const [selectedPromptForAnswers, setSelectedPromptForAnswers] =
+    useState<WeeklyPrompt | null>(null);
 
   const selectedPrompt = prompts.find((p) => p.id === selectedPromptId);
 
@@ -102,33 +107,32 @@ export default function TestingSection({
 
     // Handle Firestore Timestamp objects
     if (
-    dateValue && 
-    typeof dateValue === 'object' && 
-    'toDate' in dateValue && 
-    typeof dateValue.toDate === 'function'
-  ) {
-    date = dateValue.toDate();
-  }
-  // Handle Firestore Timestamp-like objects with seconds
-  else if (
-    dateValue && 
-    typeof dateValue === 'object' && 
-    'seconds' in dateValue && 
-    typeof dateValue.seconds === 'number'
-  ) {
-    date = new Date(dateValue.seconds * 1000);
-  }
-  // Handle string dates
-  else if (typeof dateValue === 'string') {
-    date = new Date(dateValue);
-  }
-  // Handle Date objects
-  else if (dateValue instanceof Date) {
-    date = dateValue;
-  }
-  else {
-    return 'Invalid Date';
-  }
+      dateValue &&
+      typeof dateValue === 'object' &&
+      'toDate' in dateValue &&
+      typeof dateValue.toDate === 'function'
+    ) {
+      date = dateValue.toDate();
+    }
+    // Handle Firestore Timestamp-like objects with seconds
+    else if (
+      dateValue &&
+      typeof dateValue === 'object' &&
+      'seconds' in dateValue &&
+      typeof dateValue.seconds === 'number'
+    ) {
+      date = new Date(dateValue.seconds * 1000);
+    }
+    // Handle string dates
+    else if (typeof dateValue === 'string') {
+      date = new Date(dateValue);
+    }
+    // Handle Date objects
+    else if (dateValue instanceof Date) {
+      date = dateValue;
+    } else {
+      return 'Invalid Date';
+    }
 
     // Check if date is valid
     if (isNaN(date.getTime())) {
@@ -200,7 +204,8 @@ export default function TestingSection({
             <path d="M12 17h.01" />
           </svg>
           <p className="text-sm text-yellow-800">
-            These actions will bypass the automated Monday/Friday schedule. Use only for testing.
+            These actions will bypass the automated Monday/Friday schedule. Use
+            only for testing.
           </p>
         </div>
       </div>
@@ -226,7 +231,8 @@ export default function TestingSection({
           <option value="">-- Select a prompt --</option>
           {prompts.map((prompt) => (
             <option key={prompt.id} value={prompt.id}>
-              {prompt.question} ({prompt.status}) - {formatDateET(prompt.releaseDate)}
+              {prompt.question} ({prompt.status}) -{' '}
+              {formatDateET(prompt.releaseDate)}
             </option>
           ))}
         </select>
@@ -289,14 +295,18 @@ export default function TestingSection({
       <div className="flex gap-4 mb-6">
         <button
           onClick={() => setShowActivateModal(true)}
-          disabled={!selectedPromptId || isActivating || isGenerating || isDeleting}
+          disabled={
+            !selectedPromptId || isActivating || isGenerating || isDeleting
+          }
           className="flex-1 bg-blue-600 text-white rounded-full px-6 py-3 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
           Activate Now
         </button>
         <button
           onClick={() => setShowGenerateModal(true)}
-          disabled={!selectedPromptId || isActivating || isGenerating || isDeleting}
+          disabled={
+            !selectedPromptId || isActivating || isGenerating || isDeleting
+          }
           className="flex-1 bg-green-600 text-white rounded-full px-6 py-3 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
           Generate Matches Now

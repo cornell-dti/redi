@@ -29,9 +29,7 @@ export default function AdminPromptsPage() {
       const fetchedPrompts = await fetchAllPrompts();
       setPrompts(fetchedPrompts);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to load prompts'
-      );
+      setError(err instanceof Error ? err.message : 'Failed to load prompts');
     } finally {
       setIsLoading(false);
     }

@@ -95,7 +95,9 @@ export default function PromptMatchDetailsViewer({
         <div className="p-6 border-b border-gray-200">
           <div className="flex justify-between items-start mb-4">
             <div className="flex-1 pr-4">
-              <h2 className="text-2xl font-bold text-black mb-2">Match Details</h2>
+              <h2 className="text-2xl font-bold text-black mb-2">
+                Match Details
+              </h2>
               <p className="text-gray-600 mb-1">{promptQuestion}</p>
               <p className="text-sm text-gray-500">{promptId}</p>
             </div>
@@ -402,7 +404,8 @@ export default function PromptMatchDetailsViewer({
         {/* Footer */}
         <div className="p-4 border-t border-gray-200 flex justify-between items-center bg-gray-50">
           <div className="text-sm text-gray-600">
-            Showing {filteredMatches.length} of {data?.matches.length || 0} matches
+            Showing {filteredMatches.length} of {data?.matches.length || 0}{' '}
+            matches
           </div>
           <button
             onClick={onClose}
