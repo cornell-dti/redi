@@ -246,21 +246,14 @@ export default function ProductionModeSection({
           Match: {formatDateET(prompt.matchDate)} ET
         </p>
       )}
-      {prompt.answerCount !== undefined && (
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm text-gray-600">
-            Answers: {prompt.answerCount}
-          </p>
-          {prompt.answerCount > 0 && (
-            <button
-              onClick={() => setSelectedPromptForAnswers(prompt)}
-              className="px-3 py-1 text-xs rounded-full bg-gray-100 text-black hover:bg-gray-200 transition border border-gray-300"
-            >
-              View Answers
-            </button>
-          )}
-        </div>
-      )}
+      <div className="flex justify-end mt-2 mb-2">
+        <button
+          onClick={() => setSelectedPromptForAnswers(prompt)}
+          className="px-3 py-1 text-xs rounded-full bg-gray-100 text-black hover:bg-gray-200 transition border border-gray-300"
+        >
+          View Answers {prompt.answerCount !== undefined && `(${prompt.answerCount})`}
+        </button>
+      </div>
       {prompt.activatedAt && (
         <p className="text-xs text-gray-500 mt-2">
           Activated: {formatDateET(prompt.activatedAt)} ET

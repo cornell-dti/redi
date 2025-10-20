@@ -273,14 +273,12 @@ export default function TestingSection({
                   <span className="font-medium">Answers Received:</span>{' '}
                   {selectedPrompt.answerCount}
                 </p>
-                {selectedPrompt.answerCount > 0 && (
-                  <button
-                    onClick={() => setSelectedPromptForAnswers(selectedPrompt)}
-                    className="px-3 py-1 text-xs rounded-full bg-white text-black hover:bg-gray-100 transition border border-gray-300"
-                  >
-                    View Answers
-                  </button>
-                )}
+                <button
+                  onClick={() => setSelectedPromptForAnswers(selectedPrompt)}
+                  className="px-3 py-1 text-xs rounded-full bg-white text-black hover:bg-gray-100 transition border border-gray-300"
+                >
+                  View Answers
+                </button>
               </div>
             )}
           </div>
