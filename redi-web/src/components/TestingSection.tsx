@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { activatePrompt, deleteActivePrompt, generateMatches } from '@/api/admin';
 import { WeeklyPrompt } from '@/types/admin';
-import { activatePrompt, generateMatches, deleteActivePrompt } from '@/api/admin';
+import { useState } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import PromptAnswersViewer from './PromptAnswersViewer';
 
@@ -101,24 +101,34 @@ export default function TestingSection({
     let date: Date;
 
     // Handle Firestore Timestamp objects
-    if (dateValue && typeof dateValue === 'object' && 'toDate' in dateValue) {
-      date = dateValue.toDate();
-    }
-    // Handle Firestore Timestamp-like objects with seconds
-    else if (dateValue && typeof dateValue === 'object' && 'seconds' in dateValue) {
-      date = new Date(dateValue.seconds * 1000);
-    }
-    // Handle string dates
-    else if (typeof dateValue === 'string') {
-      date = new Date(dateValue);
-    }
-    // Handle Date objects
-    else if (dateValue instanceof Date) {
-      date = dateValue;
-    }
-    else {
-      return 'Invalid Date';
-    }
+    if (
+    dateValue && 
+    typeof dateValue === 'object' && 
+    'toDate' in dateValue && 
+    typeof dateValue.toDate === 'function'
+  ) {
+    date = dateValue.toDate();
+  }
+  // Handle Firestore Timestamp-like objects with seconds
+  else if (
+    dateValue && 
+    typeof dateValue === 'object' && 
+    'seconds' in dateValue && 
+    typeof dateValue.seconds === 'number'
+  ) {
+    date = new Date(dateValue.seconds * 1000);
+  }
+  // Handle string dates
+  else if (typeof dateValue === 'string') {
+    date = new Date(dateValue);
+  }
+  // Handle Date objects
+  else if (dateValue instanceof Date) {
+    date = dateValue;
+  }
+  else {
+    return 'Invalid Date';
+  }
 
     // Check if date is valid
     if (isNaN(date.getTime())) {

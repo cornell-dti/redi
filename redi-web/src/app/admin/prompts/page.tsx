@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { getAuth } from 'firebase/auth';
-import { FIREBASE_APP } from '../../../../firebase';
+import { fetchAllPrompts } from '@/api/admin';
 import AdminProtectedRoute from '@/components/AdminProtectedRoute';
+import MatchesDashboard from '@/components/MatchesDashboard';
 import ProductionModeSection from '@/components/ProductionModeSection';
 import TestingSection from '@/components/TestingSection';
-import MatchesDashboard from '@/components/MatchesDashboard';
 import { WeeklyPrompt } from '@/types/admin';
-import { fetchAllPrompts, fetchAnswerCount } from '@/api/admin';
+import { getAuth } from 'firebase/auth';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { FIREBASE_APP } from '../../../../firebase';
 
 export default function AdminPromptsPage() {
   const [prompts, setPrompts] = useState<WeeklyPrompt[]>([]);
@@ -27,16 +27,7 @@ export default function AdminPromptsPage() {
 
     try {
       const fetchedPrompts = await fetchAllPrompts();
-
-      // Fetch answer counts for each prompt
-      const promptsWithCounts = await Promise.all(
-        fetchedPrompts.map(async (prompt) => {
-          const answerCount = await fetchAnswerCount(prompt.id);
-          return { ...prompt, answerCount };
-        })
-      );
-
-      setPrompts(promptsWithCounts);
+      setPrompts(fetchedPrompts);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to load prompts'

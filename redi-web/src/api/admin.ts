@@ -141,7 +141,6 @@ export const fetchAllPrompts = async (): Promise<WeeklyPrompt[]> => {
   const promptsRef = collection(FIREBASE_DB, 'weeklyPrompts');
   const q = query(promptsRef, orderBy('releaseDate', 'desc'));
   const snapshot = await getDocs(q);
-
   const prompts: WeeklyPrompt[] = [];
 
   for (const doc of snapshot.docs) {
