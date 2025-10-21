@@ -64,7 +64,11 @@ export const activateWeeklyPrompt = onSchedule(
       });
 
       // Activate the new prompt
-      batch.update(promptDoc.ref, { active: true });
+      batch.update(promptDoc.ref, {
+        active: true,
+        status: 'active',
+        activatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
 
       await batch.commit();
 

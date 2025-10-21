@@ -196,6 +196,14 @@ export async function generateMatchesForPrompt(
   }
 
   console.log(`Match generation complete. Matched ${matchedCount} users.`);
+
+  // Update prompt status to completed
+  await db.collection('weeklyPrompts').doc(promptId).update({
+    status: 'completed',
+    matchesGeneratedAt: FieldValue.serverTimestamp(),
+    active: false
+  });
+
   return matchedCount;
 }
 

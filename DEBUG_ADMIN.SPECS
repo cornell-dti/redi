@@ -1,0 +1,62 @@
+Debug and fix the admin dashboard issues in /redi-web related to weekly prompt management. 
+
+## Current Issues:
+1. Creating a new weekly prompt is not working
+3. Testing prompt creation section of dashboards is not working
+4. Active and scheduled prompts are not displaying properly
+5. Cannot schedule a prompt - getting an error that "release day isn't a Monday" even though it's set as Monday
+6. Need ability to set prompts to be released and generate matches on any day (not just Mondays)
+
+## Investigation Steps:
+
+### Phase 1: Analysis
+1. Examine the admin dashboard code in /redi-web for weekly prompt creation and display
+2. Review all backend endpoints related to prompts (creation, scheduling, retrieval)
+3. Investigate cloud functions that handle:
+   - Prompt scheduling and release logic
+   - Matching algorithm triggers
+   - Day-of-week validation
+4. Identify where the Monday restriction is enforced (frontend validation, backend validation, or cloud function logic)
+5. Check how active/scheduled prompts are fetched and why they're not displaying
+
+### Phase 2: Root Cause Identification
+- Map out the complete flow from admin dashboard → backend endpoints → cloud functions
+- Identify all points where day validation occurs
+- Find discrepancies between what the UI sends vs what the backend expects
+- Check for timezone issues that might affect day-of-week calculations
+
+### Phase 3: Fix Planning
+Before making any changes, present me with:
+1. A summary of all issues found
+2. Proposed fixes for each issue
+3. Whether endpoints need modification to allow any-day prompt creation for testing
+4. Impact assessment of changes (what might break, what needs updating)
+5. Wait for my approval before proceeding
+
+### Phase 4: Implementation
+After I approve the plan:
+1. Fix the prompt creation functionality
+2. Fix the active/scheduled prompts display
+3. Remove or make configurable the Monday-only restriction
+4. Enable prompt release and match generation for any day
+5. Ensure all changes maintain data consistency
+
+### Phase 5: Documentation Updates
+Update the following files to reflect any changes made to prompt and matching workflows:
+- /Users/jujucrane/dev/redi/TESTING_CLOUD_FUNCTIONS.md
+- /Users/jujucrane/dev/redi/backend/MATCHING_ALGORITHM_GUIDE.md
+- /Users/jujucrane/dev/redi/backend/MATCHING_WORKFLOW.md
+
+Specifically document:
+- How the updated prompt scheduling works
+- Any changes to day-of-week logic
+- New testing capabilities (if any-day scheduling is enabled)
+- Updated matching trigger logic
+
+## Important Notes:
+- Preserve existing functionality wherever possible
+- If testing-specific changes are needed, make them configurable (e.g., via environment variables)
+- Ensure backward compatibility with existing scheduled prompts
+- Test the complete flow after fixes
+
+Start with Phase 1 analysis and show me what you find before proceeding to fixes.

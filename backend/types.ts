@@ -265,6 +265,9 @@ export interface WeeklyPromptDoc {
   releaseDate: FirestoreTimestampType; // Monday at 12:01 AM ET
   matchDate: FirestoreTimestampType; // Friday at 12:01 AM ET
   active: boolean; // Only one prompt should be active at a time
+  status?: 'scheduled' | 'active' | 'completed'; // Current status of the prompt
+  activatedAt?: FirestoreTimestampType; // When the prompt was activated
+  matchesGeneratedAt?: FirestoreTimestampType; // When matches were generated
   createdAt: FirestoreTimestampType;
 }
 
@@ -275,6 +278,9 @@ export interface WeeklyPromptDocWrite {
   releaseDate: FirestoreTimestampType | Date;
   matchDate: FirestoreTimestampType | Date;
   active: boolean;
+  status?: 'scheduled' | 'active' | 'completed';
+  activatedAt?: FirestoreTimestampType | FieldValue;
+  matchesGeneratedAt?: FirestoreTimestampType | FieldValue;
   createdAt: FirestoreTimestampType | FieldValue;
 }
 
@@ -285,6 +291,9 @@ export interface WeeklyPromptResponse {
   releaseDate: string; // ISO string format for JSON
   matchDate: string; // ISO string format for JSON
   active: boolean;
+  status?: 'scheduled' | 'active' | 'completed';
+  activatedAt?: string; // ISO string format for JSON
+  matchesGeneratedAt?: string; // ISO string format for JSON
   createdAt: string; // ISO string format for JSON
 }
 
@@ -372,4 +381,64 @@ export type CreateWeeklyMatchInput = Omit<WeeklyMatchDoc, 'createdAt'>;
 // For updating match revealed status
 export interface UpdateWeeklyMatchRevealedInput {
   matchIndex: number; // Index of the match to reveal (0-2)
+}
+
+// =============================================================================
+// ADMIN-SPECIFIC TYPES (for admin dashboard features)
+// =============================================================================
+
+// Weekly prompt answer with user profile data for admin view
+export interface WeeklyPromptAnswerWithProfile {
+  netid: string;
+  promptId: string;
+  answer: string;
+  createdAt: string; // ISO string format
+  // Profile information
+  uuid: string;
+  firstName: string;
+  profilePicture?: string; // First picture from user's profile, if available
+}
+
+// Match document with profile information for admin view
+export interface MatchWithProfile {
+  netid: string; // User who received the matches
+  firstName: string;
+  profilePicture?: string;
+  matches: Array<{
+    netid: string;
+    firstName: string;
+    profilePicture?: string;
+    revealed: boolean;
+  }>;
+  createdAt: string; // ISO string format
+}
+
+// Overall match statistics for admin dashboard
+export interface MatchStatsResponse {
+  totalMatches: number; // Total match documents created
+  totalUsersMatched: number; // Unique users who received matches
+  averageMatchesPerPrompt: number;
+  totalReveals: number; // Total individual matches revealed
+  revealRate: number; // Percentage (0-100)
+  promptStats: Array<{
+    promptId: string;
+    question: string;
+    matchDate: string; // ISO string
+    totalMatchDocuments: number;
+    totalUsersMatched: number;
+    totalReveals: number;
+    revealRate: number;
+  }>;
+}
+
+// Detailed match data for a specific prompt
+export interface PromptMatchDetailResponse {
+  promptId: string;
+  question: string;
+  totalMatchDocuments: number;
+  totalUsersMatched: number;
+  totalPossibleReveals: number; // totalMatchDocuments * 3
+  totalReveals: number;
+  revealRate: number;
+  matches: MatchWithProfile[];
 }

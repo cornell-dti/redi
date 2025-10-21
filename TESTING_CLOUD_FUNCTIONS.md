@@ -1,5 +1,13 @@
 # Testing Cloud Functions - Step-by-Step Guide
 
+## Recent Updates (October 2025)
+
+**New Features:**
+- Prompts can now be created for any day of the week (not just Mondays)
+- Prompt status tracking: `scheduled`, `active`, `completed`
+- Timestamps for activation (`activatedAt`) and match generation (`matchesGeneratedAt`)
+- Admin dashboard delete active prompt functionality
+
 ## Prerequisites
 
 Before testing, ensure you have:
@@ -97,7 +105,7 @@ preferences: {
 Using your admin API endpoint or Firebase Console:
 
 ```bash
-# Create a prompt for this week
+# Create a prompt for this week (can be any day now!)
 curl -X POST http://localhost:3001/api/admin/prompts \
   -H "Content-Type: application/json" \
   -d '{
@@ -118,9 +126,12 @@ curl -X POST http://localhost:3001/api/admin/prompts \
   "releaseDate": "2025-10-20T04:01:00.000Z",
   "matchDate": "2025-10-24T04:01:00.000Z",
   "active": false,
+  "status": "scheduled",
   "createdAt": "2025-10-13T..."
 }
 ```
+
+**Note:** Release and match dates can now be set to any day of the week. The system only validates that the match date is after the release date.
 
 ### Step 4: Test Prompt Activation Function
 
@@ -170,6 +181,8 @@ curl "http://localhost:3001/api/prompts/active?firebaseUid=YOUR_TEST_USER_UID"
   "promptId": "2025-W42",
   "question": "What is your favorite spot on campus to watch the sunset?",
   "active": true,
+  "status": "active",
+  "activatedAt": "2025-10-20T04:01:00.000Z",
   "releaseDate": "2025-10-20T04:01:00.000Z",
   "matchDate": "2025-10-24T04:01:00.000Z",
   "createdAt": "..."
@@ -349,6 +362,16 @@ Check logs on Monday/Friday mornings:
 firebase functions:log --since 1h
 ```
 
+### Step 5: Admin Dashboard Testing Features
+
+The admin dashboard now supports manual testing:
+
+1. **Activate Prompt Immediately**: Bypass the Monday schedule
+2. **Generate Matches Immediately**: Bypass the Friday schedule
+3. **Delete Active Prompt**: Remove the currently active prompt for testing
+
+These features allow for flexible testing without waiting for scheduled times.
+
 ---
 
 ## Validation Checklist
@@ -359,6 +382,8 @@ firebase functions:log --since 1h
 
 - [ ] Function executes without errors
 - [ ] Target prompt's `active` field is set to `true`
+- [ ] Target prompt's `status` field is set to `'active'`
+- [ ] Target prompt's `activatedAt` field is set to current timestamp
 - [ ] All other prompts' `active` fields are set to `false`
 - [ ] Logs show: "Successfully activated prompt: [promptId]"
 - [ ] You can fetch the active prompt via `/api/prompts/active`
@@ -366,9 +391,9 @@ firebase functions:log --since 1h
 **Common Issues:**
 
 - ❌ "No prompt found for week [promptId]"
-  - **Fix**: Create a prompt with `releaseDate` matching today (Monday)
+  - **Fix**: Create a prompt with `releaseDate` matching today
 - ❌ "Release date does not match today"
-  - **Fix**: Ensure prompt's `releaseDate` is set to today's Monday date
+  - **Fix**: Ensure prompt's `releaseDate` is set to today's date
 - ❌ Function doesn't run
   - **Fix**: Check function is deployed and scheduled correctly
 
@@ -382,6 +407,9 @@ firebase functions:log --since 1h
 - [ ] Logs show: "Match generation complete. Created matches for [N] users"
 - [ ] `weeklyMatches` collection has new documents with ID format: `{netid}_{promptId}`
 - [ ] Each match document has 3 matches (or fewer if insufficient users)
+- [ ] Prompt's `status` field is set to `'completed'`
+- [ ] Prompt's `matchesGeneratedAt` field is set to current timestamp
+- [ ] Prompt's `active` field is set to `false`
 - [ ] Users can fetch their matches via `/api/prompts/:promptId/matches`
 
 **Common Issues:**

@@ -66,6 +66,7 @@ export async function createWeeklyPrompt(
   const promptDoc: WeeklyPromptDocWrite = {
     ...promptData,
     active: false, // New prompts start as inactive
+    status: 'scheduled', // Initial status is scheduled
     createdAt: FieldValue.serverTimestamp(),
   };
 
@@ -183,27 +184,102 @@ export async function deletePrompt(promptId: string): Promise<void> {
 }
 
 /**
+ * Get the Friday of the current week at 00:01 Eastern Time
+ * If current time is past this Friday's 00:01, returns next Friday instead
+ * @returns Date object set to Friday at 00:01 ET (future date)
+ */
+function getFridayOfCurrentWeek(): Date {
+  const now = new Date();
+
+  // Get day of week (0 = Sunday, 5 = Friday)
+  const dayOfWeek = now.getDay();
+
+  // Calculate days until Friday
+  // If today is Sunday (0), daysUntilFriday = 5
+  // If today is Monday (1), daysUntilFriday = 4
+  // If today is Friday (5), daysUntilFriday = 0
+  // If today is Saturday (6), daysUntilFriday = -1 (which becomes 6 when we add 7)
+  let daysUntilFriday = 5 - dayOfWeek;
+
+  // If we're past Friday (Saturday), go to next Friday
+  if (daysUntilFriday < 0) {
+    daysUntilFriday += 7;
+  }
+
+  // Create date for Friday
+  const friday = new Date(now);
+  friday.setDate(now.getDate() + daysUntilFriday);
+
+  // Set time to 00:01 (12:01 AM)
+  friday.setHours(0, 1, 0, 0);
+
+  // If the calculated Friday is in the past (e.g., we're on Friday after 00:01),
+  // extend to next Friday to give users time to submit answers
+  if (friday <= now) {
+    friday.setDate(friday.getDate() + 7);
+    console.log(`⏭️  Calculated Friday is past, extending deadline to next Friday`);
+  }
+
+  return friday;
+}
+
+/**
  * Activate a prompt and deactivate all others
+ * Automatically sets the matchDate (deadline) to Friday of the current week at 00:01 ET
+ * Also updates releaseDate to current time to allow immediate user access
  * @param promptId - The prompt ID to activate
  * @returns Promise resolving to the activated WeeklyPromptDoc
  */
 export async function activatePrompt(
   promptId: string
 ): Promise<WeeklyPromptDoc> {
-  // Deactivate all prompts
+  // Deactivate all currently active prompts (excluding the one we're about to activate)
   const allPrompts = await getAllPrompts({ active: true });
   const batch = db.batch();
 
+  console.log(`🚀 Manually activating prompt ${promptId}`);
+  console.log(`📋 Found ${allPrompts.length} currently active prompt(s)`);
+
+  // Deactivate all active prompts EXCEPT the one we're activating
+  // This prevents batch update conflicts
   allPrompts.forEach((prompt) => {
-    const ref = db.collection(PROMPTS_COLLECTION).doc(prompt.promptId);
-    batch.update(ref, { active: false });
+    if (prompt.promptId !== promptId) {
+      const ref = db.collection(PROMPTS_COLLECTION).doc(prompt.promptId);
+      batch.update(ref, {
+        active: false,
+        status: 'completed'
+      });
+      console.log(`   └─ Deactivating prompt: ${prompt.promptId}`);
+    } else {
+      console.log(`   └─ Skipping deactivation of ${prompt.promptId} (it's the one being activated)`);
+    }
   });
 
-  // Activate the specified prompt
+  // Set releaseDate to now (so prompt is immediately accessible)
+  const now = new Date();
+
+  // Calculate the deadline (Friday of current week at 00:01 ET)
+  const newMatchDate = getFridayOfCurrentWeek();
+
+  console.log(`📅 Setting releaseDate to NOW: ${now.toISOString()}`);
+  console.log(`🗓️  Setting matchDate (deadline) to: ${newMatchDate.toISOString()}`);
+  console.log(`   └─ Day: ${newMatchDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/New_York' })}, Time: ${newMatchDate.toLocaleTimeString('en-US', { timeZone: 'America/New_York' })} ET`);
+
+  // Activate the specified prompt with updated releaseDate and matchDate
   const promptRef = db.collection(PROMPTS_COLLECTION).doc(promptId);
-  batch.update(promptRef, { active: true });
+  batch.update(promptRef, {
+    active: true,
+    status: 'active',
+    activatedAt: FieldValue.serverTimestamp(),
+    releaseDate: now,      // Set to current time for immediate access
+    matchDate: newMatchDate
+  });
 
   await batch.commit();
+
+  console.log(`✅ Successfully activated prompt ${promptId}`);
+  console.log(`   └─ Users can now access and answer this prompt immediately`);
+  console.log(`   └─ Deadline: ${newMatchDate.toISOString()}`);
 
   return getPromptById(promptId) as Promise<WeeklyPromptDoc>;
 }
@@ -220,6 +296,9 @@ export function promptToResponse(doc: WeeklyPromptDoc): WeeklyPromptResponse {
     releaseDate: toDate(doc.releaseDate).toISOString(),
     matchDate: toDate(doc.matchDate).toISOString(),
     active: doc.active,
+    status: doc.status,
+    activatedAt: doc.activatedAt ? toDate(doc.activatedAt).toISOString() : undefined,
+    matchesGeneratedAt: doc.matchesGeneratedAt ? toDate(doc.matchesGeneratedAt).toISOString() : undefined,
     createdAt: toDate(doc.createdAt).toISOString(),
   };
 }
@@ -336,9 +415,9 @@ export function answerToResponse(
 // =============================================================================
 
 /**
- * Validate that release date is Monday and match date is Friday (4 days later)
- * @param releaseDate - The release date (should be Monday)
- * @param matchDate - The match date (should be Friday)
+ * Validate that match date is after release date
+ * @param releaseDate - The release date
+ * @param matchDate - The match date
  * @throws Error if dates are invalid
  */
 function validatePromptDates(
@@ -348,24 +427,10 @@ function validatePromptDates(
   const release = toDate(releaseDate);
   const match = toDate(matchDate);
 
-  // Check if release date is Monday (day 1)
-  if (release.getDay() !== 1) {
-    throw new Error('Release date must be a Monday');
+  // Validate that match date is after release date
+  if (match.getTime() <= release.getTime()) {
+    throw new Error('Match date must be after release date');
   }
-
-  //TEMP DISABLE FOR TESTING
-  // Check if match date is Friday (day 5)
-
-  // if (match.getDay() !== 5) {
-  //   throw new Error('Match date must be a Friday');
-  // }
-
-  // Check if match date is exactly 4 days after release date
-  // const daysDifference =
-  //   (match.getTime() - release.getTime()) / (1000 * 60 * 60 * 24);
-  // if (daysDifference !== 4) {
-  //   throw new Error('Match date must be exactly 4 days after release date');
-  // }
 }
 
 /**
