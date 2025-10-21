@@ -184,7 +184,41 @@ export async function deletePrompt(promptId: string): Promise<void> {
 }
 
 /**
+ * Get the Friday of the current week at 00:01 Eastern Time
+ * If today is already Friday or later, returns this Friday (not next Friday)
+ * @returns Date object set to Friday at 00:01 ET
+ */
+function getFridayOfCurrentWeek(): Date {
+  const now = new Date();
+
+  // Get day of week (0 = Sunday, 5 = Friday)
+  const dayOfWeek = now.getDay();
+
+  // Calculate days until Friday
+  // If today is Sunday (0), daysUntilFriday = 5
+  // If today is Monday (1), daysUntilFriday = 4
+  // If today is Friday (5), daysUntilFriday = 0
+  // If today is Saturday (6), daysUntilFriday = -1 (which becomes 6 when we add 7)
+  let daysUntilFriday = 5 - dayOfWeek;
+
+  // If we're past Friday (Saturday), go to next Friday
+  if (daysUntilFriday < 0) {
+    daysUntilFriday += 7;
+  }
+
+  // Create date for Friday
+  const friday = new Date(now);
+  friday.setDate(now.getDate() + daysUntilFriday);
+
+  // Set time to 00:01 (12:01 AM)
+  friday.setHours(0, 1, 0, 0);
+
+  return friday;
+}
+
+/**
  * Activate a prompt and deactivate all others
+ * Automatically sets the matchDate (deadline) to Friday of the current week at 00:01 ET
  * @param promptId - The prompt ID to activate
  * @returns Promise resolving to the activated WeeklyPromptDoc
  */
@@ -200,15 +234,23 @@ export async function activatePrompt(
     batch.update(ref, { active: false });
   });
 
-  // Activate the specified prompt
+  // Calculate the deadline (Friday of current week at 00:01 ET)
+  const newMatchDate = getFridayOfCurrentWeek();
+  console.log(`🗓️  Setting matchDate (deadline) to: ${newMatchDate.toISOString()}`);
+  console.log(`📅 Day: ${newMatchDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/New_York' })}, Time: ${newMatchDate.toLocaleTimeString('en-US', { timeZone: 'America/New_York' })} ET`);
+
+  // Activate the specified prompt with updated matchDate
   const promptRef = db.collection(PROMPTS_COLLECTION).doc(promptId);
   batch.update(promptRef, {
     active: true,
     status: 'active',
-    activatedAt: FieldValue.serverTimestamp()
+    activatedAt: FieldValue.serverTimestamp(),
+    matchDate: newMatchDate
   });
 
   await batch.commit();
+
+  console.log(`✅ Successfully activated prompt ${promptId} with deadline ${newMatchDate.toISOString()}`);
 
   return getPromptById(promptId) as Promise<WeeklyPromptDoc>;
 }
