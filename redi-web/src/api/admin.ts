@@ -262,6 +262,43 @@ export const deleteActivePrompt = async (): Promise<
 };
 
 /**
+ * Fix multiple active prompts issue (emergency cleanup)
+ * Deactivates all prompts except the most recently activated one
+ */
+export const fixMultipleActivePrompts = async (): Promise<{
+  message: string;
+  keptActive?: {
+    promptId: string;
+    question: string;
+    activatedAt: string | null;
+  };
+  deactivated?: Array<{ promptId: string; question: string }>;
+  deactivatedCount: number;
+}> => {
+  console.log('🔧 Fixing multiple active prompts issue');
+
+  const token = await getAuthToken();
+
+  const res = await fetch(
+    `${API_BASE_URL}/api/admin/prompts/fix-multiple-active`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to fix multiple active prompts');
+  }
+
+  return res.json();
+};
+
+/**
  * Generate prompt ID from a date
  */
 export const generatePromptId = async (date: Date): Promise<string> => {

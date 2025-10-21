@@ -1017,4 +1017,125 @@ router.get('/api/admin/prompts/:promptId/matches', async (req: AdminRequest, res
   }
 });
 
+/**
+ * POST /api/admin/prompts/fix-multiple-active
+ * Emergency cleanup endpoint to fix multiple active prompts issue
+ * Deactivates all prompts except the most recently activated one
+ *
+ * @secured Requires admin authentication
+ * @audit Logs FIX_MULTIPLE_ACTIVE action
+ *
+ * @returns {object} 200 - Cleanup results
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
+ * @returns {Error} 500 - Internal server error
+ */
+router.post('/api/admin/prompts/fix-multiple-active', async (req: AdminRequest, res) => {
+  try {
+    console.log(`🔧 Admin ${req.user?.email} fixing multiple active prompts issue`);
+
+    // Get all prompts marked as active
+    const activePrompts = await getAllPrompts({ active: true });
+
+    console.log(`📊 Found ${activePrompts.length} prompt(s) marked as active`);
+
+    if (activePrompts.length === 0) {
+      return res.status(200).json({
+        message: 'No active prompts found. Nothing to fix.',
+        deactivatedCount: 0,
+      });
+    }
+
+    if (activePrompts.length === 1) {
+      return res.status(200).json({
+        message: 'Only one active prompt found. System is in correct state.',
+        activePromptId: activePrompts[0].promptId,
+        deactivatedCount: 0,
+      });
+    }
+
+    // Multiple active prompts found - need to fix
+    console.log(`⚠️  WARNING: Multiple active prompts detected! This is an invalid state.`);
+    activePrompts.forEach((p) => {
+      console.log(`   - ${p.promptId}: ${p.question}`);
+      console.log(`     └─ activatedAt: ${p.activatedAt}`);
+    });
+
+    // Sort by activatedAt to find most recent
+    const sortedPrompts = [...activePrompts].sort((a, b) => {
+      const dateA = a.activatedAt ? new Date(a.activatedAt as any).getTime() : 0;
+      const dateB = b.activatedAt ? new Date(b.activatedAt as any).getTime() : 0;
+      return dateB - dateA; // Most recent first
+    });
+
+    const mostRecent = sortedPrompts[0];
+    const toDeactivate = sortedPrompts.slice(1);
+
+    console.log(`✅ Keeping most recently activated: ${mostRecent.promptId}`);
+    console.log(`🔄 Deactivating ${toDeactivate.length} older prompt(s):`);
+
+    // Deactivate all except most recent
+    const batch = db.batch();
+    toDeactivate.forEach((prompt) => {
+      const ref = db.collection('weeklyPrompts').doc(prompt.promptId);
+      batch.update(ref, {
+        active: false,
+        status: 'completed'
+      });
+      console.log(`   └─ Deactivating: ${prompt.promptId}`);
+    });
+
+    await batch.commit();
+
+    // Log successful action
+    await logAdminAction(
+      'FIX_MULTIPLE_ACTIVE',
+      req.user!.uid,
+      req.user!.email,
+      'prompts',
+      'cleanup',
+      {
+        keptActive: mostRecent.promptId,
+        deactivated: toDeactivate.map(p => p.promptId),
+      },
+      getIpAddress(req),
+      getUserAgent(req)
+    );
+
+    console.log(`✅ Successfully fixed multiple active prompts`);
+
+    res.status(200).json({
+      message: 'Successfully fixed multiple active prompts',
+      keptActive: {
+        promptId: mostRecent.promptId,
+        question: mostRecent.question,
+        activatedAt: mostRecent.activatedAt,
+      },
+      deactivated: toDeactivate.map(p => ({
+        promptId: p.promptId,
+        question: p.question,
+      })),
+      deactivatedCount: toDeactivate.length,
+    });
+  } catch (error) {
+    console.error('❌ Error fixing multiple active prompts:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Log failed action
+    await logAdminAction(
+      'FIX_MULTIPLE_ACTIVE',
+      req.user!.uid,
+      req.user!.email,
+      'prompts',
+      'cleanup',
+      { error: errorMessage },
+      getIpAddress(req),
+      getUserAgent(req),
+      false,
+      errorMessage
+    );
+
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
 export default router;

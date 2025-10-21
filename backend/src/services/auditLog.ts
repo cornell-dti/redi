@@ -12,7 +12,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 /**
  * Types of resources that can be audited
  */
-export type AuditResourceType = 'prompt' | 'match' | 'matches' | 'user' | 'admin' | 'system';
+export type AuditResourceType = 'prompt' | 'prompts' | 'match' | 'matches' | 'user' | 'admin' | 'system';
 
 /**
  * Types of actions that can be logged
@@ -25,6 +25,7 @@ export type AuditAction =
   | 'ACTIVATE_PROMPT'
   | 'GENERATE_MATCHES'
   | 'VIEW_PROMPT_ANSWERS'
+  | 'FIX_MULTIPLE_ACTIVE'  // Emergency cleanup for multiple active prompts
   // Admin actions
   | 'ADD_ADMIN'
   | 'REMOVE_ADMIN'

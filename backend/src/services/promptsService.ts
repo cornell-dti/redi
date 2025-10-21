@@ -185,8 +185,8 @@ export async function deletePrompt(promptId: string): Promise<void> {
 
 /**
  * Get the Friday of the current week at 00:01 Eastern Time
- * If today is already Friday or later, returns this Friday (not next Friday)
- * @returns Date object set to Friday at 00:01 ET
+ * If current time is past this Friday's 00:01, returns next Friday instead
+ * @returns Date object set to Friday at 00:01 ET (future date)
  */
 function getFridayOfCurrentWeek(): Date {
   const now = new Date();
@@ -213,44 +213,73 @@ function getFridayOfCurrentWeek(): Date {
   // Set time to 00:01 (12:01 AM)
   friday.setHours(0, 1, 0, 0);
 
+  // If the calculated Friday is in the past (e.g., we're on Friday after 00:01),
+  // extend to next Friday to give users time to submit answers
+  if (friday <= now) {
+    friday.setDate(friday.getDate() + 7);
+    console.log(`⏭️  Calculated Friday is past, extending deadline to next Friday`);
+  }
+
   return friday;
 }
 
 /**
  * Activate a prompt and deactivate all others
  * Automatically sets the matchDate (deadline) to Friday of the current week at 00:01 ET
+ * Also updates releaseDate to current time to allow immediate user access
  * @param promptId - The prompt ID to activate
  * @returns Promise resolving to the activated WeeklyPromptDoc
  */
 export async function activatePrompt(
   promptId: string
 ): Promise<WeeklyPromptDoc> {
-  // Deactivate all prompts
+  // Deactivate all currently active prompts (excluding the one we're about to activate)
   const allPrompts = await getAllPrompts({ active: true });
   const batch = db.batch();
 
+  console.log(`🚀 Manually activating prompt ${promptId}`);
+  console.log(`📋 Found ${allPrompts.length} currently active prompt(s)`);
+
+  // Deactivate all active prompts EXCEPT the one we're activating
+  // This prevents batch update conflicts
   allPrompts.forEach((prompt) => {
-    const ref = db.collection(PROMPTS_COLLECTION).doc(prompt.promptId);
-    batch.update(ref, { active: false });
+    if (prompt.promptId !== promptId) {
+      const ref = db.collection(PROMPTS_COLLECTION).doc(prompt.promptId);
+      batch.update(ref, {
+        active: false,
+        status: 'completed'
+      });
+      console.log(`   └─ Deactivating prompt: ${prompt.promptId}`);
+    } else {
+      console.log(`   └─ Skipping deactivation of ${prompt.promptId} (it's the one being activated)`);
+    }
   });
+
+  // Set releaseDate to now (so prompt is immediately accessible)
+  const now = new Date();
 
   // Calculate the deadline (Friday of current week at 00:01 ET)
   const newMatchDate = getFridayOfCurrentWeek();
-  console.log(`🗓️  Setting matchDate (deadline) to: ${newMatchDate.toISOString()}`);
-  console.log(`📅 Day: ${newMatchDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/New_York' })}, Time: ${newMatchDate.toLocaleTimeString('en-US', { timeZone: 'America/New_York' })} ET`);
 
-  // Activate the specified prompt with updated matchDate
+  console.log(`📅 Setting releaseDate to NOW: ${now.toISOString()}`);
+  console.log(`🗓️  Setting matchDate (deadline) to: ${newMatchDate.toISOString()}`);
+  console.log(`   └─ Day: ${newMatchDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/New_York' })}, Time: ${newMatchDate.toLocaleTimeString('en-US', { timeZone: 'America/New_York' })} ET`);
+
+  // Activate the specified prompt with updated releaseDate and matchDate
   const promptRef = db.collection(PROMPTS_COLLECTION).doc(promptId);
   batch.update(promptRef, {
     active: true,
     status: 'active',
     activatedAt: FieldValue.serverTimestamp(),
+    releaseDate: now,      // Set to current time for immediate access
     matchDate: newMatchDate
   });
 
   await batch.commit();
 
-  console.log(`✅ Successfully activated prompt ${promptId} with deadline ${newMatchDate.toISOString()}`);
+  console.log(`✅ Successfully activated prompt ${promptId}`);
+  console.log(`   └─ Users can now access and answer this prompt immediately`);
+  console.log(`   └─ Deadline: ${newMatchDate.toISOString()}`);
 
   return getPromptById(promptId) as Promise<WeeklyPromptDoc>;
 }
