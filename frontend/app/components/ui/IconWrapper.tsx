@@ -8,11 +8,13 @@ interface IconWrapperProps {
   // on gray backgrounds (eg: AppColors.backgroundDimmer or AppColors.backgroundDimmest), use 'white' variant
   variant?: 'white' | 'gray';
   style?: StyleProp<ViewStyle>;
+  badge?: boolean;
 }
 
 export default function IconWrapper({
   children,
   variant = 'white',
+  badge = false,
   style,
 }: IconWrapperProps) {
   const backgroundColor =
@@ -23,6 +25,7 @@ export default function IconWrapper({
   return (
     <View style={[styles.container, { backgroundColor }, style]}>
       {children}
+      {badge && <View style={styles.badge} />}
     </View>
   );
 }
@@ -33,5 +36,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: AppColors.accentDefault,
   },
 });
