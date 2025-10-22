@@ -107,7 +107,6 @@ export default function ViewProfileScreen() {
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.content}>
-        {/* Header with back button */}
         <View style={styles.header}>
           <IconButton
             icon={ChevronLeft}
