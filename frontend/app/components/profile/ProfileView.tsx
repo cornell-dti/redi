@@ -2,6 +2,7 @@ import AppText from '@/app/components/ui/AppText';
 import { calculateAge, getYearString } from '@/app/utils/profileUtils';
 import { ProfileResponse } from '@/types';
 import {
+  Bell,
   Cake,
   Ghost,
   Github,
@@ -23,6 +24,8 @@ import {
 } from 'react-native';
 import { AppColors } from '../AppColors';
 import GenderIcon from '../icons/GenderIcon';
+import Button from '../ui/Button';
+import FooterSpacer from '../ui/FooterSpacer';
 import ListItemWrapper from '../ui/ListItemWrapper';
 import Pressable from '../ui/Pressable';
 import Tag from '../ui/Tag';
@@ -30,9 +33,15 @@ import Tag from '../ui/Tag';
 interface ProfileViewProps {
   profile: ProfileResponse;
   isLoading?: boolean;
+  showNudgeButton?: boolean;
+  onNudge?: () => void;
 }
 
-const ProfileView: React.FC<ProfileViewProps> = ({ profile }) => {
+const ProfileView: React.FC<ProfileViewProps> = ({
+  profile,
+  showNudgeButton = false,
+  onNudge,
+}) => {
   const screenWidth = Dimensions.get('window').width;
   const age = calculateAge(profile.birthdate);
 
@@ -87,6 +96,16 @@ const ProfileView: React.FC<ProfileViewProps> = ({ profile }) => {
 
       <View style={styles.contentContainer}>
         <AppText variant="title">{profile.firstName}</AppText>
+
+        {showNudgeButton && (
+          <Button
+            title="Nudge"
+            onPress={onNudge || (() => console.log('Nudge pressed'))}
+            variant="primary"
+            iconLeft={Bell}
+            fullWidth
+          />
+        )}
 
         <View style={styles.section}>
           <AppText variant="subtitle" indented>
@@ -213,6 +232,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({ profile }) => {
           </View>
         )}
       </View>
+
+      <FooterSpacer />
     </ScrollView>
   );
 };
