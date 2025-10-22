@@ -26,6 +26,7 @@ import {
   WeeklyPromptAnswerResponse,
   WeeklyPromptResponse,
 } from '@/types';
+import { useRouter } from 'expo-router';
 import { Eye, Send } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
@@ -48,6 +49,7 @@ interface MatchWithProfile {
 }
 
 export default function MatchesScreen() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [showCountdown, setShowCountdown] = useState(isCountdownPeriod());
   const [activePrompt, setActivePrompt] = useState<WeeklyPromptResponse | null>(
@@ -303,7 +305,7 @@ export default function MatchesScreen() {
                   }
                   onNudge={() => console.log('Nudge', matchProfile.netid)}
                   onViewProfile={() =>
-                    console.log('View profile', matchProfile.netid)
+                    router.push(`/view-profile?netid=${matchProfile.netid}` as any)
                   }
                 />
               </View>
@@ -347,7 +349,9 @@ export default function MatchesScreen() {
                 <TouchableOpacity
                   key={index}
                   style={styles.previousMatchCard}
-                  onPress={() => console.log('View match', profile.netid)}
+                  onPress={() =>
+                    router.push(`/view-profile?netid=${profile.netid}` as any)
+                  }
                 >
                   <View style={styles.previousMatchImage}>
                     <AppText variant="title">{profile.firstName[0]}</AppText>
