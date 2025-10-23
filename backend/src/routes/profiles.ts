@@ -10,21 +10,17 @@ import {
   ProfileResponse,
   UpdateProfileInput,
 } from '../../types';
-import { createDefaultPreferences } from '../services/preferencesService';
-import { authenticateUser, AuthenticatedRequest } from '../middleware/auth';
-import { requireAdmin } from '../middleware/adminAuth';
-import { requireOwnProfile } from '../middleware/authorization';
+import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import {
-  authenticatedRateLimit,
-  publicRateLimit,
+  authenticatedRateLimit
 } from '../middleware/rateLimiting';
-import { validateProfileCreation, validate } from '../middleware/validation';
+import { validate, validateProfileCreation } from '../middleware/validation';
+import { createDefaultPreferences } from '../services/preferencesService';
 import {
-  filterProfileByPrivacy,
-  getProfileWithAge,
   determineViewContext,
-  ProfileViewContext,
+  getProfileWithAge,
   isUserBlocked,
+  ProfileViewContext
 } from '../utils/profilePrivacy';
 
 const router = express.Router();
@@ -327,7 +323,7 @@ router.post(
   authenticateUser,
   validateProfileCreation,
   validate,
-  async (req: AuthenticatedRequest, res) => {
+  async (req: AuthenticatedRequest, res: express.Response) => {
     try {
       console.log('Creating profile for authenticated user');
       const profileData: CreateProfileInput = req.body;
