@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import admin from 'firebase-admin';
 
 /**
@@ -29,22 +29,17 @@ export const authenticateUser = async (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('❌ [Auth] No Bearer token found');
       return res.status(401).json({ error: 'No authentication token provided' });
     }
 
     const token = authHeader.split('Bearer ')[1];
 
     if (!token) {
-      console.log('❌ [Auth] Invalid token format');
       return res.status(401).json({ error: 'Invalid token format' });
     }
 
     // Verify the Firebase ID token
-    console.log('🔍 [Auth] Verifying token...');
     const decodedToken = await admin.auth().verifyIdToken(token);
-
-    console.log('✅ [Auth] Token verified for user:', decodedToken.uid);
 
     // Attach user info to request
     req.user = {
@@ -54,7 +49,7 @@ export const authenticateUser = async (
 
     next();
   } catch (error) {
-    console.error('❌ [Auth] Authentication error:', error);
+    console.error('[Auth] Authentication error:', error);
     return res.status(403).json({ error: 'Invalid or expired token' });
   }
 };
