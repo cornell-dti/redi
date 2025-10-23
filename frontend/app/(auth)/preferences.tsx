@@ -61,7 +61,7 @@ export default function DatingPreferencesPage() {
           return;
         }
 
-        const data = await getCurrentUserPreferences(currentUser.uid);
+        const data = await getCurrentUserPreferences();
         console.log('Fetched preferences:', data);
 
         if (data) {
@@ -129,7 +129,7 @@ export default function DatingPreferencesPage() {
         genders: selectedGenders,
       };
 
-      await updatePreferences(currentUser.uid, updates);
+      await updatePreferences(updates);
 
       // Update original values after successful save
       setOriginalValues({

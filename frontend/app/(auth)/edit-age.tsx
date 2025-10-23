@@ -1,4 +1,5 @@
 import AppText from '@/app/components/ui/AppText';
+import { OwnProfileResponse, hasBirthdate } from '@/types';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
@@ -33,14 +34,19 @@ export default function EditAgePage() {
 
     try {
       setLoading(true);
-      const profileData = await getCurrentUserProfile(user.uid);
+      const profileData = await getCurrentUserProfile();
 
       if (profileData) {
-        const birthdateDate = new Date(profileData.birthdate);
-        setBirthdate(birthdateDate);
-        setOriginalBirthdate(birthdateDate);
-        const currentAge = calculateAge(profileData.birthdate);
-        setAge(currentAge.toString());
+        // getCurrentUserProfile should return OwnProfileResponse with birthdate
+        if (hasBirthdate(profileData)) {
+          const birthdateDate = new Date(profileData.birthdate);
+          setBirthdate(birthdateDate);
+          setOriginalBirthdate(birthdateDate);
+          const currentAge = calculateAge(profileData.birthdate);
+          setAge(currentAge.toString());
+        } else {
+          Alert.alert('Error', 'Birthdate not available');
+        }
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -78,7 +84,7 @@ export default function EditAgePage() {
 
     setSaving(true);
     try {
-      await updateProfile(user.uid, {
+      await updateProfile( {
         birthdate: birthdate.toISOString(),
       });
 

@@ -65,7 +65,7 @@ export default function EditEducationPage() {
 
     try {
       setLoading(true);
-      const profileData = await getCurrentUserProfile(user.uid);
+      const profileData = await getCurrentUserProfile();
 
       if (profileData) {
         setSchool(profileData.school);
@@ -106,7 +106,7 @@ export default function EditEducationPage() {
 
     setSaving(true);
     try {
-      await updateProfile(user.uid, {
+      await updateProfile( {
         school,
         major: majors,
         year,

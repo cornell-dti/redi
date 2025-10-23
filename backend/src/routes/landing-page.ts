@@ -1,11 +1,14 @@
 import express from 'express';
 import admin from 'firebase-admin';
 import { db } from '../../firebaseAdmin';
+import { requireAdmin } from '../middleware/adminAuth';
+import { adminRateLimit, publicRateLimit } from '../middleware/rateLimiting';
+import { validateBulkEmailUpload, validate } from '../middleware/validation';
 
 const router = express.Router();
 
-// GET the number of users signed up on the wait list
-router.get('/api/registered-count', async (req, res) => {
+// GET the number of users signed up on the wait list (public endpoint)
+router.get('/api/registered-count', publicRateLimit, async (req, res) => {
   try {
     const doc = db.collection('stats').doc('global');
     const snapshot = await doc.get();
@@ -18,72 +21,74 @@ router.get('/api/registered-count', async (req, res) => {
 
     res.status(200).json(snapshot.data());
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
+    console.error('Error fetching user count:', error);
+    res.status(500).json({ error: 'Failed to fetch user count' });
   }
 });
 
-router.post('/api/landing-emails/bulk-upload', async (req, res) => {
-  try {
-    const { emails, adminKey } = req.body;
+// POST bulk upload emails (admin only, requires authentication)
+router.post(
+  '/api/landing-emails/bulk-upload',
+  adminRateLimit,
+  requireAdmin,
+  validateBulkEmailUpload,
+  validate,
+  async (req, res) => {
+    try {
+      const { emails } = req.body;
 
-    // Simple auth check - use environment variable
-    if (adminKey !== process.env.ADMIN_SECRET_KEY) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    if (!Array.isArray(emails)) {
-      return res.status(400).json({ error: 'emails must be an array' });
-    }
-
-    const batch = db.batch();
-    let uploaded = 0;
-    let skipped = 0;
-
-    for (const user of emails) {
-      if (!user.email) continue;
-
-      // Check for duplicates
-      const existingDoc = await db
-        .collection('landing-emails')
-        .where('email', '==', user.email.toLowerCase())
-        .get();
-
-      if (!existingDoc.empty) {
-        skipped++;
-        continue;
+      if (!Array.isArray(emails)) {
+        return res.status(400).json({ error: 'emails must be an array' });
       }
 
-      const docRef = db.collection('landing-emails').doc();
-      batch.set(docRef, {
-        email: user.email.toLowerCase(),
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-      uploaded++;
-    }
+      const batch = db.batch();
+      let uploaded = 0;
+      let skipped = 0;
 
-    await batch.commit();
+      for (const user of emails) {
+        if (!user.email) continue;
 
-    // Update stats
-    const statsDoc = db.collection('stats').doc('global');
-    try {
-      await statsDoc.update({
-        userCount: admin.firestore.FieldValue.increment(uploaded),
+        // Check for duplicates
+        const existingDoc = await db
+          .collection('landing-emails')
+          .where('email', '==', user.email.toLowerCase())
+          .get();
+
+        if (!existingDoc.empty) {
+          skipped++;
+          continue;
+        }
+
+        const docRef = db.collection('landing-emails').doc();
+        batch.set(docRef, {
+          email: user.email.toLowerCase(),
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+        uploaded++;
+      }
+
+      await batch.commit();
+
+      // Update stats
+      const statsDoc = db.collection('stats').doc('global');
+      try {
+        await statsDoc.update({
+          userCount: admin.firestore.FieldValue.increment(uploaded),
+        });
+      } catch (error) {
+        await statsDoc.set({ userCount: uploaded });
+      }
+
+      res.status(200).json({
+        uploaded,
+        skipped,
+        message: 'Bulk upload complete',
       });
     } catch (error) {
-      await statsDoc.set({ userCount: uploaded });
+      console.error('Bulk upload error:', error);
+      res.status(500).json({ error: 'Failed to complete bulk upload' });
     }
-
-    res.status(200).json({
-      uploaded,
-      skipped,
-      message: 'Bulk upload complete',
-    });
-  } catch (error) {
-    console.error('Bulk upload error:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
   }
-});
+) as any;
 
 export default router;

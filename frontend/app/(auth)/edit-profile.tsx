@@ -1,5 +1,5 @@
 import AppText from '@/app/components/ui/AppText';
-import { ProfileResponse, PromptData } from '@/types';
+import { ProfileResponse, PromptData, OwnProfileResponse, getProfileAge } from '@/types';
 import { router, useFocusEffect } from 'expo-router';
 import { Camera, ChevronRight, Pencil, Plus } from 'lucide-react-native';
 import React, { useCallback, useState } from 'react';
@@ -25,7 +25,6 @@ import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
-import { calculateAge } from '../utils/profileUtils';
 
 export default function EditProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
@@ -54,7 +53,7 @@ export default function EditProfileScreen() {
 
     try {
       setLoading(true);
-      const profileData = await getCurrentUserProfile(user.uid);
+      const profileData = await getCurrentUserProfile();
 
       if (profileData) {
         setProfile(profileData);
@@ -152,21 +151,20 @@ export default function EditProfileScreen() {
   // Get display data - use profile data if available, otherwise fallback
   const displayName = profile?.firstName || 'User';
   const displayImages = profile?.pictures || [];
-  const displayAge = profile?.birthdate
-    ? calculateAge(profile.birthdate)
-    : null;
+  const displayAge = profile ? getProfileAge(profile) : null;
   const displayBio = profile?.bio || 'No bio yet';
   const displaySchool = profile?.school || 'School not set';
   const displayMajor =
     profile?.major && profile.major.length > 0
       ? profile.major.join(', ')
       : 'Major not set';
-  const displayYear = profile?.year?.toString() || 'Year not set';
-  const displayInstagram = profile?.instagram || null;
-  const displaySnapchat = profile?.snapchat || null;
-  const displayLinkedIn = profile?.linkedIn || null;
-  const displayGithub = profile?.github || null;
-  const displayWebsite = profile?.website || null;
+  const displayYear = profile?.year || 'Year not set';
+  // Social fields are only available on OwnProfileResponse
+  const displayInstagram = profile && 'instagram' in profile ? profile.instagram || null : null;
+  const displaySnapchat = profile && 'snapchat' in profile ? profile.snapchat || null : null;
+  const displayLinkedIn = profile && 'linkedIn' in profile ? profile.linkedIn || null : null;
+  const displayGithub = profile && 'github' in profile ? profile.github || null : null;
+  const displayWebsite = profile && 'website' in profile ? profile.website || null : null;
   const displayClubs = profile?.clubs || [];
   const displayInterests = profile?.interests || [];
   const displayEthnicity =

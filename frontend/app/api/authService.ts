@@ -38,7 +38,7 @@ export const signUpUser = async (
 
     if (firebaseUser) {
       // Create user in backend
-      await createUserInBackend(email, firebaseUser.uid);
+      await createUserInBackend(email);
     }
   } catch (error) {
     const err = error as FirebaseError;
@@ -85,7 +85,7 @@ export const signInUser = async (
 
     if (firebaseUser) {
       // Verify user exists in backend and login
-      await loginUserInBackend(email, firebaseUser.uid);
+      await loginUserInBackend(email);
     }
   } catch (error) {
     const err = error as FirebaseError;
@@ -157,11 +157,11 @@ export const signInWithGoogle = async (
 
         // Try to login first, if user doesn't exist, create them
         try {
-          await loginUserInBackend(firebaseUser.email, firebaseUser.uid);
+          await loginUserInBackend(firebaseUser.email);
         } catch (loginError) {
           // If login fails, try to create the user
           try {
-            await createUserInBackend(firebaseUser.email, firebaseUser.uid);
+            await createUserInBackend(firebaseUser.email);
           } catch (createError) {
             console.error('Failed to create user:', createError);
             await auth().signOut();

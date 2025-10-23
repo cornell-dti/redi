@@ -48,17 +48,17 @@ export const useProfileAPI = () => {
   };
 
   const getCurrentProfile = () =>
-    executeWithLoading(() => getCurrentUserProfile(user!.uid));
+    executeWithLoading(() => getCurrentUserProfile());
 
   const createNewProfile = (profileData: CreateProfileInput) =>
     executeWithLoading(
-      () => createProfile(user!.uid, profileData),
+      () => createProfile(profileData),
       'Profile created successfully!'
     );
 
   const updateCurrentProfile = (updateData: UpdateProfileInput) =>
     executeWithLoading(
-      () => updateProfile(user!.uid, updateData),
+      () => updateProfile(updateData),
       'Profile updated successfully!'
     );
 
@@ -74,7 +74,7 @@ export const useProfileAPI = () => {
             style: 'destructive',
             onPress: async () => {
               const result = await executeWithLoading(
-                () => deleteProfile(user!.uid),
+                () => deleteProfile(),
                 'Profile deleted successfully!'
               );
               resolve(!!result);
@@ -88,7 +88,7 @@ export const useProfileAPI = () => {
     executeWithLoading(() => getProfileByNetid(netid));
 
   const getMatchingProfiles = (limit: number = 20) =>
-    executeWithLoading(() => getMatches(user!.uid, limit));
+    executeWithLoading(() => getMatches(limit));
 
   const getAllProfilesWithFilters = (
     filters: {

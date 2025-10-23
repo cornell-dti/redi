@@ -39,7 +39,7 @@ export default function EditHometownPage() {
 
     try {
       setLoading(true);
-      const profileData = await getCurrentUserProfile(user.uid);
+      const profileData = await getCurrentUserProfile();
 
       if (profileData) {
         const hometownValue = profileData.hometown || '';
@@ -68,7 +68,7 @@ export default function EditHometownPage() {
 
     setSaving(true);
     try {
-      await updateProfile(user.uid, {
+      await updateProfile( {
         hometown: hometown.trim(),
       });
 

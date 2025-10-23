@@ -93,7 +93,7 @@ export default function HomePage() {
       }
 
       // Check if user has a profile in the database
-      const profile = await getCurrentUserProfile(user.uid);
+      const profile = await getCurrentUserProfile();
 
       if (profile) {
         // User has a complete profile, go to main app

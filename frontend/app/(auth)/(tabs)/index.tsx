@@ -19,12 +19,12 @@ import {
   getNextFridayMidnight,
   isCountdownPeriod,
 } from '@/app/utils/dateUtils';
-import { calculateAge } from '@/app/utils/profileUtils';
 import {
   ProfileResponse,
   WeeklyMatchResponse,
   WeeklyPromptAnswerResponse,
   WeeklyPromptResponse,
+  getProfileAge,
 } from '@/types';
 import { useRouter } from 'expo-router';
 import { Eye, Send } from 'lucide-react-native';
@@ -290,7 +290,7 @@ export default function MatchesScreen() {
           {currentMatches.map((m, index) => {
             if (!m.profile) return null;
             const matchProfile = m.profile;
-            const matchAge = calculateAge(matchProfile.birthdate);
+            const matchAge = getProfileAge(matchProfile);
 
             return (
               <View key={index} style={{ width: width - 40 }}>

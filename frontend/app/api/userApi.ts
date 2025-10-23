@@ -1,22 +1,12 @@
-import { API_BASE_URL } from '../../constants/constants';
+/**
+ * User API Service
+ *
+ * SECURITY UPDATE: All endpoints now use Bearer token authentication.
+ * firebaseUid is extracted from the authenticated token on the backend.
+ */
 
-export interface UserResponse {
-  netid: string;
-  email: string;
-  createdAt: string;
-}
-
-export interface CreateUserResponse {
-  id: string;
-  netid: string;
-  email: string;
-  message: string;
-}
-
-export interface LoginResponse {
-  message: string;
-  user: UserResponse;
-}
+import { apiClient } from './apiClient';
+import type { UserResponse, CreateUserResponse, LoginResponse } from '@/types';
 
 export interface ApiError {
   error: string;
@@ -24,141 +14,69 @@ export interface ApiError {
 
 /**
  * Creates a new user in the backend from Firebase Auth data
+ * SECURITY: firebaseUid is now extracted from Bearer token on backend
+ *
  * @param email - Cornell email address
- * @param firebaseUid - Firebase Authentication UID
  * @returns Promise resolving to user creation response
- * @throws Error if creation fails or email is invalid
+ * @throws APIError if creation fails or email is invalid
  */
 export const createUserInBackend = async (
-  email: string,
-  firebaseUid: string
+  email: string
 ): Promise<CreateUserResponse> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/users/firebase-create`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        firebaseUid,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to create user in backend');
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Backend user creation error:', error);
-    throw error;
-  }
+  return apiClient.post<CreateUserResponse>('/api/users/firebase-create', {
+    email,
+  });
 };
 
 /**
  * Authenticates user login in the backend
+ * SECURITY: firebaseUid is now extracted from Bearer token on backend
+ *
  * @param email - Cornell email address
- * @param firebaseUid - Firebase Authentication UID
  * @returns Promise resolving to login response
- * @throws Error if login fails or user not found
+ * @throws APIError if login fails or user not found
  */
 export const loginUserInBackend = async (
-  email: string,
-  firebaseUid: string
+  email: string
 ): Promise<LoginResponse> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/users/firebase-login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        firebaseUid,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to login user in backend');
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Backend login error:', error);
-    throw error;
-  }
+  return apiClient.post<LoginResponse>('/api/users/firebase-login', {
+    email,
+  });
 };
 
 /**
  * Retrieves all users from the backend (admin function)
+ * SECURITY: Requires admin authentication
+ *
  * @returns Promise resolving to array of users
- * @throws Error if fetch fails
+ * @throws APIError if fetch fails or user is not admin
  */
 export const getAllUsers = async (): Promise<UserResponse[]> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/users`);
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch users');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    throw error;
-  }
+  return apiClient.get<UserResponse[]>('/api/users');
 };
 
 /**
  * Retrieves a specific user by netid
+ * SECURITY: Requires authentication, can only view own data (unless admin)
+ *
  * @param netid - Cornell netid
  * @returns Promise resolving to user data
- * @throws Error if user not found or fetch fails
+ * @throws APIError if user not found or unauthorized
  */
 export const getUserByNetid = async (netid: string): Promise<UserResponse> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/users/${netid}`);
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch user');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching user:', error);
-    throw error;
-  }
+  return apiClient.get<UserResponse>(`/api/users/${netid}`);
 };
 
 /**
  * Deletes a user by netid
+ * SECURITY: Requires authentication, can only delete own account (unless admin)
+ *
  * @param netid - Cornell netid
  * @returns Promise resolving to deletion confirmation
- * @throws Error if deletion fails or user not found
+ * @throws APIError if deletion fails, user not found, or unauthorized
  */
 export const deleteUser = async (
   netid: string
 ): Promise<{ message: string }> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/users/${netid}`, {
-      method: 'DELETE',
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to delete user');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    throw error;
-  }
+  return apiClient.delete<{ message: string }>(`/api/users/${netid}`);
 };

@@ -75,7 +75,7 @@ export default function EditSocialsPage() {
 
     try {
       setLoading(true);
-      const profileData = await getCurrentUserProfile(user.uid);
+      const profileData = await getCurrentUserProfile();
 
       if (profileData) {
         const socialData: SocialLinks = {
@@ -105,7 +105,7 @@ export default function EditSocialsPage() {
 
     setSaving(true);
     try {
-      await updateProfile(user.uid, {
+      await updateProfile( {
         instagram: socials.instagram,
         snapchat: socials.snapchat,
         linkedIn: socials.linkedin,

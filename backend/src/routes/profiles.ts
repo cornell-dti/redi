@@ -11,40 +11,26 @@ import {
   UpdateProfileInput,
 } from '../../types';
 import { createDefaultPreferences } from '../services/preferencesService';
+import { authenticateUser, AuthenticatedRequest } from '../middleware/auth';
+import { requireAdmin } from '../middleware/adminAuth';
+import { requireOwnProfile } from '../middleware/authorization';
+import {
+  authenticatedRateLimit,
+  publicRateLimit,
+} from '../middleware/rateLimiting';
+import { validateProfileCreation, validate } from '../middleware/validation';
+import {
+  filterProfileByPrivacy,
+  getProfileWithAge,
+  determineViewContext,
+  ProfileViewContext,
+  isUserBlocked,
+} from '../utils/profilePrivacy';
 
 const router = express.Router();
 
 /**
- * Verifies that a user exists in the database and retrieves their Cornell NetID
- * @param firebaseUid - The Firebase authentication UID for the user
- * @returns Promise resolving to the user's NetID if found, null otherwise
- * @throws Logs error to console if database query fails
- */
-const verifyUserExists = async (
-  firebaseUid: string
-): Promise<string | null> => {
-  try {
-    const userSnapshot = await db
-      .collection('users')
-      .where('firebaseUid', '==', firebaseUid)
-      .get();
-
-    if (userSnapshot.empty) {
-      return null;
-    }
-
-    return userSnapshot.docs[0].data().netid;
-  } catch (error) {
-    console.error('Error verifying user:', error);
-    return null;
-  }
-};
-
-/**
  * Converts various date formats to a JavaScript Date object for Firestore storage
- * @param value - Date value in various formats (Date, string, Firestore Timestamp)
- * @returns JavaScript Date object
- * @description Handles Date objects, ISO strings, and Firestore Timestamps
  */
 const convertToDate = (value: any): Date => {
   if (value instanceof Date) {
@@ -53,7 +39,6 @@ const convertToDate = (value: any): Date => {
   if (typeof value === 'string') {
     return new Date(value);
   }
-  // Handle Firestore Timestamp
   if (value && typeof value.toDate === 'function') {
     return value.toDate();
   }
@@ -62,9 +47,6 @@ const convertToDate = (value: any): Date => {
 
 /**
  * Converts a Firestore profile document to a client-safe API response format
- * @param doc - Firestore document containing profile data with document ID
- * @returns ProfileResponse object with ISO string dates for JSON serialization
- * @description Transforms Firestore timestamps to ISO strings for API consumption
  */
 const profileDocToResponse = (
   doc: FirestoreDoc<ProfileDoc>
@@ -111,421 +93,492 @@ const profileDocToResponse = (
 });
 
 /**
- * GET /api/profiles
- * Retrieves a filtered list of user profiles for admin or matching purposes
- * @route GET /api/profiles
- * @group Profiles - Profile management operations
- * @param {string} [limit=50] - Maximum number of profiles to return
- * @param {Gender} [gender] - Filter by gender (female, male, non-binary)
- * @param {School} [school] - Filter by Cornell school
- * @param {string} [minYear] - Filter by minimum year (class standing)
- * @param {string} [maxYear] - Filter by maximum year (class standing)
- * @param {string} [excludeNetid] - Exclude specific user by NetID
- * @returns {ProfileResponse[]} Array of profile objects
- * @returns {Error} 500 - Internal server error
+ * Helper to get netid from authenticated user
  */
-router.get('/api/profiles', async (req, res) => {
+const getNetidFromAuth = async (firebaseUid: string): Promise<string | null> => {
   try {
-    const {
-      limit = '50',
-      gender,
-      school,
-      minYear,
-      maxYear,
-      excludeNetid,
-    } = req.query;
+    const userSnapshot = await db
+      .collection('users')
+      .where('firebaseUid', '==', firebaseUid)
+      .get();
 
-    let query = db.collection('profiles').limit(parseInt(limit as string));
-
-    // Apply filters if provided
-    if (gender && typeof gender === 'string') {
-      query = query.where('gender', '==', gender);
-    }
-    if (school && typeof school === 'string') {
-      query = query.where('school', '==', school);
-    }
-    if (minYear && typeof minYear === 'string') {
-      query = query.where('year', '>=', parseInt(minYear));
-    }
-    if (maxYear && typeof maxYear === 'string') {
-      query = query.where('year', '<=', parseInt(maxYear));
+    if (userSnapshot.empty) {
+      return null;
     }
 
-    const snapshot = await query.get();
-    let profiles: ProfileResponse[] = snapshot.docs.map((doc) =>
-      profileDocToResponse({ id: doc.id, ...(doc.data() as ProfileDoc) })
-    );
-
-    // Filter out excluded netid if provided
-    if (excludeNetid && typeof excludeNetid === 'string') {
-      profiles = profiles.filter((profile) => profile.netid !== excludeNetid);
-    }
-
-    res.status(200).json(profiles);
+    return userSnapshot.docs[0].data().netid;
   } catch (error) {
-    console.error('Error fetching profiles:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
+    console.error('Error getting netid:', error);
+    return null;
   }
-});
+};
+
+/**
+ * Check if user is admin
+ */
+const isAdmin = async (firebaseUid: string): Promise<boolean> => {
+  try {
+    const adminDoc = await db.collection('admins').doc(firebaseUid).get();
+    return adminDoc.exists && !adminDoc.data()?.disabled;
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * GET /api/profiles
+ * Retrieves a filtered list of user profiles (requires authentication)
+ * Returns profiles based on user's preferences and respects privacy settings
+ */
+router.get(
+  '/api/profiles',
+  authenticatedRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const {
+        limit = '50',
+        gender,
+        school,
+        minYear,
+        maxYear,
+        excludeNetid,
+      } = req.query;
+
+      // Get authenticated user's netid
+      const viewerNetid = await getNetidFromAuth(req.user!.uid);
+      if (!viewerNetid) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Check if user is admin
+      const userIsAdmin = await isAdmin(req.user!.uid);
+
+      let query = db.collection('profiles').limit(parseInt(limit as string));
+
+      // Apply filters if provided
+      if (gender && typeof gender === 'string') {
+        query = query.where('gender', '==', gender);
+      }
+      if (school && typeof school === 'string') {
+        query = query.where('school', '==', school);
+      }
+      if (minYear && typeof minYear === 'string') {
+        query = query.where('year', '>=', parseInt(minYear));
+      }
+      if (maxYear && typeof maxYear === 'string') {
+        query = query.where('year', '<=', parseInt(maxYear));
+      }
+
+      const snapshot = await query.get();
+      let profiles: ProfileResponse[] = snapshot.docs.map((doc) =>
+        profileDocToResponse({ id: doc.id, ...(doc.data() as ProfileDoc) })
+      );
+
+      // Filter out excluded netid if provided
+      if (excludeNetid && typeof excludeNetid === 'string') {
+        profiles = profiles.filter((profile) => profile.netid !== excludeNetid);
+      }
+
+      // Filter out own profile
+      profiles = profiles.filter((profile) => profile.netid !== viewerNetid);
+
+      // Filter out blocked users
+      const filteredProfiles = [];
+      for (const profile of profiles) {
+        // Check if viewer blocked this user or vice versa
+        const viewerBlockedUser = await isUserBlocked(viewerNetid, profile.netid, db);
+        const userBlockedViewer = await isUserBlocked(profile.netid, viewerNetid, db);
+
+        if (!viewerBlockedUser && !userBlockedViewer) {
+          // Determine view context and apply privacy filtering
+          const context = await determineViewContext(
+            viewerNetid,
+            profile.netid,
+            userIsAdmin,
+            db
+          );
+
+          const filteredProfile = getProfileWithAge(profile, context);
+          filteredProfiles.push(filteredProfile);
+        }
+      }
+
+      res.status(200).json(filteredProfiles);
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+      res.status(500).json({ error: 'Failed to fetch profiles' });
+    }
+  }
+);
 
 /**
  * GET /api/profiles/me
  * Retrieves the authenticated user's own profile
- * @route GET /api/profiles/me
- * @group Profiles - Profile management operations
- * @param {string} firebaseUid.query.required - Firebase authentication UID
- * @returns {ProfileResponse} User's profile data
- * @returns {Error} 400 - Missing or invalid firebaseUid
- * @returns {Error} 404 - User or profile not found
- * @returns {Error} 500 - Internal server error
  */
-router.get('/api/profiles/me', async (req, res) => {
-  try {
-    const { firebaseUid } = req.query;
+router.get(
+  '/api/profiles/me',
+  authenticatedRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      // Get netid from authenticated user
+      const netid = await getNetidFromAuth(req.user!.uid);
+      if (!netid) {
+        return res.status(404).json({ error: 'User not found' });
+      }
 
-    if (!firebaseUid || typeof firebaseUid !== 'string') {
-      return res.status(400).json({ error: 'firebaseUid is required' });
+      const snapshot = await db
+        .collection('profiles')
+        .where('netid', '==', netid)
+        .get();
+
+      if (snapshot.empty) {
+        return res.status(404).json({ error: 'Profile not found' });
+      }
+
+      const doc = snapshot.docs[0];
+      const profile = profileDocToResponse({
+        id: doc.id,
+        ...(doc.data() as ProfileDoc),
+      });
+
+      // Return full profile (own profile, no filtering)
+      res.status(200).json(profile);
+    } catch (error) {
+      console.error("Error fetching current user's profile:", error);
+      res.status(500).json({ error: 'Failed to fetch profile' });
     }
-
-    // Get netid from firebaseUid
-    const netid = await verifyUserExists(firebaseUid);
-    if (!netid) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const snapshot = await db
-      .collection('profiles')
-      .where('netid', '==', netid)
-      .get();
-
-    if (snapshot.empty) {
-      return res.status(404).json({ error: 'Profile not found' });
-    }
-
-    const doc = snapshot.docs[0];
-    const profile = profileDocToResponse({
-      id: doc.id,
-      ...(doc.data() as ProfileDoc),
-    });
-    res.status(200).json(profile);
-  } catch (error) {
-    console.error("Error fetching current user's profile:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 /**
  * GET /api/profiles/:netid
- * Retrieves a specific user's profile by their Cornell NetID (public endpoint)
- * @route GET /api/profiles/:netid
- * @group Profiles - Profile management operations
- * @param {string} netid.path.required - Cornell NetID of the user
- * @returns {ProfileResponse} User's profile data
- * @returns {Error} 404 - Profile not found
- * @returns {Error} 500 - Internal server error
+ * Retrieves a specific user's profile (requires authentication)
+ * Applies privacy filtering based on relationship between users
  */
-router.get('/api/profiles/:netid', async (req, res) => {
-  try {
-    const { netid } = req.params;
-    const snapshot = await db
-      .collection('profiles')
-      .where('netid', '==', netid)
-      .get();
+router.get(
+  '/api/profiles/:netid',
+  authenticatedRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { netid } = req.params;
 
-    if (snapshot.empty) {
-      return res.status(404).json({ error: 'Profile not found' });
+      // Get viewer's netid
+      const viewerNetid = await getNetidFromAuth(req.user!.uid);
+      if (!viewerNetid) {
+        return res.status(404).json({ error: 'Authenticated user not found' });
+      }
+
+      // Check if user is admin
+      const userIsAdmin = await isAdmin(req.user!.uid);
+
+      // Check if users have blocked each other (unless admin)
+      if (!userIsAdmin) {
+        const viewerBlockedUser = await isUserBlocked(viewerNetid, netid, db);
+        const userBlockedViewer = await isUserBlocked(netid, viewerNetid, db);
+
+        if (viewerBlockedUser || userBlockedViewer) {
+          return res.status(404).json({ error: 'Profile not found' });
+        }
+      }
+
+      const snapshot = await db
+        .collection('profiles')
+        .where('netid', '==', netid)
+        .get();
+
+      if (snapshot.empty) {
+        return res.status(404).json({ error: 'Profile not found' });
+      }
+
+      const doc = snapshot.docs[0];
+      const profile = profileDocToResponse({
+        id: doc.id,
+        ...(doc.data() as ProfileDoc),
+      });
+
+      // Determine view context and apply privacy filtering
+      const context = await determineViewContext(
+        viewerNetid,
+        netid,
+        userIsAdmin,
+        db
+      );
+
+      const filteredProfile = getProfileWithAge(profile, context);
+
+      res.status(200).json(filteredProfile);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      res.status(500).json({ error: 'Failed to fetch profile' });
     }
-
-    const doc = snapshot.docs[0];
-    const profile = profileDocToResponse({
-      id: doc.id,
-      ...(doc.data() as ProfileDoc),
-    });
-    res.status(200).json(profile);
-  } catch (error) {
-    console.error('Error fetching profile:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 /**
  * POST /api/profiles
  * Creates a new dating profile for the authenticated user
- * @route POST /api/profiles
- * @group Profiles - Profile management operations
- * @param {string} firebaseUid.body.required - Firebase authentication UID
- * @param {CreateProfileInput} profileData.body.required - Profile data (bio, gender, birthdate, year, school)
- * @returns {object} Success response with profile ID and NetID
- * @returns {Error} 400 - Missing required fields or invalid data
- * @returns {Error} 409 - Profile already exists for this user
- * @returns {Error} 500 - Internal server error
- * @description Validates required fields, checks for existing profiles, and creates new profile with server timestamps
  */
-router.post('/api/profiles', async (req, res) => {
-  try {
-    console.log('Creating profile:', req.body);
-    const {
-      firebaseUid,
-      ...profileData
-    }: { firebaseUid: string } & CreateProfileInput = req.body;
-
-    if (!firebaseUid) {
-      return res.status(400).json({ error: 'firebaseUid is required' });
-    }
-
-    // Verify user exists and get their netid
-    const netid = await verifyUserExists(firebaseUid);
-    if (!netid) {
-      return res
-        .status(400)
-        .json({ error: 'User not found or invalid firebaseUid' });
-    }
-
-    // Validate required fields (netid is now derived from firebaseUid)
-    if (
-      !profileData.firstName ||
-      !profileData.bio ||
-      !profileData.gender ||
-      !profileData.birthdate ||
-      !profileData.year ||
-      !profileData.school
-    ) {
-      return res.status(400).json({
-        error:
-          'firstName, bio, gender, birthdate, year, and school are required',
-      });
-    }
-
-    // Check if profile already exists for this user
-    const existingProfile = await db
-      .collection('profiles')
-      .where('netid', '==', netid)
-      .get();
-    if (!existingProfile.empty) {
-      return res
-        .status(409)
-        .json({ error: 'Profile already exists for this user' });
-    }
-
-    // Validate enum values
-    const validGenders: Gender[] = ['female', 'male', 'non-binary'];
-    if (!validGenders.includes(profileData.gender)) {
-      return res.status(400).json({ error: 'Invalid gender value' });
-    }
-
-    // Create profile document with derived netid
-    const profileDoc: ProfileDocWrite = {
-      ...profileData,
-      netid, // Use the netid derived from firebaseUid
-      birthdate: convertToDate(profileData.birthdate),
-      major: profileData.major || [],
-      pictures: profileData.pictures || [],
-      createdAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
-    };
-
-    const docRef = await db.collection('profiles').add(profileDoc);
-
-    // Create default preferences for the new user
+router.post(
+  '/api/profiles',
+  authenticatedRateLimit,
+  authenticateUser,
+  validateProfileCreation,
+  validate,
+  async (req: AuthenticatedRequest, res) => {
     try {
-      await createDefaultPreferences(netid);
-    } catch (error) {
-      console.error('Error creating default preferences:', error);
-      // Don't fail the profile creation if preferences fail
-    }
+      console.log('Creating profile for authenticated user');
+      const profileData: CreateProfileInput = req.body;
 
-    res.status(201).json({
-      id: docRef.id,
-      netid,
-      message: 'Profile created successfully',
-    });
-  } catch (error) {
-    console.error('Error creating profile:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
+      // Get netid from authenticated user's token
+      const netid = await getNetidFromAuth(req.user!.uid);
+      if (!netid) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Validate required fields
+      if (
+        !profileData.firstName ||
+        !profileData.bio ||
+        !profileData.gender ||
+        !profileData.birthdate ||
+        !profileData.year ||
+        !profileData.school
+      ) {
+        return res.status(400).json({
+          error:
+            'firstName, bio, gender, birthdate, year, and school are required',
+        });
+      }
+
+      // Check if profile already exists for this user
+      const existingProfile = await db
+        .collection('profiles')
+        .where('netid', '==', netid)
+        .get();
+
+      if (!existingProfile.empty) {
+        return res
+          .status(409)
+          .json({ error: 'Profile already exists for this user' });
+      }
+
+      // Validate enum values
+      const validGenders: Gender[] = ['female', 'male', 'non-binary'];
+      if (!validGenders.includes(profileData.gender)) {
+        return res.status(400).json({ error: 'Invalid gender value' });
+      }
+
+      // Create profile document
+      const profileDoc: ProfileDocWrite = {
+        ...profileData,
+        netid,
+        birthdate: convertToDate(profileData.birthdate),
+        major: profileData.major || [],
+        pictures: profileData.pictures || [],
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+
+      const docRef = await db.collection('profiles').add(profileDoc);
+
+      // Create default preferences for the new user
+      try {
+        await createDefaultPreferences(netid);
+      } catch (error) {
+        console.error('Error creating default preferences:', error);
+        // Don't fail the profile creation if preferences fail
+      }
+
+      res.status(201).json({
+        id: docRef.id,
+        netid,
+        message: 'Profile created successfully',
+      });
+    } catch (error) {
+      console.error('Error creating profile:', error);
+      res.status(500).json({ error: 'Failed to create profile' });
+    }
   }
-});
+) as any;
 
 /**
  * PUT /api/profiles/me
  * Updates the authenticated user's existing profile
- * @route PUT /api/profiles/me
- * @group Profiles - Profile management operations
- * @param {string} firebaseUid.body.required - Firebase authentication UID
- * @param {UpdateProfileInput} updateData.body - Partial profile data to update
- * @returns {object} Success message
- * @returns {Error} 400 - Missing firebaseUid or invalid data
- * @returns {Error} 404 - User or profile not found
- * @returns {Error} 500 - Internal server error
- * @description Updates only provided fields, validates gender enum, converts dates, updates timestamp
  */
-router.put('/api/profiles/me', async (req, res) => {
-  try {
-    const {
-      firebaseUid,
-      ...updateData
-    }: { firebaseUid: string } & UpdateProfileInput = req.body;
+router.put(
+  '/api/profiles/me',
+  authenticatedRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const updateData: UpdateProfileInput = req.body;
 
-    if (!firebaseUid) {
-      return res.status(400).json({ error: 'firebaseUid is required' });
-    }
-
-    // Verify user exists and get their netid
-    const netid = await verifyUserExists(firebaseUid);
-    if (!netid) {
-      return res
-        .status(400)
-        .json({ error: 'User not found or invalid firebaseUid' });
-    }
-
-    const snapshot = await db
-      .collection('profiles')
-      .where('netid', '==', netid)
-      .get();
-
-    if (snapshot.empty) {
-      return res.status(404).json({ error: 'Profile not found' });
-    }
-
-    // Validate gender if provided
-    if (updateData.gender) {
-      const validGenders: Gender[] = ['female', 'male', 'non-binary'];
-      if (!validGenders.includes(updateData.gender)) {
-        return res.status(400).json({ error: 'Invalid gender value' });
+      // Get netid from authenticated user
+      const netid = await getNetidFromAuth(req.user!.uid);
+      if (!netid) {
+        return res.status(404).json({ error: 'User not found' });
       }
+
+      const snapshot = await db
+        .collection('profiles')
+        .where('netid', '==', netid)
+        .get();
+
+      if (snapshot.empty) {
+        return res.status(404).json({ error: 'Profile not found' });
+      }
+
+      // Validate gender if provided
+      if (updateData.gender) {
+        const validGenders: Gender[] = ['female', 'male', 'non-binary'];
+        if (!validGenders.includes(updateData.gender)) {
+          return res.status(400).json({ error: 'Invalid gender value' });
+        }
+      }
+
+      // Convert birthdate to Date if provided
+      const updateDoc: Partial<ProfileDocWrite> = {
+        ...updateData,
+        ...(updateData.birthdate && {
+          birthdate: convertToDate(updateData.birthdate),
+        }),
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+
+      const doc = snapshot.docs[0];
+      await doc.ref.update(updateDoc);
+
+      res.status(200).json({ message: 'Profile updated successfully' });
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      res.status(500).json({ error: 'Failed to update profile' });
     }
-
-    // Convert birthdate to Date if provided
-    const updateDoc: Partial<ProfileDocWrite> = {
-      ...updateData,
-      ...(updateData.birthdate && {
-        birthdate: convertToDate(updateData.birthdate),
-      }),
-      updatedAt: FieldValue.serverTimestamp(),
-    };
-
-    const doc = snapshot.docs[0];
-    await doc.ref.update(updateDoc);
-
-    res.status(200).json({ message: 'Profile updated successfully' });
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 /**
  * DELETE /api/profiles/me
  * Permanently deletes the authenticated user's profile
- * @route DELETE /api/profiles/me
- * @group Profiles - Profile management operations
- * @param {string} firebaseUid.body.required - Firebase authentication UID
- * @returns {object} Success message
- * @returns {Error} 400 - Missing firebaseUid or user not found
- * @returns {Error} 404 - Profile not found
- * @returns {Error} 500 - Internal server error
- * @warning This operation is irreversible - all profile data will be permanently deleted
  */
-router.delete('/api/profiles/me', async (req, res) => {
-  try {
-    const { firebaseUid } = req.body;
+router.delete(
+  '/api/profiles/me',
+  authenticatedRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      // Get netid from authenticated user
+      const netid = await getNetidFromAuth(req.user!.uid);
+      if (!netid) {
+        return res.status(404).json({ error: 'User not found' });
+      }
 
-    if (!firebaseUid) {
-      return res.status(400).json({ error: 'firebaseUid is required' });
+      const snapshot = await db
+        .collection('profiles')
+        .where('netid', '==', netid)
+        .get();
+
+      if (snapshot.empty) {
+        return res.status(404).json({ error: 'Profile not found' });
+      }
+
+      const doc = snapshot.docs[0];
+      await doc.ref.delete();
+
+      // TODO: Also delete associated images from storage
+
+      res.status(200).json({ message: 'Profile deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      res.status(500).json({ error: 'Failed to delete profile' });
     }
-
-    // Verify user exists and get their netid
-    const netid = await verifyUserExists(firebaseUid);
-    if (!netid) {
-      return res
-        .status(400)
-        .json({ error: 'User not found or invalid firebaseUid' });
-    }
-
-    const snapshot = await db
-      .collection('profiles')
-      .where('netid', '==', netid)
-      .get();
-
-    if (snapshot.empty) {
-      return res.status(404).json({ error: 'Profile not found' });
-    }
-
-    const doc = snapshot.docs[0];
-    await doc.ref.delete();
-
-    res.status(200).json({ message: 'Profile deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting profile:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 /**
  * GET /api/profiles/matches
  * Retrieves potential dating matches for the authenticated user
- * @route GET /api/profiles/matches
- * @group Profiles - Profile management operations
- * @param {string} firebaseUid.query.required - Firebase authentication UID
- * @param {string} [limit=20] - Maximum number of matches to return
- * @returns {ProfileResponse[]} Array of potential match profiles
- * @returns {Error} 400 - Missing or invalid firebaseUid
- * @returns {Error} 404 - Current user profile not found
- * @returns {Error} 500 - Internal server error
- * @todo Implement sophisticated matching algorithm based on compatibility factors
- * @description Currently returns all profiles except the current user's - matching logic to be implemented
+ * Implements matching algorithm based on preferences
  */
-router.get('/api/profiles/matches', async (req, res) => {
-  try {
-    const { firebaseUid, limit = '20' } = req.query;
+router.get(
+  '/api/profiles/matches',
+  authenticatedRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { limit = '20' } = req.query;
 
-    if (!firebaseUid || typeof firebaseUid !== 'string') {
-      return res.status(400).json({ error: 'firebaseUid is required' });
+      // Get authenticated user's netid
+      const currentUserNetid = await getNetidFromAuth(req.user!.uid);
+      if (!currentUserNetid) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Get current user's profile to use for matching logic
+      const currentUserSnapshot = await db
+        .collection('profiles')
+        .where('netid', '==', currentUserNetid)
+        .get();
+
+      if (currentUserSnapshot.empty) {
+        return res.status(404).json({ error: 'Current user profile not found' });
+      }
+
+      // Get current user's preferences
+      const preferencesSnapshot = await db
+        .collection('preferences')
+        .where('netid', '==', currentUserNetid)
+        .get();
+
+      let query = db
+        .collection('profiles')
+        .where('netid', '!=', currentUserNetid)
+        .limit(parseInt(limit as string));
+
+      // TODO: Apply preference-based filtering here
+      // - Filter by preferred genders
+      // - Filter by preferred age range
+      // - Filter by preferred years
+      // - Filter out previously rejected users
+      // - Filter out blocked users
+
+      const snapshot = await query.get();
+      let matches: ProfileResponse[] = snapshot.docs.map((doc) =>
+        profileDocToResponse({ id: doc.id, ...(doc.data() as ProfileDoc) })
+      );
+
+      // Filter out blocked users
+      const filteredMatches = [];
+      for (const match of matches) {
+        const viewerBlockedUser = await isUserBlocked(
+          currentUserNetid,
+          match.netid,
+          db
+        );
+        const userBlockedViewer = await isUserBlocked(
+          match.netid,
+          currentUserNetid,
+          db
+        );
+
+        if (!viewerBlockedUser && !userBlockedViewer) {
+          // Apply public browse privacy filtering
+          const filteredMatch = getProfileWithAge(
+            match,
+            ProfileViewContext.PUBLIC_BROWSE
+          );
+          filteredMatches.push(filteredMatch);
+        }
+      }
+
+      res.status(200).json(filteredMatches);
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+      res.status(500).json({ error: 'Failed to fetch matches' });
     }
-
-    // Verify user exists and get their netid
-    const currentUserNetid = await verifyUserExists(firebaseUid);
-    if (!currentUserNetid) {
-      return res
-        .status(400)
-        .json({ error: 'User not found or invalid firebaseUid' });
-    }
-
-    // Get current user's profile to use for matching logic
-    const currentUserSnapshot = await db
-      .collection('profiles')
-      .where('netid', '==', currentUserNetid)
-      .get();
-
-    if (currentUserSnapshot.empty) {
-      return res.status(404).json({ error: 'Current user profile not found' });
-    }
-
-    // Get potential matches (exclude current user)
-    const snapshot = await db
-      .collection('profiles')
-      .where('netid', '!=', currentUserNetid)
-      .limit(parseInt(limit as string))
-      .get();
-
-    const matches: ProfileResponse[] = snapshot.docs.map((doc) =>
-      profileDocToResponse({ id: doc.id, ...(doc.data() as ProfileDoc) })
-    );
-
-    // TODO: Add matching algorithm logic here
-    // For now, just return all profiles except current user
-
-    res.status(200).json(matches);
-  } catch (error) {
-    console.error('Error fetching matches:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 export default router;

@@ -34,7 +34,7 @@ export default function EditGenderPage() {
 
     try {
       setLoading(true);
-      const profileData = await getCurrentUserProfile(user.uid);
+      const profileData = await getCurrentUserProfile();
 
       if (profileData) {
         setSelectedGender(profileData.gender);
@@ -62,7 +62,7 @@ export default function EditGenderPage() {
 
     setSaving(true);
     try {
-      await updateProfile(user.uid, {
+      await updateProfile( {
         gender: selectedGender,
       });
 

@@ -68,7 +68,7 @@ const ProfileTester = () => {
 
     setLoading(true);
     try {
-      const profile = await getCurrentUserProfile(user.uid);
+      const profile = await getCurrentUserProfile();
       if (profile) {
         setCurrentProfile(profile);
         Alert.alert(
@@ -120,7 +120,7 @@ const ProfileTester = () => {
       instagram: instagram.trim() || undefined,
       snapchat: snapchat.trim() || undefined,
       phoneNumber: phoneNumber.trim() || undefined,
-      year: parseInt(year),
+      year: year.trim() as any, // Year should be a string like 'Freshman', 'Sophomore', etc.
       school: school.trim() as any, // Type assertion for School
       major: major.trim() ? major.split(',').map((m) => m.trim()) : [],
       pictures: [], // Empty for testing
@@ -128,7 +128,7 @@ const ProfileTester = () => {
 
     setLoading(true);
     try {
-      const result = await createProfile(user.uid, profileData);
+      const result = await createProfile( profileData);
       Alert.alert(
         'Profile Created',
         `${result.message}\nNetid: ${result.netid}`,
@@ -168,7 +168,7 @@ const ProfileTester = () => {
     if (instagram.trim()) updateData.instagram = instagram.trim();
     if (snapchat.trim()) updateData.snapchat = snapchat.trim();
     if (phoneNumber.trim()) updateData.phoneNumber = phoneNumber.trim();
-    if (year.trim()) updateData.year = parseInt(year);
+    if (year.trim()) updateData.year = year.trim() as any; // Year should be a string like 'Freshman', 'Sophomore', etc.
     if (school.trim()) updateData.school = school.trim() as any; // Type assertion for School
     if (major.trim()) updateData.major = major.split(',').map((m) => m.trim());
 
@@ -179,7 +179,7 @@ const ProfileTester = () => {
 
     setLoading(true);
     try {
-      const result = await updateProfile(user.uid, updateData);
+      const result = await updateProfile( updateData);
       Alert.alert('Profile Updated', result.message, [
         {
           text: 'OK',
@@ -219,7 +219,7 @@ const ProfileTester = () => {
           onPress: async () => {
             setLoading(true);
             try {
-              const result = await deleteProfile(user.uid);
+              const result = await deleteProfile();
               setCurrentProfile(null);
               Alert.alert('Profile Deleted', result.message);
             } catch (error) {
@@ -282,7 +282,7 @@ const ProfileTester = () => {
 
     setLoading(true);
     try {
-      const matchResults = await getMatches(user.uid, 10);
+      const matchResults = await getMatches( 10);
       setMatches(matchResults);
       Alert.alert(
         'Matches Retrieved',
@@ -354,19 +354,21 @@ const ProfileTester = () => {
       <Text style={styles.profileText}>
         <Text style={styles.bold}>Major:</Text> {profile.major.join(', ')}
       </Text>
-      {profile.instagram && (
+      {'instagram' in profile && profile.instagram && (
         <Text style={styles.profileText}>
           <Text style={styles.bold}>Instagram:</Text> {profile.instagram}
         </Text>
       )}
-      {profile.snapchat && (
+      {'snapchat' in profile && profile.snapchat && (
         <Text style={styles.profileText}>
           <Text style={styles.bold}>Snapchat:</Text> {profile.snapchat}
         </Text>
       )}
-      <Text style={styles.profileDate}>
-        Created: {new Date(profile.createdAt).toLocaleDateString()}
-      </Text>
+      {'createdAt' in profile && profile.createdAt && (
+        <Text style={styles.profileDate}>
+          Created: {new Date(profile.createdAt).toLocaleDateString()}
+        </Text>
+      )}
     </View>
   );
 

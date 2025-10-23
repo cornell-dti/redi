@@ -1,11 +1,14 @@
 import { Year } from '@/constants/cornell';
+import { getProfileAge, ProfileResponse } from '@/types';
 
 /**
  * Calculate age from birthdate
  * @param birthdate - ISO string or Date object
  * @returns Age in years
+ * @deprecated Use getProfileAge() from types/profile.ts for ProfileResponse objects
  */
 export function calculateAge(birthdate: string | Date): number {
+  if (!birthdate) return 0;
   const birth = typeof birthdate === 'string' ? new Date(birthdate) : birthdate;
   const today = new Date();
   let age = today.getFullYear() - birth.getFullYear();
@@ -16,6 +19,17 @@ export function calculateAge(birthdate: string | Date): number {
   }
 
   return age;
+}
+
+/**
+ * Get age from a profile response, handling different privacy contexts
+ * For public profiles, returns the age field directly
+ * For own/matched profiles, calculates age from birthdate
+ * @param profile - Profile response from API
+ * @returns Age in years
+ */
+export function getAgeFromProfile(profile: ProfileResponse): number {
+  return getProfileAge(profile);
 }
 
 /**

@@ -1,254 +1,126 @@
+/**
+ * Profile API Service
+ * SECURITY UPDATE: All endpoints now use Bearer token authentication
+ * firebaseUid is extracted from the authenticated token on the backend
+ */
+
 import {
   CreateProfileInput,
   CreateProfileResponse,
   ProfileResponse,
+  OwnProfileResponse,
   UpdateProfileInput,
   Gender,
 } from '@/types';
-import { API_BASE_URL } from '../../constants/constants';
+import { apiClient } from './apiClient';
 
 /**
- * Gets the current user's profile using their Firebase UID
- * @param firebaseUid - Firebase Authentication UID
- * @returns Promise resolving to user's profile, or null if not found
- * @throws Error if fetch fails
+ * Gets the current user's profile using their authenticated token
+ * SECURITY: firebaseUid is now extracted from Bearer token on backend
+ *
+ * Returns OwnProfileResponse which includes birthdate and full profile data
+ *
+ * @returns Promise resolving to user's own profile, or null if not found
+ * @throws APIError if fetch fails
  */
-export const getCurrentUserProfile = async (
-  firebaseUid: string
-): Promise<ProfileResponse | null> => {
+export const getCurrentUserProfile = async (): Promise<OwnProfileResponse | null> => {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/profiles/me?firebaseUid=${firebaseUid}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null; // Profile doesn't exist yet
-      }
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch profile');
+    return await apiClient.get<OwnProfileResponse>('/api/profiles/me');
+  } catch (error: any) {
+    // Profile doesn't exist yet - return null (not an error)
+    if (error.status === 404) {
+      return null;
     }
-
-    return await response.json();
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error(
-      'Network error. Please check your connection and try again.'
-    );
+    throw error;
   }
 };
 
 /**
  * Creates a new profile for the current user
- * @param firebaseUid - Firebase Authentication UID
+ * SECURITY: firebaseUid is now extracted from Bearer token on backend
+ *
  * @param profileData - Profile creation data
  * @returns Promise resolving to creation response
- * @throws Error if creation fails or validation errors occur
+ * @throws APIError if creation fails or validation errors occur
  */
 export const createProfile = async (
-  firebaseUid: string,
   profileData: CreateProfileInput
 ): Promise<CreateProfileResponse> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/profiles`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        firebaseUid,
-        ...profileData,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      // Handle specific error codes
-      if (response.status === 409) {
-        throw new Error('Profile already exists for this user');
-      } else if (response.status === 400) {
-        throw new Error(data.error || 'Invalid profile data');
-      } else if (response.status === 500) {
-        throw new Error('Server error. Please try again later.');
-      } else {
-        throw new Error(data.error || 'Failed to create profile');
-      }
-    }
-
-    return data;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error(
-      'Network error. Please check your connection and try again.'
-    );
-  }
+  return apiClient.post<CreateProfileResponse>('/api/profiles', profileData);
 };
 
 /**
  * Updates the current user's profile
- * @param firebaseUid - Firebase Authentication UID
+ * SECURITY: firebaseUid is now extracted from Bearer token on backend
+ *
  * @param updateData - Profile update data
  * @returns Promise resolving to update confirmation
- * @throws Error if update fails or validation errors occur
+ * @throws APIError if update fails or validation errors occur
  */
 export const updateProfile = async (
-  firebaseUid: string,
   updateData: UpdateProfileInput
 ): Promise<{ message: string }> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/profiles/me`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        firebaseUid,
-        ...updateData,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw new Error('Profile not found');
-      } else if (response.status === 400) {
-        throw new Error(data.error || 'Invalid update data');
-      } else {
-        throw new Error(data.error || 'Failed to update profile');
-      }
-    }
-
-    return data;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error(
-      'Network error. Please check your connection and try again.'
-    );
-  }
+  return apiClient.put<{ message: string }>('/api/profiles/me', updateData);
 };
 
 /**
  * Deletes the current user's profile
- * @param firebaseUid - Firebase Authentication UID
+ * SECURITY: firebaseUid is now extracted from Bearer token on backend
+ *
  * @returns Promise resolving to deletion confirmation
- * @throws Error if deletion fails
+ * @throws APIError if deletion fails
  */
-export const deleteProfile = async (
-  firebaseUid: string
-): Promise<{ message: string }> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/profiles/me`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ firebaseUid }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      if (response.status === 404) {
-        throw new Error('Profile not found');
-      }
-      throw new Error(errorData.error || 'Failed to delete profile');
-    }
-
-    return await response.json();
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error(
-      'Network error. Please check your connection and try again.'
-    );
-  }
+export const deleteProfile = async (): Promise<{ message: string }> => {
+  return apiClient.delete<{ message: string }>('/api/profiles/me');
 };
 
 /**
  * Gets a specific profile by netid (for viewing other users)
+ * SECURITY: Requires authentication, privacy filters applied on backend
+ *
+ * Returns different profile shapes based on relationship:
+ * - PublicProfileResponse: For users you haven't matched with (includes age, not birthdate)
+ * - MatchedProfileResponse: For users you've matched with (includes birthdate)
+ *
  * @param netid - Cornell netid
- * @returns Promise resolving to profile data
- * @throws Error if profile not found or fetch fails
+ * @returns Promise resolving to profile data (filtered based on relationship)
+ * @throws APIError if profile not found or fetch fails
  */
 export const getProfileByNetid = async (
   netid: string
 ): Promise<ProfileResponse> => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/api/profiles/${netid}`);
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      if (response.status === 404) {
-        throw new Error('Profile not found');
-      }
-      throw new Error(errorData.error || 'Failed to fetch profile');
-    }
-
-    return await response.json();
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error(
-      'Network error. Please check your connection and try again.'
-    );
-  }
+  return apiClient.get<ProfileResponse>(`/api/profiles/${netid}`);
 };
 
 /**
  * Gets potential matches for the current user
- * @param firebaseUid - Firebase Authentication UID
+ * SECURITY: firebaseUid is now extracted from Bearer token on backend
+ *
+ * Returns PublicProfileResponse with age field (not birthdate) for privacy
+ *
  * @param limit - Number of matches to return (default: 20)
- * @returns Promise resolving to array of potential matches
- * @throws Error if fetch fails
+ * @returns Promise resolving to array of potential matches (public profiles)
+ * @throws APIError if fetch fails
  */
 export const getMatches = async (
-  firebaseUid: string,
   limit: number = 20
 ): Promise<ProfileResponse[]> => {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/profiles/matches?firebaseUid=${firebaseUid}&limit=${limit}`
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      if (response.status === 404) {
-        throw new Error('Current user profile not found');
-      }
-      throw new Error(errorData.error || 'Failed to fetch matches');
-    }
-
-    return await response.json();
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error(
-      'Network error. Please check your connection and try again.'
-    );
-  }
+  return apiClient.get<ProfileResponse[]>(
+    `/api/profiles/matches?limit=${limit}`
+  );
 };
 
 /**
- * Gets all profiles with optional filters (admin function)
+ * Gets all profiles with optional filters
+ * SECURITY: Requires authentication, privacy filters applied, blocked users filtered
+ *
+ * Returns ProfileResponse which may be:
+ * - PublicProfileResponse: For users you haven't matched with (includes age, not birthdate)
+ * - MatchedProfileResponse: For users you've matched with (includes birthdate)
+ *
  * @param options - Filter options
- * @returns Promise resolving to array of profiles
- * @throws Error if fetch fails
+ * @returns Promise resolving to array of profiles (privacy-filtered)
+ * @throws APIError if fetch fails
  */
 export const getAllProfiles = async (
   options: {
@@ -260,31 +132,16 @@ export const getAllProfiles = async (
     excludeNetid?: string;
   } = {}
 ): Promise<ProfileResponse[]> => {
-  try {
-    const params = new URLSearchParams();
+  const params = new URLSearchParams();
 
-    Object.entries(options).forEach(([key, value]) => {
-      if (value !== undefined) {
-        params.append(key, value.toString());
-      }
-    });
-
-    const response = await fetch(
-      `${API_BASE_URL}/api/profiles?${params.toString()}`
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch profiles');
+  Object.entries(options).forEach(([key, value]) => {
+    if (value !== undefined) {
+      params.append(key, value.toString());
     }
+  });
 
-    return await response.json();
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error(
-      'Network error. Please check your connection and try again.'
-    );
-  }
+  const queryString = params.toString();
+  const endpoint = queryString ? `/api/profiles?${queryString}` : '/api/profiles';
+
+  return apiClient.get<ProfileResponse[]>(endpoint);
 };

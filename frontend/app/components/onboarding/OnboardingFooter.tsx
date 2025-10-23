@@ -65,7 +65,9 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
-    textAlign: 'center',
     gap: 8,
+  },
+  checkboxLabel: {
+    textAlign: 'center',
   },
 });

@@ -55,7 +55,7 @@ export default function EditPromptPage() {
 
     try {
       setLoading(true);
-      const profileData = await getCurrentUserProfile(user.uid);
+      const profileData = await getCurrentUserProfile();
 
       if (profileData) {
         setCurrentPrompts(profileData.prompts || []);
@@ -103,7 +103,7 @@ export default function EditPromptPage() {
         );
       }
 
-      await updateProfile(user.uid, {
+      await updateProfile( {
         prompts: updatedPrompts,
       });
 
@@ -136,7 +136,7 @@ export default function EditPromptPage() {
         (p) => !(p.question === initialQuestion && p.answer === initialAnswer)
       );
 
-      await updateProfile(user.uid, {
+      await updateProfile( {
         prompts: updatedPrompts,
       });
 

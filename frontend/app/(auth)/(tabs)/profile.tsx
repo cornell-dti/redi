@@ -67,7 +67,7 @@ export default function ProfileScreen() {
 
     try {
       setLoading(true);
-      const profileData = await getCurrentUserProfile(user.uid);
+      const profileData = await getCurrentUserProfile();
 
       if (profileData) {
         setProfile(profileData);
