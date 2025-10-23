@@ -305,7 +305,9 @@ export default function MatchesScreen() {
                   }
                   onNudge={() => console.log('Nudge', matchProfile.netid)}
                   onViewProfile={() =>
-                    router.push(`/view-profile?netid=${matchProfile.netid}` as any)
+                    router.push(
+                      `/view-profile?netid=${matchProfile.netid}` as any
+                    )
                   }
                 />
               </View>

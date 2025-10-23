@@ -57,7 +57,11 @@ class APIClient {
     const currentUser = auth().currentUser;
 
     if (!currentUser) {
-      throw new APIError('Not authenticated. Please sign in.', 401, 'AUTH_REQUIRED');
+      throw new APIError(
+        'Not authenticated. Please sign in.',
+        401,
+        'AUTH_REQUIRED'
+      );
     }
 
     try {
@@ -65,7 +69,11 @@ class APIClient {
       return token;
     } catch (error) {
       console.error('Error getting auth token:', error);
-      throw new APIError('Failed to get authentication token', 401, 'TOKEN_ERROR');
+      throw new APIError(
+        'Failed to get authentication token',
+        401,
+        'TOKEN_ERROR'
+      );
     }
   }
 
@@ -91,7 +99,7 @@ class APIClient {
       // Build headers
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         ...options.headers,
       };
 
@@ -110,6 +118,10 @@ class APIClient {
       // Handle response
       return await this.handleResponse<T>(response, endpoint, options, attempt);
     } catch (error: any) {
+      // Re-throw API errors first (includes auth errors)
+      if (error instanceof APIError) {
+        throw error;
+      }
 
       // Handle timeout
       if (error.name === 'AbortError') {
@@ -117,13 +129,12 @@ class APIClient {
       }
 
       // Handle network errors
-      if (error.message === 'Network request failed' || !navigator.onLine) {
-        throw new APIError('Network error. Please check your connection.', 0, 'NETWORK_ERROR');
-      }
-
-      // Re-throw API errors
-      if (error instanceof APIError) {
-        throw error;
+      if (error.message === 'Network request failed') {
+        throw new APIError(
+          'Network error. Please check your connection.',
+          0,
+          'NETWORK_ERROR'
+        );
       }
 
       // Unknown error
@@ -158,7 +169,8 @@ class APIClient {
       errorData = { error: response.statusText };
     }
 
-    const errorMessage = errorData.error || errorData.message || 'Request failed';
+    const errorMessage =
+      errorData.error || errorData.message || 'Request failed';
 
     // Handle specific status codes
     switch (response.status) {
@@ -184,16 +196,25 @@ class APIClient {
         );
 
       case 404:
-        throw new APIError(errorMessage || 'Resource not found', 404, 'NOT_FOUND');
+        throw new APIError(
+          errorMessage || 'Resource not found',
+          404,
+          'NOT_FOUND'
+        );
 
       case 409:
-        throw new APIError(errorMessage || 'Resource already exists', 409, 'CONFLICT');
+        throw new APIError(
+          errorMessage || 'Resource already exists',
+          409,
+          'CONFLICT'
+        );
 
       case 429:
         // Rate limited - extract retry-after if available
         const retryAfter = response.headers.get('Retry-After');
         throw new APIError(
-          errorMessage || `Too many requests. Please try again${retryAfter ? ` in ${retryAfter}` : ' later'}.`,
+          errorMessage ||
+            `Too many requests. Please try again${retryAfter ? ` in ${retryAfter}` : ' later'}.`,
           429,
           'RATE_LIMITED'
         );
@@ -225,7 +246,11 @@ class APIClient {
   /**
    * POST request
    */
-  async post<T>(endpoint: string, data?: any, options: RequestInit = {}): Promise<T> {
+  async post<T>(
+    endpoint: string,
+    data?: any,
+    options: RequestInit = {}
+  ): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
@@ -236,7 +261,11 @@ class APIClient {
   /**
    * PUT request
    */
-  async put<T>(endpoint: string, data?: any, options: RequestInit = {}): Promise<T> {
+  async put<T>(
+    endpoint: string,
+    data?: any,
+    options: RequestInit = {}
+  ): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PUT',
@@ -266,7 +295,7 @@ class APIClient {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           // Don't set Content-Type for FormData - browser sets it with boundary
         },
         body: formData,

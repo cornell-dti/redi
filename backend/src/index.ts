@@ -2,13 +2,13 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
-import landingPageRouter from './routes/landing-page';
-import profilesRouter from './routes/profiles';
-import usersRouter from './routes/users';
-import preferencesRouter from './routes/preferences';
-import promptsRouter from './routes/prompts';
 import adminPromptsRouter from './routes/admin-prompts';
 import imagesRouter from './routes/images';
+import landingPageRouter from './routes/landing-page';
+import preferencesRouter from './routes/preferences';
+import profilesRouter from './routes/profiles';
+import promptsRouter from './routes/prompts';
+import usersRouter from './routes/users';
 
 dotenv.config();
 
@@ -83,6 +83,11 @@ app.use(
 
 app.use(express.json({ limit: '10mb' })); // Limit request body size
 
+// Request logging middleware
+app.use((req, _res, next) => {
+  next();
+});
+
 app.get('/ping', (_req, res) => res.send('pong'));
 
 app.use(landingPageRouter); // /api/landing-emails
@@ -90,8 +95,8 @@ app.use(usersRouter); // User authentication
 app.use(profilesRouter);
 app.use(preferencesRouter); // /api/preferences
 app.use(promptsRouter); // /api/prompts
-app.use(adminPromptsRouter); // /api/admin/prompts
 app.use(imagesRouter); // /api/images
+app.use(adminPromptsRouter); // /api/admin/prompts
 
 app
   .listen(PORT, () => {

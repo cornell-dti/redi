@@ -106,7 +106,7 @@ export default function EditEducationPage() {
 
     setSaving(true);
     try {
-      await updateProfile( {
+      await updateProfile({
         school,
         major: majors,
         year,

@@ -62,7 +62,7 @@ export default function EditGenderPage() {
 
     setSaving(true);
     try {
-      await updateProfile( {
+      await updateProfile({
         gender: selectedGender,
       });
 

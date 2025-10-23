@@ -68,7 +68,7 @@ export default function EditInterestsPage() {
 
     setSaving(true);
     try {
-      await updateProfile( {
+      await updateProfile({
         interests,
       });
 

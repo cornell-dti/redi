@@ -17,11 +17,14 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/app/$1',
   },
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: {
-        jsx: 'react',
-        esModuleInterop: true,
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        tsconfig: {
+          jsx: 'react',
+          esModuleInterop: true,
+        },
       },
-    }],
+    ],
   },
 };

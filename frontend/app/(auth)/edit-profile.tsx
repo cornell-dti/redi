@@ -1,5 +1,10 @@
 import AppText from '@/app/components/ui/AppText';
-import { ProfileResponse, PromptData, OwnProfileResponse, getProfileAge } from '@/types';
+import {
+  ProfileResponse,
+  PromptData,
+  OwnProfileResponse,
+  getProfileAge,
+} from '@/types';
 import { router, useFocusEffect } from 'expo-router';
 import { Camera, ChevronRight, Pencil, Plus } from 'lucide-react-native';
 import React, { useCallback, useState } from 'react';
@@ -160,11 +165,16 @@ export default function EditProfileScreen() {
       : 'Major not set';
   const displayYear = profile?.year || 'Year not set';
   // Social fields are only available on OwnProfileResponse
-  const displayInstagram = profile && 'instagram' in profile ? profile.instagram || null : null;
-  const displaySnapchat = profile && 'snapchat' in profile ? profile.snapchat || null : null;
-  const displayLinkedIn = profile && 'linkedIn' in profile ? profile.linkedIn || null : null;
-  const displayGithub = profile && 'github' in profile ? profile.github || null : null;
-  const displayWebsite = profile && 'website' in profile ? profile.website || null : null;
+  const displayInstagram =
+    profile && 'instagram' in profile ? profile.instagram || null : null;
+  const displaySnapchat =
+    profile && 'snapchat' in profile ? profile.snapchat || null : null;
+  const displayLinkedIn =
+    profile && 'linkedIn' in profile ? profile.linkedIn || null : null;
+  const displayGithub =
+    profile && 'github' in profile ? profile.github || null : null;
+  const displayWebsite =
+    profile && 'website' in profile ? profile.website || null : null;
   const displayClubs = profile?.clubs || [];
   const displayInterests = profile?.interests || [];
   const displayEthnicity =

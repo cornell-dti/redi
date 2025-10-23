@@ -1,29 +1,25 @@
 import express from 'express';
 import { db } from '../../firebaseAdmin';
 import {
-  CreateWeeklyPromptAnswerInput,
-  WeeklyPromptResponse,
-  WeeklyPromptAnswerResponse,
-  WeeklyMatchResponse,
-  UpdateWeeklyMatchRevealedInput,
+  CreateWeeklyPromptAnswerInput
 } from '../../types';
-import {
-  getActivePrompt,
-  getPromptById,
-  submitPromptAnswer,
-  getPromptAnswer,
-  promptToResponse,
-  answerToResponse,
-} from '../services/promptsService';
-import {
-  getWeeklyMatch,
-  getUserMatchHistory,
-  revealMatch,
-  matchToResponse,
-} from '../services/matchingService';
-import { authenticateUser, AuthenticatedRequest } from '../middleware/auth';
+import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import { authenticatedRateLimit } from '../middleware/rateLimiting';
-import { validatePromptAnswer, validate } from '../middleware/validation';
+import { validate, validatePromptAnswer } from '../middleware/validation';
+import {
+  getUserMatchHistory,
+  getWeeklyMatch,
+  matchToResponse,
+  revealMatch,
+} from '../services/matchingService';
+import {
+  answerToResponse,
+  getActivePrompt,
+  getPromptAnswer,
+  getPromptById,
+  promptToResponse,
+  submitPromptAnswer,
+} from '../services/promptsService';
 
 const router = express.Router();
 
@@ -91,7 +87,7 @@ router.get(
   '/api/prompts/active',
   authenticatedRateLimit,
   authenticateUser,
-  async (req: AuthenticatedRequest, res) => {
+  async (req: AuthenticatedRequest, res: express.Response) => {
     try {
       // Verify user exists
       const netid = await getNetidFromAuth(req.user!.uid);
@@ -161,7 +157,7 @@ router.post(
   authenticateUser,
   validatePromptAnswer,
   validate,
-  async (req: AuthenticatedRequest, res) => {
+  async (req: AuthenticatedRequest, res: express.Response) => {
     try {
       const { promptId, answer }: { promptId: string; answer: string } = req.body;
 

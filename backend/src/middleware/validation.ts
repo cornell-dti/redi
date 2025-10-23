@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import { body, validationResult, ValidationChain } from 'express-validator';
+import { NextFunction, Request, Response } from 'express';
+import { body, ValidationChain, validationResult } from 'express-validator';
 
 /**
  * Middleware to check validation results and return errors
@@ -7,6 +7,11 @@ import { body, validationResult, ValidationChain } from 'express-validator';
 export const validate = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.error('❌ [Validation] Validation failed:', {
+      path: req.path,
+      method: req.method,
+      errors: errors.array(),
+    });
     return res.status(400).json({
       error: 'Validation failed',
       details: errors.array(),
@@ -66,8 +71,8 @@ export const validateProfileCreation: ValidationChain[] = [
     }),
 
   body('year')
-    .isInt({ min: 2020, max: 2030 })
-    .withMessage('Invalid graduation year'),
+    .isIn(['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'PhD', 'Post-Doc'])
+    .withMessage('Invalid year value'),
 
   body('school')
     .trim()
@@ -175,8 +180,8 @@ export const validateProfileCreation: ValidationChain[] = [
 export const validatePromptAnswer: ValidationChain[] = [
   body('promptId')
     .trim()
-    .matches(/^\d{4}-\d{1,2}$/)
-    .withMessage('Invalid prompt ID format (expected: YYYY-WW)'),
+    .matches(/^\d{4}-W?\d{1,2}$/)
+    .withMessage('Invalid prompt ID format (expected: YYYY-WW or YYYY-W-WW)'),
 
   body('answer')
     .trim()

@@ -54,28 +54,35 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   // Check if profile has these fields before accessing them
   const hasSocials = 'instagram' in profile || 'snapchat' in profile;
 
-  const socialItems: SocialItem[] = hasSocials ? [
-    'instagram' in profile && profile.instagram && {
-      icon: <Instagram size={24} />,
-      url: `https://instagram.com/${profile.instagram}`,
-    },
-    'snapchat' in profile && profile.snapchat && {
-      icon: <Ghost size={24} />,
-      url: `https://snapchat.com/add/${profile.snapchat}`,
-    },
-    'linkedIn' in profile && profile.linkedIn && {
-      icon: <Linkedin size={24} />,
-      url: profile.linkedIn,
-    },
-    'github' in profile && profile.github && {
-      icon: <Github size={24} />,
-      url: profile.github,
-    },
-    'website' in profile && profile.website && {
-      icon: <Globe size={24} color={AppColors.foregroundDefault} />,
-      url: profile.website,
-    },
-  ].filter(Boolean) as SocialItem[] : [];
+  const socialItems: SocialItem[] = hasSocials
+    ? ([
+        'instagram' in profile &&
+          profile.instagram && {
+            icon: <Instagram size={24} />,
+            url: `https://instagram.com/${profile.instagram}`,
+          },
+        'snapchat' in profile &&
+          profile.snapchat && {
+            icon: <Ghost size={24} />,
+            url: `https://snapchat.com/add/${profile.snapchat}`,
+          },
+        'linkedIn' in profile &&
+          profile.linkedIn && {
+            icon: <Linkedin size={24} />,
+            url: profile.linkedIn,
+          },
+        'github' in profile &&
+          profile.github && {
+            icon: <Github size={24} />,
+            url: profile.github,
+          },
+        'website' in profile &&
+          profile.website && {
+            icon: <Globe size={24} color={AppColors.foregroundDefault} />,
+            url: profile.website,
+          },
+      ].filter(Boolean) as SocialItem[])
+    : [];
 
   return (
     <ScrollView style={styles.container}>

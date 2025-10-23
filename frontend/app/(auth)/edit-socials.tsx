@@ -105,7 +105,7 @@ export default function EditSocialsPage() {
 
     setSaving(true);
     try {
-      await updateProfile( {
+      await updateProfile({
         instagram: socials.instagram,
         snapchat: socials.snapchat,
         linkedIn: socials.linkedin,

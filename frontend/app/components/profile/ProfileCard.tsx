@@ -17,7 +17,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     return (
       <View style={styles.compactCard}>
         <Text style={styles.compactTitle}>
-          {profile.netid}{profile.school ? ` - ${profile.school}` : ''}
+          {profile.netid}
+          {profile.school ? ` - ${profile.school}` : ''}
         </Text>
         <Text style={styles.compactBio}>
           {profile.bio.length > 50

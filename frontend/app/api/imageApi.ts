@@ -59,7 +59,7 @@ export const uploadImages = async (imageUris: string[]): Promise<string[]> => {
     const uploadResponse = await fetch(`${API_BASE_URL}/api/images/upload`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: formData,
     });
@@ -90,7 +90,7 @@ export const deleteImage = async (imageUrl: string): Promise<void> => {
     const response = await fetch(`${API_BASE_URL}/api/images`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ imageUrl }),

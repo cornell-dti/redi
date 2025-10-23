@@ -67,7 +67,7 @@ export default function EditSexualityPage() {
 
     setSaving(true);
     try {
-      await updateProfile( {
+      await updateProfile({
         sexualOrientation: [selectedOrientation],
       });
 

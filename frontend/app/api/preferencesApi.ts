@@ -18,17 +18,18 @@ import { apiClient } from './apiClient';
  * @returns Promise resolving to user's preferences, or null if not found
  * @throws APIError if fetch fails
  */
-export const getCurrentUserPreferences = async (): Promise<PreferencesResponse | null> => {
-  try {
-    return await apiClient.get<PreferencesResponse>('/api/preferences');
-  } catch (error: any) {
-    // Preferences don't exist yet - return null (not an error)
-    if (error.status === 404) {
-      return null;
+export const getCurrentUserPreferences =
+  async (): Promise<PreferencesResponse | null> => {
+    try {
+      return await apiClient.get<PreferencesResponse>('/api/preferences');
+    } catch (error: any) {
+      // Preferences don't exist yet - return null (not an error)
+      if (error.status === 404) {
+        return null;
+      }
+      throw error;
     }
-    throw error;
-  }
-};
+  };
 
 /**
  * Updates the current user's dating preferences

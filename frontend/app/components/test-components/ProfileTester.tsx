@@ -128,7 +128,7 @@ const ProfileTester = () => {
 
     setLoading(true);
     try {
-      const result = await createProfile( profileData);
+      const result = await createProfile(profileData);
       Alert.alert(
         'Profile Created',
         `${result.message}\nNetid: ${result.netid}`,
@@ -179,7 +179,7 @@ const ProfileTester = () => {
 
     setLoading(true);
     try {
-      const result = await updateProfile( updateData);
+      const result = await updateProfile(updateData);
       Alert.alert('Profile Updated', result.message, [
         {
           text: 'OK',
@@ -282,7 +282,7 @@ const ProfileTester = () => {
 
     setLoading(true);
     try {
-      const matchResults = await getMatches( 10);
+      const matchResults = await getMatches(10);
       setMatches(matchResults);
       Alert.alert(
         'Matches Retrieved',

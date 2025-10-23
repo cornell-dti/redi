@@ -34,25 +34,19 @@ export default function CountdownTimer({ targetDate }: CountdownTimerProps) {
           {String(timeRemaining.days).padStart(2, '0')}
         </AppText>
       </View>
-      <AppText variant="title">
-        :
-      </AppText>
+      <AppText variant="title">:</AppText>
       <View style={styles.timeBlock}>
         <AppText variant="title">
           {String(timeRemaining.hours).padStart(2, '0')}
         </AppText>
       </View>
-      <AppText variant="title">
-        :
-      </AppText>
+      <AppText variant="title">:</AppText>
       <View style={styles.timeBlock}>
         <AppText variant="title">
           {String(timeRemaining.minutes).padStart(2, '0')}
         </AppText>
       </View>
-      <AppText variant="title">
-        :
-      </AppText>
+      <AppText variant="title">:</AppText>
       <View style={styles.timeBlock}>
         <AppText variant="title">
           {String(timeRemaining.seconds).padStart(2, '0')}
@@ -94,5 +88,5 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     minWidth: 48,
     alignItems: 'center',
-  }
+  },
 });

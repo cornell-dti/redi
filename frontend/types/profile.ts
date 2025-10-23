@@ -120,7 +120,9 @@ export function hasBirthdate(
 /**
  * Type guard to check if a profile has age (public profile)
  */
-export function hasAge(profile: ProfileResponse): profile is PublicProfileResponse {
+export function hasAge(
+  profile: ProfileResponse
+): profile is PublicProfileResponse {
   return 'age' in profile && profile.age !== undefined;
 }
 
@@ -139,7 +141,10 @@ export function getProfileAge(profile: ProfileResponse): number {
     const today = new Date();
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
       age--;
     }
     return age;

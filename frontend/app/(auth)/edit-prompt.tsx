@@ -103,7 +103,7 @@ export default function EditPromptPage() {
         );
       }
 
-      await updateProfile( {
+      await updateProfile({
         prompts: updatedPrompts,
       });
 
@@ -136,7 +136,7 @@ export default function EditPromptPage() {
         (p) => !(p.question === initialQuestion && p.answer === initialAnswer)
       );
 
-      await updateProfile( {
+      await updateProfile({
         prompts: updatedPrompts,
       });
 

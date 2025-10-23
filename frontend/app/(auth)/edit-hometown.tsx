@@ -68,7 +68,7 @@ export default function EditHometownPage() {
 
     setSaving(true);
     try {
-      await updateProfile( {
+      await updateProfile({
         hometown: hometown.trim(),
       });
 

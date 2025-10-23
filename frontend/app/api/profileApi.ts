@@ -23,17 +23,18 @@ import { apiClient } from './apiClient';
  * @returns Promise resolving to user's own profile, or null if not found
  * @throws APIError if fetch fails
  */
-export const getCurrentUserProfile = async (): Promise<OwnProfileResponse | null> => {
-  try {
-    return await apiClient.get<OwnProfileResponse>('/api/profiles/me');
-  } catch (error: any) {
-    // Profile doesn't exist yet - return null (not an error)
-    if (error.status === 404) {
-      return null;
+export const getCurrentUserProfile =
+  async (): Promise<OwnProfileResponse | null> => {
+    try {
+      return await apiClient.get<OwnProfileResponse>('/api/profiles/me');
+    } catch (error: any) {
+      // Profile doesn't exist yet - return null (not an error)
+      if (error.status === 404) {
+        return null;
+      }
+      throw error;
     }
-    throw error;
-  }
-};
+  };
 
 /**
  * Creates a new profile for the current user
@@ -141,7 +142,9 @@ export const getAllProfiles = async (
   });
 
   const queryString = params.toString();
-  const endpoint = queryString ? `/api/profiles?${queryString}` : '/api/profiles';
+  const endpoint = queryString
+    ? `/api/profiles?${queryString}`
+    : '/api/profiles';
 
   return apiClient.get<ProfileResponse[]>(endpoint);
 };

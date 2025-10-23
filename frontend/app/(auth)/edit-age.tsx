@@ -63,7 +63,11 @@ export default function EditAgePage() {
       // Calculate birthdate from age (assuming birthday hasn't happened yet this year)
       const today = new Date();
       const birthYear = today.getFullYear() - ageNum;
-      const newBirthdate = new Date(birthYear, today.getMonth(), today.getDate());
+      const newBirthdate = new Date(
+        birthYear,
+        today.getMonth(),
+        today.getDate()
+      );
       setBirthdate(newBirthdate);
     }
   };
@@ -84,7 +88,7 @@ export default function EditAgePage() {
 
     setSaving(true);
     try {
-      await updateProfile( {
+      await updateProfile({
         birthdate: birthdate.toISOString(),
       });
 

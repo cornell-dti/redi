@@ -90,9 +90,7 @@ export async function getPromptAnswer(
 export async function getPromptMatches(
   promptId: string
 ): Promise<WeeklyMatchResponse> {
-  return apiClient.get<WeeklyMatchResponse>(
-    `/api/prompts/${promptId}/matches`
-  );
+  return apiClient.get<WeeklyMatchResponse>(`/api/prompts/${promptId}/matches`);
 }
 
 /**

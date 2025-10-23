@@ -63,7 +63,7 @@ describe('APIClient Integration Tests', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'Authorization': `Bearer ${mockToken}`,
+            Authorization: `Bearer ${mockToken}`,
           }),
         })
       );
@@ -111,7 +111,7 @@ describe('APIClient Integration Tests', () => {
         expect.any(String),
         expect.objectContaining({
           headers: expect.objectContaining({
-            'Authorization': `Bearer ${newToken}`,
+            Authorization: `Bearer ${newToken}`,
           }),
         })
       );
@@ -158,7 +158,7 @@ describe('APIClient Integration Tests', () => {
 
       // Verify token was refreshed
       expect(mockUser.getIdToken).toHaveBeenCalledWith(false); // First attempt
-      expect(mockUser.getIdToken).toHaveBeenCalledWith(true);  // Retry with refresh
+      expect(mockUser.getIdToken).toHaveBeenCalledWith(true); // Retry with refresh
 
       expect(result).toEqual({ data: 'success' });
     });
@@ -485,7 +485,7 @@ describe('APIClient Integration Tests', () => {
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           }),
           body: formData,
         })

@@ -1,8 +1,8 @@
 import express from 'express';
 import multer from 'multer';
-import { bucket, db } from '../../firebaseAdmin';
 import { v4 as uuidv4 } from 'uuid';
-import { authenticateUser, AuthenticatedRequest } from '../middleware/auth';
+import { bucket, db } from '../../firebaseAdmin';
+import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -61,7 +61,24 @@ const getUserNetId = async (firebaseUid: string): Promise<string | null> => {
 router.post(
   '/api/images/upload',
   authenticateUser,
-  upload.array('images', 6),
+  (req, res, next) => {
+    upload.array('images', 6)(req, res, (err) => {
+      if (err) {
+        console.error('❌ [Images] Multer error:', err);
+        if (err instanceof multer.MulterError) {
+          if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(413).json({ error: 'File too large (max 5MB per file)' });
+          }
+          if (err.code === 'LIMIT_FILE_COUNT') {
+            return res.status(413).json({ error: 'Too many files (max 6)' });
+          }
+          return res.status(400).json({ error: `Upload error: ${err.message}` });
+        }
+        return res.status(400).json({ error: err.message });
+      }
+      next();
+    });
+  },
   async (req: AuthenticatedRequest, res) => {
     try {
       const files = req.files as Express.Multer.File[];
