@@ -1,25 +1,20 @@
 import AppText from '@/app/components/ui/AppText';
+import Button from '@/app/components/ui/Button';
 import {
   BarChart3,
-  CheckCheck,
   Heart,
   LucideIcon,
   MessageCircle,
   TrendingUp,
+  X,
 } from 'lucide-react-native';
 import React from 'react';
-import {
-  FlatList,
-  StatusBar,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
-import { useThemeAware } from '../../contexts/ThemeContext';
-import Header from '../../components/ui/Header';
+import ListItemWrapper from '../../components/ui/ListItemWrapper';
 import NotificationItem from '../../components/ui/NotificationItem';
+import { useThemeAware } from '../../contexts/ThemeContext';
 
 interface Notification {
   id: string;
@@ -95,54 +90,40 @@ export default function NotificationsScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <Header
-        title="Notifications"
-        right={
-          <TouchableOpacity>
-            <CheckCheck size={24} color={AppColors.foregroundDimmer} />
-          </TouchableOpacity>
-        }
-      />
+      <View style={styles.top}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={{
+            rowGap: 24,
+          }}
+        >
+          <AppText variant="title">Notifications</AppText>
 
-      <View style={styles.filterContainer}>
-        <TouchableOpacity style={[styles.filterTab, styles.activeTab]}>
-          <AppText variant="body">All</AppText>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.filterTab}>
-          <AppText variant="body" color="dimmer">
-            Matches
-          </AppText>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.filterTab}>
-          <AppText variant="body" color="dimmer">
-            Messages
-          </AppText>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.filterTab}>
-          <AppText variant="body" color="dimmer">
-            Likes
-          </AppText>
-        </TouchableOpacity>
-      </View>
+          <ListItemWrapper style={styles.list}>
+            {mockNotifications.map((item) => (
+              <NotificationItem
+                key={item.id}
+                type={item.type}
+                title={item.title}
+                message={item.message}
+                timestamp={item.timestamp}
+                read={item.read}
+                image={item.image}
+                icon={item.icon}
+              />
+            ))}
+          </ListItemWrapper>
+        </ScrollView>
 
-      <FlatList
-        data={mockNotifications}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <NotificationItem
-            type={item.type}
-            title={item.title}
-            message={item.message}
-            timestamp={item.timestamp}
-            read={item.read}
-            image={item.image}
-            icon={item.icon}
+        <View style={styles.footer}>
+          <Button
+            iconLeft={X}
+            variant="secondary"
+            title="Clear all"
+            onPress={() => {}}
           />
-        )}
-        showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        contentContainerStyle={styles.list}
-      />
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -151,22 +132,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: AppColors.backgroundDefault,
+    justifyContent: 'space-between',
   },
-  filterContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: AppColors.backgroundDefault,
-    gap: 12,
-  },
-  filterTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: AppColors.backgroundDimmer,
-  },
-  activeTab: {
-    backgroundColor: AppColors.accentDefault,
+  scrollView: {
+    padding: 16,
+    height: '90%',
   },
   list: {
     backgroundColor: AppColors.backgroundDefault,
@@ -175,5 +145,11 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: AppColors.backgroundDimmer,
     marginLeft: 76,
+  },
+  footer: {
+    padding: 16,
+  },
+  top: {
+    gap: 24,
   },
 });

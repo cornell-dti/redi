@@ -146,18 +146,18 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <View style={styles.profileTop}>
-        <Image source={{ uri: displayImages[0] }} style={styles.profilePic} />
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.profileTop}>
+          <Image source={{ uri: displayImages[0] }} style={styles.profilePic} />
 
-        <View style={styles.nameContainer}>
-          <AppText variant="title">{displayName}</AppText>
-          <AppText variant="body" color="dimmer">
-            Member since XXX
-          </AppText>
+          <View style={styles.nameContainer}>
+            <AppText variant="title">{displayName}</AppText>
+            <AppText variant="body" color="dimmer">
+              Member since XXX
+            </AppText>
+          </View>
         </View>
-      </View>
 
-      <ScrollView>
         <View style={styles.sectionsWrapper}>
           <View style={styles.buttonRow}>
             <Button
@@ -265,7 +265,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     gap: 24,
-    padding: 16,
     backgroundColor: AppColors.backgroundDefault,
   },
   centerContent: {
@@ -286,10 +285,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   scrollView: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 24,
-    flex: 1,
+    padding: 16,
   },
   sectionsWrapper: {
     display: 'flex',
@@ -301,6 +297,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    marginBottom: 24,
   },
   profilePic: {
     width: 128,
