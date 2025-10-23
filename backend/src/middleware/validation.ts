@@ -7,7 +7,7 @@ import { body, ValidationChain, validationResult } from 'express-validator';
 export const validate = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.error('❌ [Validation] Validation failed:', {
+    console.error('[Validation] Validation failed:', {
       path: req.path,
       method: req.method,
       errors: errors.array(),
