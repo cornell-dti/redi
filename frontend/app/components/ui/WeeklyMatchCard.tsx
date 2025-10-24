@@ -71,7 +71,7 @@ export default function WeeklyMatchCard({
             title={nudgeSent ? 'Nudged' : 'Nudge'}
             onPress={() => setSheetVisible(true)}
             variant="primary"
-            iconLeft={nudgeSent ? BellOff : Bell}
+            iconLeft={Bell}
             fullWidth
             disabled={nudgeSent || nudgeDisabled}
           />
