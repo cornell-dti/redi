@@ -218,13 +218,13 @@ export default function CreateProfileScreen() {
 
       // Step 3: Submit profile to backend
       const { firebaseUid: uid, ...profileData } = payload;
-      await createProfile(uid, profileData);
+      await createProfile(profileData);
 
       // Step 4: Save preferences (interestedIn -> preferences.genders)
       try {
         const preferencesData = extractPreferencesFromOnboarding(data);
         if (preferencesData.genders && preferencesData.genders.length > 0) {
-          await updatePreferences(uid, preferencesData);
+          await updatePreferences(preferencesData);
         }
       } catch (prefError) {
         // Don't fail the whole onboarding if preferences save fails

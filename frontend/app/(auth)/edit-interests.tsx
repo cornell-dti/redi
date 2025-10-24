@@ -44,7 +44,7 @@ export default function EditInterestsPage() {
 
     try {
       setLoading(true);
-      const profileData = await getCurrentUserProfile(user.uid);
+      const profileData = await getCurrentUserProfile();
 
       if (profileData) {
         const interestsData = profileData.interests || [];
@@ -68,7 +68,7 @@ export default function EditInterestsPage() {
 
     setSaving(true);
     try {
-      await updateProfile(user.uid, {
+      await updateProfile({
         interests,
       });
 

@@ -1,13 +1,14 @@
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
-import landingPageRouter from './routes/landing-page';
-import profilesRouter from './routes/profiles';
-import usersRouter from './routes/users';
-import preferencesRouter from './routes/preferences';
-import promptsRouter from './routes/prompts';
+import helmet from 'helmet';
 import adminPromptsRouter from './routes/admin-prompts';
 import imagesRouter from './routes/images';
+import landingPageRouter from './routes/landing-page';
+import preferencesRouter from './routes/preferences';
+import profilesRouter from './routes/profiles';
+import promptsRouter from './routes/prompts';
+import usersRouter from './routes/users';
 
 dotenv.config();
 
@@ -24,6 +25,25 @@ process.on('unhandledRejection', (reason, promise) => {
   process.exit(1);
 });
 
+// Security headers middleware
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https://storage.googleapis.com'],
+      },
+    },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+  })
+);
+
 const allowedOrigins = [
   'https://redi.love',
   'http://localhost:3000',
@@ -34,8 +54,11 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl)
-      if (!origin) return callback(null, true);
+      // For safe methods (GET, HEAD, OPTIONS), allow no origin (mobile apps)
+      // For mutation methods, require origin header
+      if (!origin) {
+        return callback(null, true);
+      }
 
       const isAllowed = allowedOrigins.some((allowed) => {
         if (typeof allowed === 'string') {
@@ -47,14 +70,23 @@ app.use(
       if (isAllowed) {
         callback(null, true);
       } else {
+        console.warn(`CORS rejected origin: ${origin}`);
         callback(new Error('Not allowed by CORS'));
       }
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 86400, // 24 hours
   })
 );
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Limit request body size
+
+// Request logging middleware
+app.use((req, _res, next) => {
+  next();
+});
 
 app.get('/ping', (_req, res) => res.send('pong'));
 
@@ -63,8 +95,8 @@ app.use(usersRouter); // User authentication
 app.use(profilesRouter);
 app.use(preferencesRouter); // /api/preferences
 app.use(promptsRouter); // /api/prompts
-app.use(adminPromptsRouter); // /api/admin/prompts
 app.use(imagesRouter); // /api/images
+app.use(adminPromptsRouter); // /api/admin/prompts
 
 app
   .listen(PORT, () => {

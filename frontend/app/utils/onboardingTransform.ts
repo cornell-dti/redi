@@ -116,7 +116,7 @@ export function transformOnboardingToProfilePayload(
     bio,
     gender,
     birthdate,
-    year: onboardingData.year,
+    year: onboardingData.year as any, // Type assertion for Year
     school: onboardingData.school as any, // Type assertion for School
     major: onboardingData.major,
     pictures: onboardingData.pictures,

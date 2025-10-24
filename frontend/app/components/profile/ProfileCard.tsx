@@ -17,7 +17,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     return (
       <View style={styles.compactCard}>
         <Text style={styles.compactTitle}>
-          {profile.netid} - {profile.school}
+          {profile.netid}
+          {profile.school ? ` - ${profile.school}` : ''}
         </Text>
         <Text style={styles.compactBio}>
           {profile.bio.length > 50
@@ -34,24 +35,26 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
       <ProfileField label="Netid" value={profile.netid} />
       <ProfileField label="Bio" value={profile.bio} />
-      <ProfileField label="Gender" value={profile.gender} />
-      <ProfileField label="School" value={profile.school} />
-      <ProfileField label="Year" value={profile.year.toString()} />
+      {profile.gender && <ProfileField label="Gender" value={profile.gender} />}
+      {profile.school && <ProfileField label="School" value={profile.school} />}
+      <ProfileField label="Year" value={profile.year} />
       <ProfileField label="Major" value={profile.major.join(', ')} />
 
-      {profile.instagram && (
+      {'instagram' in profile && profile.instagram && (
         <ProfileField label="Instagram" value={profile.instagram} />
       )}
-      {profile.snapchat && (
+      {'snapchat' in profile && profile.snapchat && (
         <ProfileField label="Snapchat" value={profile.snapchat} />
       )}
-      {profile.phoneNumber && (
+      {'phoneNumber' in profile && profile.phoneNumber && (
         <ProfileField label="Phone" value={profile.phoneNumber} />
       )}
 
-      <Text style={styles.dateText}>
-        Created: {new Date(profile.createdAt).toLocaleDateString()}
-      </Text>
+      {'createdAt' in profile && profile.createdAt && (
+        <Text style={styles.dateText}>
+          Created: {new Date(profile.createdAt).toLocaleDateString()}
+        </Text>
+      )}
     </View>
   );
 };

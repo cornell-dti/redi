@@ -135,7 +135,13 @@ export const ETHNICITY_OPTIONS = [
   'Other',
   'Prefer not to say',
 ] as const;
-export const YEAR_OPTIONS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'];
+export const YEAR_OPTIONS = [
+  'Freshman',
+  'Sophomore',
+  'Junior',
+  'Senior',
+  'Graduate',
+];
 
 // Sample prompts for Step 11
 export const AVAILABLE_PROMPTS = [

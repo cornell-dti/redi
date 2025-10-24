@@ -37,7 +37,7 @@ export default function EditSexualityPage() {
 
     try {
       setLoading(true);
-      const profileData = await getCurrentUserProfile(user.uid);
+      const profileData = await getCurrentUserProfile();
 
       if (profileData) {
         // Get the first orientation if it exists, or null
@@ -67,7 +67,7 @@ export default function EditSexualityPage() {
 
     setSaving(true);
     try {
-      await updateProfile(user.uid, {
+      await updateProfile({
         sexualOrientation: [selectedOrientation],
       });
 

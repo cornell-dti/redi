@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import admin from 'firebase-admin';
 
 /**
@@ -23,6 +23,8 @@ export const authenticateUser = async (
   res: Response,
   next: NextFunction
 ) => {
+  console.log('🔐 [Auth] authenticateUser middleware called for:', req.path);
+
   try {
     const authHeader = req.headers.authorization;
 
@@ -47,7 +49,7 @@ export const authenticateUser = async (
 
     next();
   } catch (error) {
-    console.error('Authentication error:', error);
+    console.error('[Auth] Authentication error:', error);
     return res.status(403).json({ error: 'Invalid or expired token' });
   }
 };

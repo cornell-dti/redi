@@ -22,8 +22,8 @@ const ProfileForm: React.FC<ProfileFormProps> = ({
     instagram: '',
     snapchat: '',
     phoneNumber: '',
-    year: new Date().getFullYear(),
-    school: '',
+    year: 'Freshman' as any, // Year is a string like 'Freshman', 'Sophomore', etc.
+    school: '' as any,
     major: [],
     ...initialData,
   });

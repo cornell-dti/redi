@@ -44,7 +44,7 @@ export default function EditClubsPage() {
 
     try {
       setLoading(true);
-      const profileData = await getCurrentUserProfile(user.uid);
+      const profileData = await getCurrentUserProfile();
 
       if (profileData) {
         const clubsData = profileData.clubs || [];
@@ -68,7 +68,7 @@ export default function EditClubsPage() {
 
     setSaving(true);
     try {
-      await updateProfile(user.uid, {
+      await updateProfile({
         clubs,
       });
 

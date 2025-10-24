@@ -1,6 +1,6 @@
 import AppText from '@/app/components/ui/AppText';
-import { calculateAge, getYearString } from '@/app/utils/profileUtils';
-import { ProfileResponse } from '@/types';
+import { getYearString } from '@/app/utils/profileUtils';
+import { ProfileResponse, getProfileAge } from '@/types';
 import {
   Bell,
   Cake,
@@ -43,35 +43,46 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   onNudge,
 }) => {
   const screenWidth = Dimensions.get('window').width;
-  const age = calculateAge(profile.birthdate);
+  const age = getProfileAge(profile);
 
   type SocialItem = {
     icon: React.ReactNode;
     url: string;
   };
 
-  const socialItems: SocialItem[] = [
-    profile.instagram && {
-      icon: <Instagram size={24} />,
-      url: `https://instagram.com/${profile.instagram}`,
-    },
-    profile.snapchat && {
-      icon: <Ghost size={24} />,
-      url: `https://snapchat.com/add/${profile.snapchat}`,
-    },
-    profile.linkedIn && {
-      icon: <Linkedin size={24} />,
-      url: profile.linkedIn,
-    },
-    profile.github && {
-      icon: <Github size={24} />,
-      url: profile.github,
-    },
-    profile.website && {
-      icon: <Globe size={24} color={AppColors.foregroundDefault} />,
-      url: profile.website,
-    },
-  ].filter(Boolean) as SocialItem[];
+  // Social media fields are only available for own profile and matched profiles
+  // Check if profile has these fields before accessing them
+  const hasSocials = 'instagram' in profile || 'snapchat' in profile;
+
+  const socialItems: SocialItem[] = hasSocials
+    ? ([
+        'instagram' in profile &&
+          profile.instagram && {
+            icon: <Instagram size={24} />,
+            url: `https://instagram.com/${profile.instagram}`,
+          },
+        'snapchat' in profile &&
+          profile.snapchat && {
+            icon: <Ghost size={24} />,
+            url: `https://snapchat.com/add/${profile.snapchat}`,
+          },
+        'linkedIn' in profile &&
+          profile.linkedIn && {
+            icon: <Linkedin size={24} />,
+            url: profile.linkedIn,
+          },
+        'github' in profile &&
+          profile.github && {
+            icon: <Github size={24} />,
+            url: profile.github,
+          },
+        'website' in profile &&
+          profile.website && {
+            icon: <Globe size={24} color={AppColors.foregroundDefault} />,
+            url: profile.website,
+          },
+      ].filter(Boolean) as SocialItem[])
+    : [];
 
   return (
     <ScrollView style={styles.container}>
@@ -151,7 +162,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
             {profile.showCollegeOnProfile && profile.school && (
               <View style={styles.subSection}>
                 <GraduationCap size={20} />
-                <AppText>{`${getYearString(profile.year)} in ${profile?.school} studying ${profile?.major?.join(', ')}`}</AppText>
+                <AppText>{`${profile.year} in ${profile.school} studying ${profile.major?.join(', ')}`}</AppText>
               </View>
             )}
           </ListItemWrapper>

@@ -1,11 +1,19 @@
 // _layout.tsx
 import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import auth from '@react-native-firebase/auth';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { onAuthStateChanged } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
+
+/**
+ * Token Refresh Configuration
+ * Automatically refreshes Firebase ID tokens every 45 minutes
+ * to ensure authentication remains valid
+ */
+const TOKEN_REFRESH_INTERVAL_MS = 45 * 60 * 1000; // 45 minutes
 
 function RootNavigator() {
   useThemeAware(); // This makes all screens theme-aware
@@ -25,6 +33,29 @@ function RootNavigator() {
     return unsubscribe;
   }, []);
 
+  // Automatic token refresh to maintain authentication
+  useEffect(() => {
+    if (!user) return;
+
+    const refreshToken = async () => {
+      try {
+        const currentUser = auth().currentUser;
+        if (currentUser) {
+          await currentUser.getIdToken(true); // Force refresh
+          console.log('🔄 Token refreshed successfully');
+        }
+      } catch (error) {
+        console.error('❌ Token refresh failed:', error);
+      }
+    };
+
+    // Set up periodic refresh
+    const intervalId = setInterval(refreshToken, TOKEN_REFRESH_INTERVAL_MS);
+
+    // Cleanup on unmount or user sign out
+    return () => clearInterval(intervalId);
+  }, [user]);
+
   useEffect(() => {
     if (initializing) return;
 
@@ -41,7 +72,7 @@ function RootNavigator() {
         // User is signed in but not in auth group
         // Check if user has a profile to determine where to redirect
         try {
-          const profile = await getCurrentUserProfile(user.uid);
+          const profile = await getCurrentUserProfile();
 
           if (profile) {
             // User has a complete profile, go to tabs
