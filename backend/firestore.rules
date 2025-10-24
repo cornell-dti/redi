@@ -78,6 +78,32 @@ service cloud.firestore {
       allow write: if false; // Only server-side writes allowed
     }
 
+    // Nudges - users can create nudges to their matches, read their own nudges
+    match /nudges/{nudgeId} {
+      allow create: if isAuthenticated() &&
+        request.resource.data.fromNetid == getUserNetid();
+      allow read: if isAuthenticated() &&
+        (resource.data.fromNetid == getUserNetid() ||
+         resource.data.toNetid == getUserNetid());
+      allow update, delete: if false; // Only server-side updates allowed
+    }
+
+    // Notifications - users can only read their own notifications and mark as read
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() &&
+        resource.data.netid == getUserNetid();
+      allow update: if isAuthenticated() &&
+        resource.data.netid == getUserNetid() &&
+        request.resource.data.netid == resource.data.netid &&
+        request.resource.data.type == resource.data.type &&
+        request.resource.data.title == resource.data.title &&
+        request.resource.data.message == resource.data.message &&
+        request.resource.data.metadata == resource.data.metadata &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow create, delete: if false; // Only server-side writes allowed
+    }
+
     // Deny all other access by default
     match /{document=**} {
       allow read, write: if false;

@@ -1,91 +1,82 @@
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
+import { useNotifications } from '@/app/hooks/useNotifications';
 import {
-  BarChart3,
+  Bell,
   Heart,
   LucideIcon,
   MessageCircle,
-  TrendingUp,
   X,
 } from 'lucide-react-native';
 import React from 'react';
-import { ScrollView, StatusBar, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
 import ListItemWrapper from '../../components/ui/ListItemWrapper';
 import NotificationItem from '../../components/ui/NotificationItem';
 import { useThemeAware } from '../../contexts/ThemeContext';
+import { useRouter } from 'expo-router';
 
-interface Notification {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  timestamp: string;
-  read: boolean;
-  image: string | null;
-  icon: LucideIcon;
-}
+// Helper to get icon for notification type
+const getNotificationIcon = (type: string): LucideIcon => {
+  switch (type) {
+    case 'mutual_nudge':
+      return Heart;
+    case 'new_message':
+      return MessageCircle;
+    default:
+      return Bell;
+  }
+};
 
-// Mock notification data
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'match',
-    title: 'New Match!',
-    message: 'You and Abrar liked each other',
-    timestamp: '2m ago',
-    read: false,
-    image:
-      'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
-    icon: Heart,
-  },
-  {
-    id: '2',
-    type: 'message',
-    title: 'New Message',
-    message: 'Cleemmie sent you a message',
-    timestamp: '15m ago',
-    read: false,
-    image:
-      'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
-    icon: MessageCircle,
-  },
-  {
-    id: '3',
-    type: 'like',
-    title: 'Someone liked you!',
-    message: 'Arshie Barsh admires your profile',
-    timestamp: '1h ago',
-    read: true,
-    image:
-      'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
-    icon: Heart,
-  },
-  {
-    id: '4',
-    type: 'profile',
-    title: 'Profile Boost',
-    message: 'Your profile was shown to 50 more people today',
-    timestamp: '3h ago',
-    read: true,
-    image: null,
-    icon: TrendingUp,
-  },
-  {
-    id: '5',
-    type: 'system',
-    title: 'Weekly Summary',
-    message: 'You had 12 profile views this week',
-    timestamp: '1d ago',
-    read: true,
-    image: null,
-    icon: BarChart3,
-  },
-];
+// Helper to format timestamp as relative time
+const formatRelativeTime = (isoDate: string): string => {
+  const date = new Date(isoDate);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+  return `${Math.floor(diffDays / 30)}mo ago`;
+};
 
 export default function NotificationsScreen() {
   useThemeAware(); // Force re-render when theme changes
+  const router = useRouter();
+  const { notifications, loading, error, markAsRead, markAllAsRead } = useNotifications();
+  const handleNotificationPress = async (notificationId: string, type: string, metadata: any) => {
+    try {
+      // Mark as read
+      await markAsRead(notificationId);
+
+      // Navigate based on type
+      if (type === 'mutual_nudge') {
+        // Navigate to matches screen
+        router.push('/(auth)/(tabs)/' as any);
+      } else if (type === 'new_message' && metadata.chatId) {
+        // Navigate to chat (when implemented)
+        Alert.alert('Chat', 'Chat feature coming soon!');
+      }
+    } catch (err) {
+      console.error('Error handling notification press:', err);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+    } catch (err) {
+      console.error('Error marking all as read:', err);
+      Alert.alert('Error', 'Failed to mark all notifications as read');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -99,30 +90,66 @@ export default function NotificationsScreen() {
         >
           <AppText variant="title">Notifications</AppText>
 
-          <ListItemWrapper style={styles.list}>
-            {mockNotifications.map((item) => (
-              <NotificationItem
-                key={item.id}
-                type={item.type}
-                title={item.title}
-                message={item.message}
-                timestamp={item.timestamp}
-                read={item.read}
-                image={item.image}
-                icon={item.icon}
-              />
-            ))}
-          </ListItemWrapper>
+          {loading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={AppColors.accentDefault} />
+              <AppText variant="body" color="dimmer" style={{ marginTop: 8 }}>
+                Loading notifications...
+              </AppText>
+            </View>
+          )}
+
+          {error && (
+            <View style={styles.emptyState}>
+              <AppText variant="body" color="dimmer">
+                {error}
+              </AppText>
+            </View>
+          )}
+
+          {!loading && !error && notifications.length === 0 && (
+            <View style={styles.emptyState}>
+              <AppText variant="body" color="dimmer">
+                No notifications yet
+              </AppText>
+            </View>
+          )}
+
+          {!loading && !error && notifications.length > 0 && (
+            <ListItemWrapper style={styles.list}>
+              {notifications.map((notification) => (
+                <NotificationItem
+                  key={notification.id}
+                  type={notification.type}
+                  title={notification.title}
+                  message={notification.message}
+                  timestamp={formatRelativeTime(notification.createdAt)}
+                  read={notification.read}
+                  image={null}
+                  icon={getNotificationIcon(notification.type)}
+                  onPress={() =>
+                    handleNotificationPress(
+                      notification.id,
+                      notification.type,
+                      notification.metadata
+                    )
+                  }
+                />
+              ))}
+            </ListItemWrapper>
+          )}
         </ScrollView>
 
-        <View style={styles.footer}>
-          <Button
-            iconLeft={X}
-            variant="secondary"
-            title="Clear all"
-            onPress={() => {}}
-          />
-        </View>
+        {!loading && notifications.length > 0 && (
+          <View style={styles.footer}>
+            <Button
+              iconLeft={X}
+              variant="secondary"
+              title="Mark all as read"
+              onPress={handleMarkAllAsRead}
+            />
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -151,5 +178,15 @@ const styles = StyleSheet.create({
   },
   top: {
     gap: 24,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyState: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

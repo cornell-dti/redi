@@ -2,11 +2,31 @@
 // NOTIFICATION TYPES
 // =============================================================================
 
-export interface NotificationItem {
-  id: string;
-  type: 'match' | 'message' | 'like' | 'profile' | 'system';
+export type NotificationType = 'mutual_nudge' | 'new_message';
+
+export interface NotificationResponse {
+  id: string; // Document ID
+  netid: string;
+  type: NotificationType;
   title: string;
-  message?: string;
-  timestamp: string;
+  message: string;
   read: boolean;
+  metadata: {
+    promptId?: string;
+    matchNetid?: string;
+    chatId?: string;
+  };
+  createdAt: string; // ISO string format
+}
+
+export interface CreateNotificationInput {
+  netid: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  metadata: {
+    promptId?: string;
+    matchNetid?: string;
+    chatId?: string;
+  };
 }
