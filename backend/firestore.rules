@@ -78,6 +78,24 @@ service cloud.firestore {
       allow write: if false; // Only server-side writes allowed
     }
 
+    // Nudges - users can create nudges to their matches, read their own nudges
+    match /nudges/{nudgeId} {
+      allow create: if isAuthenticated() &&
+        request.resource.data.fromNetid == getUserNetid();
+      allow read: if isAuthenticated() &&
+        (resource.data.fromNetid == getUserNetid() ||
+         resource.data.toNetid == getUserNetid());
+      allow update, delete: if false; // Only server-side updates allowed
+    }
+
+    // Notifications - only backend can access (using Bearer token API)
+    match /notifications/{notificationId} {
+      allow read: if false; // Only backend via API
+      allow create: if false; // Only backend via API
+      allow update: if false; // Only backend via API
+      allow delete: if false; // Only backend via API
+    }
+
     // Deny all other access by default
     match /{document=**} {
       allow read, write: if false;

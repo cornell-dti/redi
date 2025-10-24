@@ -1,6 +1,6 @@
-import { Bell, User } from 'lucide-react-native';
+import { Bell, BellOff, User } from 'lucide-react-native';
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { Alert, Image, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 import Button from './Button';
@@ -12,8 +12,10 @@ interface WeeklyMatchCardProps {
   year: string;
   major: string;
   image: string;
-  onNudge?: () => void;
+  onNudge?: () => Promise<void>;
   onViewProfile?: () => void;
+  nudgeSent?: boolean;
+  nudgeDisabled?: boolean;
 }
 
 export default function WeeklyMatchCard({
@@ -24,12 +26,30 @@ export default function WeeklyMatchCard({
   image,
   onNudge,
   onViewProfile,
+  nudgeSent = false,
+  nudgeDisabled = false,
 }: WeeklyMatchCardProps) {
   const [isSheetVisible, setSheetVisible] = React.useState(false);
+  const [isSending, setIsSending] = React.useState(false);
 
-  const handleNudge = () => {
-    setSheetVisible(true);
-    if (onNudge) onNudge();
+  const handleNudgeConfirm = async () => {
+    if (!onNudge) return;
+
+    try {
+      setIsSending(true);
+      await onNudge();
+      setSheetVisible(false);
+      Alert.alert(
+        'Nudge sent!',
+        `You've nudged ${name}. If they nudge you back, you'll both get a notification!`
+      );
+    } catch (error: any) {
+      setSheetVisible(false);
+      const errorMessage = error?.message || 'Failed to send nudge';
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -48,11 +68,12 @@ export default function WeeklyMatchCard({
 
         <View style={styles.buttonContainer}>
           <Button
-            title="Nudge"
-            onPress={handleNudge}
+            title={nudgeSent ? 'Nudged' : 'Nudge'}
+            onPress={() => setSheetVisible(true)}
             variant="primary"
             iconLeft={Bell}
             fullWidth
+            disabled={nudgeSent || nudgeDisabled}
           />
           <Button
             title="View Profile"
@@ -63,25 +84,35 @@ export default function WeeklyMatchCard({
           />
         </View>
       </View>
-      <Sheet visible={isSheetVisible} onDismiss={() => setSheetVisible(false)}>
+      <Sheet
+        visible={isSheetVisible}
+        onDismiss={() => !isSending && setSheetVisible(false)}
+        title="Send nudge"
+      >
         <View style={styles.sheetContent}>
           <AppText>Are you sure you want to nudge {name}?</AppText>
+          <AppText variant="bodySmall" color="dimmer">
+            {nudgeSent
+              ? "You've already nudged this person."
+              : "They won't know you nudged them unless they nudge you back. If both of you nudge each other, you'll both get a notification!"}
+          </AppText>
 
           <View style={styles.buttonRow}>
+            {!nudgeSent && (
+              <Button
+                title={isSending ? 'Sending...' : 'Nudge'}
+                onPress={handleNudgeConfirm}
+                iconLeft={Bell}
+                fullWidth
+                disabled={isSending}
+              />
+            )}
             <Button
-              title="Nudge"
-              onPress={() => {
-                setSheetVisible(false);
-                if (onNudge) onNudge();
-              }}
-              iconLeft={Bell}
-              fullWidth
-            />
-            <Button
-              title="Never mind"
+              title={nudgeSent ? 'Close' : 'Never mind'}
               onPress={() => setSheetVisible(false)}
               variant="secondary"
               fullWidth
+              disabled={isSending}
             />
           </View>
         </View>

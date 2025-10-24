@@ -7,6 +7,7 @@ import {
   getPromptMatches,
   submitPromptAnswer,
 } from '@/app/api/promptsApi';
+import { getNudgeStatus, sendNudge } from '@/app/api/nudgesApi';
 import { AppColors } from '@/app/components/AppColors';
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
@@ -25,6 +26,7 @@ import {
   WeeklyPromptAnswerResponse,
   WeeklyPromptResponse,
   getProfileAge,
+  NudgeStatusResponse,
 } from '@/types';
 import { useRouter } from 'expo-router';
 import { Eye, Send } from 'lucide-react-native';
@@ -46,6 +48,7 @@ interface MatchWithProfile {
   netid: string;
   profile: ProfileResponse | null;
   revealed: boolean;
+  nudgeStatus?: NudgeStatusResponse;
 }
 
 export default function MatchesScreen() {
@@ -117,16 +120,25 @@ export default function MatchesScreen() {
           matches.matches.map(async (netid: string, index: number) => {
             try {
               const profile = await getProfileByNetid(netid);
+              // Get nudge status for this match
+              let nudgeStatus: NudgeStatusResponse | undefined;
+              try {
+                nudgeStatus = await getNudgeStatus(prompt.promptId, netid);
+              } catch {
+                nudgeStatus = { sent: false, received: false, mutual: false };
+              }
               return {
                 netid,
                 profile,
                 revealed: matches.revealed[index],
+                nudgeStatus,
               };
             } catch {
               return {
                 netid,
                 profile: null,
                 revealed: matches.revealed[index],
+                nudgeStatus: { sent: false, received: false, mutual: false },
               };
             }
           })
@@ -288,9 +300,16 @@ export default function MatchesScreen() {
           contentOffset={{ x: currentMatchIndex * width, y: 0 }}
         >
           {currentMatches.map((m, index) => {
-            if (!m.profile) return null;
+            if (!m.profile || !activePrompt) return null;
             const matchProfile = m.profile;
             const matchAge = getProfileAge(matchProfile);
+
+            const handleNudge = async () => {
+              if (!activePrompt) return;
+              await sendNudge(matchProfile.netid, activePrompt.promptId);
+              // Reload matches to update nudge status
+              await loadData();
+            };
 
             return (
               <View key={index} style={{ width: width - 40 }}>
@@ -303,12 +322,14 @@ export default function MatchesScreen() {
                     matchProfile.pictures[0] ||
                     'https://via.placeholder.com/400'
                   }
-                  onNudge={() => console.log('Nudge', matchProfile.netid)}
+                  onNudge={handleNudge}
                   onViewProfile={() =>
                     router.push(
                       `/view-profile?netid=${matchProfile.netid}` as any
                     )
                   }
+                  nudgeSent={m.nudgeStatus?.sent || false}
+                  nudgeDisabled={m.nudgeStatus?.mutual || false}
                 />
               </View>
             );

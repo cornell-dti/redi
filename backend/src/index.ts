@@ -9,6 +9,8 @@ import preferencesRouter from './routes/preferences';
 import profilesRouter from './routes/profiles';
 import promptsRouter from './routes/prompts';
 import usersRouter from './routes/users';
+import nudgesRouter from './routes/nudges';
+import notificationsRouter from './routes/notifications';
 
 dotenv.config();
 
@@ -96,6 +98,8 @@ app.use(profilesRouter);
 app.use(preferencesRouter); // /api/preferences
 app.use(promptsRouter); // /api/prompts
 app.use(imagesRouter); // /api/images
+app.use(nudgesRouter); // /api/nudges
+app.use(notificationsRouter); // /api/notifications
 app.use(adminPromptsRouter); // /api/admin/prompts
 
 app

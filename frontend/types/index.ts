@@ -26,6 +26,9 @@ export * from './match';
 // Notification types
 export * from './notification';
 
+// Nudge types
+export * from './nudges';
+
 // API types
 export * from './api';
 

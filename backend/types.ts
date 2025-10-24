@@ -442,3 +442,100 @@ export interface PromptMatchDetailResponse {
   revealRate: number;
   matches: MatchWithProfile[];
 }
+
+// =============================================================================
+// NUDGES MODELS
+// =============================================================================
+
+// Nudge document in Firestore (nudges collection)
+// Document ID format: ${fromNetid}_${promptId}_${toNetid}
+export interface NudgeDoc {
+  fromNetid: string; // User who sent the nudge
+  toNetid: string; // User who received the nudge
+  promptId: string; // Reference to the prompt
+  mutual: boolean; // True when both users have nudged each other
+  createdAt: FirestoreTimestampType;
+}
+
+// Nudge document when writing to Firestore
+export interface NudgeDocWrite {
+  fromNetid: string;
+  toNetid: string;
+  promptId: string;
+  mutual: boolean;
+  createdAt: FirestoreTimestampType | FieldValue;
+}
+
+// Nudge data for API responses
+export interface NudgeResponse {
+  fromNetid: string;
+  toNetid: string;
+  promptId: string;
+  mutual: boolean;
+  createdAt: string; // ISO string format for JSON
+}
+
+// For creating a new nudge
+export type CreateNudgeInput = Omit<NudgeDoc, 'createdAt' | 'mutual'>;
+
+// Nudge status for a specific match
+export interface NudgeStatusResponse {
+  sent: boolean; // User has nudged this match
+  received: boolean; // Match has nudged the user
+  mutual: boolean; // Both have nudged each other
+}
+
+// =============================================================================
+// NOTIFICATIONS MODELS
+// =============================================================================
+
+export type NotificationType = 'mutual_nudge' | 'new_message';
+
+// Notification document in Firestore (notifications collection)
+export interface NotificationDoc {
+  netid: string; // User receiving the notification
+  type: NotificationType;
+  title: string;
+  message: string;
+  read: boolean;
+  metadata: {
+    promptId?: string; // For mutual_nudge
+    matchNetid?: string; // For mutual_nudge
+    chatId?: string; // For new_message (future)
+  };
+  createdAt: FirestoreTimestampType;
+}
+
+// Notification document when writing to Firestore
+export interface NotificationDocWrite {
+  netid: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  read: boolean;
+  metadata: {
+    promptId?: string;
+    matchNetid?: string;
+    chatId?: string;
+  };
+  createdAt: FirestoreTimestampType | FieldValue;
+}
+
+// Notification data for API responses
+export interface NotificationResponse {
+  id: string; // Document ID
+  netid: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  read: boolean;
+  metadata: {
+    promptId?: string;
+    matchNetid?: string;
+    chatId?: string;
+  };
+  createdAt: string; // ISO string format for JSON
+}
+
+// For creating a new notification
+export type CreateNotificationInput = Omit<NotificationDoc, 'createdAt' | 'read'>;
