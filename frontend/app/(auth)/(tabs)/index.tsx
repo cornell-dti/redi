@@ -260,7 +260,7 @@ export default function MatchesScreen() {
   const renderWeekendPeriod = () => (
     <>
       {currentMatches.length > 0 && (
-        <View style={styles.section}>
+        <View style={[styles.section, styles.sectionPadding]}>
           <AppText variant="subtitle" style={styles.sectionTitle}>
             This Week&apos;s Matches
           </AppText>
@@ -284,13 +284,17 @@ export default function MatchesScreen() {
       <View style={styles.matchContainer}>
         <ScrollView
           horizontal
-          pagingEnabled
+          decelerationRate="fast"
+          snapToInterval={width - 60}
           showsHorizontalScrollIndicator={false}
+          // contentContainerStyle={{ paddingHorizontal: 16 }}
           onMomentumScrollEnd={(event) => {
-            const index = Math.round(event.nativeEvent.contentOffset.x / width);
+            const index = Math.round(
+              event.nativeEvent.contentOffset.x / (width - 60)
+            );
             setCurrentMatchIndex(index);
           }}
-          contentOffset={{ x: currentMatchIndex * width, y: 0 }}
+          style={{ paddingLeft: 16 }}
         >
           {currentMatches.map((m, index) => {
             if (!m.profile || !activePrompt) return null;
@@ -306,13 +310,14 @@ export default function MatchesScreen() {
 
             return (
               <>
-                {/* TEMPORARY PUTTING THREE CARDS TO TEST SCROLLING 
-              DELETE AFTER
-              */}
-                {[0, 1, 2].map((copy) => (
+                {/* TEMPORARY FOR NOW JUST TO TEST CAROUSEL */}
+                {[0, 1, 2].map((cardIndex) => (
                   <View
-                    key={`${index}-${copy}`}
-                    style={{ width: width - 32, paddingLeft: 16 }}
+                    key={`${index}-${cardIndex}`}
+                    style={{
+                      width: width - 60,
+                      marginRight: 12,
+                    }}
                   >
                     <WeeklyMatchCard
                       name={matchProfile.firstName}
@@ -540,7 +545,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 20,
     paddingBottom: 100,
   },
   loadingContainer: {
@@ -565,6 +569,7 @@ const styles = StyleSheet.create({
   promptSection: {
     gap: 12,
     marginBottom: 24,
+    padding: 16,
   },
   promptLabel: {
     marginLeft: 4,
@@ -588,6 +593,9 @@ const styles = StyleSheet.create({
   },
   section: {
     marginTop: 24,
+  },
+  sectionPadding: {
+    paddingLeft: 16,
   },
   matchContainer: {
     marginBottom: 24,

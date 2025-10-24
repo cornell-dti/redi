@@ -1,4 +1,4 @@
-import { Bell, BellOff, User } from 'lucide-react-native';
+import { Bell, User } from 'lucide-react-native';
 import React from 'react';
 import { Alert, Image, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     gap: 16,
-    width: '53%',
+    width: '49%',
   },
   text: {
     gap: 4,
