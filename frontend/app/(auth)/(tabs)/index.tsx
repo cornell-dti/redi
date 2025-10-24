@@ -16,6 +16,7 @@ import CountdownTimer from '@/app/components/ui/CountdownTimer';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
 import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
+import { useThemeAware } from '@/app/contexts/ThemeContext';
 import {
   getNextFridayMidnight,
   isCountdownPeriod,
@@ -52,6 +53,7 @@ interface MatchWithProfile {
 }
 
 export default function MatchesScreen() {
+  useThemeAware();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [showCountdown, setShowCountdown] = useState(isCountdownPeriod());
@@ -470,6 +472,7 @@ export default function MatchesScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
+          {/* {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()} */}
           {renderCountdownPeriod()} {renderWeekendPeriod()}
           {renderCurrentMatch()}
           {renderPreviousMatches()}
