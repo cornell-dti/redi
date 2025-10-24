@@ -39,7 +39,10 @@ export default function WeeklyMatchCard({
       setIsSending(true);
       await onNudge();
       setSheetVisible(false);
-      Alert.alert('Nudge sent!', `You've nudged ${name}. If they nudge you back, you'll both get a notification!`);
+      Alert.alert(
+        'Nudge sent!',
+        `You've nudged ${name}. If they nudge you back, you'll both get a notification!`
+      );
     } catch (error: any) {
       setSheetVisible(false);
       const errorMessage = error?.message || 'Failed to send nudge';
@@ -81,7 +84,10 @@ export default function WeeklyMatchCard({
           />
         </View>
       </View>
-      <Sheet visible={isSheetVisible} onDismiss={() => !isSending && setSheetVisible(false)}>
+      <Sheet
+        visible={isSheetVisible}
+        onDismiss={() => !isSending && setSheetVisible(false)}
+      >
         <View style={styles.sheetContent}>
           <AppText>Are you sure you want to nudge {name}?</AppText>
           <AppText variant="bodySmall" color="dimmer">
@@ -93,7 +99,7 @@ export default function WeeklyMatchCard({
           <View style={styles.buttonRow}>
             {!nudgeSent && (
               <Button
-                title={isSending ? "Sending..." : "Nudge"}
+                title={isSending ? 'Sending...' : 'Nudge'}
                 onPress={handleNudgeConfirm}
                 iconLeft={Bell}
                 fullWidth
@@ -101,7 +107,7 @@ export default function WeeklyMatchCard({
               />
             )}
             <Button
-              title={nudgeSent ? "Close" : "Never mind"}
+              title={nudgeSent ? 'Close' : 'Never mind'}
               onPress={() => setSheetVisible(false)}
               variant="secondary"
               fullWidth

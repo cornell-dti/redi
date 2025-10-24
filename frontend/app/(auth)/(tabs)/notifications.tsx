@@ -1,15 +1,16 @@
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import { useNotifications } from '@/app/hooks/useNotifications';
-import {
-  Bell,
-  Heart,
-  LucideIcon,
-  MessageCircle,
-  X,
-} from 'lucide-react-native';
+import { Bell, Heart, LucideIcon, MessageCircle, X } from 'lucide-react-native';
 import React from 'react';
-import { ActivityIndicator, Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
 import ListItemWrapper from '../../components/ui/ListItemWrapper';
@@ -49,8 +50,13 @@ const formatRelativeTime = (isoDate: string): string => {
 export default function NotificationsScreen() {
   useThemeAware(); // Force re-render when theme changes
   const router = useRouter();
-  const { notifications, loading, error, markAsRead, markAllAsRead } = useNotifications();
-  const handleNotificationPress = async (notificationId: string, type: string, metadata: any) => {
+  const { notifications, loading, error, markAsRead, markAllAsRead } =
+    useNotifications();
+  const handleNotificationPress = async (
+    notificationId: string,
+    type: string,
+    metadata: any
+  ) => {
     try {
       // Mark as read
       await markAsRead(notificationId);

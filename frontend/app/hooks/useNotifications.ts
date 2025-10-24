@@ -1,117 +1,75 @@
-import auth from '@react-native-firebase/auth';
-import {
-  collection,
-  onSnapshot,
-  query,
-  where,
-  orderBy,
-  Timestamp,
-  updateDoc,
-  doc,
-} from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { FIREBASE_DB } from '../../firebase';
 import type { NotificationResponse } from '@/types';
-
-const NOTIFICATIONS_COLLECTION = 'notifications';
-const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+import {
+  getNotifications,
+  getUnreadCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from '../api/notificationsApi';
 
 /**
- * Hook for managing notifications with real-time updates
- * Automatically subscribes to notifications for the current user
- * Only fetches notifications from the last 30 days
+ * Hook for managing notifications using the API (not direct Firestore)
+ * Polls for updates every 30 seconds to keep notifications fresh
  */
 export const useNotifications = () => {
-  const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
+  const [notifications, setNotifications] = useState<NotificationResponse[]>(
+    []
+  );
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const user = auth().currentUser;
-  const userNetid = user?.email?.split('@')[0]; // Extract netid from email
+  /**
+   * Fetch notifications from the API
+   */
+  const fetchNotifications = async () => {
+    try {
+      const [notifs, count] = await Promise.all([
+        getNotifications(50),
+        getUnreadCount(),
+      ]);
 
-  useEffect(() => {
-    if (!userNetid) {
+      setNotifications(notifs);
+      setUnreadCount(count);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error fetching notifications:', err);
+      setError(err.message || 'Failed to load notifications');
+    } finally {
       setLoading(false);
-      return;
     }
+  };
 
-    setLoading(true);
-    setError(null);
+  // Initial fetch on mount
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
-    // Calculate timestamp for 30 days ago
-    const thirtyDaysAgo = Timestamp.fromDate(
-      new Date(Date.now() - THIRTY_DAYS_MS)
-    );
+  // Poll for updates every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 30000); // 30 seconds
 
-    // Create query for user's notifications (last 30 days only)
-    const notificationsQuery = query(
-      collection(FIREBASE_DB, NOTIFICATIONS_COLLECTION),
-      where('netid', '==', userNetid),
-      where('createdAt', '>=', thirtyDaysAgo),
-      orderBy('createdAt', 'desc')
-    );
-
-    // Subscribe to real-time updates
-    const unsubscribe = onSnapshot(
-      notificationsQuery,
-      (snapshot) => {
-        const notifs: NotificationResponse[] = [];
-        let unreadTotal = 0;
-
-        snapshot.forEach((docSnapshot) => {
-          const data = docSnapshot.data();
-
-          // Convert Firestore timestamp to ISO string
-          const createdAt = data.createdAt instanceof Timestamp
-            ? data.createdAt.toDate().toISOString()
-            : new Date(data.createdAt).toISOString();
-
-          const notification: NotificationResponse = {
-            id: docSnapshot.id,
-            netid: data.netid,
-            type: data.type,
-            title: data.title,
-            message: data.message,
-            read: data.read,
-            metadata: data.metadata || {},
-            createdAt,
-          };
-
-          notifs.push(notification);
-
-          if (!data.read) {
-            unreadTotal += 1;
-          }
-        });
-
-        setNotifications(notifs);
-        setUnreadCount(unreadTotal);
-        setLoading(false);
-      },
-      (err) => {
-        console.error('Error fetching notifications:', err);
-        setError('Failed to load notifications');
-        setLoading(false);
-      }
-    );
-
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, [userNetid]);
+    return () => clearInterval(interval);
+  }, []);
 
   /**
    * Mark a specific notification as read
-   * Updates Firestore and the UI optimistically updates via listener
+   * Updates the API and refreshes local state
    */
   const markAsRead = async (notificationId: string) => {
     try {
-      const notificationRef = doc(
-        FIREBASE_DB,
-        NOTIFICATIONS_COLLECTION,
-        notificationId
+      await markNotificationAsRead(notificationId);
+
+      // Optimistically update local state
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
       );
-      await updateDoc(notificationRef, { read: true });
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+
+      // Refresh from server to ensure consistency
+      await fetchNotifications();
     } catch (err) {
       console.error('Error marking notification as read:', err);
       throw err;
@@ -120,20 +78,18 @@ export const useNotifications = () => {
 
   /**
    * Mark all notifications as read
-   * Updates Firestore and the UI optimistically updates via listener
+   * Updates the API and refreshes local state
    */
   const markAllAsRead = async () => {
     try {
-      const unreadNotifications = notifications.filter((n) => !n.read);
+      const count = await markAllNotificationsAsRead();
 
-      // Update all unread notifications in parallel
-      await Promise.all(
-        unreadNotifications.map((notification) =>
-          updateDoc(doc(FIREBASE_DB, NOTIFICATIONS_COLLECTION, notification.id), {
-            read: true,
-          })
-        )
-      );
+      // Optimistically update local state
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      setUnreadCount(0);
+
+      // Refresh from server to ensure consistency
+      await fetchNotifications();
     } catch (err) {
       console.error('Error marking all notifications as read:', err);
       throw err;
@@ -147,5 +103,6 @@ export const useNotifications = () => {
     error,
     markAsRead,
     markAllAsRead,
+    refresh: fetchNotifications,
   };
 };

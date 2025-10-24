@@ -88,20 +88,12 @@ service cloud.firestore {
       allow update, delete: if false; // Only server-side updates allowed
     }
 
-    // Notifications - users can only read their own notifications and mark as read
+    // Notifications - only backend can access (using Bearer token API)
     match /notifications/{notificationId} {
-      allow read: if isAuthenticated() &&
-        resource.data.netid == getUserNetid();
-      allow update: if isAuthenticated() &&
-        resource.data.netid == getUserNetid() &&
-        request.resource.data.netid == resource.data.netid &&
-        request.resource.data.type == resource.data.type &&
-        request.resource.data.title == resource.data.title &&
-        request.resource.data.message == resource.data.message &&
-        request.resource.data.metadata == resource.data.metadata &&
-        request.resource.data.createdAt == resource.data.createdAt &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
-      allow create, delete: if false; // Only server-side writes allowed
+      allow read: if false; // Only backend via API
+      allow create: if false; // Only backend via API
+      allow update: if false; // Only backend via API
+      allow delete: if false; // Only backend via API
     }
 
     // Deny all other access by default
