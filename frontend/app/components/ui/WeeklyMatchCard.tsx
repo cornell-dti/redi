@@ -87,6 +87,7 @@ export default function WeeklyMatchCard({
       <Sheet
         visible={isSheetVisible}
         onDismiss={() => !isSending && setSheetVisible(false)}
+        title="Send nudge"
       >
         <View style={styles.sheetContent}>
           <AppText>Are you sure you want to nudge {name}?</AppText>
