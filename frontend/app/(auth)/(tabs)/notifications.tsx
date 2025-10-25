@@ -1,8 +1,8 @@
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
-import { useNotifications } from '@/app/hooks/useNotifications';
+import { useNotifications } from '@/app/contexts/NotificationsContext';
 import { Bell, Heart, LucideIcon, MessageCircle, X } from 'lucide-react-native';
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { AppColors } from '../../components/AppColors';
 import ListItemWrapper from '../../components/ui/ListItemWrapper';
 import NotificationItem from '../../components/ui/NotificationItem';
@@ -50,8 +51,22 @@ const formatRelativeTime = (isoDate: string): string => {
 export default function NotificationsScreen() {
   useThemeAware(); // Force re-render when theme changes
   const router = useRouter();
-  const { notifications, loading, error, markAsRead, markAllAsRead } =
+  const { notifications, loading, error, markAsRead, markAllAsRead, refresh } =
     useNotifications();
+
+  // Poll for notifications only when this screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      refresh(); // Fetch immediately when focused
+
+      const interval = setInterval(() => {
+        refresh();
+      }, 60000); // Poll every 60 seconds (increased from 30)
+
+      return () => clearInterval(interval); // Cleanup when unfocused
+    }, [refresh])
+  );
+
   const handleNotificationPress = async (
     notificationId: string,
     type: string,
