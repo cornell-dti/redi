@@ -535,7 +535,7 @@ export default function MatchesScreen() {
       >
         <View style={styles.content}>
           {/* {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()} */}
-          {renderCountdownPeriod()} {renderWeekendPeriod()}
+          {renderCountdownPeriod()}{renderWeekendPeriod()}
           {renderCurrentMatch()}
           {renderPreviousMatches()}
         </View>
