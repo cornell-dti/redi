@@ -88,9 +88,14 @@ service cloud.firestore {
       allow update, delete: if false; // Only server-side updates allowed
     }
 
-    // Notifications - only backend can access (using Bearer token API)
+    // Notifications - users can read their own notifications
     match /notifications/{notificationId} {
-      allow read: if false; // Only backend via API
+      // Users can read notifications where netid matches their email prefix
+      // Extract netid from authenticated user's email (e.g., abc123@yale.edu -> abc123)
+      allow read: if isAuthenticated() &&
+                     resource.data.netid == request.auth.token.email.split('@')[0];
+
+      // Only backend can create/update/delete via API
       allow create: if false; // Only backend via API
       allow update: if false; // Only backend via API
       allow delete: if false; // Only backend via API

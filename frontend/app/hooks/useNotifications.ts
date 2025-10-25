@@ -40,18 +40,11 @@ export const useNotifications = () => {
     }
   };
 
-  // Initial fetch on mount
+  // Fetch on mount and optionally poll
   useEffect(() => {
-    fetchNotifications();
-  }, []);
+    fetchNotifications(); // Initial fetch
 
-  // Poll for updates every 30 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchNotifications();
-    }, 30000); // 30 seconds
-
-    return () => clearInterval(interval);
+    // Don't set up polling interval here - will be handled by focus-aware logic
   }, []);
 
   /**
@@ -68,10 +61,11 @@ export const useNotifications = () => {
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
 
-      // Refresh from server to ensure consistency
-      await fetchNotifications();
+      // No need to refresh - optimistic update is sufficient
     } catch (err) {
       console.error('Error marking notification as read:', err);
+      // Revert on error by refreshing
+      await fetchNotifications();
       throw err;
     }
   };
@@ -88,10 +82,11 @@ export const useNotifications = () => {
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
 
-      // Refresh from server to ensure consistency
-      await fetchNotifications();
+      // No need to refresh - optimistic update is sufficient
     } catch (err) {
       console.error('Error marking all notifications as read:', err);
+      // Revert on error by refreshing
+      await fetchNotifications();
       throw err;
     }
   };

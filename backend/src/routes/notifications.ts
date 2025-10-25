@@ -1,7 +1,7 @@
 import express from 'express';
 import { db } from '../../firebaseAdmin';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
-import { authenticatedRateLimit } from '../middleware/rateLimiting';
+import { notificationRateLimit } from '../middleware/rateLimiting';
 import {
   getUserNotifications,
   getUnreadCount,
@@ -49,7 +49,7 @@ const getNetidFromAuth = async (
  */
 router.get(
   '/api/notifications',
-  authenticatedRateLimit,
+  notificationRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res: express.Response) => {
     try {
@@ -81,7 +81,7 @@ router.get(
  */
 router.get(
   '/api/notifications/unread-count',
-  authenticatedRateLimit,
+  notificationRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res: express.Response) => {
     try {
@@ -108,7 +108,7 @@ router.get(
  */
 router.put(
   '/api/notifications/:id/read',
-  authenticatedRateLimit,
+  notificationRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res: express.Response) => {
     try {
@@ -146,7 +146,7 @@ router.put(
  */
 router.put(
   '/api/notifications/read-all',
-  authenticatedRateLimit,
+  notificationRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res: express.Response) => {
     try {

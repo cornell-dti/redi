@@ -8,6 +8,8 @@ import type {
   WeeklyPromptResponse,
   WeeklyPromptAnswerResponse,
   WeeklyMatchResponse,
+  ProfileResponse,
+  NudgeStatusResponse,
 } from '@/types';
 import { apiClient } from './apiClient';
 
@@ -125,5 +127,30 @@ export async function revealMatch(
   return apiClient.post<WeeklyMatchResponse>(
     `/api/prompts/${promptId}/matches/reveal`,
     { matchIndex }
+  );
+}
+
+/**
+ * Batch fetch match data (profiles + nudge statuses)
+ * This endpoint dramatically reduces API calls by fetching all match data in one request
+ * SECURITY: firebaseUid is now extracted from Bearer token on backend
+ *
+ * @param promptId - The prompt ID
+ * @param netids - Array of netids to fetch data for
+ * @returns Promise resolving to batch match data
+ * @throws APIError if fetch fails
+ */
+export interface BatchMatchData {
+  profiles: ProfileResponse[];
+  nudgeStatuses: NudgeStatusResponse[];
+}
+
+export async function getBatchMatchData(
+  promptId: string,
+  netids: string[]
+): Promise<BatchMatchData> {
+  return apiClient.post<BatchMatchData>(
+    `/api/prompts/${promptId}/matches/batch`,
+    { netids }
   );
 }

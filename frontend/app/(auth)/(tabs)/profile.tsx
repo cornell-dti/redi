@@ -129,10 +129,6 @@ export default function ProfileScreen() {
       <SafeAreaView style={[styles.container, styles.centerContent]}>
         <AppText style={styles.errorText}>{error}</AppText>
         <Button
-          title="Go to Auth"
-          onPress={() => router.replace('/home' as any)}
-        />
-        <Button
           title="Retry"
           onPress={fetchProfile}
           variant="primary"

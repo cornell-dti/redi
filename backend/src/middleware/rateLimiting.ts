@@ -28,11 +28,17 @@ export const publicRateLimit = rateLimit({
 /**
  * Standard rate limiting for authenticated endpoints
  * Used for: profile updates, preferences, answers
- * Limit: 100 requests per 15 minutes per IP
+ * Limit: 200 requests per 15 minutes per IP
+ *
+ * NOTE: Increased from 100 to 200 to accommodate:
+ * - Home screen cascade (~20 API calls per load)
+ * - Profile navigation and updates
+ * - Match fetching and nudge status checks
+ * This provides breathing room while batch endpoints are implemented
  */
 export const authenticatedRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 200, // Limit each IP to 200 requests per windowMs
   message: {
     error: 'Too many requests, please try again later.',
     retryAfter: '15 minutes',
@@ -72,6 +78,26 @@ export const authenticationRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true, // Don't count successful requests
+});
+
+/**
+ * Relaxed rate limiting for notification polling
+ * Used for: notification fetching, unread count
+ * Limit: 200 requests per 15 minutes per IP
+ *
+ * Rationale: Notifications are polled every 60 seconds (2 endpoints per poll)
+ * This allows ~100 polling cycles per 15 minutes, which is reasonable for
+ * users who keep the app open on the notifications screen.
+ */
+export const notificationRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200, // Limit each IP to 200 requests per windowMs
+  message: {
+    error: 'Too many notification requests, please try again later.',
+    retryAfter: '15 minutes',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 /**
