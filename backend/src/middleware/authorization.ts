@@ -29,6 +29,27 @@ export const getNetidFromUid = async (firebaseUid: string): Promise<string | nul
 };
 
 /**
+ * Helper function to get user's firebaseUid from their netid
+ */
+export const getFirebaseUidFromNetid = async (netid: string): Promise<string | null> => {
+  try {
+    const userSnapshot = await db
+      .collection('users')
+      .where('netid', '==', netid)
+      .get();
+
+    if (userSnapshot.empty) {
+      return null;
+    }
+
+    return userSnapshot.docs[0].data().firebaseUid;
+  } catch (error) {
+    console.error('Error getting firebaseUid from netid:', error);
+    return null;
+  }
+};
+
+/**
  * Middleware to verify user owns the profile being accessed/modified
  * Attaches netid to req for use in route handlers
  */

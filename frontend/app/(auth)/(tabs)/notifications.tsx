@@ -63,8 +63,24 @@ export default function NotificationsScreen() {
 
       // Navigate based on type
       if (type === 'mutual_nudge') {
-        // Navigate to matches screen
-        router.push('/(auth)/(tabs)/' as any);
+        // If conversation was auto-created, navigate to chat
+        if (metadata.conversationId) {
+          // Build navigation URL with conversation details
+          let chatUrl = `/screens/chat-detail?conversationId=${metadata.conversationId}`;
+
+          // Add optional parameters if available
+          if (metadata.matchFirebaseUid) {
+            chatUrl += `&userId=${metadata.matchFirebaseUid}`;
+          }
+          if (metadata.matchName) {
+            chatUrl += `&name=${encodeURIComponent(metadata.matchName)}`;
+          }
+
+          router.push(chatUrl as any);
+        } else {
+          // Otherwise navigate to matches screen to see the match
+          router.push('/(auth)/(tabs)/' as any);
+        }
       } else if (type === 'new_message' && metadata.chatId) {
         // Navigate to chat (when implemented)
         Alert.alert('Chat', 'Chat feature coming soon!');

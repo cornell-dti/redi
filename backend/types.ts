@@ -501,6 +501,9 @@ export interface NotificationDoc {
   metadata: {
     promptId?: string; // For mutual_nudge
     matchNetid?: string; // For mutual_nudge
+    conversationId?: string; // For mutual_nudge (auto-created conversation)
+    matchName?: string; // For mutual_nudge (matched user's name)
+    matchFirebaseUid?: string; // For mutual_nudge (matched user's Firebase UID)
     chatId?: string; // For new_message (future)
   };
   createdAt: FirestoreTimestampType;
@@ -516,6 +519,9 @@ export interface NotificationDocWrite {
   metadata: {
     promptId?: string;
     matchNetid?: string;
+    conversationId?: string;
+    matchName?: string;
+    matchFirebaseUid?: string;
     chatId?: string;
   };
   createdAt: FirestoreTimestampType | FieldValue;
@@ -532,6 +538,9 @@ export interface NotificationResponse {
   metadata: {
     promptId?: string;
     matchNetid?: string;
+    conversationId?: string;
+    matchName?: string;
+    matchFirebaseUid?: string;
     chatId?: string;
   };
   createdAt: string; // ISO string format for JSON

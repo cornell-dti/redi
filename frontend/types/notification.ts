@@ -14,6 +14,9 @@ export interface NotificationResponse {
   metadata: {
     promptId?: string;
     matchNetid?: string;
+    conversationId?: string; // Auto-created conversation ID for mutual nudges
+    matchName?: string; // Matched user's name
+    matchFirebaseUid?: string; // Matched user's Firebase UID
     chatId?: string;
   };
   createdAt: string; // ISO string format
@@ -27,6 +30,9 @@ export interface CreateNotificationInput {
   metadata: {
     promptId?: string;
     matchNetid?: string;
+    conversationId?: string; // Auto-created conversation ID for mutual nudges
+    matchName?: string; // Matched user's name
+    matchFirebaseUid?: string; // Matched user's Firebase UID
     chatId?: string;
   };
 }
