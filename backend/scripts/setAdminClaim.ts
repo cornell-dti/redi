@@ -29,7 +29,7 @@ const requiredEnvVars = [
   'ADMIN_UID',
   'FIREBASE_PROJECT_ID',
   'FIREBASE_CLIENT_EMAIL',
-  'FIREBASE_PRIVATE_KEY'
+  'FIREBASE_PRIVATE_KEY',
 ];
 
 for (const envVar of requiredEnvVars) {
@@ -106,7 +106,9 @@ async function setupAdmin() {
       console.log('⚠️  Admin document already exists in Firestore');
       const existingData = adminDoc.data();
       console.log('   Existing data:', JSON.stringify(existingData, null, 2));
-      console.log('\n❓ Would you like to keep the existing document? (not updating)\n');
+      console.log(
+        '\n❓ Would you like to keep the existing document? (not updating)\n'
+      );
     } else {
       // Step 6: Create admin document in Firestore
       console.log('📝 Step 6: Creating admin document in Firestore...');
@@ -141,7 +143,10 @@ async function setupAdmin() {
       console.log('   Email:', adminData?.email);
       console.log('   Role:', adminData?.role);
       console.log('   Disabled:', adminData?.disabled);
-      console.log('   Created At:', adminData?.createdAt?.toDate().toISOString());
+      console.log(
+        '   Created At:',
+        adminData?.createdAt?.toDate().toISOString()
+      );
     } else {
       console.error('❌ Failed to verify admin document!');
       process.exit(1);
@@ -156,20 +161,30 @@ async function setupAdmin() {
     console.log('   ✅ Admin document created in Firestore');
     console.log('   ✅ User can now access admin endpoints\n');
     console.log('⚠️  IMPORTANT NEXT STEPS:');
-    console.log('   1. The user must sign out and sign back in to get new token with admin claim');
-    console.log('   2. Firebase tokens are cached, so existing sessions won\'t have the claim');
-    console.log('   3. New sign-ins will include the admin claim automatically\n');
+    console.log(
+      '   1. The user must sign out and sign back in to get new token with admin claim'
+    );
+    console.log(
+      "   2. Firebase tokens are cached, so existing sessions won't have the claim"
+    );
+    console.log(
+      '   3. New sign-ins will include the admin claim automatically\n'
+    );
     console.log('🔐 Security Notes:');
     console.log('   - Admin custom claim is cached in Firebase tokens');
     console.log('   - Admins collection provides persistent admin management');
-    console.log('   - Both checks (claim + collection) are enforced by middleware\n');
+    console.log(
+      '   - Both checks (claim + collection) are enforced by middleware\n'
+    );
 
     process.exit(0);
   } catch (error) {
     console.error('\n❌ ERROR during admin setup:');
     console.error(error);
     console.error('\nCommon issues:');
-    console.error('  - Invalid ADMIN_UID: User does not exist in Firebase Auth');
+    console.error(
+      '  - Invalid ADMIN_UID: User does not exist in Firebase Auth'
+    );
     console.error('  - Invalid Firebase credentials in .env file');
     console.error('  - Network connectivity issues');
     console.error('  - Insufficient permissions on service account');

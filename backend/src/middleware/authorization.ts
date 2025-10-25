@@ -10,7 +10,9 @@ import { db } from '../../firebaseAdmin';
 /**
  * Helper function to get user's netid from their firebaseUid
  */
-export const getNetidFromUid = async (firebaseUid: string): Promise<string | null> => {
+export const getNetidFromUid = async (
+  firebaseUid: string
+): Promise<string | null> => {
   try {
     const userSnapshot = await db
       .collection('users')
@@ -24,6 +26,29 @@ export const getNetidFromUid = async (firebaseUid: string): Promise<string | nul
     return userSnapshot.docs[0].data().netid;
   } catch (error) {
     console.error('Error getting netid from uid:', error);
+    return null;
+  }
+};
+
+/**
+ * Helper function to get user's firebaseUid from their netid
+ */
+export const getFirebaseUidFromNetid = async (
+  netid: string
+): Promise<string | null> => {
+  try {
+    const userSnapshot = await db
+      .collection('users')
+      .where('netid', '==', netid)
+      .get();
+
+    if (userSnapshot.empty) {
+      return null;
+    }
+
+    return userSnapshot.docs[0].data().firebaseUid;
+  } catch (error) {
+    console.error('Error getting firebaseUid from netid:', error);
     return null;
   }
 };

@@ -56,9 +56,12 @@ const token = await auth().currentUser.getIdToken();
 
 // Token is refreshed every 45 minutes (app/_layout.tsx)
 useEffect(() => {
-  const intervalId = setInterval(async () => {
-    await auth().currentUser?.getIdToken(true);
-  }, 45 * 60 * 1000);
+  const intervalId = setInterval(
+    async () => {
+      await auth().currentUser?.getIdToken(true);
+    },
+    45 * 60 * 1000
+  );
   return () => clearInterval(intervalId);
 }, [user]);
 
@@ -74,14 +77,14 @@ The centralized API client (`app/api/apiClient.ts`) handles all HTTP requests wi
 
 ### Features
 
-| Feature | Description |
-|---------|-------------|
-| **Automatic Token Injection** | All requests include Firebase ID token |
-| **Token Refresh** | 403 errors trigger automatic token refresh and retry |
-| **Error Handling** | Standardized error handling for 401, 403, 404, 429, 500 |
-| **Rate Limiting** | Extracts `Retry-After` header from 429 responses |
-| **Timeout Management** | 30-second default timeout with configurable override |
-| **Type Safety** | Full TypeScript support with generic types |
+| Feature                       | Description                                             |
+| ----------------------------- | ------------------------------------------------------- |
+| **Automatic Token Injection** | All requests include Firebase ID token                  |
+| **Token Refresh**             | 403 errors trigger automatic token refresh and retry    |
+| **Error Handling**            | Standardized error handling for 401, 403, 404, 429, 500 |
+| **Rate Limiting**             | Extracts `Retry-After` header from 429 responses        |
+| **Timeout Management**        | 30-second default timeout with configurable override    |
+| **Type Safety**               | Full TypeScript support with generic types              |
 
 ### Usage
 
@@ -103,7 +106,10 @@ await apiClient.delete('/api/endpoint');
 // File upload
 const formData = new FormData();
 formData.append('file', file);
-const response = await apiClient.uploadFiles<UploadResponse>('/api/upload', formData);
+const response = await apiClient.uploadFiles<UploadResponse>(
+  '/api/upload',
+  formData
+);
 ```
 
 ### Error Handling
@@ -150,6 +156,7 @@ try {
 Creates a new user account.
 
 **Signature:**
+
 ```typescript
 createUserInBackend(email: string): Promise<User>
 ```
@@ -157,11 +164,13 @@ createUserInBackend(email: string): Promise<User>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `email` (string) - User's email address
 
 **Returns:** Promise<User>
 
 **Example:**
+
 ```typescript
 const user = await createUserInBackend('user@cornell.edu');
 ```
@@ -173,6 +182,7 @@ const user = await createUserInBackend('user@cornell.edu');
 Logs in an existing user.
 
 **Signature:**
+
 ```typescript
 loginUserInBackend(email: string): Promise<User>
 ```
@@ -180,11 +190,13 @@ loginUserInBackend(email: string): Promise<User>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `email` (string) - User's email address
 
 **Returns:** Promise<User>
 
 **Example:**
+
 ```typescript
 const user = await loginUserInBackend('user@cornell.edu');
 ```
@@ -200,11 +212,13 @@ const user = await loginUserInBackend('user@cornell.edu');
 Gets the current user's profile.
 
 **Signature (NEW):**
+
 ```typescript
 getCurrentUserProfile(): Promise<Profile>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: getCurrentUserProfile(firebaseUid: string)
 ```
@@ -214,6 +228,7 @@ getCurrentUserProfile(): Promise<Profile>
 **Backend Behavior:** Extracts `uid` from Bearer token
 
 **Example:**
+
 ```typescript
 const profile = await getCurrentUserProfile();
 ```
@@ -225,11 +240,13 @@ const profile = await getCurrentUserProfile();
 Creates a new profile for the current user.
 
 **Signature (NEW):**
+
 ```typescript
 createProfile(profileData: Partial<Profile>): Promise<Profile>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: createProfile(firebaseUid: string, profileData: Partial<Profile>)
 ```
@@ -237,9 +254,11 @@ createProfile(profileData: Partial<Profile>): Promise<Profile>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `profileData` (Partial<Profile>) - Profile information
 
 **Example:**
+
 ```typescript
 const profile = await createProfile({
   displayName: 'John Doe',
@@ -256,11 +275,13 @@ const profile = await createProfile({
 Updates the current user's profile.
 
 **Signature (NEW):**
+
 ```typescript
 updateProfile(updateData: Partial<Profile>): Promise<Profile>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: updateProfile(firebaseUid: string, updateData: Partial<Profile>)
 ```
@@ -268,9 +289,11 @@ updateProfile(updateData: Partial<Profile>): Promise<Profile>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `updateData` (Partial<Profile>) - Fields to update
 
 **Example:**
+
 ```typescript
 const updated = await updateProfile({
   bio: 'Updated bio',
@@ -285,11 +308,13 @@ const updated = await updateProfile({
 Deletes the current user's profile.
 
 **Signature (NEW):**
+
 ```typescript
 deleteProfile(): Promise<void>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: deleteProfile(firebaseUid: string)
 ```
@@ -297,6 +322,7 @@ deleteProfile(): Promise<void>
 **Authentication:** Required (Bearer token)
 
 **Example:**
+
 ```typescript
 await deleteProfile();
 ```
@@ -308,6 +334,7 @@ await deleteProfile();
 Gets another user's public profile by NetID.
 
 **Signature:**
+
 ```typescript
 getProfileByNetid(netid: string): Promise<Profile>
 ```
@@ -315,9 +342,11 @@ getProfileByNetid(netid: string): Promise<Profile>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `netid` (string) - Cornell NetID
 
 **Example:**
+
 ```typescript
 const profile = await getProfileByNetid('abc123');
 ```
@@ -329,11 +358,13 @@ const profile = await getProfileByNetid('abc123');
 Gets matching profiles for the current user.
 
 **Signature (NEW):**
+
 ```typescript
 getMatches(limit?: number): Promise<Profile[]>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: getMatches(firebaseUid: string, limit?: number)
 ```
@@ -341,9 +372,11 @@ getMatches(limit?: number): Promise<Profile[]>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `limit` (number, optional) - Maximum number of matches to return
 
 **Example:**
+
 ```typescript
 const matches = await getMatches(10);
 ```
@@ -355,6 +388,7 @@ const matches = await getMatches(10);
 Gets all profiles with optional filtering.
 
 **Signature:**
+
 ```typescript
 getAllProfiles(options?: FilterOptions): Promise<Profile[]>
 ```
@@ -362,9 +396,11 @@ getAllProfiles(options?: FilterOptions): Promise<Profile[]>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `options` (FilterOptions, optional) - Filtering criteria
 
 **Example:**
+
 ```typescript
 const profiles = await getAllProfiles({
   major: 'Computer Science',
@@ -384,11 +420,13 @@ const profiles = await getAllProfiles({
 Gets the current user's preferences.
 
 **Signature (NEW):**
+
 ```typescript
 getCurrentUserPreferences(): Promise<Preferences>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: getCurrentUserPreferences(firebaseUid: string)
 ```
@@ -396,6 +434,7 @@ getCurrentUserPreferences(): Promise<Preferences>
 **Authentication:** Required (Bearer token)
 
 **Example:**
+
 ```typescript
 const prefs = await getCurrentUserPreferences();
 ```
@@ -407,11 +446,13 @@ const prefs = await getCurrentUserPreferences();
 Updates the current user's preferences.
 
 **Signature (NEW):**
+
 ```typescript
 updatePreferences(updateData: Partial<Preferences>): Promise<Preferences>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: updatePreferences(firebaseUid: string, updateData: Partial<Preferences>)
 ```
@@ -419,9 +460,11 @@ updatePreferences(updateData: Partial<Preferences>): Promise<Preferences>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `updateData` (Partial<Preferences>) - Preference fields to update
 
 **Example:**
+
 ```typescript
 const updated = await updatePreferences({
   ageRange: { min: 21, max: 25 },
@@ -436,11 +479,13 @@ const updated = await updatePreferences({
 Initializes default preferences for the current user.
 
 **Signature (NEW):**
+
 ```typescript
 initializePreferences(): Promise<Preferences>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: initializePreferences(firebaseUid: string)
 ```
@@ -448,6 +493,7 @@ initializePreferences(): Promise<Preferences>
 **Authentication:** Required (Bearer token)
 
 **Example:**
+
 ```typescript
 const prefs = await initializePreferences();
 ```
@@ -463,11 +509,13 @@ const prefs = await initializePreferences();
 Gets the currently active prompt.
 
 **Signature (NEW):**
+
 ```typescript
 getActivePrompt(): Promise<Prompt>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: getActivePrompt(firebaseUid: string)
 ```
@@ -475,6 +523,7 @@ getActivePrompt(): Promise<Prompt>
 **Authentication:** Required (Bearer token)
 
 **Example:**
+
 ```typescript
 const prompt = await getActivePrompt();
 ```
@@ -486,11 +535,13 @@ const prompt = await getActivePrompt();
 Gets a specific prompt by ID.
 
 **Signature (NEW):**
+
 ```typescript
 getPromptById(promptId: string): Promise<Prompt>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: getPromptById(firebaseUid: string, promptId: string)
 ```
@@ -498,9 +549,11 @@ getPromptById(promptId: string): Promise<Prompt>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `promptId` (string) - Prompt ID
 
 **Example:**
+
 ```typescript
 const prompt = await getPromptById('prompt-123');
 ```
@@ -512,11 +565,13 @@ const prompt = await getPromptById('prompt-123');
 Submits an answer to a prompt.
 
 **Signature (NEW):**
+
 ```typescript
 submitPromptAnswer(promptId: string, answer: string): Promise<PromptAnswer>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: submitPromptAnswer(firebaseUid: string, promptId: string, answer: string)
 ```
@@ -524,10 +579,12 @@ submitPromptAnswer(promptId: string, answer: string): Promise<PromptAnswer>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `promptId` (string) - Prompt ID
 - `answer` (string) - User's answer
 
 **Example:**
+
 ```typescript
 const answer = await submitPromptAnswer('prompt-123', 'My answer here');
 ```
@@ -539,11 +596,13 @@ const answer = await submitPromptAnswer('prompt-123', 'My answer here');
 Gets the current user's answer to a prompt.
 
 **Signature (NEW):**
+
 ```typescript
 getPromptAnswer(promptId: string): Promise<PromptAnswer>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: getPromptAnswer(firebaseUid: string, promptId: string)
 ```
@@ -551,9 +610,11 @@ getPromptAnswer(promptId: string): Promise<PromptAnswer>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `promptId` (string) - Prompt ID
 
 **Example:**
+
 ```typescript
 const answer = await getPromptAnswer('prompt-123');
 ```
@@ -565,11 +626,13 @@ const answer = await getPromptAnswer('prompt-123');
 Gets matches for a specific prompt.
 
 **Signature (NEW):**
+
 ```typescript
 getPromptMatches(promptId: string): Promise<Match[]>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: getPromptMatches(firebaseUid: string, promptId: string)
 ```
@@ -577,9 +640,11 @@ getPromptMatches(promptId: string): Promise<Match[]>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `promptId` (string) - Prompt ID
 
 **Example:**
+
 ```typescript
 const matches = await getPromptMatches('prompt-123');
 ```
@@ -591,11 +656,13 @@ const matches = await getPromptMatches('prompt-123');
 Gets the current user's match history.
 
 **Signature (NEW):**
+
 ```typescript
 getMatchHistory(limit?: number): Promise<Match[]>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: getMatchHistory(firebaseUid: string, limit?: number)
 ```
@@ -603,9 +670,11 @@ getMatchHistory(limit?: number): Promise<Match[]>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `limit` (number, optional) - Maximum number of matches to return
 
 **Example:**
+
 ```typescript
 const history = await getMatchHistory(20);
 ```
@@ -617,11 +686,13 @@ const history = await getMatchHistory(20);
 Reveals a match.
 
 **Signature (NEW):**
+
 ```typescript
 revealMatch(promptId: string, matchIndex: number): Promise<RevealedMatch>
 ```
 
 **Old Signature (DEPRECATED):**
+
 ```typescript
 // ❌ REMOVED: revealMatch(firebaseUid: string, promptId: string, matchIndex: number)
 ```
@@ -629,10 +700,12 @@ revealMatch(promptId: string, matchIndex: number): Promise<RevealedMatch>
 **Authentication:** Required (Bearer token)
 
 **Parameters:**
+
 - `promptId` (string) - Prompt ID
 - `matchIndex` (number) - Index of the match to reveal
 
 **Example:**
+
 ```typescript
 const revealed = await revealMatch('prompt-123', 0);
 ```
@@ -653,24 +726,24 @@ All image upload functions use the `apiClient.uploadFiles()` method with automat
 
 ### Error Codes
 
-| Code | Status | Description | Retry Logic |
-|------|--------|-------------|-------------|
-| `AUTH_REQUIRED` | 401 | User not authenticated | No retry |
-| `UNAUTHORIZED` | 401 | Invalid token | No retry |
-| `FORBIDDEN` | 403 | Token expired or insufficient permissions | **Retries once with refreshed token** |
-| `NOT_FOUND` | 404 | Resource not found | No retry |
-| `CONFLICT` | 409 | Resource already exists | No retry |
-| `RATE_LIMITED` | 429 | Too many requests | No retry (includes Retry-After) |
-| `SERVER_ERROR` | 500/502/503 | Server error | No retry |
-| `TIMEOUT` | 408 | Request timeout | No retry |
-| `NETWORK_ERROR` | 0 | Network connection failed | No retry |
+| Code            | Status      | Description                               | Retry Logic                           |
+| --------------- | ----------- | ----------------------------------------- | ------------------------------------- |
+| `AUTH_REQUIRED` | 401         | User not authenticated                    | No retry                              |
+| `UNAUTHORIZED`  | 401         | Invalid token                             | No retry                              |
+| `FORBIDDEN`     | 403         | Token expired or insufficient permissions | **Retries once with refreshed token** |
+| `NOT_FOUND`     | 404         | Resource not found                        | No retry                              |
+| `CONFLICT`      | 409         | Resource already exists                   | No retry                              |
+| `RATE_LIMITED`  | 429         | Too many requests                         | No retry (includes Retry-After)       |
+| `SERVER_ERROR`  | 500/502/503 | Server error                              | No retry                              |
+| `TIMEOUT`       | 408         | Request timeout                           | No retry                              |
+| `NETWORK_ERROR` | 0           | Network connection failed                 | No retry                              |
 
 ### APIError Class
 
 ```typescript
 class APIError extends Error {
-  status: number;  // HTTP status code
-  code?: string;   // Error code (e.g., 'AUTH_REQUIRED')
+  status: number; // HTTP status code
+  code?: string; // Error code (e.g., 'AUTH_REQUIRED')
 
   constructor(message: string, status: number, code?: string);
 }
@@ -736,12 +809,14 @@ See [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) for detailed instructions on upda
 ### What Changed
 
 **Before:**
+
 ```typescript
 // ❌ INSECURE: Client controls which user's data to access
 const profile = await getCurrentUserProfile(user.uid);
 ```
 
 **After:**
+
 ```typescript
 // ✅ SECURE: Backend extracts uid from verified token
 const profile = await getCurrentUserProfile();

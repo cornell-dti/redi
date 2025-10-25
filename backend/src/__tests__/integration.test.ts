@@ -94,7 +94,8 @@ describe('Integration Tests', () => {
       const mockSet = jest.fn().mockResolvedValue({});
       const mockAdd = jest.fn().mockResolvedValue({ id: 'notif-123' });
 
-      const mockGet = jest.fn()
+      const mockGet = jest
+        .fn()
         .mockResolvedValueOnce(mockMatchDoc)
         .mockResolvedValueOnce(mockNudgeDoc)
         .mockResolvedValueOnce(mockReverseNudgeDoc)
@@ -105,19 +106,21 @@ describe('Integration Tests', () => {
         set: mockSet,
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return {
-            where: jest.fn().mockReturnValue({
-              get: jest.fn().mockResolvedValue(mockUserSnapshot),
-            }),
-          };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return {
+              where: jest.fn().mockReturnValue({
+                get: jest.fn().mockResolvedValue(mockUserSnapshot),
+              }),
+            };
+          }
+          if (collectionName === 'notifications') {
+            return { add: mockAdd };
+          }
+          return { doc: mockDoc };
         }
-        if (collectionName === 'notifications') {
-          return { add: mockAdd };
-        }
-        return { doc: mockDoc };
-      });
+      );
 
       // User A sends nudge to User B
       const nudgeResponse = await request(app)
@@ -224,19 +227,21 @@ describe('Integration Tests', () => {
         update: mockUpdate,
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return {
-            where: jest.fn().mockReturnValue({
-              get: jest.fn().mockResolvedValue(mockUserSnapshot),
-            }),
-          };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return {
+              where: jest.fn().mockReturnValue({
+                get: jest.fn().mockResolvedValue(mockUserSnapshot),
+              }),
+            };
+          }
+          if (collectionName === 'notifications') {
+            return { add: mockAdd };
+          }
+          return { doc: mockDoc };
         }
-        if (collectionName === 'notifications') {
-          return { add: mockAdd };
-        }
-        return { doc: mockDoc };
-      });
+      );
 
       // User B sends nudge to User A
       const nudgeResponse = await request(app)
@@ -342,19 +347,21 @@ describe('Integration Tests', () => {
         }),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return {
-            where: jest.fn().mockReturnValue({
-              get: jest.fn().mockResolvedValue(mockUserSnapshot),
-            }),
-          };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return {
+              where: jest.fn().mockReturnValue({
+                get: jest.fn().mockResolvedValue(mockUserSnapshot),
+              }),
+            };
+          }
+          if (collectionName === 'notifications') {
+            return { add: mockAdd };
+          }
+          return { doc: mockDoc };
         }
-        if (collectionName === 'notifications') {
-          return { add: mockAdd };
-        }
-        return { doc: mockDoc };
-      });
+      );
 
       await request(app)
         .post('/api/nudges')
@@ -452,19 +459,21 @@ describe('Integration Tests', () => {
         update: mockUpdate,
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return {
-            where: jest.fn().mockReturnValue({
-              get: jest.fn().mockResolvedValue(mockUserSnapshot),
-            }),
-          };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return {
+              where: jest.fn().mockReturnValue({
+                get: jest.fn().mockResolvedValue(mockUserSnapshot),
+              }),
+            };
+          }
+          if (collectionName === 'notifications') {
+            return { add: mockAdd };
+          }
+          return { doc: mockDoc };
         }
-        if (collectionName === 'notifications') {
-          return { add: mockAdd };
-        }
-        return { doc: mockDoc };
-      });
+      );
 
       await request(app)
         .post('/api/nudges')
@@ -610,9 +619,11 @@ describe('Integration Tests', () => {
         return {
           where: jest.fn().mockReturnValue({
             where: jest.fn().mockReturnValue({
-              get: jest.fn().mockResolvedValue(
-                countCallIndex === 1 ? mockInitialCount : mockAfterCount
-              ),
+              get: jest
+                .fn()
+                .mockResolvedValue(
+                  countCallIndex === 1 ? mockInitialCount : mockAfterCount
+                ),
             }),
           }),
         };
@@ -623,15 +634,17 @@ describe('Integration Tests', () => {
         update: mockUpdate,
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockWhere };
+          }
+          if (collectionName === 'notifications') {
+            return { doc: mockDoc, where: mockWhere };
+          }
+          return {};
         }
-        if (collectionName === 'notifications') {
-          return { doc: mockDoc, where: mockWhere };
-        }
-        return {};
-      });
+      );
 
       // Get initial unread count
       const countBefore = await request(app)
@@ -734,7 +747,7 @@ describe('Integration Tests', () => {
       expect(countResponse.body.count).toBe(0);
     });
 
-    it('Verify 30-day expiry (notifications older than 30 days don\'t appear)', async () => {
+    it("Verify 30-day expiry (notifications older than 30 days don't appear)", async () => {
       mockVerifyIdToken.mockResolvedValue({
         uid: userA.uid,
         email: userA.email,
@@ -746,8 +759,12 @@ describe('Integration Tests', () => {
       };
 
       const now = new Date();
-      const twentyNineDaysAgo = new Date(now.getTime() - 29 * 24 * 60 * 60 * 1000);
-      const thirtyOneDaysAgo = new Date(now.getTime() - 31 * 24 * 60 * 60 * 1000);
+      const twentyNineDaysAgo = new Date(
+        now.getTime() - 29 * 24 * 60 * 60 * 1000
+      );
+      const thirtyOneDaysAgo = new Date(
+        now.getTime() - 31 * 24 * 60 * 60 * 1000
+      );
 
       // Only recent notification should appear
       const mockNotifDocs = [
@@ -776,25 +793,27 @@ describe('Integration Tests', () => {
       });
 
       let whereCallCount = 0;
-      const mockWhere = jest.fn().mockImplementation((field: string, op: string, value: any) => {
-        whereCallCount++;
-        if (whereCallCount === 1) {
-          return {
-            get: jest.fn().mockResolvedValue(mockUserSnapshot),
-          };
-        } else if (field === 'createdAt') {
-          // Verify 30-day filter is being applied
-          expect(op).toBe('>=');
-          expect(value).toBeInstanceOf(Date);
-          return {
-            orderBy: mockOrderBy,
-          };
-        } else {
-          return {
-            where: mockWhere,
-          };
-        }
-      });
+      const mockWhere = jest
+        .fn()
+        .mockImplementation((field: string, op: string, value: any) => {
+          whereCallCount++;
+          if (whereCallCount === 1) {
+            return {
+              get: jest.fn().mockResolvedValue(mockUserSnapshot),
+            };
+          } else if (field === 'createdAt') {
+            // Verify 30-day filter is being applied
+            expect(op).toBe('>=');
+            expect(value).toBeInstanceOf(Date);
+            return {
+              orderBy: mockOrderBy,
+            };
+          } else {
+            return {
+              where: mockWhere,
+            };
+          }
+        });
 
       (db.collection as jest.Mock).mockImplementation(() => {
         return { where: mockWhere };

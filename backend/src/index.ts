@@ -11,6 +11,7 @@ import promptsRouter from './routes/prompts';
 import usersRouter from './routes/users';
 import nudgesRouter from './routes/nudges';
 import notificationsRouter from './routes/notifications';
+import chatRouter from './routes/chat';
 
 dotenv.config();
 
@@ -100,6 +101,7 @@ app.use(promptsRouter); // /api/prompts
 app.use(imagesRouter); // /api/images
 app.use(nudgesRouter); // /api/nudges
 app.use(notificationsRouter); // /api/notifications
+app.use(chatRouter); // /api/chat
 app.use(adminPromptsRouter); // /api/admin/prompts
 
 app

@@ -22,7 +22,7 @@ const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
  * @param type - Type of notification
  * @param title - Notification title
  * @param message - Notification message
- * @param metadata - Additional metadata (promptId, matchNetid, chatId, etc.)
+ * @param metadata - Additional metadata (promptId, matchNetid, conversationId, matchName, matchFirebaseUid, chatId, etc.)
  * @returns Promise resolving to the created notification ID
  */
 export async function createNotification(
@@ -33,6 +33,9 @@ export async function createNotification(
   metadata: {
     promptId?: string;
     matchNetid?: string;
+    conversationId?: string;
+    matchName?: string;
+    matchFirebaseUid?: string;
     chatId?: string;
   } = {}
 ): Promise<string> {
@@ -46,7 +49,9 @@ export async function createNotification(
     createdAt: FieldValue.serverTimestamp(),
   };
 
-  const docRef = await db.collection(NOTIFICATIONS_COLLECTION).add(notificationDoc);
+  const docRef = await db
+    .collection(NOTIFICATIONS_COLLECTION)
+    .add(notificationDoc);
   return docRef.id;
 }
 
@@ -106,7 +111,9 @@ export async function markAsRead(
   notificationId: string,
   netid: string
 ): Promise<boolean> {
-  const notificationRef = db.collection(NOTIFICATIONS_COLLECTION).doc(notificationId);
+  const notificationRef = db
+    .collection(NOTIFICATIONS_COLLECTION)
+    .doc(notificationId);
   const notification = await notificationRef.get();
 
   if (!notification.exists) {
@@ -185,8 +192,9 @@ export function notificationToResponse(
     message: notificationDoc.message,
     read: notificationDoc.read,
     metadata: notificationDoc.metadata,
-    createdAt: notificationDoc.createdAt instanceof Date
-      ? notificationDoc.createdAt.toISOString()
-      : notificationDoc.createdAt.toDate().toISOString(),
+    createdAt:
+      notificationDoc.createdAt instanceof Date
+        ? notificationDoc.createdAt.toISOString()
+        : notificationDoc.createdAt.toDate().toISOString(),
   };
 }

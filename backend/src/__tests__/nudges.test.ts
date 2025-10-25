@@ -100,7 +100,8 @@ describe('Nudges API', () => {
       };
 
       const mockSet = jest.fn().mockResolvedValue({});
-      const mockGet = jest.fn()
+      const mockGet = jest
+        .fn()
         .mockResolvedValueOnce(mockMatchDoc)
         .mockResolvedValueOnce(mockNudgeDoc)
         .mockResolvedValueOnce(mockReverseNudgeDoc)
@@ -115,12 +116,14 @@ describe('Nudges API', () => {
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockWhere };
+          }
+          return { doc: mockDoc };
         }
-        return { doc: mockDoc };
-      });
+      );
 
       const response = await request(app)
         .post('/api/nudges')
@@ -138,7 +141,7 @@ describe('Nudges API', () => {
       expect(mockSet).toHaveBeenCalled();
     });
 
-    it('should prevent nudging someone who isn\'t a match', async () => {
+    it("should prevent nudging someone who isn't a match", async () => {
       const mockUserSnapshot = {
         empty: false,
         docs: [{ data: () => ({ netid: mockUser1.netid }) }],
@@ -164,12 +167,14 @@ describe('Nudges API', () => {
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockWhere };
+          }
+          return { doc: mockDoc };
         }
-        return { doc: mockDoc };
-      });
+      );
 
       const response = await request(app)
         .post('/api/nudges')
@@ -212,7 +217,8 @@ describe('Nudges API', () => {
         }),
       };
 
-      const mockGet = jest.fn()
+      const mockGet = jest
+        .fn()
         .mockResolvedValueOnce(mockMatchDoc)
         .mockResolvedValueOnce(mockNudgeDoc);
 
@@ -224,12 +230,14 @@ describe('Nudges API', () => {
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockWhere };
+          }
+          return { doc: mockDoc };
         }
-        return { doc: mockDoc };
-      });
+      );
 
       const response = await request(app)
         .post('/api/nudges')
@@ -280,7 +288,8 @@ describe('Nudges API', () => {
       const mockSet = jest.fn().mockResolvedValue({});
       const mockAdd = jest.fn().mockResolvedValue({ id: 'notif-123' });
 
-      const mockGet = jest.fn()
+      const mockGet = jest
+        .fn()
         .mockResolvedValueOnce(mockMatchDoc)
         .mockResolvedValueOnce(mockNudgeDoc)
         .mockResolvedValueOnce(mockReverseNudgeDoc)
@@ -291,19 +300,21 @@ describe('Nudges API', () => {
         set: mockSet,
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return {
-            where: jest.fn().mockReturnValue({
-              get: jest.fn().mockResolvedValue(mockUserSnapshot),
-            }),
-          };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return {
+              where: jest.fn().mockReturnValue({
+                get: jest.fn().mockResolvedValue(mockUserSnapshot),
+              }),
+            };
+          }
+          if (collectionName === 'notifications') {
+            return { add: mockAdd };
+          }
+          return { doc: mockDoc };
         }
-        if (collectionName === 'notifications') {
-          return { add: mockAdd };
-        }
-        return { doc: mockDoc };
-      });
+      );
 
       await request(app)
         .post('/api/nudges')
@@ -401,19 +412,21 @@ describe('Nudges API', () => {
         update: mockUpdate,
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return {
-            where: jest.fn().mockReturnValue({
-              get: jest.fn().mockResolvedValue(mockUserSnapshot),
-            }),
-          };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return {
+              where: jest.fn().mockReturnValue({
+                get: jest.fn().mockResolvedValue(mockUserSnapshot),
+              }),
+            };
+          }
+          if (collectionName === 'notifications') {
+            return { add: mockAdd };
+          }
+          return { doc: mockDoc };
         }
-        if (collectionName === 'notifications') {
-          return { add: mockAdd };
-        }
-        return { doc: mockDoc };
-      });
+      );
 
       const response = await request(app)
         .post('/api/nudges')
@@ -503,19 +516,21 @@ describe('Nudges API', () => {
         update: mockUpdate,
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return {
-            where: jest.fn().mockReturnValue({
-              get: jest.fn().mockResolvedValue(mockUserSnapshot),
-            }),
-          };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return {
+              where: jest.fn().mockReturnValue({
+                get: jest.fn().mockResolvedValue(mockUserSnapshot),
+              }),
+            };
+          }
+          if (collectionName === 'notifications') {
+            return { add: mockAdd };
+          }
+          return { doc: mockDoc };
         }
-        if (collectionName === 'notifications') {
-          return { add: mockAdd };
-        }
-        return { doc: mockDoc };
-      });
+      );
 
       await request(app)
         .post('/api/nudges')
@@ -610,19 +625,21 @@ describe('Nudges API', () => {
         }),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return {
-            where: jest.fn().mockReturnValue({
-              get: jest.fn().mockResolvedValue(mockUserSnapshot),
-            }),
-          };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return {
+              where: jest.fn().mockReturnValue({
+                get: jest.fn().mockResolvedValue(mockUserSnapshot),
+              }),
+            };
+          }
+          if (collectionName === 'notifications') {
+            return { add: mockAdd };
+          }
+          return { doc: mockDoc };
         }
-        if (collectionName === 'notifications') {
-          return { add: mockAdd };
-        }
-        return { doc: mockDoc };
-      });
+      );
 
       await request(app)
         .post('/api/nudges')
@@ -663,12 +680,14 @@ describe('Nudges API', () => {
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockWhere };
+          }
+          return {};
         }
-        return {};
-      });
+      );
 
       // Missing toNetid
       const response1 = await request(app)
@@ -717,7 +736,8 @@ describe('Nudges API', () => {
         exists: false,
       };
 
-      const mockGet = jest.fn()
+      const mockGet = jest
+        .fn()
         .mockResolvedValueOnce(mockSentNudgeDoc)
         .mockResolvedValueOnce(mockReceivedNudgeDoc);
 
@@ -729,12 +749,14 @@ describe('Nudges API', () => {
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockWhere };
+          }
+          return { doc: mockDoc };
         }
-        return { doc: mockDoc };
-      });
+      );
 
       const response = await request(app)
         .get(`/api/nudges/${promptId}/${mockUser2.netid}/status`)
@@ -760,7 +782,8 @@ describe('Nudges API', () => {
         exists: false,
       };
 
-      const mockGet = jest.fn()
+      const mockGet = jest
+        .fn()
         .mockResolvedValueOnce(mockSentNudgeDoc)
         .mockResolvedValueOnce(mockReceivedNudgeDoc);
 
@@ -772,12 +795,14 @@ describe('Nudges API', () => {
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockWhere };
+          }
+          return { doc: mockDoc };
         }
-        return { doc: mockDoc };
-      });
+      );
 
       const response = await request(app)
         .get(`/api/nudges/${promptId}/${mockUser2.netid}/status`)
@@ -801,7 +826,8 @@ describe('Nudges API', () => {
         exists: true,
       };
 
-      const mockGet = jest.fn()
+      const mockGet = jest
+        .fn()
         .mockResolvedValueOnce(mockSentNudgeDoc)
         .mockResolvedValueOnce(mockReceivedNudgeDoc);
 
@@ -813,12 +839,14 @@ describe('Nudges API', () => {
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockWhere };
+          }
+          return { doc: mockDoc };
         }
-        return { doc: mockDoc };
-      });
+      );
 
       const response = await request(app)
         .get(`/api/nudges/${promptId}/${mockUser2.netid}/status`)
@@ -844,7 +872,8 @@ describe('Nudges API', () => {
         data: () => ({ mutual: true }),
       };
 
-      const mockGet = jest.fn()
+      const mockGet = jest
+        .fn()
         .mockResolvedValueOnce(mockSentNudgeDoc)
         .mockResolvedValueOnce(mockReceivedNudgeDoc);
 
@@ -856,12 +885,14 @@ describe('Nudges API', () => {
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockWhere };
+          }
+          return { doc: mockDoc };
         }
-        return { doc: mockDoc };
-      });
+      );
 
       const response = await request(app)
         .get(`/api/nudges/${promptId}/${mockUser2.netid}/status`)

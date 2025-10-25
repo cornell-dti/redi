@@ -26,7 +26,10 @@ export function filterProfileByPrivacy(
   context: ProfileViewContext
 ): Partial<ProfileResponse> {
   // Always return full profile for own view or admin view
-  if (context === ProfileViewContext.OWN_PROFILE || context === ProfileViewContext.ADMIN_VIEW) {
+  if (
+    context === ProfileViewContext.OWN_PROFILE ||
+    context === ProfileViewContext.ADMIN_VIEW
+  ) {
     return profile;
   }
 

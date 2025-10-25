@@ -18,7 +18,9 @@ const router = express.Router();
 /**
  * Gets netid from authenticated Firebase UID
  */
-const getNetidFromAuth = async (firebaseUid: string): Promise<string | null> => {
+const getNetidFromAuth = async (
+  firebaseUid: string
+): Promise<string | null> => {
   try {
     const userSnapshot = await db
       .collection('users')
@@ -58,7 +60,9 @@ router.get(
       }
 
       // Parse limit from query params
-      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+      const limit = req.query.limit
+        ? parseInt(req.query.limit as string, 10)
+        : 50;
 
       // Get notifications
       const notifications = await getUserNotifications(netid, limit);
@@ -158,7 +162,9 @@ router.put(
       res.status(200).json({ success: true, count });
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
-      res.status(500).json({ error: 'Failed to mark all notifications as read' });
+      res
+        .status(500)
+        .json({ error: 'Failed to mark all notifications as read' });
     }
   }
 );

@@ -20,7 +20,8 @@ export interface AdminDoc {
 /**
  * Response format for admin data
  */
-export interface AdminResponse extends Omit<AdminDoc, 'createdAt' | 'lastLoginAt'> {
+export interface AdminResponse
+  extends Omit<AdminDoc, 'createdAt' | 'lastLoginAt'> {
   createdAt: string;
   lastLoginAt?: string;
 }
@@ -87,10 +88,15 @@ export async function addAdmin(
     return adminToResponse(adminDoc);
   } catch (error) {
     console.error('❌ [Admin Service] Error adding admin:', error);
-    if (error instanceof Error && error.message === 'User is already an admin') {
+    if (
+      error instanceof Error &&
+      error.message === 'User is already an admin'
+    ) {
       throw error;
     }
-    throw new Error(`Failed to add admin: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to add admin: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 
@@ -129,7 +135,9 @@ export async function removeAdmin(uid: string): Promise<void> {
     console.log(`✅ [Admin Service] Marked admin as disabled: ${uid}`);
   } catch (error) {
     console.error('❌ [Admin Service] Error removing admin:', error);
-    throw new Error(`Failed to remove admin: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to remove admin: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 
@@ -139,8 +147,12 @@ export async function removeAdmin(uid: string): Promise<void> {
  * @param includeDisabled - Whether to include disabled admins (default: false)
  * @returns Promise<AdminResponse[]> - List of admin users
  */
-export async function getAllAdmins(includeDisabled: boolean = false): Promise<AdminResponse[]> {
-  console.log(`📋 [Admin Service] Getting all admins (includeDisabled: ${includeDisabled})`);
+export async function getAllAdmins(
+  includeDisabled: boolean = false
+): Promise<AdminResponse[]> {
+  console.log(
+    `📋 [Admin Service] Getting all admins (includeDisabled: ${includeDisabled})`
+  );
 
   try {
     let query = db.collection('admins').orderBy('createdAt', 'desc');
@@ -150,7 +162,9 @@ export async function getAllAdmins(includeDisabled: boolean = false): Promise<Ad
     }
 
     const snapshot = await query.get();
-    const admins = snapshot.docs.map(doc => adminToResponse(doc.data() as AdminDoc));
+    const admins = snapshot.docs.map((doc) =>
+      adminToResponse(doc.data() as AdminDoc)
+    );
 
     console.log(`✅ [Admin Service] Found ${admins.length} admins`);
     return admins;
@@ -166,7 +180,9 @@ export async function getAllAdmins(includeDisabled: boolean = false): Promise<Ad
  * @param uid - UID of the admin to retrieve
  * @returns Promise<AdminResponse | null> - Admin document or null if not found
  */
-export async function getAdminByUid(uid: string): Promise<AdminResponse | null> {
+export async function getAdminByUid(
+  uid: string
+): Promise<AdminResponse | null> {
   console.log(`🔍 [Admin Service] Getting admin: ${uid}`);
 
   try {
@@ -212,7 +228,9 @@ export async function updateAdminLastLogin(uid: string): Promise<void> {
  */
 export async function updateAdmin(
   uid: string,
-  updates: Partial<Pick<AdminDoc, 'displayName' | 'role' | 'notes' | 'disabled'>>
+  updates: Partial<
+    Pick<AdminDoc, 'displayName' | 'role' | 'notes' | 'disabled'>
+  >
 ): Promise<AdminResponse> {
   console.log(`📝 [Admin Service] Updating admin: ${uid}`);
 

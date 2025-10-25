@@ -16,7 +16,9 @@ const router = express.Router();
 /**
  * Gets netid from authenticated Firebase UID
  */
-const getNetidFromAuth = async (firebaseUid: string): Promise<string | null> => {
+const getNetidFromAuth = async (
+  firebaseUid: string
+): Promise<string | null> => {
   try {
     const userSnapshot = await db
       .collection('users')

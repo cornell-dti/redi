@@ -60,7 +60,8 @@ export const validateProfileCreation: ValidationChain[] = [
     .withMessage('Invalid birthdate format')
     .custom((value) => {
       const birthdate = new Date(value);
-      const age = (Date.now() - birthdate.getTime()) / (1000 * 60 * 60 * 24 * 365);
+      const age =
+        (Date.now() - birthdate.getTime()) / (1000 * 60 * 60 * 24 * 365);
       if (age < 18) {
         throw new Error('Must be at least 18 years old');
       }
@@ -71,7 +72,15 @@ export const validateProfileCreation: ValidationChain[] = [
     }),
 
   body('year')
-    .isIn(['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'PhD', 'Post-Doc'])
+    .isIn([
+      'Freshman',
+      'Sophomore',
+      'Junior',
+      'Senior',
+      'Graduate',
+      'PhD',
+      'Post-Doc',
+    ])
     .withMessage('Invalid year value'),
 
   body('school')
@@ -145,11 +154,7 @@ export const validateProfileCreation: ValidationChain[] = [
     .matches(/^\+?[1-9]\d{1,14}$/)
     .withMessage('Invalid phone number format'),
 
-  body('website')
-    .optional()
-    .trim()
-    .isURL()
-    .withMessage('Invalid website URL'),
+  body('website').optional().trim().isURL().withMessage('Invalid website URL'),
 
   body('linkedIn')
     .optional()
@@ -168,10 +173,7 @@ export const validateProfileCreation: ValidationChain[] = [
     .isArray({ max: 6 })
     .withMessage('Maximum 6 pictures allowed'),
 
-  body('pictures.*')
-    .optional()
-    .isURL()
-    .withMessage('Invalid picture URL'),
+  body('pictures.*').optional().isURL().withMessage('Invalid picture URL'),
 ];
 
 /**
@@ -227,13 +229,18 @@ export const validatePreferences: ValidationChain[] = [
 
   body('years.*')
     .optional()
-    .isIn(['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate', 'PhD', 'Post-Doc'])
+    .isIn([
+      'Freshman',
+      'Sophomore',
+      'Junior',
+      'Senior',
+      'Graduate',
+      'PhD',
+      'Post-Doc',
+    ])
     .withMessage('Invalid year value'),
 
-  body('schools')
-    .optional()
-    .isArray()
-    .withMessage('Schools must be an array'),
+  body('schools').optional().isArray().withMessage('Schools must be an array'),
 
   body('schools.*')
     .optional()
@@ -242,10 +249,7 @@ export const validatePreferences: ValidationChain[] = [
     .isLength({ min: 1, max: 200 })
     .withMessage('Invalid school name'),
 
-  body('majors')
-    .optional()
-    .isArray()
-    .withMessage('Majors must be an array'),
+  body('majors').optional().isArray().withMessage('Majors must be an array'),
 
   body('majors.*')
     .optional()

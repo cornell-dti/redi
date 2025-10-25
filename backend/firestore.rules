@@ -96,6 +96,31 @@ service cloud.firestore {
       allow delete: if false; // Only backend via API
     }
 
+    // Conversations - users can only read/write conversations they're part of
+    match /conversations/{conversationId} {
+      // Helper function to check if user is a participant
+      function isParticipant() {
+        return request.auth.uid in resource.data.participantIds;
+      }
+
+      // Users can read conversations they're a participant in
+      allow read: if isAuthenticated() && isParticipant();
+
+      // Users cannot directly create/update/delete conversations (must use backend API)
+      allow write: if false;
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        // Users can read messages in conversations they're part of
+        // Check parent conversation's participantIds
+        allow read: if isAuthenticated() &&
+          request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
+
+        // Users cannot directly write messages (must use backend API)
+        allow write: if false;
+      }
+    }
+
     // Deny all other access by default
     match /{document=**} {
       allow read, write: if false;

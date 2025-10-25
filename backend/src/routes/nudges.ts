@@ -17,7 +17,9 @@ const router = express.Router();
 /**
  * Gets netid from authenticated Firebase UID
  */
-const getNetidFromAuth = async (firebaseUid: string): Promise<string | null> => {
+const getNetidFromAuth = async (
+  firebaseUid: string
+): Promise<string | null> => {
   try {
     const userSnapshot = await db
       .collection('users')
@@ -55,7 +57,7 @@ router.post(
       // Validate request body
       if (!toNetid || !promptId) {
         return res.status(400).json({
-          error: 'Missing required fields: toNetid and promptId are required'
+          error: 'Missing required fields: toNetid and promptId are required',
         });
       }
 
@@ -67,7 +69,10 @@ router.post(
 
       // Verify the users are actually matched for this prompt
       const matchDocId = `${fromNetid}_${promptId}`;
-      const matchDoc = await db.collection('weeklyMatches').doc(matchDocId).get();
+      const matchDoc = await db
+        .collection('weeklyMatches')
+        .doc(matchDocId)
+        .get();
 
       if (!matchDoc.exists) {
         return res.status(404).json({ error: 'Match document not found' });
@@ -76,7 +81,7 @@ router.post(
       const matchData = matchDoc.data();
       if (!matchData || !matchData.matches.includes(toNetid)) {
         return res.status(403).json({
-          error: 'Cannot nudge: users are not matched for this prompt'
+          error: 'Cannot nudge: users are not matched for this prompt',
         });
       }
 

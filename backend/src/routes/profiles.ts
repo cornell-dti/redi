@@ -11,16 +11,14 @@ import {
   UpdateProfileInput,
 } from '../../types';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
-import {
-  authenticatedRateLimit
-} from '../middleware/rateLimiting';
+import { authenticatedRateLimit } from '../middleware/rateLimiting';
 import { validate, validateProfileCreation } from '../middleware/validation';
 import { createDefaultPreferences } from '../services/preferencesService';
 import {
   determineViewContext,
   getProfileWithAge,
   isUserBlocked,
-  ProfileViewContext
+  ProfileViewContext,
 } from '../utils/profilePrivacy';
 
 const router = express.Router();
@@ -91,7 +89,9 @@ const profileDocToResponse = (
 /**
  * Helper to get netid from authenticated user
  */
-const getNetidFromAuth = async (firebaseUid: string): Promise<string | null> => {
+const getNetidFromAuth = async (
+  firebaseUid: string
+): Promise<string | null> => {
   try {
     const userSnapshot = await db
       .collection('users')
@@ -183,8 +183,16 @@ router.get(
       const filteredProfiles = [];
       for (const profile of profiles) {
         // Check if viewer blocked this user or vice versa
-        const viewerBlockedUser = await isUserBlocked(viewerNetid, profile.netid, db);
-        const userBlockedViewer = await isUserBlocked(profile.netid, viewerNetid, db);
+        const viewerBlockedUser = await isUserBlocked(
+          viewerNetid,
+          profile.netid,
+          db
+        );
+        const userBlockedViewer = await isUserBlocked(
+          profile.netid,
+          viewerNetid,
+          db
+        );
 
         if (!viewerBlockedUser && !userBlockedViewer) {
           // Determine view context and apply privacy filtering
@@ -519,7 +527,9 @@ router.get(
         .get();
 
       if (currentUserSnapshot.empty) {
-        return res.status(404).json({ error: 'Current user profile not found' });
+        return res
+          .status(404)
+          .json({ error: 'Current user profile not found' });
       }
 
       // Get current user's preferences
