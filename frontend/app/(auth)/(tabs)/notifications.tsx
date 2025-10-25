@@ -1,6 +1,8 @@
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import { useNotifications } from '@/app/contexts/NotificationsContext';
+import { useFocusEffect } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import { Bell, Heart, LucideIcon, MessageCircle, X } from 'lucide-react-native';
 import React, { useCallback } from 'react';
 import {
@@ -12,12 +14,10 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import { AppColors } from '../../components/AppColors';
 import ListItemWrapper from '../../components/ui/ListItemWrapper';
 import NotificationItem from '../../components/ui/NotificationItem';
 import { useThemeAware } from '../../contexts/ThemeContext';
-import { useRouter } from 'expo-router';
 
 // Helper to get icon for notification type
 const getNotificationIcon = (type: string): LucideIcon => {
@@ -81,7 +81,7 @@ export default function NotificationsScreen() {
         // If conversation was auto-created, navigate to chat
         if (metadata.conversationId) {
           // Build navigation URL with conversation details
-          let chatUrl = `/screens/chat-detail?conversationId=${metadata.conversationId}`;
+          let chatUrl = `/chat-detail?conversationId=${metadata.conversationId}`;
 
           // Add optional parameters if available
           if (metadata.matchFirebaseUid) {
