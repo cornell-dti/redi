@@ -7,9 +7,8 @@ import {
   Send,
   Video,
 } from 'lucide-react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   KeyboardAvoidingView,
@@ -20,12 +19,13 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getCurrentUser } from '../../api/authService';
-import { createOrGetConversation, sendMessage as sendMessageAPI } from '../../api/chatApi';
-import { AppColors } from '../../components/AppColors';
-import { useMessages } from '../../hooks/useMessages';
+import { AppColors } from '../components/AppColors';
+import { useMessages } from '../hooks/useMessages';
+import { sendMessage as sendMessageAPI, createOrGetConversation } from '../api/chatApi';
+import { getCurrentUser } from '../api/authService';
 
 // Mock chat messages
 const mockMessages = [
