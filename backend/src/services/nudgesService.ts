@@ -33,7 +33,10 @@ export async function createNudge(
   const nudgeId = `${fromNetid}_${promptId}_${toNetid}`;
 
   // Check if nudge already exists
-  const existingNudge = await db.collection(NUDGES_COLLECTION).doc(nudgeId).get();
+  const existingNudge = await db
+    .collection(NUDGES_COLLECTION)
+    .doc(nudgeId)
+    .get();
   if (existingNudge.exists) {
     throw new Error('You have already nudged this match');
   }
@@ -51,13 +54,22 @@ export async function createNudge(
 
   // Check if reverse nudge exists (mutual nudge detection)
   const reverseNudgeId = `${toNetid}_${promptId}_${fromNetid}`;
-  const reverseNudge = await db.collection(NUDGES_COLLECTION).doc(reverseNudgeId).get();
+  const reverseNudge = await db
+    .collection(NUDGES_COLLECTION)
+    .doc(reverseNudgeId)
+    .get();
 
   // If both users have nudged each other, it's mutual!
   if (reverseNudge.exists) {
     // Mark both nudges as mutual
-    await db.collection(NUDGES_COLLECTION).doc(nudgeId).update({ mutual: true });
-    await db.collection(NUDGES_COLLECTION).doc(reverseNudgeId).update({ mutual: true });
+    await db
+      .collection(NUDGES_COLLECTION)
+      .doc(nudgeId)
+      .update({ mutual: true });
+    await db
+      .collection(NUDGES_COLLECTION)
+      .doc(reverseNudgeId)
+      .update({ mutual: true });
 
     // Set chatUnlocked flag on both users' match documents
     await unlockChatForMatch(fromNetid, toNetid, promptId);
@@ -108,7 +120,10 @@ export async function createNudge(
   }
 
   // Return the created nudge
-  const createdNudge = await db.collection(NUDGES_COLLECTION).doc(nudgeId).get();
+  const createdNudge = await db
+    .collection(NUDGES_COLLECTION)
+    .doc(nudgeId)
+    .get();
   return createdNudge.data() as NudgeDoc;
 }
 
@@ -125,7 +140,10 @@ async function unlockChatForMatch(
   promptId: string
 ): Promise<void> {
   const matchDocId = `${userNetid}_${promptId}`;
-  const matchDoc = await db.collection(MATCHES_COLLECTION).doc(matchDocId).get();
+  const matchDoc = await db
+    .collection(MATCHES_COLLECTION)
+    .doc(matchDocId)
+    .get();
 
   if (!matchDoc.exists) {
     return;
@@ -184,7 +202,9 @@ async function getUserProfile(firebaseUid: string): Promise<{
       .where('netid', '==', userData.netid)
       .get();
 
-    const profileData = !profileSnapshot.empty ? profileSnapshot.docs[0].data() : null;
+    const profileData = !profileSnapshot.empty
+      ? profileSnapshot.docs[0].data()
+      : null;
 
     return {
       firebaseUid,
@@ -263,7 +283,9 @@ async function createOrGetConversation(
       updatedAt: FieldValue.serverTimestamp(),
     };
 
-    const conversationDoc = await db.collection(CONVERSATIONS_COLLECTION).add(newConversation);
+    const conversationDoc = await db
+      .collection(CONVERSATIONS_COLLECTION)
+      .add(newConversation);
     return conversationDoc.id;
   } catch (error) {
     console.error('Error creating conversation:', error);
@@ -329,8 +351,9 @@ export function nudgeToResponse(nudgeDoc: NudgeDoc): NudgeResponse {
     toNetid: nudgeDoc.toNetid,
     promptId: nudgeDoc.promptId,
     mutual: nudgeDoc.mutual,
-    createdAt: nudgeDoc.createdAt instanceof Date
-      ? nudgeDoc.createdAt.toISOString()
-      : nudgeDoc.createdAt.toDate().toISOString(),
+    createdAt:
+      nudgeDoc.createdAt instanceof Date
+        ? nudgeDoc.createdAt.toISOString()
+        : nudgeDoc.createdAt.toDate().toISOString(),
   };
 }

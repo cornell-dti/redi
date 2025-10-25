@@ -76,7 +76,7 @@ export async function generateMatchesForPrompt(
   await db.collection('weeklyPrompts').doc(promptId).update({
     status: 'completed',
     matchesGeneratedAt: admin.firestore.FieldValue.serverTimestamp(),
-    active: false
+    active: false,
   });
 
   return matchedCount;

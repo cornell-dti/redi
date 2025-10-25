@@ -81,13 +81,17 @@ export default function ChatScreen() {
     console.log(currentUser.uid);
     return conversations.map((conv) => {
       // Get the other participant's info
-      const otherUserId = conv.participantIds.find((id) => id !== currentUser.uid);
+      const otherUserId = conv.participantIds.find(
+        (id) => id !== currentUser.uid
+      );
       const otherUser = otherUserId ? conv.participants[otherUserId] : null;
 
       // Format timestamp
       let timestamp = 'Just now';
       if (conv.lastMessage?.timestamp) {
-        const messageDate = conv.lastMessage.timestamp.toDate?.() || new Date(conv.lastMessage.timestamp);
+        const messageDate =
+          conv.lastMessage.timestamp.toDate?.() ||
+          new Date(conv.lastMessage.timestamp);
         const now = new Date();
         const diffMs = now.getTime() - messageDate.getTime();
         const diffMins = Math.floor(diffMs / 60000);
@@ -126,7 +130,12 @@ export default function ChatScreen() {
             </TouchableOpacity>
           }
         />
-        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <View
+          style={[
+            styles.container,
+            { justifyContent: 'center', alignItems: 'center' },
+          ]}
+        >
           <ActivityIndicator size="large" color={AppColors.accentDefault} />
         </View>
       </SafeAreaView>

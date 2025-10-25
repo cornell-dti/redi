@@ -23,7 +23,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../../api/authService';
-import { createOrGetConversation, sendMessage as sendMessageAPI } from '../../api/chatApi';
+import {
+  createOrGetConversation,
+  sendMessage as sendMessageAPI,
+} from '../../api/chatApi';
 import { AppColors } from '../../components/AppColors';
 import { useMessages } from '../../hooks/useMessages';
 
@@ -81,7 +84,11 @@ interface Message {
 }
 
 export default function ChatDetailScreen() {
-  const { conversationId: routeConversationId, userId, name } = useLocalSearchParams();
+  const {
+    conversationId: routeConversationId,
+    userId,
+    name,
+  } = useLocalSearchParams();
   const [conversationId, setConversationId] = useState<string | null>(
     (routeConversationId as string) || null
   );
@@ -213,7 +220,12 @@ export default function ChatDetailScreen() {
 
       {/* Messages List */}
       {loading ? (
-        <View style={[styles.messagesList, { justifyContent: 'center', alignItems: 'center' }]}>
+        <View
+          style={[
+            styles.messagesList,
+            { justifyContent: 'center', alignItems: 'center' },
+          ]}
+        >
           <ActivityIndicator size="large" color={AppColors.accentDefault} />
         </View>
       ) : (
@@ -226,7 +238,9 @@ export default function ChatDetailScreen() {
           contentContainerStyle={styles.messagesContent}
           showsVerticalScrollIndicator={false}
           inverted={false}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: true })
+          }
         />
       )}
 
@@ -263,7 +277,10 @@ export default function ChatDetailScreen() {
             disabled={!newMessage.trim() || sending}
           >
             {sending ? (
-              <ActivityIndicator size="small" color={AppColors.backgroundDefault} />
+              <ActivityIndicator
+                size="small"
+                color={AppColors.backgroundDefault}
+              />
             ) : (
               <Send
                 size={20}

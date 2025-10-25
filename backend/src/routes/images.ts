@@ -67,12 +67,16 @@ router.post(
         console.error('❌ [Images] Multer error:', err);
         if (err instanceof multer.MulterError) {
           if (err.code === 'LIMIT_FILE_SIZE') {
-            return res.status(413).json({ error: 'File too large (max 5MB per file)' });
+            return res
+              .status(413)
+              .json({ error: 'File too large (max 5MB per file)' });
           }
           if (err.code === 'LIMIT_FILE_COUNT') {
             return res.status(413).json({ error: 'Too many files (max 6)' });
           }
-          return res.status(400).json({ error: `Upload error: ${err.message}` });
+          return res
+            .status(400)
+            .json({ error: `Upload error: ${err.message}` });
         }
         return res.status(400).json({ error: err.message });
       }
@@ -139,7 +143,8 @@ router.post(
       });
     } catch (error) {
       console.error('Error uploading images:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       res.status(500).json({ error: errorMessage });
     }
   }
@@ -159,61 +164,68 @@ router.post(
  * @returns {Error} 404 - Image not found
  * @returns {Error} 500 - Internal server error
  */
-router.delete('/api/images', authenticateUser, async (req: AuthenticatedRequest, res) => {
-  try {
-    const { imageUrl } = req.body;
+router.delete(
+  '/api/images',
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { imageUrl } = req.body;
 
-    if (!req.user) {
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
+      if (!req.user) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
 
-    if (!imageUrl) {
-      return res.status(400).json({ error: 'imageUrl is required' });
-    }
+      if (!imageUrl) {
+        return res.status(400).json({ error: 'imageUrl is required' });
+      }
 
-    const firebaseUid = req.user.uid;
+      const firebaseUid = req.user.uid;
 
-    // Get user's netid
-    const netid = await getUserNetId(firebaseUid);
-    if (!netid) {
-      return res.status(404).json({ error: 'User profile not found' });
-    }
+      // Get user's netid
+      const netid = await getUserNetId(firebaseUid);
+      if (!netid) {
+        return res.status(404).json({ error: 'User profile not found' });
+      }
 
-    // Extract file path from URL
-    const urlPattern = new RegExp(`https://storage\\.googleapis\\.com/${bucket.name}/(.+)`);
-    const match = imageUrl.match(urlPattern);
+      // Extract file path from URL
+      const urlPattern = new RegExp(
+        `https://storage\\.googleapis\\.com/${bucket.name}/(.+)`
+      );
+      const match = imageUrl.match(urlPattern);
 
-    if (!match) {
-      return res.status(400).json({ error: 'Invalid image URL format' });
-    }
+      if (!match) {
+        return res.status(400).json({ error: 'Invalid image URL format' });
+      }
 
-    const filePath = decodeURIComponent(match[1]);
+      const filePath = decodeURIComponent(match[1]);
 
-    // Verify the file belongs to the authenticated user
-    if (!filePath.startsWith(`profiles/${netid}/`)) {
-      return res.status(403).json({
-        error: 'Unauthorized: You can only delete your own images'
+      // Verify the file belongs to the authenticated user
+      if (!filePath.startsWith(`profiles/${netid}/`)) {
+        return res.status(403).json({
+          error: 'Unauthorized: You can only delete your own images',
+        });
+      }
+
+      const file = bucket.file(filePath);
+      const [exists] = await file.exists();
+
+      if (!exists) {
+        return res.status(404).json({ error: 'Image not found' });
+      }
+
+      await file.delete();
+
+      res.status(200).json({
+        success: true,
+        message: 'Image deleted successfully',
       });
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      res.status(500).json({ error: errorMessage });
     }
-
-    const file = bucket.file(filePath);
-    const [exists] = await file.exists();
-
-    if (!exists) {
-      return res.status(404).json({ error: 'Image not found' });
-    }
-
-    await file.delete();
-
-    res.status(200).json({
-      success: true,
-      message: 'Image deleted successfully',
-    });
-  } catch (error) {
-    console.error('Error deleting image:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 export default router;

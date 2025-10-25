@@ -8,7 +8,10 @@ import { Message } from '../api/chatApi';
  * @param limit - Maximum number of messages to load (default 50)
  * @returns Object containing messages array, loading state, and error
  */
-export const useMessages = (conversationId: string | null, limit: number = 50) => {
+export const useMessages = (
+  conversationId: string | null,
+  limit: number = 50
+) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -28,10 +31,13 @@ export const useMessages = (conversationId: string | null, limit: number = 50) =
       .limit(limit)
       .onSnapshot(
         (snapshot) => {
-          const messagesData: Message[] = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          } as Message));
+          const messagesData: Message[] = snapshot.docs.map(
+            (doc) =>
+              ({
+                id: doc.id,
+                ...doc.data(),
+              }) as Message
+          );
 
           setMessages(messagesData);
           setLoading(false);

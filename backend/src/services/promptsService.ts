@@ -217,7 +217,9 @@ function getFridayOfCurrentWeek(): Date {
   // extend to next Friday to give users time to submit answers
   if (friday <= now) {
     friday.setDate(friday.getDate() + 7);
-    console.log(`⏭️  Calculated Friday is past, extending deadline to next Friday`);
+    console.log(
+      `⏭️  Calculated Friday is past, extending deadline to next Friday`
+    );
   }
 
   return friday;
@@ -247,11 +249,13 @@ export async function activatePrompt(
       const ref = db.collection(PROMPTS_COLLECTION).doc(prompt.promptId);
       batch.update(ref, {
         active: false,
-        status: 'completed'
+        status: 'completed',
       });
       console.log(`   └─ Deactivating prompt: ${prompt.promptId}`);
     } else {
-      console.log(`   └─ Skipping deactivation of ${prompt.promptId} (it's the one being activated)`);
+      console.log(
+        `   └─ Skipping deactivation of ${prompt.promptId} (it's the one being activated)`
+      );
     }
   });
 
@@ -262,8 +266,12 @@ export async function activatePrompt(
   const newMatchDate = getFridayOfCurrentWeek();
 
   console.log(`📅 Setting releaseDate to NOW: ${now.toISOString()}`);
-  console.log(`🗓️  Setting matchDate (deadline) to: ${newMatchDate.toISOString()}`);
-  console.log(`   └─ Day: ${newMatchDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/New_York' })}, Time: ${newMatchDate.toLocaleTimeString('en-US', { timeZone: 'America/New_York' })} ET`);
+  console.log(
+    `🗓️  Setting matchDate (deadline) to: ${newMatchDate.toISOString()}`
+  );
+  console.log(
+    `   └─ Day: ${newMatchDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/New_York' })}, Time: ${newMatchDate.toLocaleTimeString('en-US', { timeZone: 'America/New_York' })} ET`
+  );
 
   // Activate the specified prompt with updated releaseDate and matchDate
   const promptRef = db.collection(PROMPTS_COLLECTION).doc(promptId);
@@ -271,8 +279,8 @@ export async function activatePrompt(
     active: true,
     status: 'active',
     activatedAt: FieldValue.serverTimestamp(),
-    releaseDate: now,      // Set to current time for immediate access
-    matchDate: newMatchDate
+    releaseDate: now, // Set to current time for immediate access
+    matchDate: newMatchDate,
   });
 
   await batch.commit();
@@ -297,8 +305,12 @@ export function promptToResponse(doc: WeeklyPromptDoc): WeeklyPromptResponse {
     matchDate: toDate(doc.matchDate).toISOString(),
     active: doc.active,
     status: doc.status,
-    activatedAt: doc.activatedAt ? toDate(doc.activatedAt).toISOString() : undefined,
-    matchesGeneratedAt: doc.matchesGeneratedAt ? toDate(doc.matchesGeneratedAt).toISOString() : undefined,
+    activatedAt: doc.activatedAt
+      ? toDate(doc.activatedAt).toISOString()
+      : undefined,
+    matchesGeneratedAt: doc.matchesGeneratedAt
+      ? toDate(doc.matchesGeneratedAt).toISOString()
+      : undefined,
     createdAt: toDate(doc.createdAt).toISOString(),
   };
 }

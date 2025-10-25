@@ -57,7 +57,9 @@ router.post(
 
       // Don't allow conversation with self
       if (currentUserId === otherUserId) {
-        return res.status(400).json({ error: 'Cannot create conversation with yourself' });
+        return res
+          .status(400)
+          .json({ error: 'Cannot create conversation with yourself' });
       }
 
       // Check if conversation already exists (in either direction)
@@ -117,7 +119,8 @@ router.post(
       });
     } catch (error) {
       console.error('Error creating conversation:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       res.status(500).json({ error: errorMessage });
     }
   }
@@ -153,7 +156,8 @@ router.get(
       res.status(200).json({ conversations });
     } catch (error) {
       console.error('Error getting conversations:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       res.status(500).json({ error: errorMessage });
     }
   }
@@ -176,7 +180,9 @@ router.post(
       const { conversationId, text } = req.body;
 
       if (!conversationId || !text) {
-        return res.status(400).json({ error: 'conversationId and text are required' });
+        return res
+          .status(400)
+          .json({ error: 'conversationId and text are required' });
       }
 
       if (typeof text !== 'string' || text.trim().length === 0) {
@@ -184,22 +190,30 @@ router.post(
       }
 
       if (text.length > 5000) {
-        return res.status(400).json({ error: 'Message text too long (max 5000 characters)' });
+        return res
+          .status(400)
+          .json({ error: 'Message text too long (max 5000 characters)' });
       }
 
       const userId = req.user.uid;
 
       // Verify user is participant in conversation
-      const conversationRef = db.collection('conversations').doc(conversationId);
+      const conversationRef = db
+        .collection('conversations')
+        .doc(conversationId);
       const conversationDoc = await conversationRef.get();
 
       if (!conversationDoc.exists) {
-        return res.status(403).json({ error: 'Cannot access this conversation' });
+        return res
+          .status(403)
+          .json({ error: 'Cannot access this conversation' });
       }
 
       const conversationData = conversationDoc.data();
       if (!conversationData?.participantIds.includes(userId)) {
-        return res.status(403).json({ error: 'Cannot access this conversation' });
+        return res
+          .status(403)
+          .json({ error: 'Cannot access this conversation' });
       }
 
       // Create message
@@ -232,7 +246,8 @@ router.post(
       });
     } catch (error) {
       console.error('Error sending message:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       res.status(500).json({ error: errorMessage });
     }
   }
@@ -257,16 +272,22 @@ router.get(
       const limit = parseInt(req.query.limit as string) || 50;
 
       // Verify user is participant
-      const conversationRef = db.collection('conversations').doc(conversationId);
+      const conversationRef = db
+        .collection('conversations')
+        .doc(conversationId);
       const conversationDoc = await conversationRef.get();
 
       if (!conversationDoc.exists) {
-        return res.status(403).json({ error: 'Cannot access this conversation' });
+        return res
+          .status(403)
+          .json({ error: 'Cannot access this conversation' });
       }
 
       const conversationData = conversationDoc.data();
       if (!conversationData?.participantIds.includes(userId)) {
-        return res.status(403).json({ error: 'Cannot access this conversation' });
+        return res
+          .status(403)
+          .json({ error: 'Cannot access this conversation' });
       }
 
       // Get messages
@@ -276,15 +297,18 @@ router.get(
         .limit(limit)
         .get();
 
-      const messages = messagesSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })).reverse(); // Reverse to show oldest first
+      const messages = messagesSnapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+        .reverse(); // Reverse to show oldest first
 
       res.status(200).json({ messages });
     } catch (error) {
       console.error('Error getting messages:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       res.status(500).json({ error: errorMessage });
     }
   }
@@ -314,16 +338,22 @@ router.put(
       const userId = req.user.uid;
 
       // Verify user is participant
-      const conversationRef = db.collection('conversations').doc(conversationId);
+      const conversationRef = db
+        .collection('conversations')
+        .doc(conversationId);
       const conversationDoc = await conversationRef.get();
 
       if (!conversationDoc.exists) {
-        return res.status(403).json({ error: 'Cannot access this conversation' });
+        return res
+          .status(403)
+          .json({ error: 'Cannot access this conversation' });
       }
 
       const conversationData = conversationDoc.data();
       if (!conversationData?.participantIds.includes(userId)) {
-        return res.status(403).json({ error: 'Cannot access this conversation' });
+        return res
+          .status(403)
+          .json({ error: 'Cannot access this conversation' });
       }
 
       // Update message
@@ -342,7 +372,8 @@ router.put(
       res.status(200).json({ success: true });
     } catch (error) {
       console.error('Error marking message as read:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       res.status(500).json({ error: errorMessage });
     }
   }

@@ -50,7 +50,7 @@ export const requireAdmin = async (
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.warn('⚠️ [Admin Auth] No Bearer token provided');
       return res.status(401).json({
-        error: 'No authentication token provided. Please sign in.'
+        error: 'No authentication token provided. Please sign in.',
       });
     }
 
@@ -59,7 +59,7 @@ export const requireAdmin = async (
     if (!token) {
       console.warn('⚠️ [Admin Auth] Invalid token format');
       return res.status(401).json({
-        error: 'Invalid token format'
+        error: 'Invalid token format',
       });
     }
 
@@ -71,9 +71,12 @@ export const requireAdmin = async (
 
     // Check 1: Verify user has admin custom claim
     if (decodedToken.admin !== true) {
-      console.warn(`⛔ [Admin Auth] User ${decodedToken.uid} does not have admin custom claim`);
+      console.warn(
+        `⛔ [Admin Auth] User ${decodedToken.uid} does not have admin custom claim`
+      );
       return res.status(403).json({
-        error: 'Unauthorized: Admin access required. Your account does not have admin privileges.'
+        error:
+          'Unauthorized: Admin access required. Your account does not have admin privileges.',
       });
     }
 
@@ -84,9 +87,12 @@ export const requireAdmin = async (
     const adminDoc = await db.collection('admins').doc(decodedToken.uid).get();
 
     if (!adminDoc.exists) {
-      console.warn(`⛔ [Admin Auth] User ${decodedToken.uid} not found in admins collection`);
+      console.warn(
+        `⛔ [Admin Auth] User ${decodedToken.uid} not found in admins collection`
+      );
       return res.status(403).json({
-        error: 'Unauthorized: Admin access required. User not found in admins list.'
+        error:
+          'Unauthorized: Admin access required. User not found in admins list.',
       });
     }
 
@@ -96,11 +102,14 @@ export const requireAdmin = async (
     if (adminData?.disabled === true) {
       console.warn(`⛔ [Admin Auth] Admin ${decodedToken.uid} is disabled`);
       return res.status(403).json({
-        error: 'Unauthorized: Admin account is disabled. Please contact system administrator.'
+        error:
+          'Unauthorized: Admin account is disabled. Please contact system administrator.',
       });
     }
 
-    console.log(`✅ [Admin Auth] Admin verified in collection: ${adminData?.email || decodedToken.email}`);
+    console.log(
+      `✅ [Admin Auth] Admin verified in collection: ${adminData?.email || decodedToken.email}`
+    );
 
     // Attach admin user info to request
     req.user = {
@@ -118,18 +127,18 @@ export const requireAdmin = async (
     if (error instanceof Error) {
       if (error.message.includes('expired')) {
         return res.status(403).json({
-          error: 'Authentication token has expired. Please sign in again.'
+          error: 'Authentication token has expired. Please sign in again.',
         });
       }
       if (error.message.includes('invalid')) {
         return res.status(403).json({
-          error: 'Invalid authentication token. Please sign in again.'
+          error: 'Invalid authentication token. Please sign in again.',
         });
       }
     }
 
     return res.status(403).json({
-      error: 'Authentication failed. Please sign in again.'
+      error: 'Authentication failed. Please sign in again.',
     });
   }
 };

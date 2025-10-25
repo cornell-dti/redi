@@ -29,7 +29,9 @@ export const authenticateUser = async (
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No authentication token provided' });
+      return res
+        .status(401)
+        .json({ error: 'No authentication token provided' });
     }
 
     const token = authHeader.split('Bearer ')[1];

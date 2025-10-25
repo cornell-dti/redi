@@ -58,7 +58,7 @@ export const createOrGetConversation = async (
     const response = await fetch(`${API_BASE_URL}/api/chat/conversations`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ otherUserId }),
@@ -87,7 +87,7 @@ export const getConversations = async (): Promise<Conversation[]> => {
     const response = await fetch(`${API_BASE_URL}/api/chat/conversations`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -120,7 +120,7 @@ export const sendMessage = async (
     const response = await fetch(`${API_BASE_URL}/api/chat/messages`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ conversationId, text }),
@@ -156,7 +156,7 @@ export const getMessages = async (
       {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       }
     );
@@ -191,7 +191,7 @@ export const markMessageAsRead = async (
       {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ conversationId }),

@@ -48,48 +48,57 @@ router.get('/api/users', requireAdmin, async (req, res) => {
 });
 
 // GET user by netid (admin-only or own user)
-router.get('/api/users/:netid', authenticateUser, async (req: AuthenticatedRequest, res) => {
-  try {
-    const { netid } = req.params;
+router.get(
+  '/api/users/:netid',
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { netid } = req.params;
 
-    // Get authenticated user's netid
-    const userSnapshot = await db
-      .collection('users')
-      .where('firebaseUid', '==', req.user!.uid)
-      .get();
+      // Get authenticated user's netid
+      const userSnapshot = await db
+        .collection('users')
+        .where('firebaseUid', '==', req.user!.uid)
+        .get();
 
-    if (userSnapshot.empty) {
-      return res.status(404).json({ error: 'Authenticated user not found' });
-    }
-
-    const authenticatedNetid = userSnapshot.docs[0].data().netid;
-
-    // Only allow users to view their own data, unless they're admin
-    if (netid !== authenticatedNetid) {
-      // Check if user is admin
-      const adminDoc = await db.collection('admins').doc(req.user!.uid).get();
-      if (!adminDoc.exists) {
-        return res.status(403).json({ error: 'Unauthorized: Can only view own user data' });
+      if (userSnapshot.empty) {
+        return res.status(404).json({ error: 'Authenticated user not found' });
       }
+
+      const authenticatedNetid = userSnapshot.docs[0].data().netid;
+
+      // Only allow users to view their own data, unless they're admin
+      if (netid !== authenticatedNetid) {
+        // Check if user is admin
+        const adminDoc = await db.collection('admins').doc(req.user!.uid).get();
+        if (!adminDoc.exists) {
+          return res
+            .status(403)
+            .json({ error: 'Unauthorized: Can only view own user data' });
+        }
+      }
+
+      const snapshot = await db
+        .collection('users')
+        .where('netid', '==', netid)
+        .get();
+
+      if (snapshot.empty) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const doc = snapshot.docs[0];
+      const user = userDocToResponse({
+        id: doc.id,
+        ...(doc.data() as UserDoc),
+      });
+      res.status(200).json(user);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ error: 'Failed to fetch user' });
     }
-
-    const snapshot = await db
-      .collection('users')
-      .where('netid', '==', netid)
-      .get();
-
-    if (snapshot.empty) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const doc = snapshot.docs[0];
-    const user = userDocToResponse({ id: doc.id, ...(doc.data() as UserDoc) });
-    res.status(200).json(user);
-  } catch (error) {
-    console.error('Error fetching user:', error);
-    res.status(500).json({ error: 'Failed to fetch user' });
   }
-});
+);
 
 // POST create new user from Firebase Auth
 router.post(
@@ -107,7 +116,9 @@ router.post(
       const firebaseUid = req.user!.uid;
 
       if (!email || !firebaseUid) {
-        return res.status(400).json({ error: 'Authentication token missing required fields' });
+        return res
+          .status(400)
+          .json({ error: 'Authentication token missing required fields' });
       }
 
       const { isValid, netid } = validateCornellEmailAndExtractNetid(email);
@@ -172,7 +183,9 @@ router.post(
       const firebaseUid = req.user!.uid;
 
       if (!email || !firebaseUid) {
-        return res.status(400).json({ error: 'Authentication token missing required fields' });
+        return res
+          .status(400)
+          .json({ error: 'Authentication token missing required fields' });
       }
 
       // Validate Cornell email
@@ -196,7 +209,10 @@ router.post(
       }
 
       const doc = snapshot.docs[0];
-      const user = userDocToResponse({ id: doc.id, ...(doc.data() as UserDoc) });
+      const user = userDocToResponse({
+        id: doc.id,
+        ...(doc.data() as UserDoc),
+      });
 
       res.status(200).json({
         message: 'Login successful',
@@ -210,65 +226,69 @@ router.post(
 );
 
 // DELETE user by netid (own account only, or admin override)
-router.delete('/api/users/:netid', authenticateUser, async (req: AuthenticatedRequest, res) => {
-  try {
-    const { netid } = req.params;
+router.delete(
+  '/api/users/:netid',
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { netid } = req.params;
 
-    // Get authenticated user's netid
-    const userSnapshot = await db
-      .collection('users')
-      .where('firebaseUid', '==', req.user!.uid)
-      .get();
+      // Get authenticated user's netid
+      const userSnapshot = await db
+        .collection('users')
+        .where('firebaseUid', '==', req.user!.uid)
+        .get();
 
-    if (userSnapshot.empty) {
-      return res.status(404).json({ error: 'Authenticated user not found' });
-    }
-
-    const authenticatedNetid = userSnapshot.docs[0].data().netid;
-
-    // Verify user is deleting their own account or is admin
-    if (netid !== authenticatedNetid) {
-      // Check if user is admin
-      const adminDoc = await db.collection('admins').doc(req.user!.uid).get();
-      if (!adminDoc.exists) {
-        return res.status(403).json({
-          error: 'Unauthorized: Can only delete own account',
-        });
+      if (userSnapshot.empty) {
+        return res.status(404).json({ error: 'Authenticated user not found' });
       }
+
+      const authenticatedNetid = userSnapshot.docs[0].data().netid;
+
+      // Verify user is deleting their own account or is admin
+      if (netid !== authenticatedNetid) {
+        // Check if user is admin
+        const adminDoc = await db.collection('admins').doc(req.user!.uid).get();
+        if (!adminDoc.exists) {
+          return res.status(403).json({
+            error: 'Unauthorized: Can only delete own account',
+          });
+        }
+      }
+
+      const snapshot = await db
+        .collection('users')
+        .where('netid', '==', netid)
+        .get();
+
+      if (snapshot.empty) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Delete user document
+      const doc = snapshot.docs[0];
+      await doc.ref.delete();
+
+      // Also delete associated profile if it exists
+      const profileSnapshot = await db
+        .collection('profiles')
+        .where('netid', '==', netid)
+        .get();
+      if (!profileSnapshot.empty) {
+        const profileDoc = profileSnapshot.docs[0];
+        await profileDoc.ref.delete();
+      }
+
+      // TODO: Delete associated data (preferences, answers, matches, images)
+
+      res
+        .status(200)
+        .json({ message: 'User and associated profile deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      res.status(500).json({ error: 'Failed to delete user' });
     }
-
-    const snapshot = await db
-      .collection('users')
-      .where('netid', '==', netid)
-      .get();
-
-    if (snapshot.empty) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Delete user document
-    const doc = snapshot.docs[0];
-    await doc.ref.delete();
-
-    // Also delete associated profile if it exists
-    const profileSnapshot = await db
-      .collection('profiles')
-      .where('netid', '==', netid)
-      .get();
-    if (!profileSnapshot.empty) {
-      const profileDoc = profileSnapshot.docs[0];
-      await profileDoc.ref.delete();
-    }
-
-    // TODO: Delete associated data (preferences, answers, matches, images)
-
-    res
-      .status(200)
-      .json({ message: 'User and associated profile deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    res.status(500).json({ error: 'Failed to delete user' });
   }
-});
+);
 
 export default router;

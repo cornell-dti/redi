@@ -201,7 +201,7 @@ export async function generateMatchesForPrompt(
   await db.collection('weeklyPrompts').doc(promptId).update({
     status: 'completed',
     matchesGeneratedAt: FieldValue.serverTimestamp(),
-    active: false
+    active: false,
   });
 
   return matchedCount;

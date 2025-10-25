@@ -125,12 +125,10 @@ describe('Notifications API', () => {
       };
 
       // Mock notifications query
-      const mockNotifDocs = mockNotifications
-        .slice(0, 3)
-        .map((notif) => ({
-          id: notif.id,
-          data: () => notif.data,
-        }));
+      const mockNotifDocs = mockNotifications.slice(0, 3).map((notif) => ({
+        id: notif.id,
+        data: () => notif.data,
+      }));
 
       const mockNotifSnapshot = {
         docs: mockNotifDocs,
@@ -154,15 +152,17 @@ describe('Notifications API', () => {
         where: mockWhereChain,
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockUserWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockUserWhere };
+          }
+          if (collectionName === 'notifications') {
+            return { where: mockNotifWhere };
+          }
+          return {};
         }
-        if (collectionName === 'notifications') {
-          return { where: mockNotifWhere };
-        }
-        return {};
-      });
+      );
 
       const response = await request(app)
         .get('/api/notifications')
@@ -177,7 +177,7 @@ describe('Notifications API', () => {
       expect(response.body[0]).toHaveProperty('read');
     });
 
-    it('should only return user\'s own notifications (not others\')', async () => {
+    it("should only return user's own notifications (not others')", async () => {
       const mockUserSnapshot = {
         empty: false,
         docs: [{ data: () => ({ netid: mockUser.netid }) }],
@@ -218,9 +218,11 @@ describe('Notifications API', () => {
         }
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        return { where: mockWhere };
-      });
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          return { where: mockWhere };
+        }
+      );
 
       const response = await request(app)
         .get('/api/notifications')
@@ -289,7 +291,11 @@ describe('Notifications API', () => {
         .expect(200);
 
       // Verify createdAt filter was applied
-      expect(mockWhere).toHaveBeenCalledWith('createdAt', '>=', expect.any(Date));
+      expect(mockWhere).toHaveBeenCalledWith(
+        'createdAt',
+        '>=',
+        expect.any(Date)
+      );
 
       // Verify old notification is not included
       const notifIds = response.body.map((n: any) => n.id);
@@ -340,9 +346,7 @@ describe('Notifications API', () => {
     });
 
     it('should return 401 for unauthenticated requests', async () => {
-      const response = await request(app)
-        .get('/api/notifications')
-        .expect(401);
+      const response = await request(app).get('/api/notifications').expect(401);
 
       expect(response.body).toHaveProperty('error');
     });
@@ -353,12 +357,10 @@ describe('Notifications API', () => {
         docs: [{ data: () => ({ netid: mockUser.netid }) }],
       };
 
-      const mockNotifDocs = mockNotifications
-        .slice(0, 3)
-        .map((notif) => ({
-          id: notif.id,
-          data: () => notif.data,
-        }));
+      const mockNotifDocs = mockNotifications.slice(0, 3).map((notif) => ({
+        id: notif.id,
+        data: () => notif.data,
+      }));
 
       const mockNotifSnapshot = {
         docs: mockNotifDocs,
@@ -401,7 +403,9 @@ describe('Notifications API', () => {
       expect(mockOrderBy).toHaveBeenCalledWith('createdAt', 'desc');
 
       // Verify response is ordered by date (newest first)
-      const dates = response.body.map((n: any) => new Date(n.createdAt).getTime());
+      const dates = response.body.map((n: any) =>
+        new Date(n.createdAt).getTime()
+      );
       const sortedDates = [...dates].sort((a, b) => b - a);
       expect(dates).toEqual(sortedDates);
     });
@@ -487,15 +491,17 @@ describe('Notifications API', () => {
         where: mockWhereNetid,
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockUserWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockUserWhere };
+          }
+          if (collectionName === 'notifications') {
+            return { where: mockNotifWhere };
+          }
+          return {};
         }
-        if (collectionName === 'notifications') {
-          return { where: mockNotifWhere };
-        }
-        return {};
-      });
+      );
 
       await request(app)
         .get('/api/notifications/unread-count')
@@ -519,14 +525,16 @@ describe('Notifications API', () => {
       const mockWhereCreatedAtTracker = jest.fn();
 
       // Third where call (createdAt)
-      const mockWhere3 = jest.fn().mockImplementation((field: string, op: string, value: any) => {
-        if (field === 'createdAt') {
-          mockWhereCreatedAtTracker(field, op, value);
-        }
-        return {
-          get: jest.fn().mockResolvedValue(mockNotifSnapshot),
-        };
-      });
+      const mockWhere3 = jest
+        .fn()
+        .mockImplementation((field: string, op: string, value: any) => {
+          if (field === 'createdAt') {
+            mockWhereCreatedAtTracker(field, op, value);
+          }
+          return {
+            get: jest.fn().mockResolvedValue(mockNotifSnapshot),
+          };
+        });
 
       // Second where call (read)
       const mockWhere2 = jest.fn().mockReturnValue({
@@ -542,15 +550,17 @@ describe('Notifications API', () => {
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockUserWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockUserWhere };
+          }
+          if (collectionName === 'notifications') {
+            return { where: mockWhere1 };
+          }
+          return {};
         }
-        if (collectionName === 'notifications') {
-          return { where: mockWhere1 };
-        }
-        return {};
-      });
+      );
 
       await request(app)
         .get('/api/notifications/unread-count')
@@ -558,7 +568,11 @@ describe('Notifications API', () => {
         .expect(200);
 
       // Verify createdAt filter was applied
-      expect(mockWhereCreatedAtTracker).toHaveBeenCalledWith('createdAt', '>=', expect.any(Date));
+      expect(mockWhereCreatedAtTracker).toHaveBeenCalledWith(
+        'createdAt',
+        '>=',
+        expect.any(Date)
+      );
     });
 
     it('should return 0 when no unread notifications', async () => {
@@ -634,15 +648,17 @@ describe('Notifications API', () => {
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockWhere };
+          }
+          if (collectionName === 'notifications') {
+            return { doc: mockDoc };
+          }
+          return {};
         }
-        if (collectionName === 'notifications') {
-          return { doc: mockDoc };
-        }
-        return {};
-      });
+      );
 
       const response = await request(app)
         .put(`/api/notifications/${notificationId}/read`)
@@ -677,15 +693,17 @@ describe('Notifications API', () => {
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockWhere };
+          }
+          if (collectionName === 'notifications') {
+            return { doc: mockDoc };
+          }
+          return {};
         }
-        if (collectionName === 'notifications') {
-          return { doc: mockDoc };
-        }
-        return {};
-      });
+      );
 
       const response = await request(app)
         .put(`/api/notifications/${notificationId}/read`)
@@ -716,15 +734,17 @@ describe('Notifications API', () => {
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
-      (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-        if (collectionName === 'users') {
-          return { where: mockWhere };
+      (db.collection as jest.Mock).mockImplementation(
+        (collectionName: string) => {
+          if (collectionName === 'users') {
+            return { where: mockWhere };
+          }
+          if (collectionName === 'notifications') {
+            return { doc: mockDoc };
+          }
+          return {};
         }
-        if (collectionName === 'notifications') {
-          return { doc: mockDoc };
-        }
-        return {};
-      });
+      );
 
       const response = await request(app)
         .put(`/api/notifications/${notificationId}/read`)
@@ -744,7 +764,7 @@ describe('Notifications API', () => {
   });
 
   describe('PUT /api/notifications/read-all', () => {
-    it('should mark all user\'s notifications as read', async () => {
+    it("should mark all user's notifications as read", async () => {
       const mockUserSnapshot = {
         empty: false,
         docs: [{ data: () => ({ netid: mockUser.netid }) }],
@@ -768,7 +788,8 @@ describe('Notifications API', () => {
         commit: mockCommit,
       });
 
-      const mockWhere = jest.fn()
+      const mockWhere = jest
+        .fn()
         .mockReturnValueOnce({
           get: jest.fn().mockResolvedValue(mockUserSnapshot),
         })
@@ -810,7 +831,8 @@ describe('Notifications API', () => {
         commit: mockCommit,
       });
 
-      const mockWhere = jest.fn()
+      const mockWhere = jest
+        .fn()
         .mockReturnValueOnce({
           get: jest.fn().mockResolvedValue(mockUserSnapshot),
         })
@@ -833,7 +855,7 @@ describe('Notifications API', () => {
       expect(response.body.count).toBe(3);
     });
 
-    it('should only affect current user\'s notifications', async () => {
+    it("should only affect current user's notifications", async () => {
       const mockUserSnapshot = {
         empty: false,
         docs: [{ data: () => ({ netid: mockUser.netid }) }],
@@ -850,7 +872,8 @@ describe('Notifications API', () => {
         commit: mockCommit,
       });
 
-      const mockWhere = jest.fn()
+      const mockWhere = jest
+        .fn()
         .mockReturnValueOnce({
           get: jest.fn().mockResolvedValue(mockUserSnapshot),
         })

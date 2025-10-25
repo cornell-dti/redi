@@ -1,8 +1,6 @@
 import express from 'express';
 import { db } from '../../firebaseAdmin';
-import {
-  CreateWeeklyPromptAnswerInput
-} from '../../types';
+import { CreateWeeklyPromptAnswerInput } from '../../types';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import { authenticatedRateLimit } from '../middleware/rateLimiting';
 import { validate, validatePromptAnswer } from '../middleware/validation';
@@ -57,7 +55,9 @@ function toDate(dateValue: any): Date {
 /**
  * Gets netid from authenticated Firebase UID
  */
-const getNetidFromAuth = async (firebaseUid: string): Promise<string | null> => {
+const getNetidFromAuth = async (
+  firebaseUid: string
+): Promise<string | null> => {
   try {
     const userSnapshot = await db
       .collection('users')
@@ -159,7 +159,8 @@ router.post(
   validate,
   async (req: AuthenticatedRequest, res: express.Response) => {
     try {
-      const { promptId, answer }: { promptId: string; answer: string } = req.body;
+      const { promptId, answer }: { promptId: string; answer: string } =
+        req.body;
 
       if (!promptId || !answer) {
         return res.status(400).json({
@@ -216,7 +217,8 @@ router.post(
       res.status(201).json(response);
     } catch (error) {
       console.error('Error submitting answer:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
 
       // Handle specific error cases
       if (errorMessage.includes('already submitted')) {
@@ -320,7 +322,10 @@ router.get(
         return res.status(404).json({ error: 'User not found' });
       }
 
-      const matches = await getUserMatchHistory(netid, parseInt(limit as string));
+      const matches = await getUserMatchHistory(
+        netid,
+        parseInt(limit as string)
+      );
       const response = matches.map(matchToResponse);
 
       res.status(200).json(response);
@@ -361,7 +366,8 @@ router.post(
       res.status(200).json(response);
     } catch (error) {
       console.error('Error revealing match:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
 
       // Handle specific error cases
       if (

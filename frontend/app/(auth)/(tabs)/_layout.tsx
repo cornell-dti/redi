@@ -145,6 +145,13 @@ export default function TabLayout() {
           },
         }}
       />
+      <Tabs.Screen
+        name="chat-detail"
+        options={{
+          href: null, // This hides it from the tab bar
+          headerShown: false,
+        }}
+      />
     </Tabs>
   );
 }

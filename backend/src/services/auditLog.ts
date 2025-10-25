@@ -12,7 +12,14 @@ import { Timestamp } from 'firebase-admin/firestore';
 /**
  * Types of resources that can be audited
  */
-export type AuditResourceType = 'prompt' | 'prompts' | 'match' | 'matches' | 'user' | 'admin' | 'system';
+export type AuditResourceType =
+  | 'prompt'
+  | 'prompts'
+  | 'match'
+  | 'matches'
+  | 'user'
+  | 'admin'
+  | 'system';
 
 /**
  * Types of actions that can be logged
@@ -25,7 +32,7 @@ export type AuditAction =
   | 'ACTIVATE_PROMPT'
   | 'GENERATE_MATCHES'
   | 'VIEW_PROMPT_ANSWERS'
-  | 'FIX_MULTIPLE_ACTIVE'  // Emergency cleanup for multiple active prompts
+  | 'FIX_MULTIPLE_ACTIVE' // Emergency cleanup for multiple active prompts
   // Admin actions
   | 'ADD_ADMIN'
   | 'REMOVE_ADMIN'
@@ -130,9 +137,13 @@ export async function logAdminAction(
     if (userAgent !== undefined) logEntry.userAgent = userAgent;
     if (errorMessage !== undefined) logEntry.errorMessage = errorMessage;
 
-    const docRef = await db.collection('adminAuditLogs').add(logEntry as AuditLogEntry);
+    const docRef = await db
+      .collection('adminAuditLogs')
+      .add(logEntry as AuditLogEntry);
 
-    console.log(`📝 [Audit Log] ${action} by ${adminEmail || adminUid} on ${resourceType}:${resourceId}`);
+    console.log(
+      `📝 [Audit Log] ${action} by ${adminEmail || adminUid} on ${resourceType}:${resourceId}`
+    );
 
     return docRef.id;
   } catch (error) {
@@ -178,10 +189,18 @@ export async function getAuditLogs(options?: {
       query = query.where('action', '==', options.action);
     }
     if (options?.startDate) {
-      query = query.where('timestamp', '>=', Timestamp.fromDate(options.startDate));
+      query = query.where(
+        'timestamp',
+        '>=',
+        Timestamp.fromDate(options.startDate)
+      );
     }
     if (options?.endDate) {
-      query = query.where('timestamp', '<=', Timestamp.fromDate(options.endDate));
+      query = query.where(
+        'timestamp',
+        '<=',
+        Timestamp.fromDate(options.endDate)
+      );
     }
 
     // Order by timestamp descending (most recent first)
@@ -193,7 +212,7 @@ export async function getAuditLogs(options?: {
 
     const snapshot = await query.get();
 
-    return snapshot.docs.map(doc => ({
+    return snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
       timestamp: (doc.data().timestamp as Timestamp).toDate().toISOString(),
@@ -241,7 +260,9 @@ export async function getResourceAuditHistory(
  * @param details - Raw details object
  * @returns Sanitized details object
  */
-function sanitizeDetails(details?: Record<string, any>): Record<string, any> | undefined {
+function sanitizeDetails(
+  details?: Record<string, any>
+): Record<string, any> | undefined {
   if (!details) {
     return undefined;
   }
@@ -261,7 +282,11 @@ function sanitizeDetails(details?: Record<string, any>): Record<string, any> | u
 
   for (const [key, value] of Object.entries(details)) {
     // Skip sensitive keys
-    if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive.toLowerCase()))) {
+    if (
+      sensitiveKeys.some((sensitive) =>
+        key.toLowerCase().includes(sensitive.toLowerCase())
+      )
+    ) {
       sanitized[key] = '[REDACTED]';
       continue;
     }
@@ -282,10 +307,12 @@ function sanitizeDetails(details?: Record<string, any>): Record<string, any> | u
     } else if (Array.isArray(value)) {
       // Sanitize arrays, filtering out undefined values
       sanitized[key] = value
-        .map(item =>
-          typeof item === 'object' && item !== null ? sanitizeDetails(item) : item
+        .map((item) =>
+          typeof item === 'object' && item !== null
+            ? sanitizeDetails(item)
+            : item
         )
-        .filter(item => item !== undefined);
+        .filter((item) => item !== undefined);
     } else {
       // Primitive values
       sanitized[key] = value;

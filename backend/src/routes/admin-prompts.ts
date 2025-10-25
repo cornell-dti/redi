@@ -21,10 +21,14 @@ import {
   UpdateWeeklyPromptInput,
   WeeklyPromptAnswerWithProfile,
   WeeklyPromptDoc,
-  WeeklyPromptResponse
+  WeeklyPromptResponse,
 } from '../../types';
 import { AdminRequest, requireAdmin } from '../middleware/adminAuth';
-import { getIpAddress, getUserAgent, logAdminAction } from '../services/auditLog';
+import {
+  getIpAddress,
+  getUserAgent,
+  logAdminAction,
+} from '../services/auditLog';
 import { generateMatchesForPrompt } from '../services/matchingService';
 import {
   activatePrompt,
@@ -108,28 +112,31 @@ router.post('/api/admin/prompts', async (req: AdminRequest, res) => {
     };
 
     // Create the prompt
-    const prompt : WeeklyPromptDoc = await createWeeklyPrompt(promptDataWithDates);
-    const response : WeeklyPromptResponse = promptToResponse(prompt);
+    const prompt: WeeklyPromptDoc =
+      await createWeeklyPrompt(promptDataWithDates);
+    const response: WeeklyPromptResponse = promptToResponse(prompt);
 
     // Log successful action
     await logAdminAction(
-  'CREATE_PROMPT',
-  req.user!.uid,
-  req.user!.email,
-  'prompt',
-  promptData.promptId,
-  {
-    question: promptData.question,
-    releaseDate: promptDataWithDates.releaseDate instanceof Date 
-      ? promptDataWithDates.releaseDate.toISOString() 
-      : promptDataWithDates.releaseDate,
-    matchDate: promptDataWithDates.matchDate instanceof Date 
-      ? promptDataWithDates.matchDate.toISOString() 
-      : promptDataWithDates.matchDate,
-  },
-  getIpAddress(req),
-  getUserAgent(req)
-);
+      'CREATE_PROMPT',
+      req.user!.uid,
+      req.user!.email,
+      'prompt',
+      promptData.promptId,
+      {
+        question: promptData.question,
+        releaseDate:
+          promptDataWithDates.releaseDate instanceof Date
+            ? promptDataWithDates.releaseDate.toISOString()
+            : promptDataWithDates.releaseDate,
+        matchDate:
+          promptDataWithDates.matchDate instanceof Date
+            ? promptDataWithDates.matchDate.toISOString()
+            : promptDataWithDates.matchDate,
+      },
+      getIpAddress(req),
+      getUserAgent(req)
+    );
 
     res.status(201).json(response);
   } catch (error) {
@@ -196,8 +203,8 @@ router.get('/api/admin/prompts', async (req: AdminRequest, res) => {
       options.endDate = new Date(endDate);
     }
 
-    const prompts : WeeklyPromptDoc[] = await getAllPrompts(options);
-    const response : WeeklyPromptResponse[] = prompts.map(promptToResponse);
+    const prompts: WeeklyPromptDoc[] = await getAllPrompts(options);
+    const response: WeeklyPromptResponse[] = prompts.map(promptToResponse);
 
     res.status(200).json(response);
   } catch (error) {
@@ -229,7 +236,7 @@ router.get('/api/admin/prompts/:promptId', async (req: AdminRequest, res) => {
       return res.status(404).json({ error: 'Prompt not found' });
     }
 
-    const response : WeeklyPromptResponse = promptToResponse(prompt);
+    const response: WeeklyPromptResponse = promptToResponse(prompt);
     res.status(200).json(response);
   } catch (error) {
     console.error('Error fetching prompt:', error);
@@ -258,14 +265,18 @@ router.put('/api/admin/prompts/:promptId', async (req: AdminRequest, res) => {
     const updates: UpdateWeeklyPromptInput = req.body;
 
     // Check if prompt exists
-    const existingPrompt : WeeklyPromptDoc | null = await getPromptById(promptId);
+    const existingPrompt: WeeklyPromptDoc | null =
+      await getPromptById(promptId);
     if (!existingPrompt) {
       return res.status(404).json({ error: 'Prompt not found' });
     }
 
     // Update the prompt
-    const updatedPrompt : WeeklyPromptDoc= await updatePrompt(promptId, updates);
-    const response : WeeklyPromptResponse = promptToResponse(updatedPrompt);
+    const updatedPrompt: WeeklyPromptDoc = await updatePrompt(
+      promptId,
+      updates
+    );
+    const response: WeeklyPromptResponse = promptToResponse(updatedPrompt);
 
     // Log successful action
     await logAdminAction(
@@ -315,52 +326,58 @@ router.put('/api/admin/prompts/:promptId', async (req: AdminRequest, res) => {
  * @returns {Error} 404 - Prompt not found
  * @returns {Error} 500 - Internal server error
  */
-router.delete('/api/admin/prompts/:promptId', async (req: AdminRequest, res) => {
-  try {
-    const { promptId } = req.params;
+router.delete(
+  '/api/admin/prompts/:promptId',
+  async (req: AdminRequest, res) => {
+    try {
+      const { promptId } = req.params;
 
-    // Check if prompt exists
-    const existingPrompt = await getPromptById(promptId);
-    if (!existingPrompt) {
-      return res.status(404).json({ error: 'Prompt not found' });
+      // Check if prompt exists
+      const existingPrompt = await getPromptById(promptId);
+      if (!existingPrompt) {
+        return res.status(404).json({ error: 'Prompt not found' });
+      }
+
+      await deletePrompt(promptId);
+
+      // Log successful action
+      await logAdminAction(
+        'DELETE_PROMPT',
+        req.user!.uid,
+        req.user!.email,
+        'prompt',
+        promptId,
+        { question: existingPrompt.question },
+        getIpAddress(req),
+        getUserAgent(req)
+      );
+
+      res
+        .status(200)
+        .json({ message: 'Prompt deleted successfully', promptId });
+    } catch (error) {
+      console.error('Error deleting prompt:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Log failed action
+      await logAdminAction(
+        'DELETE_PROMPT',
+        req.user!.uid,
+        req.user!.email,
+        'prompt',
+        req.params.promptId,
+        { error: errorMessage },
+        getIpAddress(req),
+        getUserAgent(req),
+        false,
+        errorMessage
+      );
+
+      res.status(500).json({ error: errorMessage });
     }
-
-    await deletePrompt(promptId);
-
-    // Log successful action
-    await logAdminAction(
-      'DELETE_PROMPT',
-      req.user!.uid,
-      req.user!.email,
-      'prompt',
-      promptId,
-      { question: existingPrompt.question },
-      getIpAddress(req),
-      getUserAgent(req)
-    );
-
-    res.status(200).json({ message: 'Prompt deleted successfully', promptId });
-  } catch (error) {
-    console.error('Error deleting prompt:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    // Log failed action
-    await logAdminAction(
-      'DELETE_PROMPT',
-      req.user!.uid,
-      req.user!.email,
-      'prompt',
-      req.params.promptId,
-      { error: errorMessage },
-      getIpAddress(req),
-      getUserAgent(req),
-      false,
-      errorMessage
-    );
-
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 /**
  * POST /api/admin/prompts/:promptId/activate
@@ -375,53 +392,57 @@ router.delete('/api/admin/prompts/:promptId', async (req: AdminRequest, res) => 
  * @returns {Error} 404 - Prompt not found
  * @returns {Error} 500 - Internal server error
  */
-router.post('/api/admin/prompts/:promptId/activate', async (req: AdminRequest, res) => {
-  try {
-    const { promptId } = req.params;
+router.post(
+  '/api/admin/prompts/:promptId/activate',
+  async (req: AdminRequest, res) => {
+    try {
+      const { promptId } = req.params;
 
-    // Check if prompt exists
-    const existingPrompt = await getPromptById(promptId);
-    if (!existingPrompt) {
-      return res.status(404).json({ error: 'Prompt not found' });
+      // Check if prompt exists
+      const existingPrompt = await getPromptById(promptId);
+      if (!existingPrompt) {
+        return res.status(404).json({ error: 'Prompt not found' });
+      }
+
+      const activatedPrompt: WeeklyPromptDoc = await activatePrompt(promptId);
+      const response: WeeklyPromptResponse = promptToResponse(activatedPrompt);
+
+      // Log successful action
+      await logAdminAction(
+        'ACTIVATE_PROMPT',
+        req.user!.uid,
+        req.user!.email,
+        'prompt',
+        promptId,
+        { question: existingPrompt.question },
+        getIpAddress(req),
+        getUserAgent(req)
+      );
+
+      res.status(200).json(response);
+    } catch (error) {
+      console.error('Error activating prompt:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Log failed action
+      await logAdminAction(
+        'ACTIVATE_PROMPT',
+        req.user!.uid,
+        req.user!.email,
+        'prompt',
+        req.params.promptId,
+        { error: errorMessage },
+        getIpAddress(req),
+        getUserAgent(req),
+        false,
+        errorMessage
+      );
+
+      res.status(500).json({ error: errorMessage });
     }
-
-    const activatedPrompt : WeeklyPromptDoc = await activatePrompt(promptId);
-    const response : WeeklyPromptResponse = promptToResponse(activatedPrompt);
-
-    // Log successful action
-    await logAdminAction(
-      'ACTIVATE_PROMPT',
-      req.user!.uid,
-      req.user!.email,
-      'prompt',
-      promptId,
-      { question: existingPrompt.question },
-      getIpAddress(req),
-      getUserAgent(req)
-    );
-
-    res.status(200).json(response);
-  } catch (error) {
-    console.error('Error activating prompt:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    // Log failed action
-    await logAdminAction(
-      'ACTIVATE_PROMPT',
-      req.user!.uid,
-      req.user!.email,
-      'prompt',
-      req.params.promptId,
-      { error: errorMessage },
-      getIpAddress(req),
-      getUserAgent(req),
-      false,
-      errorMessage
-    );
-
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 /**
  * GET /api/admin/prompts/generate-id/:date
@@ -435,24 +456,28 @@ router.post('/api/admin/prompts/:promptId/activate', async (req: AdminRequest, r
  * @returns {Error} 401/403 - Unauthorized (handled by middleware)
  * @returns {Error} 500 - Internal server error
  */
-router.get('/api/admin/prompts/generate-id/:date', async (req: AdminRequest, res) => {
-  try {
-    const { date } = req.params;
+router.get(
+  '/api/admin/prompts/generate-id/:date',
+  async (req: AdminRequest, res) => {
+    try {
+      const { date } = req.params;
 
-    const dateObj = new Date(date);
-    if (isNaN(dateObj.getTime())) {
-      return res.status(400).json({ error: 'Invalid date format' });
+      const dateObj = new Date(date);
+      if (isNaN(dateObj.getTime())) {
+        return res.status(400).json({ error: 'Invalid date format' });
+      }
+
+      const promptId = generatePromptId(dateObj);
+
+      res.status(200).json({ promptId, date: dateObj.toISOString() });
+    } catch (error) {
+      console.error('Error generating prompt ID:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      res.status(500).json({ error: errorMessage });
     }
-
-    const promptId = generatePromptId(dateObj);
-
-    res.status(200).json({ promptId, date: dateObj.toISOString() });
-  } catch (error) {
-    console.error('Error generating prompt ID:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 /**
  * POST /api/admin/prompts/:promptId/generate-matches
@@ -508,7 +533,8 @@ router.post(
       });
     } catch (error) {
       console.error('Error generating matches:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
 
       // Log failed action
       await logAdminAction(
@@ -544,13 +570,15 @@ router.post(
 router.delete('/api/admin/prompts/active', async (req: AdminRequest, res) => {
   try {
     // Find the active prompt
-    const activePrompts : WeeklyPromptDoc[] = await getAllPrompts({ active: true });
+    const activePrompts: WeeklyPromptDoc[] = await getAllPrompts({
+      active: true,
+    });
 
     if (activePrompts.length === 0) {
       return res.status(404).json({ error: 'No active prompt found' });
     }
 
-    const activePrompt : WeeklyPromptDoc = activePrompts[0];
+    const activePrompt: WeeklyPromptDoc = activePrompts[0];
 
     // Delete the active prompt
     await deletePrompt(activePrompt.promptId);
@@ -609,108 +637,119 @@ router.delete('/api/admin/prompts/active', async (req: AdminRequest, res) => {
  * @returns {Error} 404 - Prompt not found
  * @returns {Error} 500 - Internal server error
  */
-router.get('/api/admin/prompts/:promptId/answers', async (req: AdminRequest, res) => {
-  try {
-    const { promptId } = req.params;
-
-    // Check if prompt exists
-    const existingPrompt : WeeklyPromptDoc | null = await getPromptById(promptId);
-    if (!existingPrompt) {
-      return res.status(404).json({ error: 'Prompt not found' });
-    }
-
-    console.log(`Admin ${req.user?.email} fetching answers for prompt ${promptId}`);
-
-    // Try without orderBy first in case Firestore index doesn't exist
-    let answersSnapshot;
+router.get(
+  '/api/admin/prompts/:promptId/answers',
+  async (req: AdminRequest, res) => {
     try {
-      answersSnapshot = await db
-        .collection('weeklyPromptAnswers')
-        .where('promptId', '==', promptId)
-        .orderBy('createdAt', 'desc')
-        .get();
-    } catch (indexError) {
-      // If orderBy fails due to missing index, try without it
-      console.warn('Firestore index missing for orderBy, fetching without ordering');
-      answersSnapshot = await db
-        .collection('weeklyPromptAnswers')
-        .where('promptId', '==', promptId)
-        .get();
-    }
+      const { promptId } = req.params;
 
-    // Build array of answers with profile data
-    const answersWithProfiles: WeeklyPromptAnswerWithProfile[] = [];
-
-    for (const answerDoc of answersSnapshot.docs) {
-      const answerData = answerDoc.data();
-      const netid : string = answerData.netid;
-
-      // Fetch user profile
-      const profileDoc = await db.collection('profiles').doc(netid).get();
-
-      let firstName = 'Unknown';
-      let profilePicture: string | undefined = undefined;
-      let uuid = netid;
-
-      if (profileDoc.exists) {
-        const profileData = profileDoc.data() as ProfileDoc;
-        firstName = profileData.firstName || 'Unknown';
-        profilePicture = profileData.pictures?.[0]; // First picture
-
-        // Get uuid from users collection
-        const userDoc = await db.collection('users').doc(netid).get();
-        if (userDoc.exists) {
-          uuid = userDoc.data()?.firebaseUid || netid;
-        }
-      } else {
-        console.warn(`Profile not found for netid: ${netid}`);
+      // Check if prompt exists
+      const existingPrompt: WeeklyPromptDoc | null =
+        await getPromptById(promptId);
+      if (!existingPrompt) {
+        return res.status(404).json({ error: 'Prompt not found' });
       }
 
-      answersWithProfiles.push({
-        netid,
+      console.log(
+        `Admin ${req.user?.email} fetching answers for prompt ${promptId}`
+      );
+
+      // Try without orderBy first in case Firestore index doesn't exist
+      let answersSnapshot;
+      try {
+        answersSnapshot = await db
+          .collection('weeklyPromptAnswers')
+          .where('promptId', '==', promptId)
+          .orderBy('createdAt', 'desc')
+          .get();
+      } catch (indexError) {
+        // If orderBy fails due to missing index, try without it
+        console.warn(
+          'Firestore index missing for orderBy, fetching without ordering'
+        );
+        answersSnapshot = await db
+          .collection('weeklyPromptAnswers')
+          .where('promptId', '==', promptId)
+          .get();
+      }
+
+      // Build array of answers with profile data
+      const answersWithProfiles: WeeklyPromptAnswerWithProfile[] = [];
+
+      for (const answerDoc of answersSnapshot.docs) {
+        const answerData = answerDoc.data();
+        const netid: string = answerData.netid;
+
+        // Fetch user profile
+        const profileDoc = await db.collection('profiles').doc(netid).get();
+
+        let firstName = 'Unknown';
+        let profilePicture: string | undefined = undefined;
+        let uuid = netid;
+
+        if (profileDoc.exists) {
+          const profileData = profileDoc.data() as ProfileDoc;
+          firstName = profileData.firstName || 'Unknown';
+          profilePicture = profileData.pictures?.[0]; // First picture
+
+          // Get uuid from users collection
+          const userDoc = await db.collection('users').doc(netid).get();
+          if (userDoc.exists) {
+            uuid = userDoc.data()?.firebaseUid || netid;
+          }
+        } else {
+          console.warn(`Profile not found for netid: ${netid}`);
+        }
+
+        answersWithProfiles.push({
+          netid,
+          promptId,
+          answer: answerData.answer || '',
+          createdAt: answerData.createdAt?.toDate
+            ? answerData.createdAt.toDate().toISOString()
+            : new Date().toISOString(),
+          uuid,
+          firstName,
+          profilePicture,
+        });
+      }
+
+      // Log successful action
+      await logAdminAction(
+        'VIEW_PROMPT_ANSWERS',
+        req.user!.uid,
+        req.user!.email,
+        'prompt',
         promptId,
-        answer: answerData.answer || '',
-        createdAt: answerData.createdAt?.toDate ? answerData.createdAt.toDate().toISOString() : new Date().toISOString(),
-        uuid,
-        firstName,
-        profilePicture,
-      });
+        { answerCount: answersWithProfiles.length },
+        getIpAddress(req),
+        getUserAgent(req)
+      );
+
+      res.status(200).json(answersWithProfiles);
+    } catch (error) {
+      console.error('Error fetching prompt answers:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Log failed action
+      await logAdminAction(
+        'VIEW_PROMPT_ANSWERS',
+        req.user!.uid,
+        req.user!.email,
+        'prompt',
+        req.params.promptId,
+        { error: errorMessage },
+        getIpAddress(req),
+        getUserAgent(req),
+        false,
+        errorMessage
+      );
+
+      res.status(500).json({ error: errorMessage });
     }
-
-    // Log successful action
-    await logAdminAction(
-      'VIEW_PROMPT_ANSWERS',
-      req.user!.uid,
-      req.user!.email,
-      'prompt',
-      promptId,
-      { answerCount: answersWithProfiles.length },
-      getIpAddress(req),
-      getUserAgent(req)
-    );
-
-    res.status(200).json(answersWithProfiles);
-  } catch (error) {
-    console.error('Error fetching prompt answers:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    // Log failed action
-    await logAdminAction(
-      'VIEW_PROMPT_ANSWERS',
-      req.user!.uid,
-      req.user!.email,
-      'prompt',
-      req.params.promptId,
-      { error: errorMessage },
-      getIpAddress(req),
-      getUserAgent(req),
-      false,
-      errorMessage
-    );
-
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 /**
  * GET /api/admin/matches/stats
@@ -725,14 +764,15 @@ router.get('/api/admin/prompts/:promptId/answers', async (req: AdminRequest, res
  */
 router.get('/api/admin/matches/stats', async (req: AdminRequest, res) => {
   try {
-
     // Fetch all match documents
     const matchesSnapshot = await db.collection('weeklyMatches').get();
 
     const totalMatches = matchesSnapshot.size;
     const uniqueUsers = new Set<string>();
     let totalReveals = 0;
-    const promptMatchCounts: { [promptId: string]: { count: number; reveals: number } } = {};
+    const promptMatchCounts: {
+      [promptId: string]: { count: number; reveals: number };
+    } = {};
 
     // Calculate stats
     for (const matchDoc of matchesSnapshot.docs) {
@@ -740,8 +780,12 @@ router.get('/api/admin/matches/stats', async (req: AdminRequest, res) => {
       uniqueUsers.add(matchData.netid);
 
       // Count reveals (true values in revealed array) - DEFENSIVE PROGRAMMING
-      const revealed = Array.isArray(matchData.revealed) ? matchData.revealed : [];
-      const revealsForThisMatch = revealed.filter((r: boolean) => r === true).length;
+      const revealed = Array.isArray(matchData.revealed)
+        ? matchData.revealed
+        : [];
+      const revealsForThisMatch = revealed.filter(
+        (r: boolean) => r === true
+      ).length;
       totalReveals += revealsForThisMatch;
 
       // Track per-prompt stats
@@ -755,26 +799,36 @@ router.get('/api/admin/matches/stats', async (req: AdminRequest, res) => {
 
     const totalUsersMatched = uniqueUsers.size;
     const totalPossibleReveals = totalMatches * 3; // Each match has 3 potential reveals
-    const revealRate = totalPossibleReveals > 0 ? (totalReveals / totalPossibleReveals) * 100 : 0;
-    const averageMatchesPerPrompt = Object.keys(promptMatchCounts).length > 0
-      ? totalMatches / Object.keys(promptMatchCounts).length
-      : 0;
+    const revealRate =
+      totalPossibleReveals > 0
+        ? (totalReveals / totalPossibleReveals) * 100
+        : 0;
+    const averageMatchesPerPrompt =
+      Object.keys(promptMatchCounts).length > 0
+        ? totalMatches / Object.keys(promptMatchCounts).length
+        : 0;
 
     // Build prompt-specific stats
-    const promptStats : MatchStatsResponse['promptStats'] = [];
+    const promptStats: MatchStatsResponse['promptStats'] = [];
     for (const [promptId, stats] of Object.entries(promptMatchCounts)) {
-      const promptDoc = await db.collection('weeklyPrompts').doc(promptId).get();
+      const promptDoc = await db
+        .collection('weeklyPrompts')
+        .doc(promptId)
+        .get();
       const promptData = promptDoc.data();
 
-      const totalPossibleRevealsForPrompt : number = stats.count * 3;
-      const promptRevealRate = totalPossibleRevealsForPrompt > 0
-        ? (stats.reveals / totalPossibleRevealsForPrompt) * 100
-        : 0;
+      const totalPossibleRevealsForPrompt: number = stats.count * 3;
+      const promptRevealRate =
+        totalPossibleRevealsForPrompt > 0
+          ? (stats.reveals / totalPossibleRevealsForPrompt) * 100
+          : 0;
 
       promptStats.push({
         promptId,
         question: promptData?.question || 'Unknown',
-        matchDate: promptData?.matchDate?.toDate ? promptData.matchDate.toDate().toISOString() : '',
+        matchDate: promptData?.matchDate?.toDate
+          ? promptData.matchDate.toDate().toISOString()
+          : '',
         totalMatchDocuments: stats.count,
         totalUsersMatched: stats.count, // Each match doc is for one user
         totalReveals: stats.reveals,
@@ -783,7 +837,10 @@ router.get('/api/admin/matches/stats', async (req: AdminRequest, res) => {
     }
 
     // Sort by match date (most recent first)
-    promptStats.sort((a, b) => new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime());
+    promptStats.sort(
+      (a, b) =>
+        new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime()
+    );
 
     const response: MatchStatsResponse = {
       totalMatches,
@@ -842,126 +899,148 @@ router.get('/api/admin/matches/stats', async (req: AdminRequest, res) => {
  * @returns {Error} 404 - Prompt not found
  * @returns {Error} 500 - Internal server error
  */
-router.get('/api/admin/prompts/:promptId/matches', async (req: AdminRequest, res) => {
-  try {
-    const { promptId } = req.params;
-
-    // Check if prompt exists
-    const existingPrompt = await getPromptById(promptId);
-    if (!existingPrompt) {
-      return res.status(404).json({ error: 'Prompt not found' });
-    }
-
-    // Fetch all match documents for this prompt
-    // Try without orderBy first in case Firestore index doesn't exist
-    let matchesSnapshot;
+router.get(
+  '/api/admin/prompts/:promptId/matches',
+  async (req: AdminRequest, res) => {
     try {
-      matchesSnapshot = await db
-        .collection('weeklyMatches')
-        .where('promptId', '==', promptId)
-        .orderBy('createdAt', 'desc')
-        .limit(100) // Limit for performance
-        .get();
-    } catch (indexError) {
-      // If orderBy fails due to missing index, try without it
-      console.warn('Firestore index missing for orderBy, fetching without ordering:', indexError);
-      matchesSnapshot = await db
-        .collection('weeklyMatches')
-        .where('promptId', '==', promptId)
-        .limit(100)
-        .get();
-    }
+      const { promptId } = req.params;
 
-    const totalMatchDocuments = matchesSnapshot.size;
-    let totalReveals = 0;
-    const matchesWithProfiles: MatchWithProfile[] = [];
+      // Check if prompt exists
+      const existingPrompt = await getPromptById(promptId);
+      if (!existingPrompt) {
+        return res.status(404).json({ error: 'Prompt not found' });
+      }
 
-    // Build matches array with profile data
-    for (const matchDoc of matchesSnapshot.docs) {
-      const matchData = matchDoc.data();
-      const userNetid = matchData.netid;
-      const matchedNetids = Array.isArray(matchData.matches) ? matchData.matches : [];
-      const revealed = Array.isArray(matchData.revealed) ? matchData.revealed : [];
+      // Fetch all match documents for this prompt
+      // Try without orderBy first in case Firestore index doesn't exist
+      let matchesSnapshot;
+      try {
+        matchesSnapshot = await db
+          .collection('weeklyMatches')
+          .where('promptId', '==', promptId)
+          .orderBy('createdAt', 'desc')
+          .limit(100) // Limit for performance
+          .get();
+      } catch (indexError) {
+        // If orderBy fails due to missing index, try without it
+        console.warn(
+          'Firestore index missing for orderBy, fetching without ordering:',
+          indexError
+        );
+        matchesSnapshot = await db
+          .collection('weeklyMatches')
+          .where('promptId', '==', promptId)
+          .limit(100)
+          .get();
+      }
 
-      // Count reveals for this match
-      totalReveals += revealed.filter((r: boolean) => r === true).length;
+      const totalMatchDocuments = matchesSnapshot.size;
+      let totalReveals = 0;
+      const matchesWithProfiles: MatchWithProfile[] = [];
 
-      // Fetch user profile
-      const userProfileDoc = await db.collection('profiles').doc(userNetid).get();
-      const userProfileData = userProfileDoc.data();
+      // Build matches array with profile data
+      for (const matchDoc of matchesSnapshot.docs) {
+        const matchData = matchDoc.data();
+        const userNetid = matchData.netid;
+        const matchedNetids = Array.isArray(matchData.matches)
+          ? matchData.matches
+          : [];
+        const revealed = Array.isArray(matchData.revealed)
+          ? matchData.revealed
+          : [];
 
-      // Fetch matched users' profiles
-      const matchedProfiles = [];
-      for (let i = 0; i < matchedNetids.length; i++) {
-        const matchedNetid = matchedNetids[i];
-        const matchedProfileDoc = await db.collection('profiles').doc(matchedNetid).get();
-        const matchedProfileData = matchedProfileDoc.data();
+        // Count reveals for this match
+        totalReveals += revealed.filter((r: boolean) => r === true).length;
 
-        matchedProfiles.push({
-          netid: matchedNetid,
-          firstName: matchedProfileData?.firstName || 'Unknown',
-          profilePicture: matchedProfileData?.pictures?.[0],
-          revealed: Boolean(revealed[i]), // Ensure it's a boolean
+        // Fetch user profile
+        const userProfileDoc = await db
+          .collection('profiles')
+          .doc(userNetid)
+          .get();
+        const userProfileData = userProfileDoc.data();
+
+        // Fetch matched users' profiles
+        const matchedProfiles = [];
+        for (let i = 0; i < matchedNetids.length; i++) {
+          const matchedNetid = matchedNetids[i];
+          const matchedProfileDoc = await db
+            .collection('profiles')
+            .doc(matchedNetid)
+            .get();
+          const matchedProfileData = matchedProfileDoc.data();
+
+          matchedProfiles.push({
+            netid: matchedNetid,
+            firstName: matchedProfileData?.firstName || 'Unknown',
+            profilePicture: matchedProfileData?.pictures?.[0],
+            revealed: Boolean(revealed[i]), // Ensure it's a boolean
+          });
+        }
+
+        matchesWithProfiles.push({
+          netid: userNetid,
+          firstName: userProfileData?.firstName || 'Unknown',
+          profilePicture: userProfileData?.pictures?.[0],
+          matches: matchedProfiles,
+          createdAt: matchData.createdAt?.toDate
+            ? matchData.createdAt.toDate().toISOString()
+            : new Date().toISOString(),
         });
       }
 
-      matchesWithProfiles.push({
-        netid: userNetid,
-        firstName: userProfileData?.firstName || 'Unknown',
-        profilePicture: userProfileData?.pictures?.[0],
-        matches: matchedProfiles,
-        createdAt: matchData.createdAt?.toDate ? matchData.createdAt.toDate().toISOString() : new Date().toISOString(),
-      });
+      const totalPossibleReveals = totalMatchDocuments * 3;
+      const revealRate =
+        totalPossibleReveals > 0
+          ? (totalReveals / totalPossibleReveals) * 100
+          : 0;
+
+      const response: PromptMatchDetailResponse = {
+        promptId,
+        question: existingPrompt.question,
+        totalMatchDocuments,
+        totalUsersMatched: totalMatchDocuments, // Each match doc is for one user
+        totalPossibleReveals,
+        totalReveals,
+        revealRate: Math.round(revealRate * 100) / 100,
+        matches: matchesWithProfiles,
+      };
+
+      // Log successful action
+      await logAdminAction(
+        'VIEW_PROMPT_MATCHES',
+        req.user!.uid,
+        req.user!.email,
+        'prompt',
+        promptId,
+        { totalMatchDocuments, totalReveals },
+        getIpAddress(req),
+        getUserAgent(req)
+      );
+
+      res.status(200).json(response);
+    } catch (error) {
+      console.error('Error fetching prompt matches:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Log failed action
+      await logAdminAction(
+        'VIEW_PROMPT_MATCHES',
+        req.user!.uid,
+        req.user!.email,
+        'prompt',
+        req.params.promptId,
+        { error: errorMessage },
+        getIpAddress(req),
+        getUserAgent(req),
+        false,
+        errorMessage
+      );
+
+      res.status(500).json({ error: errorMessage });
     }
-
-    const totalPossibleReveals = totalMatchDocuments * 3;
-    const revealRate = totalPossibleReveals > 0 ? (totalReveals / totalPossibleReveals) * 100 : 0;
-
-    const response: PromptMatchDetailResponse = {
-      promptId,
-      question: existingPrompt.question,
-      totalMatchDocuments,
-      totalUsersMatched: totalMatchDocuments, // Each match doc is for one user
-      totalPossibleReveals,
-      totalReveals,
-      revealRate: Math.round(revealRate * 100) / 100,
-      matches: matchesWithProfiles,
-    };
-
-    // Log successful action
-    await logAdminAction(
-      'VIEW_PROMPT_MATCHES',
-      req.user!.uid,
-      req.user!.email,
-      'prompt',
-      promptId,
-      { totalMatchDocuments, totalReveals },
-      getIpAddress(req),
-      getUserAgent(req)
-    );
-
-    res.status(200).json(response);
-  } catch (error) {
-    console.error('Error fetching prompt matches:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    // Log failed action
-    await logAdminAction(
-      'VIEW_PROMPT_MATCHES',
-      req.user!.uid,
-      req.user!.email,
-      'prompt',
-      req.params.promptId,
-      { error: errorMessage },
-      getIpAddress(req),
-      getUserAgent(req),
-      false,
-      errorMessage
-    );
-
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 /**
  * POST /api/admin/prompts/fix-multiple-active
@@ -975,111 +1054,123 @@ router.get('/api/admin/prompts/:promptId/matches', async (req: AdminRequest, res
  * @returns {Error} 401/403 - Unauthorized (handled by middleware)
  * @returns {Error} 500 - Internal server error
  */
-router.post('/api/admin/prompts/fix-multiple-active', async (req: AdminRequest, res) => {
-  try {
-    console.log(`Admin ${req.user?.email} fixing multiple active prompts issue`);
+router.post(
+  '/api/admin/prompts/fix-multiple-active',
+  async (req: AdminRequest, res) => {
+    try {
+      console.log(
+        `Admin ${req.user?.email} fixing multiple active prompts issue`
+      );
 
-    // Get all prompts marked as active
-    const activePrompts = await getAllPrompts({ active: true });
+      // Get all prompts marked as active
+      const activePrompts = await getAllPrompts({ active: true });
 
-    if (activePrompts.length === 0) {
-      return res.status(200).json({
-        message: 'No active prompts found. Nothing to fix.',
-        deactivatedCount: 0,
+      if (activePrompts.length === 0) {
+        return res.status(200).json({
+          message: 'No active prompts found. Nothing to fix.',
+          deactivatedCount: 0,
+        });
+      }
+
+      if (activePrompts.length === 1) {
+        return res.status(200).json({
+          message: 'Only one active prompt found. System is in correct state.',
+          activePromptId: activePrompts[0].promptId,
+          deactivatedCount: 0,
+        });
+      }
+
+      // Multiple active prompts found - need to fix
+      console.log(
+        `WARNING: Multiple active prompts detected! This is an invalid state.`
+      );
+      activePrompts.forEach((p) => {
+        console.log(`   - ${p.promptId}: ${p.question}`);
+        console.log(`     └─ activatedAt: ${p.activatedAt}`);
       });
+
+      // Sort by activatedAt to find most recent
+      const sortedPrompts = [...activePrompts].sort((a, b) => {
+        const dateA = a.activatedAt
+          ? new Date(a.activatedAt as any).getTime()
+          : 0;
+        const dateB = b.activatedAt
+          ? new Date(b.activatedAt as any).getTime()
+          : 0;
+        return dateB - dateA; // Most recent first
+      });
+
+      const mostRecent = sortedPrompts[0];
+      const toDeactivate = sortedPrompts.slice(1);
+
+      console.log(`Keeping most recently activated: ${mostRecent.promptId}`);
+      console.log(`Deactivating ${toDeactivate.length} older prompt(s):`);
+
+      // Deactivate all except most recent
+      const batch = db.batch();
+      toDeactivate.forEach((prompt) => {
+        const ref = db.collection('weeklyPrompts').doc(prompt.promptId);
+        batch.update(ref, {
+          active: false,
+          status: 'completed',
+        });
+        console.log(`   └─ Deactivating: ${prompt.promptId}`);
+      });
+
+      await batch.commit();
+
+      // Log successful action
+      await logAdminAction(
+        'FIX_MULTIPLE_ACTIVE',
+        req.user!.uid,
+        req.user!.email,
+        'prompts',
+        'cleanup',
+        {
+          keptActive: mostRecent.promptId,
+          deactivated: toDeactivate.map((p) => p.promptId),
+        },
+        getIpAddress(req),
+        getUserAgent(req)
+      );
+
+      console.log(`Successfully fixed multiple active prompts`);
+
+      res.status(200).json({
+        message: 'Successfully fixed multiple active prompts',
+        keptActive: {
+          promptId: mostRecent.promptId,
+          question: mostRecent.question,
+          activatedAt: mostRecent.activatedAt,
+        },
+        deactivated: toDeactivate.map((p) => ({
+          promptId: p.promptId,
+          question: p.question,
+        })),
+        deactivatedCount: toDeactivate.length,
+      });
+    } catch (error) {
+      console.error('Error fixing multiple active prompts:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Log failed action
+      await logAdminAction(
+        'FIX_MULTIPLE_ACTIVE',
+        req.user!.uid,
+        req.user!.email,
+        'prompts',
+        'cleanup',
+        { error: errorMessage },
+        getIpAddress(req),
+        getUserAgent(req),
+        false,
+        errorMessage
+      );
+
+      res.status(500).json({ error: errorMessage });
     }
-
-    if (activePrompts.length === 1) {
-      return res.status(200).json({
-        message: 'Only one active prompt found. System is in correct state.',
-        activePromptId: activePrompts[0].promptId,
-        deactivatedCount: 0,
-      });
-    }
-
-    // Multiple active prompts found - need to fix
-    console.log(`WARNING: Multiple active prompts detected! This is an invalid state.`);
-    activePrompts.forEach((p) => {
-      console.log(`   - ${p.promptId}: ${p.question}`);
-      console.log(`     └─ activatedAt: ${p.activatedAt}`);
-    });
-
-    // Sort by activatedAt to find most recent
-    const sortedPrompts = [...activePrompts].sort((a, b) => {
-      const dateA = a.activatedAt ? new Date(a.activatedAt as any).getTime() : 0;
-      const dateB = b.activatedAt ? new Date(b.activatedAt as any).getTime() : 0;
-      return dateB - dateA; // Most recent first
-    });
-
-    const mostRecent = sortedPrompts[0];
-    const toDeactivate = sortedPrompts.slice(1);
-
-    console.log(`Keeping most recently activated: ${mostRecent.promptId}`);
-    console.log(`Deactivating ${toDeactivate.length} older prompt(s):`);
-
-    // Deactivate all except most recent
-    const batch = db.batch();
-    toDeactivate.forEach((prompt) => {
-      const ref = db.collection('weeklyPrompts').doc(prompt.promptId);
-      batch.update(ref, {
-        active: false,
-        status: 'completed'
-      });
-      console.log(`   └─ Deactivating: ${prompt.promptId}`);
-    });
-
-    await batch.commit();
-
-    // Log successful action
-    await logAdminAction(
-      'FIX_MULTIPLE_ACTIVE',
-      req.user!.uid,
-      req.user!.email,
-      'prompts',
-      'cleanup',
-      {
-        keptActive: mostRecent.promptId,
-        deactivated: toDeactivate.map(p => p.promptId),
-      },
-      getIpAddress(req),
-      getUserAgent(req)
-    );
-
-    console.log(`Successfully fixed multiple active prompts`);
-
-    res.status(200).json({
-      message: 'Successfully fixed multiple active prompts',
-      keptActive: {
-        promptId: mostRecent.promptId,
-        question: mostRecent.question,
-        activatedAt: mostRecent.activatedAt,
-      },
-      deactivated: toDeactivate.map(p => ({
-        promptId: p.promptId,
-        question: p.question,
-      })),
-      deactivatedCount: toDeactivate.length,
-    });
-  } catch (error) {
-    console.error('Error fixing multiple active prompts:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    // Log failed action
-    await logAdminAction(
-      'FIX_MULTIPLE_ACTIVE',
-      req.user!.uid,
-      req.user!.email,
-      'prompts',
-      'cleanup',
-      { error: errorMessage },
-      getIpAddress(req),
-      getUserAgent(req),
-      false,
-      errorMessage
-    );
-
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 export default router;

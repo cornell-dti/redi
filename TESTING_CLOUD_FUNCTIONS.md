@@ -3,6 +3,7 @@
 ## Recent Updates (October 2025)
 
 **New Features:**
+
 - Prompts can now be created for any day of the week (not just Mondays)
 - Prompt status tracking: `scheduled`, `active`, `completed`
 - Timestamps for activation (`activatedAt`) and match generation (`matchesGeneratedAt`)

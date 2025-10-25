@@ -547,4 +547,7 @@ export interface NotificationResponse {
 }
 
 // For creating a new notification
-export type CreateNotificationInput = Omit<NotificationDoc, 'createdAt' | 'read'>;
+export type CreateNotificationInput = Omit<
+  NotificationDoc,
+  'createdAt' | 'read'
+>;

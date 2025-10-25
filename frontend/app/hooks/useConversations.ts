@@ -30,10 +30,13 @@ export const useConversations = () => {
       .orderBy('updatedAt', 'desc')
       .onSnapshot(
         (snapshot) => {
-          const conversationsData: Conversation[] = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          } as Conversation));
+          const conversationsData: Conversation[] = snapshot.docs.map(
+            (doc) =>
+              ({
+                id: doc.id,
+                ...doc.data(),
+              }) as Conversation
+          );
 
           setConversations(conversationsData);
           setLoading(false);
