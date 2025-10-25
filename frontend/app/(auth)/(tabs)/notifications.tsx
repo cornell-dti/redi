@@ -73,17 +73,12 @@ export default function NotificationsScreen() {
     metadata: any
   ) => {
     try {
-      // Mark as read
       await markAsRead(notificationId);
 
-      // Navigate based on type
       if (type === 'mutual_nudge') {
-        // If conversation was auto-created, navigate to chat
         if (metadata.conversationId) {
-          // Build navigation URL with conversation details
           let chatUrl = `/chat-detail?conversationId=${metadata.conversationId}`;
 
-          // Add optional parameters if available
           if (metadata.matchFirebaseUid) {
             chatUrl += `&userId=${metadata.matchFirebaseUid}`;
           }
@@ -93,12 +88,20 @@ export default function NotificationsScreen() {
 
           router.push(chatUrl as any);
         } else {
-          // Otherwise navigate to matches screen to see the match
           router.push('/(auth)/(tabs)/' as any);
         }
-      } else if (type === 'new_message' && metadata.chatId) {
-        // Navigate to chat (when implemented)
-        Alert.alert('Chat', 'Chat feature coming soon!');
+      } else if (type === 'new_message' && metadata.conversationId) {
+        // We have not yet implemented new message notifications so the type will never be new message
+        let chatUrl = `/chat-detail?conversationId=${metadata.conversationId}`;
+
+        if (metadata.senderFirebaseUid) {
+          chatUrl += `&userId=${metadata.senderFirebaseUid}`;
+        }
+        if (metadata.senderName) {
+          chatUrl += `&name=${encodeURIComponent(metadata.senderName)}`;
+        }
+
+        router.push(chatUrl as any);
       }
     } catch (err) {
       console.error('Error handling notification press:', err);
