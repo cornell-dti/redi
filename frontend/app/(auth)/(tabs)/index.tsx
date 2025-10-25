@@ -408,7 +408,7 @@ export default function MatchesScreen() {
         <View style={styles.headerContainer}>
           <AppText variant="title">Matches</AppText>
           <AppText variant="subtitle" color="dimmer">
-            Dropping Friday at 9:00 AM
+            Dropping Friday at 12:00 AM
           </AppText>
         </View>
         <View style={styles.loadingContainer}>
@@ -430,7 +430,7 @@ export default function MatchesScreen() {
         <View style={styles.headerContainer}>
           <AppText variant="title">Matches</AppText>
           <AppText variant="subtitle" color="dimmer">
-            Dropping Friday at 9:00 AM
+            Dropping Friday at 12:00 AM
           </AppText>
         </View>
 
