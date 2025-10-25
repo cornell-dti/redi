@@ -29,28 +29,52 @@ export default function CountdownTimer({ targetDate }: CountdownTimerProps) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.timeBlock}>
-        <AppText variant="title">
-          {String(timeRemaining.days).padStart(2, '0')}
-        </AppText>
+      <View style={styles.timeBlockWrapper}>
+        <View style={styles.timeBlock}>
+          <AppText variant="title">
+            {String(timeRemaining.days).padStart(2, '0')}
+          </AppText>
+        </View>
+        <AppText color="dimmer">days</AppText>
       </View>
-      <AppText variant="title">:</AppText>
-      <View style={styles.timeBlock}>
-        <AppText variant="title">
-          {String(timeRemaining.hours).padStart(2, '0')}
-        </AppText>
+
+      <AppText style={styles.colon} variant="title">
+        :
+      </AppText>
+
+      <View style={styles.timeBlockWrapper}>
+        <View style={styles.timeBlock}>
+          <AppText variant="title">
+            {String(timeRemaining.hours).padStart(2, '0')}
+          </AppText>
+        </View>
+        <AppText color="dimmer">hours</AppText>
       </View>
-      <AppText variant="title">:</AppText>
-      <View style={styles.timeBlock}>
-        <AppText variant="title">
-          {String(timeRemaining.minutes).padStart(2, '0')}
-        </AppText>
+
+      <AppText style={styles.colon} variant="title">
+        :
+      </AppText>
+
+      <View style={styles.timeBlockWrapper}>
+        <View style={styles.timeBlock}>
+          <AppText variant="title">
+            {String(timeRemaining.minutes).padStart(2, '0')}
+          </AppText>
+        </View>
+        <AppText color="dimmer">mins</AppText>
       </View>
-      <AppText variant="title">:</AppText>
-      <View style={styles.timeBlock}>
-        <AppText variant="title">
-          {String(timeRemaining.seconds).padStart(2, '0')}
-        </AppText>
+
+      <AppText style={styles.colon} variant="title">
+        :
+      </AppText>
+
+      <View style={styles.timeBlockWrapper}>
+        <View style={styles.timeBlock}>
+          <AppText variant="title">
+            {String(timeRemaining.seconds).padStart(2, '0')}
+          </AppText>
+        </View>
+        <AppText color="dimmer">secs</AppText>
       </View>
     </View>
   );
@@ -81,12 +105,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
+  timeBlockWrapper: {
+    alignItems: 'center',
+    gap: 4,
+  },
   timeBlock: {
     backgroundColor: AppColors.backgroundDimmer,
-    borderRadius: 8,
+    borderRadius: 16,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    minWidth: 48,
+    paddingVertical: 32,
+    width: 80,
     alignItems: 'center',
+  },
+  colon: {
+    position: 'relative',
+    top: -16,
   },
 });

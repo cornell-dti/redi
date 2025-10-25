@@ -1,4 +1,5 @@
 // Main Matches/Home Screen
+import { getNudgeStatus, sendNudge } from '@/app/api/nudgesApi';
 import { getProfileByNetid } from '@/app/api/profileApi';
 import {
   getActivePrompt,
@@ -7,26 +8,26 @@ import {
   getPromptMatches,
   submitPromptAnswer,
 } from '@/app/api/promptsApi';
-import { getNudgeStatus, sendNudge } from '@/app/api/nudgesApi';
 import { AppColors } from '@/app/components/AppColors';
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import CountdownTimer from '@/app/components/ui/CountdownTimer';
-import Header from '@/app/components/ui/Header';
+import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
 import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
+import { useThemeAware } from '@/app/contexts/ThemeContext';
 import {
   getNextFridayMidnight,
   isCountdownPeriod,
 } from '@/app/utils/dateUtils';
 import {
+  getProfileAge,
+  NudgeStatusResponse,
   ProfileResponse,
   WeeklyMatchResponse,
   WeeklyPromptAnswerResponse,
   WeeklyPromptResponse,
-  getProfileAge,
-  NudgeStatusResponse,
 } from '@/types';
 import { useRouter } from 'expo-router';
 import { Eye, Send } from 'lucide-react-native';
@@ -52,6 +53,7 @@ interface MatchWithProfile {
 }
 
 export default function MatchesScreen() {
+  useThemeAware();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [showCountdown, setShowCountdown] = useState(isCountdownPeriod());
@@ -209,48 +211,41 @@ export default function MatchesScreen() {
 
   const renderCountdownPeriod = () => (
     <>
-      <View style={styles.countdownSection}>
-        <AppText variant="title" style={styles.sectionTitle}>
-          Matches dropping in
-        </AppText>
-        <CountdownTimer targetDate={getNextFridayMidnight()} />
-        <AppText variant="body" color="dimmer" style={styles.subtitle}>
-          Dropping Friday at 12:00 AM
-        </AppText>
-      </View>
+      <CountdownTimer targetDate={getNextFridayMidnight()} />
 
       {activePrompt && (
         <View style={styles.promptSection}>
-          <AppText variant="subtitle" style={styles.promptLabel}>
-            This week&apos;s prompt
-          </AppText>
-          <View style={styles.promptCard}>
-            <AppText variant="body" style={styles.promptQuestion}>
-              {activePrompt.question}
-            </AppText>
-          </View>
-
-          {userAnswer ? (
-            <View style={styles.answerCard}>
-              <AppText variant="bodySmall" color="dimmer">
-                Your answer
+          <ListItemWrapper>
+            <View style={styles.promptCard}>
+              <AppText variant="body" color="dimmer">
+                This week&apos;s prompt
               </AppText>
-              <AppText variant="body" style={{ marginTop: 8 }}>
-                {userAnswer}
+
+              <AppText variant="subtitle" color="accent">
+                {activePrompt.question}
               </AppText>
             </View>
-          ) : (
-            <Button
-              title="Submit your answer"
-              onPress={() => {
-                setTempAnswer('');
-                setShowAnswerSheet(true);
-              }}
-              variant="primary"
-              iconLeft={Send}
-              fullWidth
-            />
-          )}
+
+            {userAnswer ? (
+              <View style={styles.answerCard}>
+                <AppText color="dimmer">Your answer</AppText>
+                <AppText variant="body" style={{ marginTop: 8 }}>
+                  {userAnswer}
+                </AppText>
+              </View>
+            ) : (
+              <Button
+                title="Submit your answer"
+                onPress={() => {
+                  setTempAnswer('');
+                  setShowAnswerSheet(true);
+                }}
+                variant="primary"
+                iconLeft={Send}
+                fullWidth
+              />
+            )}
+          </ListItemWrapper>
 
           <Button
             title="Show this week's prompt"
@@ -267,7 +262,7 @@ export default function MatchesScreen() {
   const renderWeekendPeriod = () => (
     <>
       {currentMatches.length > 0 && (
-        <View style={styles.section}>
+        <View style={[styles.section, styles.sectionPadding]}>
           <AppText variant="subtitle" style={styles.sectionTitle}>
             This Week&apos;s Matches
           </AppText>
@@ -291,13 +286,17 @@ export default function MatchesScreen() {
       <View style={styles.matchContainer}>
         <ScrollView
           horizontal
-          pagingEnabled
+          decelerationRate="fast"
+          snapToInterval={width - 60}
           showsHorizontalScrollIndicator={false}
+          // contentContainerStyle={{ paddingHorizontal: 16 }}
           onMomentumScrollEnd={(event) => {
-            const index = Math.round(event.nativeEvent.contentOffset.x / width);
+            const index = Math.round(
+              event.nativeEvent.contentOffset.x / (width - 60)
+            );
             setCurrentMatchIndex(index);
           }}
-          contentOffset={{ x: currentMatchIndex * width, y: 0 }}
+          style={{ paddingLeft: 16 }}
         >
           {currentMatches.map((m, index) => {
             if (!m.profile || !activePrompt) return null;
@@ -312,26 +311,37 @@ export default function MatchesScreen() {
             };
 
             return (
-              <View key={index} style={{ width: width - 40 }}>
-                <WeeklyMatchCard
-                  name={matchProfile.firstName}
-                  age={matchAge}
-                  year={matchProfile.year}
-                  major={matchProfile.major.join(', ')}
-                  image={
-                    matchProfile.pictures[0] ||
-                    'https://via.placeholder.com/400'
-                  }
-                  onNudge={handleNudge}
-                  onViewProfile={() =>
-                    router.push(
-                      `/view-profile?netid=${matchProfile.netid}` as any
-                    )
-                  }
-                  nudgeSent={m.nudgeStatus?.sent || false}
-                  nudgeDisabled={m.nudgeStatus?.mutual || false}
-                />
-              </View>
+              <>
+                {/* TEMPORARY FOR NOW JUST TO TEST CAROUSEL */}
+                {[0, 1, 2].map((cardIndex) => (
+                  <View
+                    key={`${index}-${cardIndex}`}
+                    style={{
+                      width: width - 60,
+                      marginRight: 12,
+                    }}
+                  >
+                    <WeeklyMatchCard
+                      name={matchProfile.firstName}
+                      age={matchAge}
+                      year={matchProfile.year}
+                      major={matchProfile.major.join(', ')}
+                      image={
+                        matchProfile.pictures[0] ||
+                        'https://via.placeholder.com/400'
+                      }
+                      onNudge={handleNudge}
+                      onViewProfile={() =>
+                        router.push(
+                          `/view-profile?netid=${matchProfile.netid}` as any
+                        )
+                      }
+                      nudgeSent={m.nudgeStatus?.sent || false}
+                      nudgeDisabled={m.nudgeStatus?.mutual || false}
+                    />
+                  </View>
+                ))}
+              </>
             );
           })}
         </ScrollView>
@@ -395,7 +405,12 @@ export default function MatchesScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" />
-        <Header title="Matches" />
+        <View style={styles.headerContainer}>
+          <AppText variant="title">Matches</AppText>
+          <AppText variant="subtitle" color="dimmer">
+            Dropping Friday at 12:00 AM
+          </AppText>
+        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={AppColors.accentDefault} />
           <AppText variant="body" color="dimmer" style={{ marginTop: 16 }}>
@@ -411,7 +426,14 @@ export default function MatchesScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" />
-        <Header title="Matches" />
+
+        <View style={styles.headerContainer}>
+          <AppText variant="title">Matches</AppText>
+          <AppText variant="subtitle" color="dimmer">
+            Dropping Friday at 12:00 AM
+          </AppText>
+        </View>
+
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
@@ -437,17 +459,22 @@ export default function MatchesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Header title="Matches" />
+
+      <View style={styles.headerContainer}>
+        <AppText variant="title">Matches</AppText>
+        <AppText variant="subtitle" color="dimmer">
+          Dropping Friday at 12:00 AM
+        </AppText>
+      </View>
 
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()}
-
+          {/* {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()} */}
+          {renderCountdownPeriod()} {renderWeekendPeriod()}
           {renderCurrentMatch()}
-
           {renderPreviousMatches()}
         </View>
       </ScrollView>
@@ -515,13 +542,12 @@ export default function MatchesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDimmer,
+    backgroundColor: AppColors.backgroundDefault,
   },
   scrollView: {
     flex: 1,
   },
   content: {
-    padding: 20,
     paddingBottom: 100,
   },
   loadingContainer: {
@@ -546,25 +572,33 @@ const styles = StyleSheet.create({
   promptSection: {
     gap: 12,
     marginBottom: 24,
+    padding: 16,
   },
   promptLabel: {
     marginLeft: 4,
   },
   promptCard: {
-    backgroundColor: AppColors.backgroundDefault,
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: AppColors.accentAlpha,
+    borderColor: AppColors.accentDefault,
+    borderWidth: 1,
+    borderRadius: 4,
+    gap: 4,
+    padding: 16,
+    marginTop: 24,
   },
   promptQuestion: {
     lineHeight: 22,
   },
   answerCard: {
-    backgroundColor: AppColors.backgroundDefault,
-    borderRadius: 12,
+    backgroundColor: AppColors.backgroundDimmer,
+    borderRadius: 4,
     padding: 16,
   },
   section: {
     marginTop: 24,
+  },
+  sectionPadding: {
+    paddingLeft: 16,
   },
   matchContainer: {
     marginBottom: 24,
@@ -614,5 +648,8 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDimmer,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerContainer: {
+    padding: 16,
   },
 });
