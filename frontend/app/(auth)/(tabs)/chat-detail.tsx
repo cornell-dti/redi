@@ -130,14 +130,11 @@ export default function ChatDetailScreen() {
 
       try {
         await sendMessageAPI(conversationId, messageText);
-        // Message will be added via real-time listener
-        // Scroll to bottom after send
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
       } catch (error) {
         console.error('Error sending message:', error);
-        // Restore message if failed
         setNewMessage(messageText);
       } finally {
         setSending(false);
@@ -186,10 +183,9 @@ export default function ChatDetailScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.replace('/chat' as any)}
           style={styles.backButton}
         >
           <ArrowLeft size={24} color={AppColors.foregroundDefault} />
@@ -218,7 +214,6 @@ export default function ChatDetailScreen() {
         </View>
       </View>
 
-      {/* Messages List */}
       {loading ? (
         <View
           style={[
@@ -244,7 +239,6 @@ export default function ChatDetailScreen() {
         />
       )}
 
-      {/* Message Input */}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.inputContainer}
