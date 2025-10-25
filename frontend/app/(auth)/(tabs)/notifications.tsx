@@ -51,20 +51,21 @@ const formatRelativeTime = (isoDate: string): string => {
 export default function NotificationsScreen() {
   useThemeAware(); // Force re-render when theme changes
   const router = useRouter();
-  const { notifications, loading, error, markAsRead, markAllAsRead, refresh } =
+  const { notifications, loading, error, markAsRead, markAllAsRead, setActive } =
     useNotifications();
 
-  // Poll for notifications only when this screen is focused
+  // Activate/deactivate real-time listener based on screen focus
+  // This saves resources when the user isn't viewing notifications
   useFocusEffect(
     useCallback(() => {
-      refresh(); // Fetch immediately when focused
+      console.log('🔔 Notifications screen focused - activating listener');
+      setActive?.(true); // Activate listener
 
-      const interval = setInterval(() => {
-        refresh();
-      }, 60000); // Poll every 60 seconds (increased from 30)
-
-      return () => clearInterval(interval); // Cleanup when unfocused
-    }, [refresh])
+      return () => {
+        console.log('📭 Notifications screen unfocused - pausing listener');
+        setActive?.(false); // Pause listener to save resources
+      };
+    }, [setActive])
   );
 
   const handleNotificationPress = async (

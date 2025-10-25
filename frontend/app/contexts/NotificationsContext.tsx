@@ -1,10 +1,11 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { useNotifications as useNotificationsHook } from '../hooks/useNotifications';
+import { useNotificationsRealtime as useNotificationsHook } from '../hooks/useNotificationsRealtime';
 import type { NotificationResponse } from '@/types';
 
 /**
  * Context for managing notifications across the app
- * Provides a single instance of useNotifications to avoid duplicate polling
+ * Uses Firestore real-time listeners instead of polling for better performance
+ * and real-time updates
  */
 
 interface NotificationsContextType {
@@ -15,6 +16,7 @@ interface NotificationsContextType {
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   refresh: () => Promise<void>;
+  setActive?: (active: boolean) => void;
 }
 
 const NotificationsContext = createContext<

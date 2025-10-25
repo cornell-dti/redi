@@ -1,8 +1,8 @@
 // Main Matches/Home Screen
-import { getNudgeStatus, sendNudge } from '@/app/api/nudgesApi';
-import { getProfileByNetid } from '@/app/api/profileApi';
+import { sendNudge } from '@/app/api/nudgesApi';
 import {
   getActivePrompt,
+  getBatchMatchData,
   getMatchHistory,
   getPromptAnswer,
   getPromptMatches,
@@ -17,10 +17,15 @@ import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
 import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
+import { useDebouncedCallback } from '@/app/hooks/useDebounce';
 import {
   getNextFridayMidnight,
   isCountdownPeriod,
 } from '@/app/utils/dateUtils';
+import {
+  cacheMatchData,
+  getCachedMatchData,
+} from '@/app/utils/matchCache';
 import {
   getProfileAge,
   NudgeStatusResponse,
@@ -31,7 +36,7 @@ import {
 } from '@/types';
 import { useRouter } from 'expo-router';
 import { Eye, Send } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -69,6 +74,12 @@ export default function MatchesScreen() {
   const [showPromptSheet, setShowPromptSheet] = useState(false);
   const [showAnswerSheet, setShowAnswerSheet] = useState(false);
   const [tempAnswer, setTempAnswer] = useState('');
+  const lastLoadTime = useRef<number>(0);
+
+  // Debounced data loading to prevent excessive API calls
+  const loadDataDebounced = useDebouncedCallback(() => {
+    loadData();
+  }, 500); // 500ms debounce
 
   useEffect(() => {
     loadData();
@@ -79,9 +90,22 @@ export default function MatchesScreen() {
     }, 60000);
 
     return () => clearInterval(interval);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
+    // Prevent rapid successive calls (rate limiting on client side)
+    const now = Date.now();
+    const timeSinceLastLoad = now - lastLoadTime.current;
+
+    if (timeSinceLastLoad < 1000) {
+      // Minimum 1 second between loads
+      console.log('⚠️  Skipping load - too soon since last load');
+      return;
+    }
+
+    lastLoadTime.current = now;
+
     try {
       setLoading(true);
       let prompt: WeeklyPromptResponse | null = null;
@@ -113,40 +137,60 @@ export default function MatchesScreen() {
         setUserAnswer('');
       }
 
-      // Get current week's matches
+      // Get current week's matches using batch endpoint with caching
       try {
         const matches: WeeklyMatchResponse = await getPromptMatches(
           prompt.promptId
         );
-        const matchesWithProfiles = await Promise.all(
-          matches.matches.map(async (netid: string, index: number) => {
-            try {
-              const profile = await getProfileByNetid(netid);
-              // Get nudge status for this match
-              let nudgeStatus: NudgeStatusResponse | undefined;
-              try {
-                nudgeStatus = await getNudgeStatus(prompt.promptId, netid);
-              } catch {
-                nudgeStatus = { sent: false, received: false, mutual: false };
-              }
+
+        if (matches.matches.length > 0) {
+          // Try to get cached data first
+          const cachedData = await getCachedMatchData(prompt.promptId);
+
+          let batchData;
+          if (cachedData) {
+            // Use cached data
+            batchData = cachedData;
+            console.log('✅ Using cached match data');
+          } else {
+            // Fetch fresh data and cache it
+            batchData = await getBatchMatchData(
+              prompt.promptId,
+              matches.matches
+            );
+            await cacheMatchData(prompt.promptId, batchData);
+            console.log('✅ Fetched and cached fresh match data');
+          }
+
+          // Map the batch data back to the expected format
+          const matchesWithProfiles: MatchWithProfile[] = matches.matches.map(
+            (netid: string, index: number) => {
+              // Find matching profile from batch response
+              const profile =
+                batchData.profiles.find((p) => p.netid === netid) || null;
+
+              // Get nudge status from batch response
+              const nudgeStatus = batchData.nudgeStatuses[index] || {
+                sent: false,
+                received: false,
+                mutual: false,
+              };
+
               return {
                 netid,
                 profile,
                 revealed: matches.revealed[index],
                 nudgeStatus,
               };
-            } catch {
-              return {
-                netid,
-                profile: null,
-                revealed: matches.revealed[index],
-                nudgeStatus: { sent: false, received: false, mutual: false },
-              };
             }
-          })
-        );
-        setCurrentMatches(matchesWithProfiles);
-      } catch {
+          );
+
+          setCurrentMatches(matchesWithProfiles);
+        } else {
+          setCurrentMatches([]);
+        }
+      } catch (error) {
+        console.error('Error loading current matches:', error);
         // No matches yet
         setCurrentMatches([]);
       }
@@ -161,29 +205,47 @@ export default function MatchesScreen() {
           (m: WeeklyMatchResponse) => m.promptId !== prompt.promptId
         );
 
-        // Get profiles for previous matches
-        const previousMatchesWithProfiles = await Promise.all(
-          oldMatches.flatMap((matchRecord: WeeklyMatchResponse) =>
-            matchRecord.matches.map(async (netid: string, index: number) => {
-              try {
-                const profile = await getProfileByNetid(netid);
+        if (oldMatches.length > 0) {
+          // Collect all netids from previous matches
+          const allPreviousNetids: string[] = [];
+
+          oldMatches.forEach((matchRecord: WeeklyMatchResponse) => {
+            matchRecord.matches.forEach((netid: string) => {
+              allPreviousNetids.push(netid);
+            });
+          });
+
+          // Fetch all profiles at once (we don't need nudge statuses for previous matches)
+          // We'll use the batch endpoint with the oldest promptId
+          if (allPreviousNetids.length > 0) {
+            const oldestPromptId = oldMatches[0]?.promptId || prompt.promptId;
+            const batchData = await getBatchMatchData(
+              oldestPromptId,
+              allPreviousNetids
+            );
+
+            // Map profiles back
+            const previousMatchesWithProfiles: MatchWithProfile[] =
+              allPreviousNetids.map((netid: string) => {
+                const profile =
+                  batchData.profiles.find((p) => p.netid === netid) || null;
+
                 return {
                   netid,
                   profile,
-                  revealed: matchRecord.revealed[index],
+                  revealed: true, // Previous matches are always revealed
                 };
-              } catch {
-                return {
-                  netid,
-                  profile: null,
-                  revealed: matchRecord.revealed[index],
-                };
-              }
-            })
-          )
-        );
-        setPreviousMatches(previousMatchesWithProfiles);
-      } catch {
+              });
+
+            setPreviousMatches(previousMatchesWithProfiles);
+          } else {
+            setPreviousMatches([]);
+          }
+        } else {
+          setPreviousMatches([]);
+        }
+      } catch (error) {
+        console.error('Error loading previous matches:', error);
         setPreviousMatches([]);
       }
     } catch (error) {
@@ -194,7 +256,7 @@ export default function MatchesScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // Empty dependency array since we use refs for state that shouldn't trigger re-renders
 
   const handleSubmitAnswer = async () => {
     if (!activePrompt || !tempAnswer.trim()) return;
@@ -306,8 +368,8 @@ export default function MatchesScreen() {
             const handleNudge = async () => {
               if (!activePrompt) return;
               await sendNudge(matchProfile.netid, activePrompt.promptId);
-              // Reload matches to update nudge status
-              await loadData();
+              // Reload matches to update nudge status (debounced)
+              loadDataDebounced();
             };
 
             return (
