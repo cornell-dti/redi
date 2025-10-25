@@ -7,7 +7,7 @@ import {
   Send,
   Video,
 } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FlatList,
   Image,
@@ -19,9 +19,13 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
+import { useMessages } from '../hooks/useMessages';
+import { sendMessage as sendMessageAPI, createOrGetConversation } from '../api/chatApi';
+import { getCurrentUser } from '../api/authService';
 
 // Mock chat messages
 const mockMessages = [
@@ -77,20 +81,60 @@ interface Message {
 }
 
 export default function ChatDetailScreen() {
-  const { userId, name } = useLocalSearchParams();
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const { conversationId: routeConversationId, userId, name } = useLocalSearchParams();
+  const [conversationId, setConversationId] = useState<string | null>(
+    (routeConversationId as string) || null
+  );
   const [newMessage, setNewMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const currentUser = getCurrentUser();
+  const flatListRef = useRef<FlatList>(null);
 
-  const sendMessage = () => {
-    if (newMessage.trim()) {
-      const message: Message = {
-        id: Date.now().toString(),
-        text: newMessage.trim(),
-        timestamp: new Date(),
-        isOwn: true,
-      };
-      setMessages((prev) => [...prev, message]);
+  const { messages: firebaseMessages, loading } = useMessages(conversationId);
+
+  // Create conversation if it doesn't exist
+  useEffect(() => {
+    const initConversation = async () => {
+      if (!conversationId && userId && currentUser) {
+        try {
+          const conv = await createOrGetConversation(userId as string);
+          setConversationId(conv.id);
+        } catch (error) {
+          console.error('Error creating conversation:', error);
+        }
+      }
+    };
+    initConversation();
+  }, [conversationId, userId, currentUser]);
+
+  // Transform Firebase messages to display format
+  const displayMessages: Message[] = firebaseMessages.map((msg) => ({
+    id: msg.id,
+    text: msg.text,
+    timestamp: msg.timestamp?.toDate?.() || new Date(),
+    isOwn: msg.senderId === currentUser?.uid,
+  }));
+
+  const sendMessage = async () => {
+    if (newMessage.trim() && conversationId) {
+      const messageText = newMessage.trim();
       setNewMessage('');
+      setSending(true);
+
+      try {
+        await sendMessageAPI(conversationId, messageText);
+        // Message will be added via real-time listener
+        // Scroll to bottom after send
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      } catch (error) {
+        console.error('Error sending message:', error);
+        // Restore message if failed
+        setNewMessage(messageText);
+      } finally {
+        setSending(false);
+      }
     }
   };
 
@@ -168,15 +212,23 @@ export default function ChatDetailScreen() {
       </View>
 
       {/* Messages List */}
-      <FlatList
-        data={messages}
-        keyExtractor={(item) => item.id}
-        renderItem={renderMessage}
-        style={styles.messagesList}
-        contentContainerStyle={styles.messagesContent}
-        showsVerticalScrollIndicator={false}
-        inverted={false}
-      />
+      {loading ? (
+        <View style={[styles.messagesList, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color={AppColors.accentDefault} />
+        </View>
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={displayMessages.length > 0 ? displayMessages : mockMessages}
+          keyExtractor={(item) => item.id}
+          renderItem={renderMessage}
+          style={styles.messagesList}
+          contentContainerStyle={styles.messagesContent}
+          showsVerticalScrollIndicator={false}
+          inverted={false}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        />
+      )}
 
       {/* Message Input */}
       <KeyboardAvoidingView
@@ -203,21 +255,25 @@ export default function ChatDetailScreen() {
           <TouchableOpacity
             style={[
               styles.sendButton,
-              newMessage.trim()
+              newMessage.trim() && !sending
                 ? styles.sendButtonActive
                 : styles.sendButtonInactive,
             ]}
             onPress={sendMessage}
-            disabled={!newMessage.trim()}
+            disabled={!newMessage.trim() || sending}
           >
-            <Send
-              size={20}
-              color={
-                newMessage.trim()
-                  ? AppColors.backgroundDefault
-                  : AppColors.foregroundDimmer
-              }
-            />
+            {sending ? (
+              <ActivityIndicator size="small" color={AppColors.backgroundDefault} />
+            ) : (
+              <Send
+                size={20}
+                color={
+                  newMessage.trim()
+                    ? AppColors.backgroundDefault
+                    : AppColors.foregroundDimmer
+                }
+              />
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

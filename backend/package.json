@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "list-emails": "ts-node scripts/list-emails.ts",
+    "seed-conversations": "ts-node scripts/seed-conversations.ts",
     "build": "tsc",
     "start": "node dist/src/index.js",
     "heroku-postbuild": "npm run build",

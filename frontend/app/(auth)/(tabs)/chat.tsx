@@ -1,8 +1,9 @@
 import AppText from '@/app/components/ui/AppText';
 import { router } from 'expo-router';
 import { Search } from 'lucide-react-native';
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   StatusBar,
@@ -11,15 +12,18 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getCurrentUser } from '../../api/authService';
 import { AppColors } from '../../components/AppColors';
 import ChatItem from '../../components/ui/ChatItem';
 import Header from '../../components/ui/Header';
 import { useThemeAware } from '../../contexts/ThemeContext';
+import { useConversations } from '../../hooks/useConversations';
 
 // Mock chat data
 const mockChats = [
   {
     id: '1',
+    userId: 'mock-user-1',
     name: 'Emma',
     lastMessage: 'Hey! Want to grab coffee at CTB this weekend?',
     timestamp: '2m ago',
@@ -30,6 +34,7 @@ const mockChats = [
   },
   {
     id: '2',
+    userId: 'mock-user-2',
     name: 'Sarah',
     lastMessage: 'Thanks for the study session! Good luck on the exam ',
     timestamp: '1h ago',
@@ -40,6 +45,7 @@ const mockChats = [
   },
   {
     id: '3',
+    userId: 'mock-user-3',
     name: 'Jessica',
     lastMessage: 'The farmers market was so fun! We should go again',
     timestamp: '3h ago',
@@ -50,6 +56,7 @@ const mockChats = [
   },
   {
     id: '4',
+    userId: 'mock-user-4',
     name: 'Alex',
     lastMessage: 'Are you free for lunch tomorrow?',
     timestamp: '1d ago',
@@ -62,6 +69,70 @@ const mockChats = [
 
 export default function ChatScreen() {
   useThemeAware(); // Force re-render when theme changes
+  const { conversations, loading, error } = useConversations();
+  const currentUser = getCurrentUser();
+
+  // Transform Firestore conversations to UI format
+  const chatData = useMemo(() => {
+    if (!currentUser) {
+    }
+    if (!currentUser) return mockChats;
+
+    console.log(currentUser.uid);
+    return conversations.map((conv) => {
+      // Get the other participant's info
+      const otherUserId = conv.participantIds.find((id) => id !== currentUser.uid);
+      const otherUser = otherUserId ? conv.participants[otherUserId] : null;
+
+      // Format timestamp
+      let timestamp = 'Just now';
+      if (conv.lastMessage?.timestamp) {
+        const messageDate = conv.lastMessage.timestamp.toDate?.() || new Date(conv.lastMessage.timestamp);
+        const now = new Date();
+        const diffMs = now.getTime() - messageDate.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) timestamp = 'Just now';
+        else if (diffMins < 60) timestamp = `${diffMins}m ago`;
+        else if (diffHours < 24) timestamp = `${diffHours}h ago`;
+        else timestamp = `${diffDays}d ago`;
+      }
+
+      return {
+        id: conv.id,
+        userId: otherUserId || '',
+        name: otherUser?.name || 'Unknown',
+        lastMessage: conv.lastMessage?.text || 'Start a conversation',
+        timestamp,
+        unread: false, // TODO: implement unread logic
+        image: otherUser?.image || 'https://via.placeholder.com/150',
+        online: false, // TODO: implement online status
+      };
+    });
+  }, [conversations, currentUser]);
+
+  const displayData = chatData;
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Header
+          title="Messages"
+          right={
+            <TouchableOpacity>
+              <Search size={24} color={AppColors.foregroundDimmer} />
+            </TouchableOpacity>
+          }
+        />
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color={AppColors.accentDefault} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -75,37 +146,39 @@ export default function ChatScreen() {
         }
       />
 
-      <View style={styles.activeMatches}>
-        <AppText
-          variant="subtitle"
-          style={{ marginBottom: 12, paddingHorizontal: 20 }}
-        >
-          Active Matches
-        </AppText>
-        <FlatList
-          data={mockChats.filter((chat) => chat.online)}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.activeMatchesList}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.activeMatchItem}>
-              <View style={styles.activeAvatarContainer}>
-                <Image
-                  source={{ uri: item.image }}
-                  style={styles.activeAvatar}
-                />
-                <View style={styles.activeOnline} />
-              </View>
-              <AppText variant="bodySmall">{item.name}</AppText>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
+      {displayData.filter((chat) => chat.online).length > 0 && (
+        <View style={styles.activeMatches}>
+          <AppText
+            variant="subtitle"
+            style={{ marginBottom: 12, paddingHorizontal: 20 }}
+          >
+            Active Matches
+          </AppText>
+          <FlatList
+            data={displayData.filter((chat) => chat.online)}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.activeMatchesList}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.activeMatchItem}>
+                <View style={styles.activeAvatarContainer}>
+                  <Image
+                    source={{ uri: item.image }}
+                    style={styles.activeAvatar}
+                  />
+                  <View style={styles.activeOnline} />
+                </View>
+                <AppText variant="bodySmall">{item.name}</AppText>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      )}
 
       <View style={styles.chats}>
         <FlatList
-          data={mockChats}
+          data={displayData}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <ChatItem
@@ -117,7 +190,7 @@ export default function ChatScreen() {
               online={item.online}
               onPress={() =>
                 router.push(
-                  `/screens/chat-detail?userId=${item.id}&name=${item.name}`
+                  `/screens/chat-detail?conversationId=${item.id}&userId=${item.userId}&name=${item.name}`
                 )
               }
             />

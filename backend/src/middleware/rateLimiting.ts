@@ -89,3 +89,19 @@ export const uploadRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+/**
+ * Rate limiting for chat messages
+ * Used for: sending messages, creating conversations
+ * Limit: 60 messages per minute per IP (prevents spam)
+ */
+export const chatRateLimit = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60, // Limit each IP to 60 messages per minute
+  message: {
+    error: 'You are sending messages too quickly. Please slow down.',
+    retryAfter: '1 minute',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
