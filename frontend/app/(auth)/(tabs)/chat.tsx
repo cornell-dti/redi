@@ -190,7 +190,7 @@ export default function ChatScreen() {
               online={item.online}
               onPress={() =>
                 router.push(
-                  `/screens/chat-detail?conversationId=${item.id}&userId=${item.userId}&name=${item.name}`
+                  `/chat-detail?conversationId=${item.id}&userId=${item.userId}&name=${item.name}`
                 )
               }
             />
