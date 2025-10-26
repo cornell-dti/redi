@@ -2,7 +2,7 @@ import FilledBellIcon from '@/app/components/icons/FilledBellIcon';
 import FilledChatIcon from '@/app/components/icons/FilledChatIcon';
 import FilledHeartIcon from '@/app/components/icons/FilledHeartIcon';
 import FilledProfileIcon from '@/app/components/icons/FilledProfileIcon';
-import { useNotifications } from '@/app/hooks/useNotifications';
+import { useNotifications } from '@/app/contexts/NotificationsContext';
 import { Tabs } from 'expo-router';
 import { Bell, Heart, MessageCircle, User } from 'lucide-react-native';
 import { useRef } from 'react';

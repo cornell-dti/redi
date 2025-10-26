@@ -1,8 +1,10 @@
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
-import { useNotifications } from '@/app/hooks/useNotifications';
+import { useNotifications } from '@/app/contexts/NotificationsContext';
+import { useFocusEffect } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import { Bell, Heart, LucideIcon, MessageCircle, X } from 'lucide-react-native';
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -16,7 +18,6 @@ import { AppColors } from '../../components/AppColors';
 import ListItemWrapper from '../../components/ui/ListItemWrapper';
 import NotificationItem from '../../components/ui/NotificationItem';
 import { useThemeAware } from '../../contexts/ThemeContext';
-import { useRouter } from 'expo-router';
 
 // Helper to get icon for notification type
 const getNotificationIcon = (type: string): LucideIcon => {
@@ -50,25 +51,35 @@ const formatRelativeTime = (isoDate: string): string => {
 export default function NotificationsScreen() {
   useThemeAware(); // Force re-render when theme changes
   const router = useRouter();
-  const { notifications, loading, error, markAsRead, markAllAsRead } =
+  const { notifications, loading, error, markAsRead, markAllAsRead, setActive } =
     useNotifications();
+
+  // Activate/deactivate real-time listener based on screen focus
+  // This saves resources when the user isn't viewing notifications
+  useFocusEffect(
+    useCallback(() => {
+      console.log('🔔 Notifications screen focused - activating listener');
+      setActive?.(true); // Activate listener
+
+      return () => {
+        console.log('📭 Notifications screen unfocused - pausing listener');
+        setActive?.(false); // Pause listener to save resources
+      };
+    }, [setActive])
+  );
+
   const handleNotificationPress = async (
     notificationId: string,
     type: string,
     metadata: any
   ) => {
     try {
-      // Mark as read
       await markAsRead(notificationId);
 
-      // Navigate based on type
       if (type === 'mutual_nudge') {
-        // If conversation was auto-created, navigate to chat
         if (metadata.conversationId) {
-          // Build navigation URL with conversation details
-          let chatUrl = `/screens/chat-detail?conversationId=${metadata.conversationId}`;
+          let chatUrl = `/chat-detail?conversationId=${metadata.conversationId}`;
 
-          // Add optional parameters if available
           if (metadata.matchFirebaseUid) {
             chatUrl += `&userId=${metadata.matchFirebaseUid}`;
           }
@@ -78,12 +89,20 @@ export default function NotificationsScreen() {
 
           router.push(chatUrl as any);
         } else {
-          // Otherwise navigate to matches screen to see the match
           router.push('/(auth)/(tabs)/' as any);
         }
-      } else if (type === 'new_message' && metadata.chatId) {
-        // Navigate to chat (when implemented)
-        Alert.alert('Chat', 'Chat feature coming soon!');
+      } else if (type === 'new_message' && metadata.conversationId) {
+        // We have not yet implemented new message notifications so the type will never be new message
+        let chatUrl = `/chat-detail?conversationId=${metadata.conversationId}`;
+
+        if (metadata.senderFirebaseUid) {
+          chatUrl += `&userId=${metadata.senderFirebaseUid}`;
+        }
+        if (metadata.senderName) {
+          chatUrl += `&name=${encodeURIComponent(metadata.senderName)}`;
+        }
+
+        router.push(chatUrl as any);
       }
     } catch (err) {
       console.error('Error handling notification press:', err);
