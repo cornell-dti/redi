@@ -46,9 +46,7 @@ export async function blockUser(netid: string): Promise<BlockUserResponse> {
  * @throws APIError if unblock fails (not blocked, user not found, etc.)
  */
 export async function unblockUser(netid: string): Promise<UnblockUserResponse> {
-  return apiClient.delete<UnblockUserResponse>(
-    `/api/profiles/${netid}/block`
-  );
+  return apiClient.delete<UnblockUserResponse>(`/api/profiles/${netid}/block`);
 }
 
 /**
@@ -61,7 +59,5 @@ export async function unblockUser(netid: string): Promise<UnblockUserResponse> {
 export async function getBlockedUsers(
   netid: string
 ): Promise<BlockedUsersResponse> {
-  return apiClient.get<BlockedUsersResponse>(
-    `/api/profiles/${netid}/blocked`
-  );
+  return apiClient.get<BlockedUsersResponse>(`/api/profiles/${netid}/blocked`);
 }

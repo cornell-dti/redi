@@ -16,16 +16,18 @@ import {
   MoreVertical,
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StatusBar, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  StatusBar,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import IconButton from '../components/ui/IconButton';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import auth from '@react-native-firebase/auth';
-import {
-  blockUser,
-  unblockUser,
-  getBlockedUsers,
-} from '../api/blockingApi';
+import { blockUser, unblockUser, getBlockedUsers } from '../api/blockingApi';
 
 /**
  * View Profile Page

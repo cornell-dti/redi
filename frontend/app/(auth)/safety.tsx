@@ -6,17 +6,20 @@ import Sheet from '@/app/components/ui/Sheet';
 import Tag from '@/app/components/ui/Tag';
 import { Ban } from 'lucide-react-native';
 import React, { useState, useEffect } from 'react';
-import { ScrollView, StatusBar, StyleSheet, View, Alert, ActivityIndicator } from 'react-native';
+import {
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  View,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import { useThemeAware } from '../contexts/ThemeContext';
 import auth from '@react-native-firebase/auth';
-import {
-  blockUser,
-  unblockUser,
-  getBlockedUsers,
-} from '../api/blockingApi';
+import { blockUser, unblockUser, getBlockedUsers } from '../api/blockingApi';
 
 export default function SafetyPage() {
   useThemeAware(); // Force re-render when theme changes
@@ -67,10 +70,7 @@ export default function SafetyPage() {
       setShowBlockSheet(false);
       Alert.alert('Success', `Blocked ${netidToBlock} successfully`);
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to block user'
-      );
+      Alert.alert('Error', error.message || 'Failed to block user');
     } finally {
       setBlocking(false);
     }
@@ -82,10 +82,7 @@ export default function SafetyPage() {
       setBlockedUsers(blockedUsers.filter((user) => user !== netid));
       Alert.alert('Success', `Unblocked ${netid} successfully`);
     } catch (error: any) {
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to unblock user'
-      );
+      Alert.alert('Error', error.message || 'Failed to unblock user');
     }
   };
 
@@ -114,8 +111,8 @@ export default function SafetyPage() {
                   Blocked Users
                 </AppText>
                 <AppText color="dimmer" indented>
-                  These are users that you won't be matched with. They also cannot
-                  be matched with you.
+                  These are users that you won't be matched with. They also
+                  cannot be matched with you.
                 </AppText>
               </View>
 

@@ -22,10 +22,7 @@ import {
   getNextFridayMidnight,
   isCountdownPeriod,
 } from '@/app/utils/dateUtils';
-import {
-  cacheMatchData,
-  getCachedMatchData,
-} from '@/app/utils/matchCache';
+import { cacheMatchData, getCachedMatchData } from '@/app/utils/matchCache';
 import {
   getProfileAge,
   NudgeStatusResponse,
@@ -535,7 +532,8 @@ export default function MatchesScreen() {
       >
         <View style={styles.content}>
           {/* {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()} */}
-          {renderCountdownPeriod()}{renderWeekendPeriod()}
+          {renderCountdownPeriod()}
+          {renderWeekendPeriod()}
           {renderCurrentMatch()}
           {renderPreviousMatches()}
         </View>

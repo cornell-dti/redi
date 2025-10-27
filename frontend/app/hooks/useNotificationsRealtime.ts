@@ -67,8 +67,8 @@ export const useNotificationsRealtime = () => {
         data.createdAt instanceof Date
           ? data.createdAt.toISOString()
           : data.createdAt?.toDate
-          ? data.createdAt.toDate().toISOString()
-          : new Date().toISOString(),
+            ? data.createdAt.toDate().toISOString()
+            : new Date().toISOString(),
     };
   };
 
@@ -104,7 +104,10 @@ export const useNotificationsRealtime = () => {
     await pollNotifications();
 
     // Set up polling interval
-    pollingIntervalRef.current = setInterval(pollNotifications, POLLING_INTERVAL);
+    pollingIntervalRef.current = setInterval(
+      pollNotifications,
+      POLLING_INTERVAL
+    );
   };
 
   /**
@@ -138,7 +141,9 @@ export const useNotificationsRealtime = () => {
 
         const thirtyDaysAgo = new Date(Date.now() - THIRTY_DAYS_MS);
 
-        console.log(`🔔 Setting up real-time notifications listener for netid: ${netid}`);
+        console.log(
+          `🔔 Setting up real-time notifications listener for netid: ${netid}`
+        );
 
         // Set up real-time listener
         unsubscribe = firestore()
@@ -182,7 +187,9 @@ export const useNotificationsRealtime = () => {
         console.error('Error setting up notifications listener:', err);
 
         // Fall back to polling on any setup error
-        console.warn('⚠️ Listener setup failed - falling back to REST API polling');
+        console.warn(
+          '⚠️ Listener setup failed - falling back to REST API polling'
+        );
         setupPolling();
       }
     };
