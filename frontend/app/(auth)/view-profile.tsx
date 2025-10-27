@@ -167,7 +167,7 @@ export default function ViewProfileScreen() {
         {sheetView === 'report' && (
           <View style={styles.sheetContent}>
             <AppText>
-              Help us understand what's wrong with this profile. Your report is
+              Help us understand what&apos;s wrong with this profile. Your report is
               anonymous.
             </AppText>
             <AppInput
