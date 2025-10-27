@@ -551,3 +551,32 @@ export type CreateNotificationInput = Omit<
   NotificationDoc,
   'createdAt' | 'read'
 >;
+
+// =============================================================================
+// BLOCKED USERS MODELS
+// =============================================================================
+
+// Blocked user document in Firestore (blockedUsers collection)
+// Document ID format: ${blockerNetid}_${blockedNetid}
+export interface BlockedUserDoc {
+  blockerNetid: string; // User who initiated the block
+  blockedNetid: string; // User who is blocked
+  createdAt: FirestoreTimestampType;
+}
+
+// Blocked user document when writing to Firestore
+export interface BlockedUserDocWrite {
+  blockerNetid: string;
+  blockedNetid: string;
+  createdAt: FirestoreTimestampType | FieldValue;
+}
+
+// Blocked user data for API responses
+export interface BlockedUserResponse {
+  blockerNetid: string;
+  blockedNetid: string;
+  createdAt: string; // ISO string format for JSON
+}
+
+// For creating a new block
+export type CreateBlockedUserInput = Omit<BlockedUserDoc, 'createdAt'>;

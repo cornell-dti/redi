@@ -25,13 +25,15 @@ export interface UserData {
  * @param userData - User's profile and preferences
  * @param allUsersMap - Map of all users' data
  * @param previousMatches - Set of netids the user has been matched with before
+ * @param blockedUsers - Set of netids that user has blocked or been blocked by (bidirectional)
  * @returns Array of up to 3 matched netids
  */
 export function findMatchesForUser(
   netid: string,
   userData: UserData,
   allUsersMap: Map<string, UserData>,
-  previousMatches: Set<string>
+  previousMatches: Set<string>,
+  blockedUsers: Set<string> = new Set()
 ): string[] {
   const { profile, preferences } = userData;
 
@@ -46,6 +48,9 @@ export function findMatchesForUser(
   for (const [candidateNetid, candidateData] of allUsersMap.entries()) {
     // Skip self
     if (candidateNetid === netid) continue;
+
+    // Skip blocked users (bidirectional blocking)
+    if (blockedUsers.has(candidateNetid)) continue;
 
     // Skip if missing data
     if (!candidateData.profile || !candidateData.preferences) continue;

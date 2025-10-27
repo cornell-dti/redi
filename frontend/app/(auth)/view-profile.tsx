@@ -16,10 +16,16 @@ import {
   MoreVertical,
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import IconButton from '../components/ui/IconButton';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
+import auth from '@react-native-firebase/auth';
+import {
+  blockUser,
+  unblockUser,
+  getBlockedUsers,
+} from '../api/blockingApi';
 
 /**
  * View Profile Page
@@ -35,15 +41,32 @@ export default function ViewProfileScreen() {
   const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   const [sheetView, setSheetView] = useState<SheetView>('menu');
   const [reportText, setReportText] = useState('');
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blocking, setBlocking] = useState(false);
+
+  const user = auth().currentUser;
+  const currentNetid = user?.email?.split('@')[0] || '';
 
   useEffect(() => {
     if (netid) {
       fetchProfile();
+      checkIfBlocked();
     } else {
       setError('No user specified');
       setLoading(false);
     }
   }, [netid]);
+
+  const checkIfBlocked = async () => {
+    if (!netid || !currentNetid) return;
+
+    try {
+      const response = await getBlockedUsers(currentNetid);
+      setIsBlocked(response.blockedUsers.includes(netid));
+    } catch (error) {
+      console.error('Error checking blocked status:', error);
+    }
+  };
 
   const fetchProfile = async () => {
     if (!netid) return;
@@ -142,7 +165,9 @@ export default function ViewProfileScreen() {
             ? 'More options'
             : sheetView === 'report'
               ? 'Report user'
-              : 'Block user'
+              : isBlocked
+                ? 'Unblock user'
+                : 'Block user'
         }
       >
         {sheetView === 'menu' && (
@@ -156,7 +181,7 @@ export default function ViewProfileScreen() {
               destructive
             />
             <ListItem
-              title="Block"
+              title={isBlocked ? 'Unblock' : 'Block'}
               left={<Ban size={20} color={AppColors.negativeDefault} />}
               onPress={() => setSheetView('block')}
               destructive
@@ -208,25 +233,59 @@ export default function ViewProfileScreen() {
         {sheetView === 'block' && (
           <View style={styles.sheetContent}>
             <AppText>
-              {profile?.firstName} will no longer be able to see your profile or
-              match with you. This action can be undone in settings.
+              {isBlocked
+                ? `Unblock ${profile?.firstName}? They will be able to see your profile and match with you again.`
+                : `${profile?.firstName} will no longer be able to see your profile or match with you. This action can be undone in settings.`}
             </AppText>
 
             <View style={styles.buttonRow}>
               <Button
-                title="Block User"
-                onPress={() => {
-                  console.log('User blocked:', netid);
-                  setShowOptionsSheet(false);
-                  setTimeout(() => setSheetView('menu'), 300);
+                title={
+                  blocking
+                    ? isBlocked
+                      ? 'Unblocking...'
+                      : 'Blocking...'
+                    : isBlocked
+                      ? 'Unblock User'
+                      : 'Block User'
+                }
+                onPress={async () => {
+                  if (!netid) return;
+
+                  try {
+                    setBlocking(true);
+
+                    if (isBlocked) {
+                      await unblockUser(netid);
+                      setIsBlocked(false);
+                      Alert.alert('Success', `Unblocked ${profile?.firstName}`);
+                    } else {
+                      await blockUser(netid);
+                      setIsBlocked(true);
+                      Alert.alert('Success', `Blocked ${profile?.firstName}`);
+                    }
+
+                    setShowOptionsSheet(false);
+                    setTimeout(() => setSheetView('menu'), 300);
+                  } catch (error: any) {
+                    Alert.alert(
+                      'Error',
+                      error.message ||
+                        `Failed to ${isBlocked ? 'unblock' : 'block'} user`
+                    );
+                  } finally {
+                    setBlocking(false);
+                  }
                 }}
                 variant="negative"
                 iconLeft={Ban}
+                disabled={blocking}
               />
               <Button
                 title="Cancel"
                 onPress={() => setSheetView('menu')}
                 variant="secondary"
+                disabled={blocking}
               />
             </View>
           </View>
