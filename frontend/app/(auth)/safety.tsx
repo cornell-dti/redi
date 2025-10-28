@@ -91,7 +91,6 @@ export default function SafetyPage() {
           setBlockInput('');
         }}
         title="Block user"
-        height={350}
       >
         <View style={styles.sheetContent}>
           <AppText>Enter the NetID of the person you want to block.</AppText>
@@ -101,13 +100,13 @@ export default function SafetyPage() {
             onChangeText={setBlockInput}
             autoCapitalize="none"
           />
-          <ListItemWrapper>
+
+          <View style={styles.buttonRow}>
             <Button
               title="Block User"
               onPress={handleBlockUser}
               variant="negative"
               fullWidth
-              noRound
               iconLeft={Ban}
             />
 
@@ -119,9 +118,8 @@ export default function SafetyPage() {
               }}
               variant="secondary"
               fullWidth
-              noRound
             />
-          </ListItemWrapper>
+          </View>
         </View>
       </Sheet>
     </SafeAreaView>
@@ -169,5 +167,9 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 24,
+  },
+  buttonRow: {
+    display: 'flex',
+    gap: 12,
   },
 });
