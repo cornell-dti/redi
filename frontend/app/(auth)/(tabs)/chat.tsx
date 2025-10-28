@@ -15,6 +15,7 @@ const mockChats = [
   {
     id: '1',
     userId: 'mock-user-1',
+    netid: 'mock-netid-1',
     name: 'Emma',
     lastMessage: 'Hey! Want to grab coffee at CTB this weekend?',
     timestamp: '2m ago',
@@ -26,6 +27,7 @@ const mockChats = [
   {
     id: '2',
     userId: 'mock-user-2',
+    netid: 'mock-netid-2',
     name: 'Sarah',
     lastMessage: 'Thanks for the study session! Good luck on the exam ',
     timestamp: '1h ago',
@@ -37,6 +39,7 @@ const mockChats = [
   {
     id: '3',
     userId: 'mock-user-3',
+    netid: 'mock-netid-3',
     name: 'Jessica',
     lastMessage: 'The farmers market was so fun! We should go again',
     timestamp: '3h ago',
@@ -48,6 +51,7 @@ const mockChats = [
   {
     id: '4',
     userId: 'mock-user-4',
+    netid: 'mock-netid-4',
     name: 'Alex',
     lastMessage: 'Are you free for lunch tomorrow?',
     timestamp: '1d ago',
@@ -98,6 +102,7 @@ export default function ChatScreen() {
       return {
         id: conv.id,
         userId: otherUserId || '',
+        netid: otherUser?.netid || '',
         name: otherUser?.name || 'Unknown',
         lastMessage: conv.lastMessage?.text || 'Start a conversation',
         timestamp,
@@ -142,7 +147,7 @@ export default function ChatScreen() {
               image={item.image}
               onPress={() =>
                 router.push(
-                  `/chat-detail?conversationId=${item.id}&userId=${item.userId}&name=${item.name}`
+                  `/chat-detail?conversationId=${item.id}&userId=${item.userId}&name=${item.name}&netid=${item.netid}`
                 )
               }
             />

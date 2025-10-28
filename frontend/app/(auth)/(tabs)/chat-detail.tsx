@@ -100,7 +100,9 @@ export default function ChatDetailScreen() {
     conversationId: routeConversationId,
     userId,
     name,
+    netid,
   } = useLocalSearchParams();
+
   const [conversationId, setConversationId] = useState<string | null>(
     (routeConversationId as string) || null
   );
@@ -256,12 +258,7 @@ export default function ChatDetailScreen() {
               title="View profile"
               onPress={() => {
                 setShowOptionsSheet(false);
-                if (userId) {
-                  // view-profile expects `netid` param
-                  router.push(`/view-profile?netid=${userId}` as any);
-                } else {
-                  console.warn('No userId available to view profile');
-                }
+                router.push(`/view-profile?netid=${netid}` as any);
               }}
             />
 
