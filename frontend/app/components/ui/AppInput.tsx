@@ -15,6 +15,7 @@ interface AppInputProps extends TextInputProps {
   required?: boolean;
   noRound?: boolean;
   variant?: 'gray' | 'white';
+  fullRound?: boolean;
 }
 
 const AppInput: React.FC<AppInputProps> = ({
@@ -24,6 +25,7 @@ const AppInput: React.FC<AppInputProps> = ({
   noRound,
   style,
   variant,
+  fullRound,
   ...props
 }) => {
   const borderColorAnim = useRef(new Animated.Value(0)).current;
@@ -70,6 +72,7 @@ const AppInput: React.FC<AppInputProps> = ({
                 : AppColors.backgroundDimmer,
           },
           noRound && { borderRadius: 6 },
+          fullRound && { borderRadius: 32 },
         ]}
       >
         <TextInput
