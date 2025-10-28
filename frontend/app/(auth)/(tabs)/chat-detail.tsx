@@ -1,24 +1,29 @@
+import AppInput from '@/app/components/ui/AppInput';
+import AppText from '@/app/components/ui/AppText';
+import Button from '@/app/components/ui/Button';
+import IconButton from '@/app/components/ui/IconButton';
+import ListItem from '@/app/components/ui/ListItem';
+import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
+import Sheet from '@/app/components/ui/Sheet';
+import { useThemeAware } from '@/app/contexts/ThemeContext';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
-  ArrowLeft,
-  Heart,
+  Ban,
+  ChevronLeft,
+  FlagIcon,
   MoreVertical,
-  Plus,
   Send,
-  Video,
+  User2,
 } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -84,11 +89,20 @@ interface Message {
 }
 
 export default function ChatDetailScreen() {
+  useThemeAware();
+
+  const [showOptionsSheet, setShowOptionsSheet] = useState(false);
+  type SheetView = 'menu' | 'report' | 'block';
+  const [sheetView, setSheetView] = useState<SheetView>('menu');
+  const [reportText, setReportText] = useState('');
+
   const {
     conversationId: routeConversationId,
     userId,
     name,
+    netid,
   } = useLocalSearchParams();
+
   const [conversationId, setConversationId] = useState<string | null>(
     (routeConversationId as string) || null
   );
@@ -160,10 +174,7 @@ export default function ChatDetailScreen() {
         ]}
       >
         <Text
-          style={[
-            styles.messageText,
-            item.isOwn ? styles.ownMessageText : styles.otherMessageText,
-          ]}
+          style={[item.isOwn ? styles.ownMessageText : styles.otherMessageText]}
         >
           {item.text}
         </Text>
@@ -184,34 +195,19 @@ export default function ChatDetailScreen() {
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.header}>
-        <TouchableOpacity
+        <IconButton
           onPress={() => router.replace('/chat' as any)}
-          style={styles.backButton}
-        >
-          <ArrowLeft size={24} color={AppColors.foregroundDefault} />
-        </TouchableOpacity>
+          variant="secondary"
+          icon={ChevronLeft}
+        />
 
-        <View style={styles.headerInfo}>
-          <Image
-            source={{
-              uri: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400',
-            }}
-            style={styles.headerAvatar}
-          />
-          <View style={styles.headerText}>
-            <Text style={styles.headerName}>{name}</Text>
-            <Text style={styles.headerStatus}>Active now</Text>
-          </View>
-        </View>
+        <AppText variant="subtitle">{name}</AppText>
 
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerAction}>
-            <Video size={24} color={AppColors.foregroundDimmer} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerAction}>
-            <MoreVertical size={24} color={AppColors.foregroundDimmer} />
-          </TouchableOpacity>
-        </View>
+        <IconButton
+          onPress={() => setShowOptionsSheet(true)}
+          variant="secondary"
+          icon={MoreVertical}
+        />
       </View>
 
       {loading ? (
@@ -239,66 +235,144 @@ export default function ChatDetailScreen() {
         />
       )}
 
+      {/* Options sheet for chat actions (view profile / report / block) */}
+      <Sheet
+        visible={showOptionsSheet}
+        onDismiss={() => {
+          setShowOptionsSheet(false);
+          // reset view after sheet closes
+          setTimeout(() => setSheetView('menu'), 300);
+        }}
+        title={
+          sheetView === 'menu'
+            ? 'More options'
+            : sheetView === 'report'
+              ? 'Report user'
+              : 'Block user'
+        }
+      >
+        {sheetView === 'menu' && (
+          <ListItemWrapper>
+            <ListItem
+              left={<User2 />}
+              title="View profile"
+              onPress={() => {
+                setShowOptionsSheet(false);
+                router.push(`/view-profile?netid=${netid}` as any);
+              }}
+            />
+
+            <ListItem
+              left={<FlagIcon color={AppColors.negativeDefault} />}
+              title="Report"
+              destructive
+              onPress={() => setSheetView('report')}
+            />
+
+            <ListItem
+              left={<Ban color={AppColors.negativeDefault} />}
+              title="Block"
+              destructive
+              onPress={() => setSheetView('block')}
+            />
+          </ListItemWrapper>
+        )}
+
+        {sheetView === 'report' && (
+          <View style={styles.sheetContent}>
+            <AppText>
+              Help us understand what's wrong with this user. Your report is
+              anonymous.
+            </AppText>
+
+            <AppInput
+              placeholder="Describe the issue..."
+              value={reportText}
+              onChangeText={setReportText}
+              multiline
+              numberOfLines={4}
+              style={{ minHeight: 128 }}
+            />
+
+            <View style={styles.buttonRow}>
+              <Button
+                title="Submit Report"
+                onPress={() => {
+                  console.log('Report submitted:', reportText, 'for', userId);
+                  setShowOptionsSheet(false);
+                  setTimeout(() => {
+                    setSheetView('menu');
+                    setReportText('');
+                  }, 300);
+                }}
+                variant="negative"
+                disabled={!reportText.trim()}
+                iconLeft={FlagIcon}
+              />
+              <Button
+                title="Cancel"
+                onPress={() => {
+                  setSheetView('menu');
+                  setReportText('');
+                }}
+                variant="secondary"
+              />
+            </View>
+          </View>
+        )}
+
+        {sheetView === 'block' && (
+          <View style={styles.sheetContent}>
+            <AppText>
+              The user will no longer be able to see your profile or message
+              you. This action can be undone in settings.
+            </AppText>
+
+            <View style={styles.buttonRow}>
+              <Button
+                title="Block User"
+                onPress={() => {
+                  console.log('User blocked:', userId);
+                  setShowOptionsSheet(false);
+                  setTimeout(() => setSheetView('menu'), 300);
+                }}
+                variant="negative"
+                iconLeft={Ban}
+              />
+              <Button
+                title="Cancel"
+                onPress={() => setSheetView('menu')}
+                variant="secondary"
+              />
+            </View>
+          </View>
+        )}
+      </Sheet>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.inputContainer}
       >
         <View style={styles.inputRow}>
-          <TouchableOpacity style={styles.attachButton}>
-            <Plus size={24} color={AppColors.foregroundDimmer} />
-          </TouchableOpacity>
-
           <View style={styles.textInputContainer}>
-            <TextInput
-              style={styles.textInput}
+            <AppInput
               value={newMessage}
               onChangeText={setNewMessage}
-              placeholder="Type a message..."
+              placeholder="Send a message..."
               placeholderTextColor={AppColors.foregroundDimmer}
               multiline
-              maxLength={500}
+              fullRound
+              style={styles.messageInput}
             />
           </View>
-
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              newMessage.trim() && !sending
-                ? styles.sendButtonActive
-                : styles.sendButtonInactive,
-            ]}
+          <IconButton
             onPress={sendMessage}
             disabled={!newMessage.trim() || sending}
-          >
-            {sending ? (
-              <ActivityIndicator
-                size="small"
-                color={AppColors.backgroundDefault}
-              />
-            ) : (
-              <Send
-                size={20}
-                color={
-                  newMessage.trim()
-                    ? AppColors.backgroundDefault
-                    : AppColors.foregroundDimmer
-                }
-              />
-            )}
-          </TouchableOpacity>
+            icon={Send}
+            style={styles.sendButton}
+          />
         </View>
       </KeyboardAvoidingView>
-
-      {/* Match Info Banner (for new matches) */}
-      <View style={styles.matchBanner}>
-        <Heart size={20} color={AppColors.accentDefault} />
-        <Text style={styles.matchBannerText}>
-          You and {name} liked each other!
-        </Text>
-        <TouchableOpacity>
-          <Text style={styles.matchBannerAction}>View Profile</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
@@ -306,57 +380,20 @@ export default function ChatDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDimmer,
+    backgroundColor: AppColors.backgroundDefault,
   },
   header: {
+    display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: AppColors.backgroundDefault,
-    borderBottomWidth: 1,
-    borderBottomColor: AppColors.backgroundDimmer,
-  },
-  backButton: {
-    marginRight: 12,
-    padding: 4,
-  },
-  headerInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
-  },
-  headerText: {
-    flex: 1,
-  },
-  headerName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: AppColors.foregroundDefault,
-  },
-  headerStatus: {
-    fontSize: 12,
-    color: '#4CAF50',
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  headerAction: {
-    padding: 8,
+    justifyContent: 'space-between',
+    padding: 16,
   },
   messagesList: {
     flex: 1,
   },
   messagesContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    padding: 16,
   },
   messageContainer: {
     marginVertical: 4,
@@ -371,9 +408,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   messageBubble: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
+    padding: 16,
+    borderRadius: 24,
     marginBottom: 4,
   },
   ownMessageBubble: {
@@ -381,17 +417,8 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 6,
   },
   otherMessageBubble: {
-    backgroundColor: AppColors.backgroundDefault,
-    borderBottomLeftRadius: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  messageText: {
-    fontSize: 16,
-    lineHeight: 20,
+    backgroundColor: AppColors.backgroundDimmer,
+    borderBottomLeftRadius: 4,
   },
   ownMessageText: {
     color: AppColors.backgroundDefault,
@@ -416,33 +443,22 @@ const styles = StyleSheet.create({
   },
   inputRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-  },
-  attachButton: {
-    padding: 8,
+    padding: 16,
+    paddingBottom: 32,
+    flex: 1,
+    gap: 8,
   },
   textInputContainer: {
-    flex: 1,
-    backgroundColor: AppColors.backgroundDimmer,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    maxHeight: 100,
+    minHeight: 48,
+    width: '85%',
   },
-  textInput: {
-    fontSize: 16,
-    color: AppColors.foregroundDefault,
-    minHeight: 24,
+  messageInput: {
+    height: 48,
+    borderRadius: 24,
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 54,
+    height: 54,
   },
   sendButtonActive: {
     backgroundColor: AppColors.accentDefault,
@@ -450,24 +466,13 @@ const styles = StyleSheet.create({
   sendButtonInactive: {
     backgroundColor: AppColors.backgroundDimmer,
   },
-  matchBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: AppColors.negativeDimmer,
-    borderTopWidth: 1,
-    borderTopColor: AppColors.backgroundDimmer,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
+  sheetContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
   },
-  matchBannerText: {
-    flex: 1,
-    fontSize: 14,
-    color: AppColors.foregroundDefault,
-  },
-  matchBannerAction: {
-    fontSize: 14,
-    color: AppColors.accentDefault,
-    fontWeight: '500',
+  buttonRow: {
+    display: 'flex',
+    gap: 12,
   },
 });

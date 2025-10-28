@@ -8,13 +8,7 @@ import ListItem from '@/app/components/ui/ListItem';
 import Sheet from '@/app/components/ui/Sheet';
 import { ProfileResponse } from '@/types';
 import { router, useLocalSearchParams } from 'expo-router';
-import {
-  AlertTriangle,
-  Ban,
-  ChevronLeft,
-  Flag,
-  MoreVertical,
-} from 'lucide-react-native';
+import { Ban, ChevronLeft, Flag, MoreVertical } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -176,9 +170,7 @@ export default function ViewProfileScreen() {
           <ListItemWrapper>
             <ListItem
               title="Report"
-              left={
-                <AlertTriangle size={20} color={AppColors.negativeDefault} />
-              }
+              left={<Flag size={20} color={AppColors.negativeDefault} />}
               onPress={() => setSheetView('report')}
               destructive
             />
@@ -194,8 +186,8 @@ export default function ViewProfileScreen() {
         {sheetView === 'report' && (
           <View style={styles.sheetContent}>
             <AppText>
-              Help us understand what's wrong with this profile. Your report is
-              anonymous.
+              Help us understand what&apos;s wrong with this profile. Your
+              report is anonymous.
             </AppText>
             <AppInput
               placeholder="Describe the issue..."
