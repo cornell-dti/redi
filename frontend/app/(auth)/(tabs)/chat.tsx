@@ -1,7 +1,5 @@
-import Button from '@/app/components/ui/Button';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import { router } from 'expo-router';
-import { Eye } from 'lucide-react-native';
 import React, { useMemo } from 'react';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -132,22 +130,13 @@ export default function ChatScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <Header
-        title="Messages"
-        right={
-          <Button
-            variant="secondary"
-            onPress={() => {}}
-            title="Show blocked"
-            iconLeft={Eye}
-          />
-        }
-      />
+      <Header title="Messages" />
 
       <View style={styles.chats}>
-        {displayData.map((item, index) => (
-          <ListItemWrapper key={item.id}>
+        <ListItemWrapper>
+          {displayData.map((item) => (
             <ChatItem
+              key={item.id}
               name={item.name}
               lastMessage={item.lastMessage}
               image={item.image}
@@ -157,29 +146,8 @@ export default function ChatScreen() {
                 )
               }
             />
-            {/* TODO: REMOVE THESE EXTRA ITEMS, THEY'RE JUST FOR TESTING */}
-            <ChatItem
-              name={item.name}
-              lastMessage={item.lastMessage}
-              image={item.image}
-              onPress={() =>
-                router.push(
-                  `/chat-detail?conversationId=${item.id}&userId=${item.userId}&name=${item.name}`
-                )
-              }
-            />
-            <ChatItem
-              name={item.name}
-              lastMessage={item.lastMessage}
-              image={item.image}
-              onPress={() =>
-                router.push(
-                  `/chat-detail?conversationId=${item.id}&userId=${item.userId}&name=${item.name}`
-                )
-              }
-            />
-          </ListItemWrapper>
-        ))}
+          ))}
+        </ListItemWrapper>
       </View>
     </SafeAreaView>
   );
