@@ -1,16 +1,9 @@
-import AppText from '@/app/components/ui/AppText';
+import Button from '@/app/components/ui/Button';
+import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import { router } from 'expo-router';
-import { Search } from 'lucide-react-native';
+import { Eye } from 'lucide-react-native';
 import React, { useMemo } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  StatusBar,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../../api/authService';
 import { AppColors } from '../../components/AppColors';
@@ -125,9 +118,12 @@ export default function ChatScreen() {
         <Header
           title="Messages"
           right={
-            <TouchableOpacity>
-              <Search size={24} color={AppColors.foregroundDimmer} />
-            </TouchableOpacity>
+            <Button
+              variant="secondary"
+              onPress={() => {}}
+              title="Show blocked"
+              iconLeft={Eye}
+            />
           }
         />
         <View
@@ -149,64 +145,51 @@ export default function ChatScreen() {
       <Header
         title="Messages"
         right={
-          <TouchableOpacity>
-            <Search size={24} color={AppColors.foregroundDimmer} />
-          </TouchableOpacity>
+          <Button
+            variant="secondary"
+            onPress={() => {}}
+            title="Show blocked"
+            iconLeft={Eye}
+          />
         }
       />
 
-      {displayData.filter((chat) => chat.online).length > 0 && (
-        <View style={styles.activeMatches}>
-          <AppText
-            variant="subtitle"
-            style={{ marginBottom: 12, paddingHorizontal: 20 }}
-          >
-            Active Matches
-          </AppText>
-          <FlatList
-            data={displayData.filter((chat) => chat.online)}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.activeMatchesList}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.activeMatchItem}>
-                <View style={styles.activeAvatarContainer}>
-                  <Image
-                    source={{ uri: item.image }}
-                    style={styles.activeAvatar}
-                  />
-                  <View style={styles.activeOnline} />
-                </View>
-                <AppText variant="bodySmall">{item.name}</AppText>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-      )}
-
       <View style={styles.chats}>
-        <FlatList
-          data={displayData}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
+        {displayData.map((item, index) => (
+          <ListItemWrapper key={item.id}>
             <ChatItem
               name={item.name}
               lastMessage={item.lastMessage}
-              timestamp={item.timestamp}
-              unread={item.unread}
               image={item.image}
-              online={item.online}
               onPress={() =>
                 router.push(
                   `/chat-detail?conversationId=${item.id}&userId=${item.userId}&name=${item.name}`
                 )
               }
             />
-          )}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
+            {/* TODO: REMOVE THESE EXTRA ITEMS, THEY'RE JUST FOR TESTING */}
+            <ChatItem
+              name={item.name}
+              lastMessage={item.lastMessage}
+              image={item.image}
+              onPress={() =>
+                router.push(
+                  `/chat-detail?conversationId=${item.id}&userId=${item.userId}&name=${item.name}`
+                )
+              }
+            />
+            <ChatItem
+              name={item.name}
+              lastMessage={item.lastMessage}
+              image={item.image}
+              onPress={() =>
+                router.push(
+                  `/chat-detail?conversationId=${item.id}&userId=${item.userId}&name=${item.name}`
+                )
+              }
+            />
+          </ListItemWrapper>
+        ))}
       </View>
     </SafeAreaView>
   );
@@ -215,7 +198,7 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDimmer,
+    backgroundColor: AppColors.backgroundDefault,
   },
   activeMatches: {
     backgroundColor: AppColors.backgroundDefault,
@@ -225,36 +208,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 12,
   },
-  activeMatchItem: {
-    alignItems: 'center',
-  },
-  activeAvatarContainer: {
-    position: 'relative',
-    marginBottom: 6,
-  },
-  activeAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-  },
-  activeOnline: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: AppColors.accentDefault,
-    borderWidth: 2,
-    borderColor: AppColors.backgroundDefault,
-  },
   chats: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: AppColors.backgroundDimmer,
-    marginLeft: 82,
+    padding: 16,
   },
 });

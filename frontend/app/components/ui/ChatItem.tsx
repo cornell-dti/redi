@@ -1,66 +1,28 @@
 import React from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 import { AppColors } from '../AppColors';
-import AppText from './AppText';
+import ListItem from './ListItem';
 
 interface ChatItemProps {
   name: string;
   lastMessage: string;
-  timestamp: string;
-  unread: boolean;
   image: string;
-  online: boolean;
   onPress?: () => void;
 }
 
 export default function ChatItem({
   name,
   lastMessage,
-  timestamp,
-  unread,
   image,
-  online,
   onPress,
 }: ChatItemProps) {
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
-      <View style={styles.avatarContainer}>
-        <Image source={{ uri: image }} style={styles.avatar} />
-        {online && (
-          <View
-            style={[
-              styles.onlineIndicator,
-              { backgroundColor: AppColors.accentDefault },
-            ]}
-          />
-        )}
-      </View>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <AppText variant="subtitle">{name}</AppText>
-          <AppText variant="bodySmall" color="dimmer">
-            {timestamp}
-          </AppText>
-        </View>
-        <View style={styles.messageContainer}>
-          <AppText
-            variant="body"
-            style={[styles.lastMessage, unread && { fontWeight: '500' }]}
-            numberOfLines={1}
-          >
-            {lastMessage}
-          </AppText>
-          {unread && (
-            <View
-              style={[
-                styles.unreadDot,
-                { backgroundColor: AppColors.accentDefault },
-              ]}
-            />
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
+    <ListItem
+      left={<Image source={{ uri: image }} style={styles.avatar} />}
+      title={name}
+      description={lastMessage}
+      onPress={onPress}
+    ></ListItem>
   );
 }
 
