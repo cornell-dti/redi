@@ -115,17 +115,7 @@ export default function ChatScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <Header
-          title="Messages"
-          right={
-            <Button
-              variant="secondary"
-              onPress={() => {}}
-              title="Show blocked"
-              iconLeft={Eye}
-            />
-          }
-        />
+        <Header title="Messages" />
         <View
           style={[
             styles.container,
