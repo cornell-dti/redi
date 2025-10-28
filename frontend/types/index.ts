@@ -34,3 +34,6 @@ export * from './api';
 
 // Weekly Prompts types
 export * from './prompts';
+
+// Report types
+export * from './report';

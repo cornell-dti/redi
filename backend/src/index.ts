@@ -12,6 +12,8 @@ import usersRouter from './routes/users';
 import nudgesRouter from './routes/nudges';
 import notificationsRouter from './routes/notifications';
 import chatRouter from './routes/chat';
+import reportsRouter from './routes/reports';
+import adminReportsRouter from './routes/admin-reports';
 
 dotenv.config();
 
@@ -102,7 +104,9 @@ app.use(imagesRouter); // /api/images
 app.use(nudgesRouter); // /api/nudges
 app.use(notificationsRouter); // /api/notifications
 app.use(chatRouter); // /api/chat
+app.use(reportsRouter); // /api/reports
 app.use(adminPromptsRouter); // /api/admin/prompts
+app.use(adminReportsRouter); // /api/admin/reports
 
 app
   .listen(PORT, () => {

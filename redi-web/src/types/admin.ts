@@ -225,3 +225,52 @@ export interface PromptMatchDetailResponse {
   revealRate: number;
   matches: MatchWithProfile[];
 }
+
+// =============================================================================
+// REPORTS TYPES
+// =============================================================================
+
+export type ReportReason =
+  | 'inappropriate_content'
+  | 'harassment'
+  | 'spam'
+  | 'fake_profile'
+  | 'other';
+
+export type ReportStatus = 'pending' | 'under_review' | 'resolved' | 'dismissed';
+
+/**
+ * Report response from API
+ * Corresponds to backend ReportResponse interface
+ */
+export interface ReportResponse {
+  id: string;
+  reporterNetid: string;
+  reportedNetid: string;
+  reason: ReportReason;
+  description: string;
+  status: ReportStatus;
+  reviewedBy?: string;
+  reviewedAt?: string; // ISO string
+  resolution?: string;
+  createdAt: string; // ISO string
+}
+
+/**
+ * Report with profile information for admin dashboard
+ * Corresponds to backend ReportWithProfilesResponse interface
+ */
+export interface ReportWithProfilesResponse extends ReportResponse {
+  reporterName: string;
+  reporterPicture?: string;
+  reportedName: string;
+  reportedPicture?: string;
+}
+
+/**
+ * Input for updating report status
+ */
+export interface UpdateReportStatusInput {
+  status: ReportStatus;
+  resolution?: string;
+}

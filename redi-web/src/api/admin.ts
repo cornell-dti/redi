@@ -5,6 +5,10 @@ import {
   GenerateMatchesResponse,
   MatchStatsResponse,
   PromptMatchDetailResponse,
+  ReportResponse,
+  ReportStatus,
+  ReportWithProfilesResponse,
+  UpdateReportStatusInput,
   WeeklyPrompt,
   WeeklyPromptAnswerWithProfile,
 } from '@/types/admin';
@@ -536,6 +540,135 @@ export const fetchPromptMatches = async (
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.error || 'Failed to fetch prompt matches');
+  }
+
+  return res.json();
+};
+
+// =============================================================================
+// REPORTS API
+// =============================================================================
+
+/**
+ * Fetch all reports with optional status filtering
+ */
+export const fetchReports = async (
+  statusFilter?: ReportStatus
+): Promise<ReportWithProfilesResponse[]> => {
+  console.log('📤 Fetching reports with status filter:', statusFilter);
+
+  const token = await getAuthToken();
+
+  const queryParams = new URLSearchParams();
+  if (statusFilter) {
+    queryParams.append('status', statusFilter);
+  }
+
+  const url = `${API_BASE_URL}/api/admin/reports${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  console.log('📥 Response status:', res.status, res.statusText);
+
+  if (!res.ok) {
+    const error = await res.json();
+    console.error('❌ Error response:', error);
+    throw new Error(error.error || 'Failed to fetch reports');
+  }
+
+  const data = await res.json();
+  console.log('✅ Received reports:', data.length, 'reports');
+
+  return data;
+};
+
+/**
+ * Fetch a single report by ID
+ */
+export const fetchReportById = async (
+  reportId: string
+): Promise<ReportResponse> => {
+  console.log('📤 Fetching report:', reportId);
+
+  const token = await getAuthToken();
+
+  const res = await fetch(`${API_BASE_URL}/api/admin/reports/${reportId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to fetch report');
+  }
+
+  return res.json();
+};
+
+/**
+ * Update report status
+ */
+export const updateReportStatus = async (
+  reportId: string,
+  input: UpdateReportStatusInput
+): Promise<ReportResponse> => {
+  console.log('📤 Updating report status:', reportId, input);
+
+  const token = await getAuthToken();
+
+  const res = await fetch(
+    `${API_BASE_URL}/api/admin/reports/${reportId}/status`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(input),
+    }
+  );
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to update report status');
+  }
+
+  return res.json();
+};
+
+/**
+ * Resolve a report with resolution notes
+ */
+export const resolveReport = async (
+  reportId: string,
+  resolution: string
+): Promise<ReportResponse> => {
+  console.log('📤 Resolving report:', reportId);
+
+  const token = await getAuthToken();
+
+  const res = await fetch(
+    `${API_BASE_URL}/api/admin/reports/${reportId}/resolve`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ resolution }),
+    }
+  );
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to resolve report');
   }
 
   return res.json();

@@ -551,3 +551,78 @@ export type CreateNotificationInput = Omit<
   NotificationDoc,
   'createdAt' | 'read'
 >;
+
+// =============================================================================
+// REPORTS MODELS
+// =============================================================================
+
+export type ReportReason =
+  | 'inappropriate_content'
+  | 'harassment'
+  | 'spam'
+  | 'fake_profile'
+  | 'other';
+
+export type ReportStatus = 'pending' | 'under_review' | 'resolved' | 'dismissed';
+
+// Report document in Firestore (reports collection)
+export interface ReportDoc {
+  reporterNetid: string; // User who submitted the report
+  reportedNetid: string; // User being reported
+  reason: ReportReason;
+  description: string; // Detailed description of the issue
+  status: ReportStatus;
+  reviewedBy?: string; // Admin uid who reviewed the report
+  reviewedAt?: FirestoreTimestampType; // When the report was reviewed
+  resolution?: string; // Admin notes on resolution
+  createdAt: FirestoreTimestampType;
+}
+
+// Report document when writing to Firestore
+export interface ReportDocWrite {
+  reporterNetid: string;
+  reportedNetid: string;
+  reason: ReportReason;
+  description: string;
+  status: ReportStatus;
+  reviewedBy?: string;
+  reviewedAt?: FirestoreTimestampType | FieldValue;
+  resolution?: string;
+  createdAt: FirestoreTimestampType | FieldValue;
+}
+
+// Report data for API responses
+export interface ReportResponse {
+  id: string; // Document ID
+  reporterNetid: string;
+  reportedNetid: string;
+  reason: ReportReason;
+  description: string;
+  status: ReportStatus;
+  reviewedBy?: string;
+  reviewedAt?: string; // ISO string format for JSON
+  resolution?: string;
+  createdAt: string; // ISO string format for JSON
+}
+
+// Report with profile information for admin view
+export interface ReportWithProfilesResponse extends ReportResponse {
+  reporterName: string;
+  reporterPicture?: string;
+  reportedName: string;
+  reportedPicture?: string;
+}
+
+// For creating a new report
+export type CreateReportInput = {
+  reportedNetid: string;
+  reason: ReportReason;
+  description: string;
+};
+
+// For updating report status
+export type UpdateReportStatusInput = {
+  status: ReportStatus;
+  reviewedBy?: string;
+  resolution?: string;
+};

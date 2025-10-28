@@ -126,6 +126,22 @@ service cloud.firestore {
       }
     }
 
+    // Reports - users can create reports, only admins can read/update
+    match /reports/{reportId} {
+      // Users can create reports if they're authenticated and reporterNetid matches
+      allow create: if isAuthenticated() &&
+        request.resource.data.reporterNetid == getUserNetid() &&
+        request.resource.data.description.size() >= 10 &&
+        request.resource.data.description.size() <= 1000 &&
+        request.resource.data.status == 'pending';
+
+      // Only admins can read and update reports
+      allow read, update: if isAdmin();
+
+      // No one can delete reports
+      allow delete: if false;
+    }
+
     // Deny all other access by default
     match /{document=**} {
       allow read, write: if false;
