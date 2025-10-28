@@ -17,7 +17,13 @@ import {
   MoreVertical,
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StatusBar, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  StatusBar,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import IconButton from '../components/ui/IconButton';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
@@ -43,7 +49,9 @@ export default function ViewProfileScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   const [sheetView, setSheetView] = useState<SheetView>('menu');
-  const [reportReason, setReportReason] = useState<ReportReason>('inappropriate_content');
+  const [reportReason, setReportReason] = useState<ReportReason>(
+    'inappropriate_content'
+  );
   const [reportText, setReportText] = useState('');
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
 
@@ -178,8 +186,8 @@ export default function ViewProfileScreen() {
         {sheetView === 'report' && (
           <View style={styles.sheetContent}>
             <AppText>
-              Help us understand what&apos;s wrong with this profile. Your report is
-              anonymous.
+              Help us understand what&apos;s wrong with this profile. Your
+              report is anonymous.
             </AppText>
 
             {/* Reason selector */}
@@ -241,7 +249,8 @@ export default function ViewProfileScreen() {
                     console.error('Error submitting report:', err);
                     Alert.alert(
                       'Error',
-                      err.message || 'Failed to submit report. Please try again.',
+                      err.message ||
+                        'Failed to submit report. Please try again.',
                       [{ text: 'OK' }]
                     );
                   } finally {
@@ -249,7 +258,11 @@ export default function ViewProfileScreen() {
                   }
                 }}
                 variant="negative"
-                disabled={!reportText.trim() || reportText.trim().length < 10 || isSubmittingReport}
+                disabled={
+                  !reportText.trim() ||
+                  reportText.trim().length < 10 ||
+                  isSubmittingReport
+                }
                 iconLeft={Flag}
               />
               <Button

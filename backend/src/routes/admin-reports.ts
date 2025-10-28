@@ -11,6 +11,8 @@
  */
 
 import express from 'express';
+import { body, validationResult } from 'express-validator';
+import { ReportStatus, UpdateReportStatusInput } from '../../types';
 import { AdminRequest, requireAdmin } from '../middleware/adminAuth';
 import {
   getIpAddress,
@@ -18,13 +20,11 @@ import {
   logAdminAction,
 } from '../services/auditLog';
 import {
-  getReportsWithProfiles,
-  updateReportStatus,
   getReportById,
+  getReportsWithProfiles,
   reportToResponse,
+  updateReportStatus,
 } from '../services/reportsService';
-import { ReportStatus, UpdateReportStatusInput } from '../../types';
-import { body, validationResult } from 'express-validator';
 
 const router = express.Router();
 
@@ -135,10 +135,12 @@ router.patch(
   '/api/admin/reports/:reportId/status',
   validateStatusUpdate,
   async (req: AdminRequest, res: express.Response) => {
+
     try {
       // Check validation results
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.error('Validation errors:', errors.array());
         return res.status(400).json({
           error: errors.array()[0].msg,
         });

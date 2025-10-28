@@ -237,7 +237,11 @@ export type ReportReason =
   | 'fake_profile'
   | 'other';
 
-export type ReportStatus = 'pending' | 'under_review' | 'resolved' | 'dismissed';
+export type ReportStatus =
+  | 'pending'
+  | 'under_review'
+  | 'resolved'
+  | 'dismissed';
 
 /**
  * Report response from API
