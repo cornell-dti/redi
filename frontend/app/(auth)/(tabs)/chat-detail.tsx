@@ -357,14 +357,6 @@ export default function ChatDetailScreen() {
         style={styles.inputContainer}
       >
         <View style={styles.inputRow}>
-          {/* <AppInput
-            value={newMessage}
-            onChangeText={setNewMessage}
-            placeholder="Type a message..."
-            noFocus
-            // multiline
-            // style={styles.textInput}
-          /> */}
           <View style={styles.textInputContainer}>
             <AppInput
               value={newMessage}
