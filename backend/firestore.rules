@@ -101,6 +101,17 @@ service cloud.firestore {
       allow delete: if false; // Only backend via API
     }
 
+    // Blocked Users - users can manage their own blocks
+    match /blockedUsers/{blockId} {
+      // Users can read blocks where they are the blocker or blocked user
+      allow read: if isAuthenticated() &&
+        (resource.data.blockerNetid == getUserNetid() ||
+         resource.data.blockedNetid == getUserNetid());
+
+      // Only backend via API - all writes handled server-side for proper validation
+      allow write: if false;
+    }
+
     // Conversations - users can only read/write conversations they're part of
     match /conversations/{conversationId} {
       // Helper function to check if user is a participant

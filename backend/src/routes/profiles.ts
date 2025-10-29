@@ -15,6 +15,11 @@ import { authenticatedRateLimit } from '../middleware/rateLimiting';
 import { validate, validateProfileCreation } from '../middleware/validation';
 import { createDefaultPreferences } from '../services/preferencesService';
 import {
+  blockUser,
+  unblockUser,
+  getBlockedUsers,
+} from '../services/blockingService';
+import {
   determineViewContext,
   getProfileWithAge,
   isUserBlocked,
@@ -583,6 +588,147 @@ router.get(
     } catch (error) {
       console.error('Error fetching matches:', error);
       res.status(500).json({ error: 'Failed to fetch matches' });
+    }
+  }
+);
+
+// =============================================================================
+// BLOCKING ENDPOINTS
+// =============================================================================
+
+/**
+ * POST /api/profiles/:netid/block
+ * Block a user by their netid
+ * Requires authentication - user can only manage their own blocks
+ */
+router.post(
+  '/api/profiles/:netid/block',
+  authenticatedRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      // Get authenticated user's netid
+      const blockerNetid = await getNetidFromAuth(req.user!.uid);
+      if (!blockerNetid) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const blockedNetid = req.params.netid;
+
+      // Validate that the blocked user exists
+      const blockedUserSnapshot = await db
+        .collection('profiles')
+        .where('netid', '==', blockedNetid)
+        .get();
+
+      if (blockedUserSnapshot.empty) {
+        return res.status(404).json({ error: 'User to block not found' });
+      }
+
+      // Block the user (service will handle validation like self-blocking)
+      await blockUser(blockerNetid, blockedNetid);
+
+      res.status(201).json({
+        message: 'User blocked successfully',
+        blockerNetid,
+        blockedNetid,
+      });
+    } catch (error: any) {
+      console.error('Error blocking user:', error);
+
+      // Handle specific error messages from service
+      if (error.message === 'You cannot block yourself') {
+        return res.status(400).json({ error: error.message });
+      }
+      if (error.message === 'You have already blocked this user') {
+        return res.status(409).json({ error: error.message });
+      }
+
+      res.status(500).json({ error: 'Failed to block user' });
+    }
+  }
+);
+
+/**
+ * DELETE /api/profiles/:netid/block
+ * Unblock a user by their netid
+ * Requires authentication - user can only manage their own blocks
+ */
+router.delete(
+  '/api/profiles/:netid/block',
+  authenticatedRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      // Get authenticated user's netid
+      const blockerNetid = await getNetidFromAuth(req.user!.uid);
+      if (!blockerNetid) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const blockedNetid = req.params.netid;
+
+      // Unblock the user (service will handle validation)
+      await unblockUser(blockerNetid, blockedNetid);
+
+      res.status(200).json({
+        message: 'User unblocked successfully',
+        blockerNetid,
+        blockedNetid,
+      });
+    } catch (error: any) {
+      console.error('Error unblocking user:', error);
+
+      // Handle specific error messages from service
+      if (error.message === 'Block relationship does not exist') {
+        return res.status(404).json({ error: error.message });
+      }
+
+      res.status(500).json({ error: 'Failed to unblock user' });
+    }
+  }
+);
+
+/**
+ * GET /api/profiles/:netid/blocked
+ * Get list of users blocked by a specific user
+ * Requires authentication - user can only view their own blocked list
+ */
+router.get(
+  '/api/profiles/:netid/blocked',
+  authenticatedRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      // Get authenticated user's netid
+      const authenticatedNetid = await getNetidFromAuth(req.user!.uid);
+      if (!authenticatedNetid) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const requestedNetid = req.params.netid;
+
+      // Check if user is admin
+      const userIsAdmin = await isAdmin(req.user!.uid);
+
+      // Only allow users to view their own blocked list (unless admin)
+      if (requestedNetid !== authenticatedNetid && !userIsAdmin) {
+        return res.status(403).json({
+          error: 'You can only view your own blocked users list',
+        });
+      }
+
+      // Get blocked users list
+      const blockedNetids = await getBlockedUsers(requestedNetid);
+
+      res.status(200).json({
+        blockerNetid: requestedNetid,
+        blockedUsers: blockedNetids,
+        count: blockedNetids.length,
+      });
+    } catch (error) {
+      console.error('Error fetching blocked users:', error);
+      res.status(500).json({ error: 'Failed to fetch blocked users' });
     }
   }
 );

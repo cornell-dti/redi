@@ -22,10 +22,7 @@ import {
   getNextFridayMidnight,
   isCountdownPeriod,
 } from '@/app/utils/dateUtils';
-import {
-  cacheMatchData,
-  getCachedMatchData,
-} from '@/app/utils/matchCache';
+import { cacheMatchData, getCachedMatchData } from '@/app/utils/matchCache';
 import {
   getProfileAge,
   NudgeStatusResponse,
@@ -442,7 +439,7 @@ export default function MatchesScreen() {
 
               return (
                 <TouchableOpacity
-                  key={index}
+                  key={match.netid + index}
                   style={styles.previousMatchCard}
                   onPress={() =>
                     router.push(`/view-profile?netid=${profile.netid}` as any)
@@ -535,7 +532,8 @@ export default function MatchesScreen() {
       >
         <View style={styles.content}>
           {/* {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()} */}
-          {renderCountdownPeriod()}{renderWeekendPeriod()}
+          {renderCountdownPeriod()}
+          {renderWeekendPeriod()}
           {renderCurrentMatch()}
           {renderPreviousMatches()}
         </View>

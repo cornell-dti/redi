@@ -51,8 +51,14 @@ const formatRelativeTime = (isoDate: string): string => {
 export default function NotificationsScreen() {
   useThemeAware(); // Force re-render when theme changes
   const router = useRouter();
-  const { notifications, loading, error, markAsRead, markAllAsRead, setActive } =
-    useNotifications();
+  const {
+    notifications,
+    loading,
+    error,
+    markAsRead,
+    markAllAsRead,
+    setActive,
+  } = useNotifications();
 
   // Activate/deactivate real-time listener based on screen focus
   // This saves resources when the user isn't viewing notifications

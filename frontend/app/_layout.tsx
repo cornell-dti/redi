@@ -157,7 +157,7 @@ function RootNavigator() {
                 console.log('❌ Rate limited with no cache - showing alert');
                 Alert.alert(
                   'Too Many Requests',
-                  'Please wait a moment before trying again. We\'re experiencing high traffic.',
+                  "Please wait a moment before trying again. We're experiencing high traffic.",
                   [{ text: 'OK' }]
                 );
               }
@@ -179,13 +179,13 @@ function RootNavigator() {
               }
             } else if (error.status === 404) {
               // Profile not found - redirect to create profile
-              console.log('✅ Redirecting to create-profile - 404 profile not found');
+              console.log(
+                '✅ Redirecting to create-profile - 404 profile not found'
+              );
               router.replace('/(auth)/create-profile');
             } else {
               // Other API errors - likely profile doesn't exist
-              console.log(
-                '✅ Redirecting to create-profile - other API error'
-              );
+              console.log('✅ Redirecting to create-profile - other API error');
               router.replace('/(auth)/create-profile');
             }
           } else {
