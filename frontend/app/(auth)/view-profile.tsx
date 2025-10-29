@@ -10,7 +10,13 @@ import Sheet from '@/app/components/ui/Sheet';
 import { ProfileResponse, ReportReason } from '@/types';
 import auth from '@react-native-firebase/auth';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Ban, ChevronLeft, Flag, MoreVertical } from 'lucide-react-native';
+import {
+  Ban,
+  Check,
+  ChevronLeft,
+  Flag,
+  MoreVertical,
+} from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -205,19 +211,20 @@ export default function ViewProfileScreen() {
 
             {/* Reason selector */}
             <View style={styles.reasonSelector}>
-              <AppText style={styles.label}>Reason:</AppText>
+              <AppText indented color="dimmer">
+                Reason:
+              </AppText>
               <ListItemWrapper>
                 {REPORT_REASONS.map((reason) => (
                   <ListItem
+                    selected={reportReason === reason.value}
                     key={reason.value}
                     title={reason.label}
                     onPress={() => setReportReason(reason.value)}
                     right={
                       reportReason === reason.value ? (
-                        <View style={styles.radioSelected} />
-                      ) : (
-                        <View style={styles.radioUnselected} />
-                      )
+                        <Check size={20} color={AppColors.accentDefault} />
+                      ) : null
                     }
                   />
                 ))}
@@ -225,7 +232,8 @@ export default function ViewProfileScreen() {
             </View>
 
             <AppInput
-              placeholder="Describe the issue (10-1000 characters)..."
+              label="Describe the issue (10-1000 characters)"
+              placeholder="Please add some details..."
               value={reportText}
               onChangeText={setReportText}
               multiline

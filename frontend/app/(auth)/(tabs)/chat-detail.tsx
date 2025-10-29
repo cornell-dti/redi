@@ -10,6 +10,7 @@ import { ReportReason } from '@/types/report';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   Ban,
+  Check,
   ChevronLeft,
   FlagIcon,
   MoreVertical,
@@ -322,19 +323,21 @@ export default function ChatDetailScreen() {
 
             {/* Reason selector */}
             <View style={styles.reasonSelector}>
-              <AppText style={styles.label}>Reason:</AppText>
+              <AppText indented color="dimmer">
+                Reason:
+              </AppText>
+
               <ListItemWrapper>
                 {REPORT_REASONS.map((reason) => (
                   <ListItem
+                    selected={reportReason === reason.value}
                     key={reason.value}
                     title={reason.label}
                     onPress={() => setReportReason(reason.value)}
                     right={
                       reportReason === reason.value ? (
-                        <View style={styles.radioSelected} />
-                      ) : (
-                        <View style={styles.radioUnselected} />
-                      )
+                        <Check size={20} color={AppColors.accentDefault} />
+                      ) : null
                     }
                   />
                 ))}
@@ -342,7 +345,8 @@ export default function ChatDetailScreen() {
             </View>
 
             <AppInput
-              placeholder="Describe the issue (10-1000 characters)..."
+              label="Describe the issue (10-1000 characters)"
+              placeholder="Please add some details..."
               value={reportText}
               onChangeText={setReportText}
               multiline
