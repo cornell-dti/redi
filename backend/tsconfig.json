@@ -10,5 +10,6 @@
     "outDir": "dist",
     "resolveJsonModule": true
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts"],
+  "exclude": ["functions/**/*"]
 }

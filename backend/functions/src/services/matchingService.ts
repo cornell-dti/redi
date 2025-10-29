@@ -1,34 +1,160 @@
-import * as admin from 'firebase-admin';
+import { db } from '../../firebaseAdmin';
+import {
+  WeeklyMatchDoc,
+  WeeklyMatchDocWrite,
+  WeeklyMatchResponse,
+  ProfileDoc,
+  PreferencesDoc,
+} from '../../types';
+import { FieldValue } from 'firebase-admin/firestore';
+import { getUsersWhoAnswered } from './promptsService';
+import { getPreferences } from './preferencesService';
 import { UserData, findMatchesForUser } from './matchingAlgorithm';
-import { PreferencesDoc } from '../types';
+import { getBlockedUsersMap } from './blockingService';
 
 const MATCHES_COLLECTION = 'weeklyMatches';
 const PROFILES_COLLECTION = 'profiles';
-const PREFERENCES_COLLECTION = 'preferences';
-const ANSWERS_COLLECTION = 'weeklyPromptAnswers';
+
+// =============================================================================
+// WEEKLY MATCHES OPERATIONS
+// =============================================================================
+
+/**
+ * Create weekly matches for a user
+ * @param netid - User's Cornell NetID
+ * @param promptId - The prompt ID for this week
+ * @param matches - Array of matched netids (up to 3)
+ * @returns Promise resolving to the created WeeklyMatchDoc
+ */
+export async function createWeeklyMatch(
+  netid: string,
+  promptId: string,
+  matches: string[]
+): Promise<WeeklyMatchDoc> {
+  const docId = `${netid}_${promptId}`;
+
+  const matchDoc: WeeklyMatchDocWrite = {
+    netid,
+    promptId,
+    matches: matches.slice(0, 3), // Ensure max 3 matches
+    revealed: matches.slice(0, 3).map(() => false), // All matches start unrevealed
+    createdAt: FieldValue.serverTimestamp(),
+  };
+
+  await db.collection(MATCHES_COLLECTION).doc(docId).set(matchDoc);
+
+  return getWeeklyMatch(netid, promptId) as Promise<WeeklyMatchDoc>;
+}
+
+/**
+ * Get a user's matches for a specific prompt
+ * @param netid - User's Cornell NetID
+ * @param promptId - The prompt ID
+ * @returns Promise resolving to WeeklyMatchDoc or null if not found
+ */
+export async function getWeeklyMatch(
+  netid: string,
+  promptId: string
+): Promise<WeeklyMatchDoc | null> {
+  const docId = `${netid}_${promptId}`;
+  const doc = await db.collection(MATCHES_COLLECTION).doc(docId).get();
+
+  if (!doc.exists) {
+    return null;
+  }
+
+  return doc.data() as WeeklyMatchDoc;
+}
+
+/**
+ * Get all matches for a user across all prompts
+ * @param netid - User's Cornell NetID
+ * @param limit - Maximum number of matches to return (default: 10)
+ * @returns Promise resolving to array of WeeklyMatchDoc
+ */
+export async function getUserMatchHistory(
+  netid: string,
+  limit: number = 10
+): Promise<WeeklyMatchDoc[]> {
+  const snapshot = await db
+    .collection(MATCHES_COLLECTION)
+    .where('netid', '==', netid)
+    .orderBy('createdAt', 'desc')
+    .limit(limit)
+    .get();
+
+  return snapshot.docs.map((doc) => doc.data() as WeeklyMatchDoc);
+}
+
+/**
+ * Reveal a specific match for a user
+ * @param netid - User's Cornell NetID
+ * @param promptId - The prompt ID
+ * @param matchIndex - Index of the match to reveal (0-2)
+ * @returns Promise resolving to the updated WeeklyMatchDoc
+ */
+export async function revealMatch(
+  netid: string,
+  promptId: string,
+  matchIndex: number
+): Promise<WeeklyMatchDoc> {
+  if (matchIndex < 0 || matchIndex > 2) {
+    throw new Error('Match index must be between 0 and 2');
+  }
+
+  const docId = `${netid}_${promptId}`;
+  const matchDoc = await getWeeklyMatch(netid, promptId);
+
+  if (!matchDoc) {
+    throw new Error('Match not found');
+  }
+
+  if (matchIndex >= matchDoc.matches.length) {
+    throw new Error('Match index out of bounds');
+  }
+
+  const revealed = [...matchDoc.revealed];
+  revealed[matchIndex] = true;
+
+  await db.collection(MATCHES_COLLECTION).doc(docId).update({ revealed });
+
+  return getWeeklyMatch(netid, promptId) as Promise<WeeklyMatchDoc>;
+}
+
+/**
+ * Convert Firestore match doc to API response format
+ * @param doc - WeeklyMatchDoc from Firestore
+ * @returns WeeklyMatchResponse with ISO string timestamps
+ */
+export function matchToResponse(doc: WeeklyMatchDoc): WeeklyMatchResponse {
+  return {
+    netid: doc.netid,
+    promptId: doc.promptId,
+    matches: doc.matches,
+    revealed: doc.revealed,
+    createdAt:
+      doc.createdAt instanceof Date
+        ? doc.createdAt.toISOString()
+        : doc.createdAt.toDate().toISOString(),
+  };
+}
+
+// =============================================================================
+// MATCHING ALGORITHM
+// =============================================================================
 
 /**
  * Generate matches for all users who answered a prompt
  * @param promptId - The prompt ID to generate matches for
- * @param db - Firestore database instance
- * @return Promise resolving to number of users matched
+ * @returns Promise resolving to number of users matched
  */
 export async function generateMatchesForPrompt(
-  promptId: string,
-  db: admin.firestore.Firestore
+  promptId: string
 ): Promise<number> {
   console.log(`Starting match generation for prompt: ${promptId}`);
 
   // Get all users who answered the prompt
-  const answersSnapshot = await db
-    .collection(ANSWERS_COLLECTION)
-    .where('promptId', '==', promptId)
-    .get();
-
-  const userNetids = answersSnapshot.docs.map(
-    (doc) => doc.data().netid as string
-  );
-
+  const userNetids = await getUsersWhoAnswered(promptId);
   console.log(`Found ${userNetids.length} users who answered the prompt`);
 
   if (userNetids.length === 0) {
@@ -36,10 +162,14 @@ export async function generateMatchesForPrompt(
   }
 
   // Get profiles and preferences for all users
-  const userDataMap = await getUserDataMap(userNetids, db);
+  const userDataMap = await getUserDataMap(userNetids);
 
   // Track previous matches to avoid duplicates
-  const previousMatchesMap = await getPreviousMatchesMap(userNetids, db);
+  const previousMatchesMap = await getPreviousMatchesMap(userNetids);
+
+  // Get blocked users map (bidirectional blocking)
+  const blockedUsersMap = await getBlockedUsersMap(userNetids);
+  console.log(`Fetched blocking relationships for ${userNetids.length} users`);
 
   // Generate matches for each user
   let matchedCount = 0;
@@ -55,11 +185,12 @@ export async function generateMatchesForPrompt(
         netid,
         userData,
         userDataMap,
-        previousMatchesMap.get(netid) || new Set()
+        previousMatchesMap.get(netid) || new Set(),
+        blockedUsersMap.get(netid) || new Set()
       );
 
       if (matches.length > 0) {
-        await createWeeklyMatch(netid, promptId, matches, db);
+        await createWeeklyMatch(netid, promptId, matches);
         matchedCount++;
         console.log(`Created ${matches.length} matches for user ${netid}`);
       } else {
@@ -75,79 +206,61 @@ export async function generateMatchesForPrompt(
   // Update prompt status to completed
   await db.collection('weeklyPrompts').doc(promptId).update({
     status: 'completed',
-    matchesGeneratedAt: admin.firestore.FieldValue.serverTimestamp(),
+    matchesGeneratedAt: FieldValue.serverTimestamp(),
     active: false,
   });
 
   return matchedCount;
 }
 
-/**
- * Create weekly matches for a user
- * @param netid - User's Cornell NetID
- * @param promptId - The prompt ID for this week
- * @param matches - Array of matched netids (up to 3)
- * @param db - Firestore database instance
- */
-async function createWeeklyMatch(
-  netid: string,
-  promptId: string,
-  matches: string[],
-  db: admin.firestore.Firestore
-): Promise<void> {
-  const docId = `${netid}_${promptId}`;
-
-  const matchDoc = {
-    netid,
-    promptId,
-    matches: matches.slice(0, 3), // Ensure max 3 matches
-    revealed: matches.slice(0, 3).map(() => false), // All matches start unrevealed
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-  };
-
-  await db.collection(MATCHES_COLLECTION).doc(docId).set(matchDoc);
-}
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
 
 /**
  * Get profiles and preferences for multiple users
  * @param netids - Array of netids
- * @param db - Firestore database instance
- * @return Map of netid to user data
+ * @returns Map of netid to user data
  */
 async function getUserDataMap(
-  netids: string[],
-  db: admin.firestore.Firestore
+  netids: string[]
 ): Promise<Map<string, UserData>> {
   const userDataMap = new Map<string, UserData>();
 
-  // Fetch profiles in batches (Firestore 'in' limit is 10)
-  const profiles = new Map<string, any>();
+  // Fetch all profiles
+  const profilesSnapshot = await db
+    .collection(PROFILES_COLLECTION)
+    .where('netid', 'in', netids.slice(0, 10)) // Firestore 'in' limit is 10
+    .get();
 
-  for (let i = 0; i < netids.length; i += 10) {
-    const batch = netids.slice(i, i + 10);
-    const profilesSnapshot = await db
-      .collection(PROFILES_COLLECTION)
-      .where('netid', 'in', batch)
-      .get();
+  const profiles = new Map<string, ProfileDoc>();
+  profilesSnapshot.docs.forEach((doc) => {
+    const profile = doc.data() as ProfileDoc;
+    profiles.set(profile.netid, profile);
+  });
 
-    profilesSnapshot.docs.forEach((doc) => {
-      const profile = doc.data();
-      profiles.set(profile.netid, profile);
-    });
+  // If more than 10 users, fetch in batches
+  if (netids.length > 10) {
+    for (let i = 10; i < netids.length; i += 10) {
+      const batch = netids.slice(i, i + 10);
+      const batchSnapshot = await db
+        .collection(PROFILES_COLLECTION)
+        .where('netid', 'in', batch)
+        .get();
+
+      batchSnapshot.docs.forEach((doc) => {
+        const profile = doc.data() as ProfileDoc;
+        profiles.set(profile.netid, profile);
+      });
+    }
   }
 
-  // Fetch preferences for each user
+  // Fetch all preferences
   for (const netid of netids) {
-    const preferencesDoc = await db
-      .collection(PREFERENCES_COLLECTION)
-      .doc(netid)
-      .get();
-
+    const preferences = await getPreferences(netid);
     userDataMap.set(netid, {
       profile: profiles.get(netid) || null,
-      preferences: preferencesDoc.exists
-        ? (preferencesDoc.data() as PreferencesDoc)
-        : null,
+      preferences,
     });
   }
 
@@ -157,32 +270,21 @@ async function getUserDataMap(
 /**
  * Get previous matches for multiple users
  * @param netids - Array of netids
- * @param db - Firestore database instance
- * @return Map of netid to set of previously matched netids
+ * @returns Map of netid to set of previously matched netids
  */
 async function getPreviousMatchesMap(
-  netids: string[],
-  db: admin.firestore.Firestore
+  netids: string[]
 ): Promise<Map<string, Set<string>>> {
   const previousMatchesMap = new Map<string, Set<string>>();
 
   for (const netid of netids) {
-    const matchesSnapshot = await db
-      .collection(MATCHES_COLLECTION)
-      .where('netid', '==', netid)
-      .orderBy('createdAt', 'desc')
-      .limit(20) // Check last 20 weeks
-      .get();
-
+    const matches = await getUserMatchHistory(netid, 20); // Check last 20 weeks
     const matchedNetids = new Set<string>();
 
-    matchesSnapshot.docs.forEach((doc) => {
-      const data = doc.data();
-      if (data.matches && Array.isArray(data.matches)) {
-        data.matches.forEach((matchedNetid: string) => {
-          matchedNetids.add(matchedNetid);
-        });
-      }
+    matches.forEach((match) => {
+      match.matches.forEach((matchedNetid) => {
+        matchedNetids.add(matchedNetid);
+      });
     });
 
     previousMatchesMap.set(netid, matchedNetids);

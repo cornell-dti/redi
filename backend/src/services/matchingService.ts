@@ -10,6 +10,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { getUsersWhoAnswered } from './promptsService';
 import { getPreferences } from './preferencesService';
 import { UserData, findMatchesForUser } from './matchingAlgorithm';
+import { getBlockedUsersMap } from './blockingService';
 
 const MATCHES_COLLECTION = 'weeklyMatches';
 const PROFILES_COLLECTION = 'profiles';
@@ -166,6 +167,10 @@ export async function generateMatchesForPrompt(
   // Track previous matches to avoid duplicates
   const previousMatchesMap = await getPreviousMatchesMap(userNetids);
 
+  // Get blocked users map (bidirectional blocking)
+  const blockedUsersMap = await getBlockedUsersMap(userNetids);
+  console.log(`Fetched blocking relationships for ${userNetids.length} users`);
+
   // Generate matches for each user
   let matchedCount = 0;
   for (const netid of userNetids) {
@@ -180,7 +185,8 @@ export async function generateMatchesForPrompt(
         netid,
         userData,
         userDataMap,
-        previousMatchesMap.get(netid) || new Set()
+        previousMatchesMap.get(netid) || new Set(),
+        blockedUsersMap.get(netid) || new Set()
       );
 
       if (matches.length > 0) {

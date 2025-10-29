@@ -439,7 +439,7 @@ export default function MatchesScreen() {
 
               return (
                 <TouchableOpacity
-                  key={index}
+                  key={match.netid + index}
                   style={styles.previousMatchCard}
                   onPress={() =>
                     router.push(`/view-profile?netid=${profile.netid}` as any)
