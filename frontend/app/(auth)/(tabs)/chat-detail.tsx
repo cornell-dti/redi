@@ -6,6 +6,7 @@ import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
+import { ReportReason } from '@/types/report';
 import { router, useLocalSearchParams } from 'expo-router';
 import {
   Ban,
@@ -18,6 +19,7 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -28,10 +30,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../../api/authService';
+import { blockUser, getBlockedUsers, unblockUser } from '../../api/blockingApi';
 import {
   createOrGetConversation,
   sendMessage as sendMessageAPI,
 } from '../../api/chatApi';
+import { createReport } from '../../api/reportsApi';
 import { AppColors } from '../../components/AppColors';
 import { useMessages } from '../../hooks/useMessages';
 
@@ -88,6 +92,14 @@ interface Message {
   isOwn: boolean;
 }
 
+const REPORT_REASONS: { value: ReportReason; label: string }[] = [
+  { value: 'inappropriate_content', label: 'Inappropriate Content' },
+  { value: 'harassment', label: 'Harassment' },
+  { value: 'spam', label: 'Spam' },
+  { value: 'fake_profile', label: 'Fake Profile' },
+  { value: 'other', label: 'Other' },
+];
+
 export default function ChatDetailScreen() {
   useThemeAware();
 
@@ -95,6 +107,12 @@ export default function ChatDetailScreen() {
   type SheetView = 'menu' | 'report' | 'block';
   const [sheetView, setSheetView] = useState<SheetView>('menu');
   const [reportText, setReportText] = useState('');
+  const [reportReason, setReportReason] = useState<ReportReason>(
+    'inappropriate_content'
+  );
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [blocking, setBlocking] = useState(false);
 
   const {
     conversationId: routeConversationId,
@@ -127,6 +145,23 @@ export default function ChatDetailScreen() {
     };
     initConversation();
   }, [conversationId, userId, currentUser]);
+
+  // Check if user is blocked
+  useEffect(() => {
+    const checkIfBlocked = async () => {
+      if (!netid || !currentUser?.email) return;
+
+      const currentNetid = currentUser.email.split('@')[0];
+      try {
+        const response = await getBlockedUsers(currentNetid);
+        setIsBlocked(response.blockedUsers.includes(netid as string));
+      } catch (error) {
+        console.error('Error checking blocked status:', error);
+      }
+    };
+
+    checkIfBlocked();
+  }, [netid, currentUser]);
 
   // Transform Firebase messages to display format
   const displayMessages: Message[] = firebaseMessages.map((msg) => ({
@@ -285,8 +320,29 @@ export default function ChatDetailScreen() {
               anonymous.
             </AppText>
 
+            {/* Reason selector */}
+            <View style={styles.reasonSelector}>
+              <AppText style={styles.label}>Reason:</AppText>
+              <ListItemWrapper>
+                {REPORT_REASONS.map((reason) => (
+                  <ListItem
+                    key={reason.value}
+                    title={reason.label}
+                    onPress={() => setReportReason(reason.value)}
+                    right={
+                      reportReason === reason.value ? (
+                        <View style={styles.radioSelected} />
+                      ) : (
+                        <View style={styles.radioUnselected} />
+                      )
+                    }
+                  />
+                ))}
+              </ListItemWrapper>
+            </View>
+
             <AppInput
-              placeholder="Describe the issue..."
+              placeholder="Describe the issue (10-1000 characters)..."
               value={reportText}
               onChangeText={setReportText}
               multiline
@@ -296,17 +352,48 @@ export default function ChatDetailScreen() {
 
             <View style={styles.buttonRow}>
               <Button
-                title="Submit Report"
-                onPress={() => {
-                  console.log('Report submitted:', reportText, 'for', userId);
-                  setShowOptionsSheet(false);
-                  setTimeout(() => {
-                    setSheetView('menu');
-                    setReportText('');
-                  }, 300);
+                title={isSubmittingReport ? 'Submitting...' : 'Submit Report'}
+                onPress={async () => {
+                  if (!netid) return;
+
+                  try {
+                    setIsSubmittingReport(true);
+                    await createReport({
+                      reportedNetid: netid as string,
+                      reason: reportReason,
+                      description: reportText.trim(),
+                    });
+
+                    Alert.alert(
+                      'Report Submitted',
+                      'Thank you for helping keep our community safe. We will review your report.',
+                      [{ text: 'OK' }]
+                    );
+
+                    setShowOptionsSheet(false);
+                    setTimeout(() => {
+                      setSheetView('menu');
+                      setReportText('');
+                      setReportReason('inappropriate_content');
+                    }, 300);
+                  } catch (err: any) {
+                    console.error('Error submitting report:', err);
+                    Alert.alert(
+                      'Error',
+                      err.message ||
+                        'Failed to submit report. Please try again.',
+                      [{ text: 'OK' }]
+                    );
+                  } finally {
+                    setIsSubmittingReport(false);
+                  }
                 }}
                 variant="negative"
-                disabled={!reportText.trim()}
+                disabled={
+                  !reportText.trim() ||
+                  reportText.trim().length < 10 ||
+                  isSubmittingReport
+                }
                 iconLeft={FlagIcon}
               />
               <Button
@@ -314,8 +401,10 @@ export default function ChatDetailScreen() {
                 onPress={() => {
                   setSheetView('menu');
                   setReportText('');
+                  setReportReason('inappropriate_content');
                 }}
                 variant="secondary"
+                disabled={isSubmittingReport}
               />
             </View>
           </View>
@@ -324,25 +413,67 @@ export default function ChatDetailScreen() {
         {sheetView === 'block' && (
           <View style={styles.sheetContent}>
             <AppText>
-              The user will no longer be able to see your profile or message
-              you. This action can be undone in settings.
+              {isBlocked
+                ? `Unblock ${name}? They will be able to see your profile and message you again.`
+                : `${name} will no longer be able to see your profile or message you. This action can be undone in settings.`}
             </AppText>
 
             <View style={styles.buttonRow}>
               <Button
-                title="Block User"
-                onPress={() => {
-                  console.log('User blocked:', userId);
-                  setShowOptionsSheet(false);
-                  setTimeout(() => setSheetView('menu'), 300);
+                title={
+                  blocking
+                    ? isBlocked
+                      ? 'Unblocking...'
+                      : 'Blocking...'
+                    : isBlocked
+                      ? 'Unblock User'
+                      : 'Block User'
+                }
+                onPress={async () => {
+                  if (!netid) return;
+
+                  try {
+                    setBlocking(true);
+
+                    if (isBlocked) {
+                      await unblockUser(netid as string);
+                      setIsBlocked(false);
+                      Alert.alert('Success', `Unblocked ${name}`);
+                    } else {
+                      await blockUser(netid as string);
+                      setIsBlocked(true);
+                      Alert.alert('Success', `Blocked ${name}`, [
+                        {
+                          text: 'OK',
+                          onPress: () => {
+                            // Navigate back to chat list after blocking
+                            router.replace('/chat' as any);
+                          },
+                        },
+                      ]);
+                    }
+
+                    setShowOptionsSheet(false);
+                    setTimeout(() => setSheetView('menu'), 300);
+                  } catch (error: any) {
+                    Alert.alert(
+                      'Error',
+                      error.message ||
+                        `Failed to ${isBlocked ? 'unblock' : 'block'} user`
+                    );
+                  } finally {
+                    setBlocking(false);
+                  }
                 }}
                 variant="negative"
                 iconLeft={Ban}
+                disabled={blocking}
               />
               <Button
                 title="Cancel"
                 onPress={() => setSheetView('menu')}
                 variant="secondary"
+                disabled={blocking}
               />
             </View>
           </View>
@@ -474,5 +605,29 @@ const styles = StyleSheet.create({
   buttonRow: {
     display: 'flex',
     gap: 12,
+  },
+  reasonSelector: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  radioSelected: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: AppColors.accentDefault,
+    borderWidth: 2,
+    borderColor: AppColors.accentDefault,
+  },
+  radioUnselected: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: AppColors.foregroundDimmer,
   },
 });
