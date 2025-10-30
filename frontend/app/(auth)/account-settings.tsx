@@ -17,7 +17,9 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getCurrentUser, signOutUser } from '../api/authService';
+import { extractNetidFromEmail, getCurrentUser, signOutUser } from '../api/authService';
+import { deleteProfile } from '../api/profileApi';
+import { deleteUser } from '../api/userApi';
 import { AppColors } from '../components/AppColors';
 import AppInput from '../components/ui/AppInput';
 import EditingHeader from '../components/ui/EditingHeader';
@@ -69,22 +71,52 @@ export default function AccountSettingsPage() {
       Alert.alert(
         'Error',
         'Failed to sign out: ' +
-          (error instanceof Error ? error.message : 'Unknown error')
+        (error instanceof Error ? error.message : 'Unknown error')
       );
     }
   };
 
   const confirmDeleteAccount = async () => {
     try {
-      // TODO: Implement delete account logic
-      Alert.alert('Coming Soon', 'Account deletion will be implemented soon');
+      const currentUser = getCurrentUser();
+      if (!currentUser || !currentUser.email) {
+        Alert.alert('Error', 'You cannot delete an account you are not logged into.');
+        return;
+      }
+
+      const netid = extractNetidFromEmail(currentUser.email);
+      if (!netid) {
+        Alert.alert('Error', 'Could not determine your netid');
+        return;
+      }
+
+      // Profiles and users are different; profiles contain information regarding preferences and such,
+      // and users are the account based on the netid. 
+      try {
+        await deleteProfile();
+        console.log('Profile deleted successfully');
+      } catch (profileError) {
+        console.log('Profile deletion error (may not exist):', profileError);
+      }
+
+      await deleteUser(netid);
+      console.log('User deleted from backend successfully');
+
+      // Clear any stored data on the device.
+      await AsyncStorage.clear();
+
+      // Sign out from Firebase
+      await signOutUser();
       setShowDeleteSheet(false);
+
+
+      router.replace('/home' as any);
     } catch (error) {
       console.error('Delete account error:', error);
       Alert.alert(
         'Error',
         'Failed to delete account: ' +
-          (error instanceof Error ? error.message : 'Unknown error')
+        (error instanceof Error ? error.message : 'Unknown error')
       );
     }
   };
@@ -122,7 +154,7 @@ export default function AccountSettingsPage() {
               iconLeft={Pencil}
               variant="secondary"
               title="Cannot change email address"
-              onPress={() => {}}
+              onPress={() => { }}
             />
           </ListItemWrapper>
         </View>

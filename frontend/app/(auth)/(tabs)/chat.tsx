@@ -106,9 +106,7 @@ export default function ChatScreen() {
         name: otherUser?.name || 'Unknown',
         lastMessage: conv.lastMessage?.text || 'Start a conversation',
         timestamp,
-        unread: false, // TODO: implement unread logic
         image: otherUser?.image || 'https://via.placeholder.com/150',
-        online: false, // TODO: implement online status
       };
     });
   }, [conversations, currentUser]);
