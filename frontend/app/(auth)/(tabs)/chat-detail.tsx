@@ -7,7 +7,7 @@ import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
 import { ReportReason } from '@/types/report';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import {
   Ban,
   Check,
@@ -17,7 +17,7 @@ import {
   Send,
   User2,
 } from 'lucide-react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -147,22 +147,24 @@ export default function ChatDetailScreen() {
     initConversation();
   }, [conversationId, userId, currentUser]);
 
-  // Check if user is blocked
-  useEffect(() => {
-    const checkIfBlocked = async () => {
-      if (!netid || !currentUser?.email) return;
+  // Check if user is blocked - re-check whenever screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      const checkIfBlocked = async () => {
+        if (!netid || !currentUser?.email) return;
 
-      const currentNetid = currentUser.email.split('@')[0];
-      try {
-        const response = await getBlockedUsers(currentNetid);
-        setIsBlocked(response.blockedUsers.includes(netid as string));
-      } catch (error) {
-        console.error('Error checking blocked status:', error);
-      }
-    };
+        const currentNetid = currentUser.email.split('@')[0];
+        try {
+          const response = await getBlockedUsers(currentNetid);
+          setIsBlocked(response.blockedUsers.includes(netid as string));
+        } catch (error) {
+          console.error('Error checking blocked status:', error);
+        }
+      };
 
-    checkIfBlocked();
-  }, [netid, currentUser]);
+      checkIfBlocked();
+    }, [netid, currentUser])
+  );
 
   // Transform Firebase messages to display format
   const displayMessages: Message[] = firebaseMessages.map((msg) => ({
