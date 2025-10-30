@@ -317,7 +317,7 @@ export default function ChatDetailScreen() {
         {sheetView === 'report' && (
           <View style={styles.sheetContent}>
             <AppText>
-              Help us understand what's wrong with this user. Your report is
+              Help us understand what&apos;s wrong with this user. Your report is
               anonymous.
             </AppText>
 
