@@ -5,6 +5,10 @@ import {
   GenerateMatchesResponse,
   MatchStatsResponse,
   PromptMatchDetailResponse,
+  ReportResponse,
+  ReportStatus,
+  ReportWithProfilesResponse,
+  UpdateReportStatusInput,
   WeeklyPrompt,
   WeeklyPromptAnswerWithProfile,
 } from '@/types/admin';
@@ -32,16 +36,13 @@ const getAuthToken = async (): Promise<string> => {
   const user = auth.currentUser;
 
   if (!user) {
-    console.error('❌ No authenticated user found');
+    console.error('No authenticated user found');
     throw new Error('User not authenticated. Please sign in again.');
   }
-
-  console.log('🔐 Getting Firebase ID token for user:', user.uid);
 
   // Force refresh to get latest custom claims (important for admin verification)
   const token = await user.getIdToken(true);
 
-  console.log('✅ Firebase ID token retrieved');
   return token;
 };
 
@@ -51,7 +52,7 @@ const getAuthToken = async (): Promise<string> => {
 export const createPrompt = async (
   data: CreatePromptRequest
 ): Promise<ApiResponse<WeeklyPrompt>> => {
-  console.log('📤 Creating prompt with data:', data);
+  console.log('Creating prompt with data:', data);
 
   const token = await getAuthToken();
 
@@ -78,7 +79,7 @@ export const createPrompt = async (
 export const activatePrompt = async (
   promptId: string
 ): Promise<ApiResponse<ActivatePromptResponse>> => {
-  console.log('📤 Activating prompt:', promptId);
+  console.log('Activating prompt:', promptId);
 
   const token = await getAuthToken();
 
@@ -108,7 +109,7 @@ export const activatePrompt = async (
 export const generateMatches = async (
   promptId: string
 ): Promise<ApiResponse<GenerateMatchesResponse>> => {
-  console.log('📤 Generating matches for prompt:', promptId);
+  console.log('Generating matches for prompt:', promptId);
 
   const token = await getAuthToken();
 
@@ -136,7 +137,7 @@ export const generateMatches = async (
  * Fetch all prompts from Firestore (direct read, no backend call)
  */
 export const fetchAllPrompts = async (): Promise<WeeklyPrompt[]> => {
-  console.log('📥 Fetching all prompts from Firestore');
+  console.log('Fetching all prompts from Firestore');
 
   const promptsRef = collection(FIREBASE_DB, 'weeklyPrompts');
   const q = query(promptsRef, orderBy('releaseDate', 'desc'));
@@ -172,7 +173,6 @@ export const fetchAllPrompts = async (): Promise<WeeklyPrompt[]> => {
     });
   }
 
-  console.log(`✅ Fetched ${prompts.length} prompts`);
   return prompts;
 };
 
@@ -198,8 +198,6 @@ export const fetchAnswerCount = async (promptId: string): Promise<number> => {
 export const fetchPromptById = async (
   promptId: string
 ): Promise<WeeklyPrompt | null> => {
-  console.log('📥 Fetching prompt:', promptId);
-
   const promptRef = doc(FIREBASE_DB, 'weeklyPrompts', promptId);
   const promptDoc = await getDoc(promptRef);
 
@@ -240,8 +238,6 @@ export const fetchPromptById = async (
 export const deleteActivePrompt = async (): Promise<
   ApiResponse<{ message: string; promptId: string }>
 > => {
-  console.log('📤 Deleting active prompt');
-
   const token = await getAuthToken();
 
   const res = await fetch(`${API_BASE_URL}/api/admin/prompts/active`, {
@@ -275,7 +271,7 @@ export const fixMultipleActivePrompts = async (): Promise<{
   deactivated?: Array<{ promptId: string; question: string }>;
   deactivatedCount: number;
 }> => {
-  console.log('🔧 Fixing multiple active prompts issue');
+  console.log('Fixing multiple active prompts issue');
 
   const token = await getAuthToken();
 
@@ -302,7 +298,7 @@ export const fixMultipleActivePrompts = async (): Promise<{
  * Generate prompt ID from a date
  */
 export const generatePromptId = async (date: Date): Promise<string> => {
-  console.log('📤 Generating prompt ID for date:', date.toISOString());
+  console.log('Generating prompt ID for date:', date.toISOString());
 
   const token = await getAuthToken();
 
@@ -334,7 +330,7 @@ export const getPrompts = async (filters?: {
   endDate?: string;
   limit?: number;
 }): Promise<ApiResponse<WeeklyPrompt[]>> => {
-  console.log('📤 Getting prompts with filters:', filters);
+  console.log('Getting prompts with filters:', filters);
 
   const token = await getAuthToken();
 
@@ -375,8 +371,6 @@ export const getPrompts = async (filters?: {
 export const getPrompt = async (
   promptId: string
 ): Promise<ApiResponse<WeeklyPrompt>> => {
-  console.log('📤 Getting prompt:', promptId);
-
   const token = await getAuthToken();
 
   const res = await fetch(`${API_BASE_URL}/api/admin/prompts/${promptId}`, {
@@ -401,8 +395,6 @@ export const updatePrompt = async (
   promptId: string,
   updates: Partial<CreatePromptRequest>
 ): Promise<ApiResponse<WeeklyPrompt>> => {
-  console.log('📤 Updating prompt:', promptId, updates);
-
   const token = await getAuthToken();
 
   const res = await fetch(`${API_BASE_URL}/api/admin/prompts/${promptId}`, {
@@ -428,8 +420,6 @@ export const updatePrompt = async (
 export const deletePrompt = async (
   promptId: string
 ): Promise<ApiResponse<{ message: string }>> => {
-  console.log('📤 Deleting prompt:', promptId);
-
   const token = await getAuthToken();
 
   const res = await fetch(`${API_BASE_URL}/api/admin/prompts/${promptId}`, {
@@ -455,7 +445,7 @@ export const deletePrompt = async (
 export const fetchPromptAnswers = async (
   promptId: string
 ): Promise<WeeklyPromptAnswerWithProfile[]> => {
-  console.log('📤 Fetching answers for prompt:', promptId);
+  console.log('Fetching answers for prompt:', promptId);
 
   const token = await getAuthToken();
 
@@ -469,7 +459,7 @@ export const fetchPromptAnswers = async (
     }
   );
 
-  console.log('📥 Response status:', res.status, res.statusText);
+  console.log('Response status:', res.status, res.statusText);
 
   if (!res.ok) {
     const error = await res.json();
@@ -478,8 +468,8 @@ export const fetchPromptAnswers = async (
   }
 
   const data = await res.json();
-  console.log('✅ Received answers:', data.length, 'answers');
-  console.log('📊 Sample answer:', data[0]);
+  console.log('Received answers:', data.length, 'answers');
+  console.log('Sample answer:', data[0]);
 
   return data;
 };
@@ -488,7 +478,7 @@ export const fetchPromptAnswers = async (
  * Fetch overall match statistics across all prompts
  */
 export const fetchMatchStats = async (): Promise<MatchStatsResponse> => {
-  console.log('📤 Fetching match statistics');
+  console.log('Fetching match statistics');
 
   const token = await getAuthToken();
 
@@ -499,16 +489,16 @@ export const fetchMatchStats = async (): Promise<MatchStatsResponse> => {
     },
   });
 
-  console.log('📥 Response status:', res.status, res.statusText);
+  console.log('Response status:', res.status, res.statusText);
 
   if (!res.ok) {
     const error = await res.json();
-    console.error('❌ Error response:', error);
+    console.error('Error response:', error);
     throw new Error(error.error || 'Failed to fetch match statistics');
   }
 
   const data = await res.json();
-  console.log('✅ Received match stats:', data);
+  console.log('Received match stats:', data);
 
   return data;
 };
@@ -519,7 +509,7 @@ export const fetchMatchStats = async (): Promise<MatchStatsResponse> => {
 export const fetchPromptMatches = async (
   promptId: string
 ): Promise<PromptMatchDetailResponse> => {
-  console.log('📤 Fetching matches for prompt:', promptId);
+  console.log('Fetching matches for prompt:', promptId);
 
   const token = await getAuthToken();
 
@@ -536,6 +526,151 @@ export const fetchPromptMatches = async (
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.error || 'Failed to fetch prompt matches');
+  }
+
+  return res.json();
+};
+
+// =============================================================================
+// REPORTS API
+// =============================================================================
+
+/**
+ * Fetch all reports with optional status filtering
+ */
+export const fetchReports = async (
+  statusFilter?: ReportStatus
+): Promise<ReportWithProfilesResponse[]> => {
+  console.log('Fetching reports with status filter:', statusFilter);
+
+  const token = await getAuthToken();
+
+  const queryParams = new URLSearchParams();
+  if (statusFilter) {
+    queryParams.append('status', statusFilter);
+  }
+
+  const url = `${API_BASE_URL}/api/admin/reports${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  console.log('Response status:', res.status, res.statusText);
+
+  if (!res.ok) {
+    const error = await res.json();
+    console.error('❌ Error response:', error);
+    throw new Error(error.error || 'Failed to fetch reports');
+  }
+
+  const data = await res.json();
+  console.log('Received reports:', data.length, 'reports');
+
+  return data;
+};
+
+/**
+ * Fetch a single report by ID
+ */
+export const fetchReportById = async (
+  reportId: string
+): Promise<ReportResponse> => {
+  console.log('Fetching report:', reportId);
+
+  const token = await getAuthToken();
+
+  const res = await fetch(`${API_BASE_URL}/api/admin/reports/${reportId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to fetch report');
+  }
+
+  return res.json();
+};
+
+/**
+ * Update report status
+ */
+export const updateReportStatus = async (
+  reportId: string,
+  input: UpdateReportStatusInput
+): Promise<ReportResponse> => {
+  console.log('Updating report status:', reportId, input);
+  console.log(
+    'Request URL:',
+    `${API_BASE_URL}/api/admin/reports/${reportId}/status`
+  );
+
+  const token = await getAuthToken();
+
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/api/admin/reports/${reportId}/status`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(input),
+      }
+    );
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('Error response:', errorText);
+      let errorMessage = 'Failed to update report status';
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || errorMessage;
+      } catch {
+        errorMessage = `${res.status} - ${errorText}`;
+      }
+      throw new Error(errorMessage);
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error('Fetch error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Resolve a report with resolution notes
+ */
+export const resolveReport = async (
+  reportId: string,
+  resolution: string
+): Promise<ReportResponse> => {
+  const token = await getAuthToken();
+
+  const res = await fetch(
+    `${API_BASE_URL}/api/admin/reports/${reportId}/resolve`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ resolution }),
+    }
+  );
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to resolve report');
   }
 
   return res.json();

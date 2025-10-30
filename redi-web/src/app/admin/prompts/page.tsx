@@ -4,6 +4,7 @@ import { fetchAllPrompts } from '@/api/admin';
 import AdminProtectedRoute from '@/components/AdminProtectedRoute';
 import MatchesDashboard from '@/components/MatchesDashboard';
 import ProductionModeSection from '@/components/ProductionModeSection';
+import ReportsDashboard from '@/components/ReportsDashboard';
 import TestingSection from '@/components/TestingSection';
 import { WeeklyPrompt } from '@/types/admin';
 import { getAuth } from 'firebase/auth';
@@ -175,6 +176,9 @@ export default function AdminPromptsPage() {
 
               {/* Matches Dashboard */}
               <MatchesDashboard />
+
+              {/* Reports Dashboard */}
+              <ReportsDashboard />
 
               {/* Testing Section */}
               <TestingSection

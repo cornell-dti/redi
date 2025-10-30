@@ -1,4 +1,5 @@
 import { getProfileByNetid } from '@/app/api/profileApi';
+import { createReport } from '@/app/api/reportsApi';
 import { AppColors } from '@/app/components/AppColors';
 import ProfileView from '@/app/components/profile/ProfileView';
 import AppInput from '@/app/components/ui/AppInput';
@@ -6,9 +7,16 @@ import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import ListItem from '@/app/components/ui/ListItem';
 import Sheet from '@/app/components/ui/Sheet';
-import { ProfileResponse } from '@/types';
+import { ProfileResponse, ReportReason } from '@/types';
+import auth from '@react-native-firebase/auth';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Ban, ChevronLeft, Flag, MoreVertical } from 'lucide-react-native';
+import {
+  Ban,
+  Check,
+  ChevronLeft,
+  Flag,
+  MoreVertical,
+} from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -18,16 +26,23 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { blockUser, getBlockedUsers, unblockUser } from '../api/blockingApi';
 import IconButton from '../components/ui/IconButton';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
-import auth from '@react-native-firebase/auth';
-import { blockUser, unblockUser, getBlockedUsers } from '../api/blockingApi';
 
 /**
  * View Profile Page
  * Shows another user's profile by their netid
  */
 type SheetView = 'menu' | 'report' | 'block';
+
+const REPORT_REASONS: { value: ReportReason; label: string }[] = [
+  { value: 'inappropriate_content', label: 'Inappropriate Content' },
+  { value: 'harassment', label: 'Harassment' },
+  { value: 'spam', label: 'Spam' },
+  { value: 'fake_profile', label: 'Fake Profile' },
+  { value: 'other', label: 'Other' },
+];
 
 export default function ViewProfileScreen() {
   const { netid } = useLocalSearchParams<{ netid: string }>();
@@ -36,12 +51,16 @@ export default function ViewProfileScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   const [sheetView, setSheetView] = useState<SheetView>('menu');
+  const [reportReason, setReportReason] = useState<ReportReason>(
+    'inappropriate_content'
+  );
   const [reportText, setReportText] = useState('');
   const [isBlocked, setIsBlocked] = useState(false);
   const [blocking, setBlocking] = useState(false);
 
   const user = auth().currentUser;
   const currentNetid = user?.email?.split('@')[0] || '';
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
 
   useEffect(() => {
     if (netid) {
@@ -189,8 +208,32 @@ export default function ViewProfileScreen() {
               Help us understand what&apos;s wrong with this profile. Your
               report is anonymous.
             </AppText>
+
+            {/* Reason selector */}
+            <View style={styles.reasonSelector}>
+              <AppText indented color="dimmer">
+                Reason:
+              </AppText>
+              <ListItemWrapper>
+                {REPORT_REASONS.map((reason) => (
+                  <ListItem
+                    selected={reportReason === reason.value}
+                    key={reason.value}
+                    title={reason.label}
+                    onPress={() => setReportReason(reason.value)}
+                    right={
+                      reportReason === reason.value ? (
+                        <Check size={20} color={AppColors.accentDefault} />
+                      ) : null
+                    }
+                  />
+                ))}
+              </ListItemWrapper>
+            </View>
+
             <AppInput
-              placeholder="Describe the issue..."
+              label="Describe the issue (10-1000 characters)"
+              placeholder="Please add some details..."
               value={reportText}
               onChangeText={setReportText}
               multiline
@@ -199,17 +242,48 @@ export default function ViewProfileScreen() {
             />
             <View style={styles.buttonRow}>
               <Button
-                title="Submit Report"
-                onPress={() => {
-                  console.log('Report submitted:', reportText);
-                  setShowOptionsSheet(false);
-                  setTimeout(() => {
-                    setSheetView('menu');
-                    setReportText('');
-                  }, 300);
+                title={isSubmittingReport ? 'Submitting...' : 'Submit Report'}
+                onPress={async () => {
+                  if (!netid) return;
+
+                  try {
+                    setIsSubmittingReport(true);
+                    await createReport({
+                      reportedNetid: netid,
+                      reason: reportReason,
+                      description: reportText.trim(),
+                    });
+
+                    Alert.alert(
+                      'Report Submitted',
+                      'Thank you for helping keep our community safe. We will review your report.',
+                      [{ text: 'OK' }]
+                    );
+
+                    setShowOptionsSheet(false);
+                    setTimeout(() => {
+                      setSheetView('menu');
+                      setReportText('');
+                      setReportReason('inappropriate_content');
+                    }, 300);
+                  } catch (err: any) {
+                    console.error('Error submitting report:', err);
+                    Alert.alert(
+                      'Error',
+                      err.message ||
+                        'Failed to submit report. Please try again.',
+                      [{ text: 'OK' }]
+                    );
+                  } finally {
+                    setIsSubmittingReport(false);
+                  }
                 }}
                 variant="negative"
-                disabled={!reportText.trim()}
+                disabled={
+                  !reportText.trim() ||
+                  reportText.trim().length < 10 ||
+                  isSubmittingReport
+                }
                 iconLeft={Flag}
               />
               <Button
@@ -217,8 +291,10 @@ export default function ViewProfileScreen() {
                 onPress={() => {
                   setSheetView('menu');
                   setReportText('');
+                  setReportReason('inappropriate_content');
                 }}
                 variant="secondary"
+                disabled={isSubmittingReport}
               />
             </View>
           </View>
@@ -332,5 +408,29 @@ const styles = StyleSheet.create({
   buttonRow: {
     display: 'flex',
     gap: 12,
+  },
+  reasonSelector: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: AppColors.foregroundDefault,
+  },
+  radioSelected: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: AppColors.accentDefault,
+    borderWidth: 2,
+    borderColor: AppColors.accentDefault,
+  },
+  radioUnselected: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: AppColors.foregroundDimmer,
   },
 });

@@ -19,6 +19,7 @@ export type AuditResourceType =
   | 'matches'
   | 'user'
   | 'admin'
+  | 'report'
   | 'system';
 
 /**
@@ -44,6 +45,9 @@ export type AuditAction =
   // Match actions
   | 'VIEW_MATCH_STATS'
   | 'VIEW_PROMPT_MATCHES'
+  // Report actions
+  | 'UPDATE_REPORT_STATUS'
+  | 'RESOLVE_REPORT'
   // System actions
   | 'ADMIN_LOGIN'
   | 'ADMIN_LOGOUT'
@@ -212,7 +216,7 @@ export async function getAuditLogs(options?: {
 
     const snapshot = await query.get();
 
-    return snapshot.docs.map((doc) => ({
+    return snapshot.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot) => ({
       id: doc.id,
       ...doc.data(),
       timestamp: (doc.data().timestamp as Timestamp).toDate().toISOString(),

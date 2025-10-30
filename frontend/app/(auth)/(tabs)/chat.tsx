@@ -1,9 +1,11 @@
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
+import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../../api/authService';
+import { getBlockedUsers } from '../../api/blockingApi';
 import { AppColors } from '../../components/AppColors';
 import ChatItem from '../../components/ui/ChatItem';
 import Header from '../../components/ui/Header';
@@ -66,6 +68,26 @@ export default function ChatScreen() {
   useThemeAware(); // Force re-render when theme changes
   const { conversations, loading, error } = useConversations();
   const currentUser = getCurrentUser();
+  const [blockedUsers, setBlockedUsers] = useState<Set<string>>(new Set());
+
+  // Fetch blocked users list when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      const fetchBlockedUsers = async () => {
+        if (!currentUser?.email) return;
+
+        const currentNetid = currentUser.email.split('@')[0];
+        try {
+          const response = await getBlockedUsers(currentNetid);
+          setBlockedUsers(new Set(response.blockedUsers));
+        } catch (error) {
+          console.error('Error fetching blocked users:', error);
+        }
+      };
+
+      fetchBlockedUsers();
+    }, [currentUser])
+  );
 
   // Transform Firestore conversations to UI format
   const chatData = useMemo(() => {
@@ -74,44 +96,49 @@ export default function ChatScreen() {
     if (!currentUser) return mockChats;
 
     console.log(currentUser.uid);
-    return conversations.map((conv) => {
-      // Get the other participant's info
-      const otherUserId = conv.participantIds.find(
-        (id) => id !== currentUser.uid
-      );
-      const otherUser = otherUserId ? conv.participants[otherUserId] : null;
+    return conversations
+      .map((conv) => {
+        // Get the other participant's info
+        const otherUserId = conv.participantIds.find(
+          (id) => id !== currentUser.uid
+        );
+        const otherUser = otherUserId ? conv.participants[otherUserId] : null;
 
-      // Format timestamp
-      let timestamp = 'Just now';
-      if (conv.lastMessage?.timestamp) {
-        const messageDate =
-          conv.lastMessage.timestamp.toDate?.() ||
-          new Date(conv.lastMessage.timestamp);
-        const now = new Date();
-        const diffMs = now.getTime() - messageDate.getTime();
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
+        // Format timestamp
+        let timestamp = 'Just now';
+        if (conv.lastMessage?.timestamp) {
+          const messageDate =
+            conv.lastMessage.timestamp.toDate?.() ||
+            new Date(conv.lastMessage.timestamp);
+          const now = new Date();
+          const diffMs = now.getTime() - messageDate.getTime();
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHours = Math.floor(diffMs / 3600000);
+          const diffDays = Math.floor(diffMs / 86400000);
 
-        if (diffMins < 1) timestamp = 'Just now';
-        else if (diffMins < 60) timestamp = `${diffMins}m ago`;
-        else if (diffHours < 24) timestamp = `${diffHours}h ago`;
-        else timestamp = `${diffDays}d ago`;
-      }
+          if (diffMins < 1) timestamp = 'Just now';
+          else if (diffMins < 60) timestamp = `${diffMins}m ago`;
+          else if (diffHours < 24) timestamp = `${diffHours}h ago`;
+          else timestamp = `${diffDays}d ago`;
+        }
 
-      return {
-        id: conv.id,
-        userId: otherUserId || '',
-        netid: otherUser?.netid || '',
-        name: otherUser?.name || 'Unknown',
-        lastMessage: conv.lastMessage?.text || 'Start a conversation',
-        timestamp,
-        unread: false, // TODO: implement unread logic
-        image: otherUser?.image || 'https://via.placeholder.com/150',
-        online: false, // TODO: implement online status
-      };
-    });
-  }, [conversations, currentUser]);
+        return {
+          id: conv.id,
+          userId: otherUserId || '',
+          netid: otherUser?.netid || '',
+          name: otherUser?.name || 'Unknown',
+          lastMessage: conv.lastMessage?.text || 'Start a conversation',
+          timestamp,
+          unread: false, // TODO: implement unread logic
+          image: otherUser?.image || 'https://via.placeholder.com/150',
+          online: false, // TODO: implement online status
+        };
+      })
+      .filter((chat) => {
+        // Filter out blocked users' chats
+        return !blockedUsers.has(chat.netid);
+      });
+  }, [conversations, currentUser, blockedUsers]);
 
   const displayData = chatData;
 
