@@ -134,16 +134,10 @@ export default function ChatScreen() {
           name: otherUser?.name || 'Unknown',
           lastMessage: conv.lastMessage?.text || 'Start a conversation',
           timestamp,
-          unread: false, // TODO: implement unread logic
           image: otherUser?.image || 'https://via.placeholder.com/150',
-          online: false, // TODO: implement online status
         };
-      })
-      .filter((chat) => {
-        // Filter out blocked users' chats
-        return !blockedUsers.has(chat.netid);
       });
-  }, [conversations, currentUser, blockedUsers]);
+  }, [conversations, currentUser]);
 
   const displayData = chatData;
 
