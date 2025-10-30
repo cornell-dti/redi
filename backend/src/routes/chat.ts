@@ -21,11 +21,28 @@ const getUserProfile = async (firebaseUid: string) => {
     }
 
     const userData = userSnapshot.docs[0].data();
+    const netid = userData.netid;
+
+    const profileSnapshot = await db
+      .collection('profiles')
+      .where('netid', '==', netid)
+      .get();
+
+    if (profileSnapshot.empty) {
+      return {
+        firebaseUid,
+        netid,
+        name: netid,
+        image: null,
+      };
+    }
+
+    const profileData = profileSnapshot.docs[0].data();
     return {
       firebaseUid,
-      netid: userData.netid,
-      name: userData.name || userData.netid,
-      image: userData.profileImages?.[0] || null,
+      netid,
+      name: profileData.firstName || netid,
+      image: profileData.pictures?.[0] || null,
     };
   } catch (error) {
     console.error('Error getting user profile:', error);
