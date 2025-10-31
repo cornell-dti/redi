@@ -202,5 +202,6 @@ const styles = StyleSheet.create({
   },
   content: {
     marginTop: 24,
+    flex: 1,
   },
 });

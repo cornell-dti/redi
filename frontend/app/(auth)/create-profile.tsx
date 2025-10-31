@@ -318,10 +318,10 @@ export default function CreateProfileScreen() {
       case 2:
         return (
           <View style={styles.stepContainer}>
-            <OnboardingTitle title="To start, let's learn more about you" />
+            <OnboardingTitle title="To start, let's learn more about you!" />
             <AppInput
               label="Your first name"
-              placeholder="First name"
+              placeholder="Ezra"
               value={data.firstName}
               onChangeText={(text) => updateField('firstName', text)}
               required
@@ -331,6 +331,7 @@ export default function CreateProfileScreen() {
               placeholder="MM/DD/YYYY"
               value={data.birthdate}
               onChangeText={(text) => updateField('birthdate', text)}
+              dateFormat
               required
             />
           </View>
@@ -587,7 +588,6 @@ export default function CreateProfileScreen() {
         return (
           <View style={styles.stepContainer}>
             <OnboardingTitle title="Choose 3-6 photos for your profile" />
-            {/* TODO: this is currently crashing every time I try to test on the app */}
             <PhotoUploadGrid
               photos={data.pictures}
               onPhotosChange={(photos) => updateField('pictures', photos)}

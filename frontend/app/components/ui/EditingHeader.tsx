@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Check, ChevronLeft } from 'lucide-react-native';
+import { ArrowLeft, Check } from 'lucide-react-native';
 import React from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
@@ -44,7 +44,7 @@ export default function EditingHeader({
           onPress={handleBack}
           disabled={isSaving}
           variant="secondary"
-          icon={ChevronLeft}
+          icon={ArrowLeft}
         />
 
         <AppText variant="subtitle" style={styles.title}>

@@ -159,10 +159,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   list: {
-    flex: 1,
+    marginBottom: 16,
   },
   scrollView: {
-    flex: 1,
+    marginTop: 16,
+    maxHeight: '100%',
   },
   emptyContainer: {
     padding: 32,

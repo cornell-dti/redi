@@ -7,11 +7,11 @@ import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
 import { ReportReason } from '@/types/report';
-import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import {
+  ArrowLeft,
   Ban,
   Check,
-  ChevronLeft,
   FlagIcon,
   MoreVertical,
   Send,
@@ -236,7 +236,7 @@ export default function ChatDetailScreen() {
         <IconButton
           onPress={() => router.replace('/chat' as any)}
           variant="secondary"
-          icon={ChevronLeft}
+          icon={ArrowLeft}
         />
 
         <AppText variant="subtitle">{name}</AppText>
@@ -319,8 +319,8 @@ export default function ChatDetailScreen() {
         {sheetView === 'report' && (
           <View style={styles.sheetContent}>
             <AppText>
-              Help us understand what&apos;s wrong with this user. Your report is
-              anonymous.
+              Help us understand what&apos;s wrong with this user. Your report
+              is anonymous.
             </AppText>
 
             {/* Reason selector */}

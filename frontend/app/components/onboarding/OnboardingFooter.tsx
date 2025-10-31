@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { ChevronRightIcon } from 'lucide-react-native';
+import { ArrowRight } from 'lucide-react-native';
 import { AppColors } from '../AppColors';
 import AppText from '../ui/AppText';
 import Button from '../ui/Button';
@@ -45,7 +45,7 @@ export default function OnboardingFooter({
       )}
       <Button
         title={nextLabel}
-        iconRight={ChevronRightIcon}
+        iconRight={ArrowRight}
         onPress={onNext}
         variant="primary"
         fullWidth

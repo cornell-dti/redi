@@ -16,6 +16,7 @@ interface AppInputProps extends TextInputProps {
   noRound?: boolean;
   variant?: 'gray' | 'white';
   fullRound?: boolean;
+  dateFormat?: boolean; // Automatically format as MM/DD/YYYY
 }
 
 const AppInput: React.FC<AppInputProps> = ({
@@ -26,9 +27,34 @@ const AppInput: React.FC<AppInputProps> = ({
   style,
   variant,
   fullRound,
+  dateFormat,
   ...props
 }) => {
   const borderColorAnim = useRef(new Animated.Value(0)).current;
+
+  // Format date input as MM/DD/YYYY
+  const formatDateInput = (text: string): string => {
+    // Remove all non-numeric characters
+    const cleaned = text.replace(/\D/g, '');
+
+    // Add slashes at appropriate positions
+    let formatted = cleaned;
+    if (cleaned.length >= 2) {
+      formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+    }
+    if (cleaned.length >= 4) {
+      formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4) + '/' + cleaned.slice(4, 8);
+    }
+
+    return formatted;
+  };
+
+  const handleDateChange = (text: string) => {
+    if (dateFormat && props.onChangeText) {
+      const formatted = formatDateInput(text);
+      props.onChangeText(formatted);
+    }
+  };
 
   const borderColor = borderColorAnim.interpolate({
     inputRange: [0, 1],
@@ -80,6 +106,9 @@ const AppInput: React.FC<AppInputProps> = ({
           onFocus={handleFocus}
           onBlur={handleBlur}
           {...props}
+          keyboardType={dateFormat ? 'number-pad' : props.keyboardType}
+          maxLength={dateFormat ? 10 : props.maxLength}
+          onChangeText={dateFormat ? handleDateChange : props.onChangeText}
         />
       </Animated.View>
       {error && (

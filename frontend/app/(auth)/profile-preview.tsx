@@ -6,7 +6,7 @@ import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import { ProfileResponse } from '@/types';
 import { router } from 'expo-router';
-import { ChevronLeft, PencilIcon } from 'lucide-react-native';
+import { ArrowLeft, PencilIcon } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -97,7 +97,7 @@ export default function ProfilePreviewScreen() {
         <View style={styles.header}>
           <Button
             title="Exit preview"
-            iconLeft={ChevronLeft}
+            iconLeft={ArrowLeft}
             onPress={() => router.back()}
             variant="secondary"
           />
