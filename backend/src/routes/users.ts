@@ -1,14 +1,13 @@
-import express from 'express';
+import express, { Response } from 'express';
 import { FieldValue } from 'firebase-admin/firestore';
 import { db } from '../../firebaseAdmin';
 import { FirestoreDoc, UserDoc, UserDocWrite, UserResponse } from '../../types';
-import { authenticateUser, AuthenticatedRequest } from '../middleware/auth';
 import { requireAdmin } from '../middleware/adminAuth';
+import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import {
-  authenticationRateLimit,
-  publicRateLimit,
+  authenticationRateLimit
 } from '../middleware/rateLimiting';
-import { validateUserCreation, validate } from '../middleware/validation';
+import { validate, validateUserCreation } from '../middleware/validation';
 
 const router = express.Router();
 
@@ -34,7 +33,7 @@ const userDocToResponse = (doc: FirestoreDoc<UserDoc>): UserResponse => ({
 });
 
 // GET all users (admin-only endpoint)
-router.get('/api/users', requireAdmin, async (req, res) => {
+router.get('/api/users', requireAdmin, async (_req, res) => {
   try {
     const snapshot = await db.collection('users').get();
     const users: UserResponse[] = snapshot.docs.map((doc) =>
@@ -107,7 +106,7 @@ router.post(
   authenticateUser,
   validateUserCreation,
   validate,
-  async (req: AuthenticatedRequest, res) => {
+  async (req: AuthenticatedRequest, res: Response) => {
     try {
       console.log('Creating user from auth:', req.body);
 
@@ -169,7 +168,7 @@ router.post(
       res.status(500).json({ error: 'Failed to create user' });
     }
   }
-) as any;
+);
 
 // POST login with Firebase verification
 router.post(

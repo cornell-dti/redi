@@ -1,7 +1,14 @@
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import * as AuthSession from 'expo-auth-session';
-import { FirebaseError } from 'firebase/app';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Linking from 'expo-linking';
 import { createUserInBackend, loginUserInBackend } from './userApi';
+import { WEB_APP_URL } from '../config';
+
+// Type for Firebase errors (compatible with both Web and RN Firebase)
+interface FirebaseError extends Error {
+  code: string;
+}
 
 export const validateCornellEmail = (email: string): boolean => {
   const cornellEmailRegex = /^[a-zA-Z0-9]+@cornell\.edu$/;
@@ -213,3 +220,138 @@ export const onAuthStateChanged = (
 ) => {
   return auth().onAuthStateChanged(callback);
 };
+
+// ============================================
+// PASSWORDLESS EMAIL LINK AUTHENTICATION
+// ============================================
+
+const EMAIL_FOR_SIGN_IN_KEY = '@emailForSignIn';
+
+/**
+ * Sends a passwordless sign-in link to the user's email
+ * @param email - Cornell email address
+ * @throws Error if sending the link fails
+ */
+export const sendPasswordlessSignInLink = async (
+  email: string
+): Promise<void> => {
+  // Validate Cornell email before proceeding
+  if (!validateCornellEmail(email)) {
+    throw new Error('Please use your Cornell email address (@cornell.edu)');
+  }
+
+  try {
+    // Configure the email link action settings
+    const actionCodeSettings = {
+      // URL must be a valid HTTPS URL (or localhost for dev)
+      url: `${WEB_APP_URL}/auth-redirect?email=${encodeURIComponent(email)}`,
+      handleCodeInApp: true,
+      iOS: {
+        bundleId: 'com.incubator.redi',
+      },
+      android: {
+        packageName: 'com.incubator.redi',
+        installApp: false,
+      },
+    };
+
+    // Send the sign-in link using React Native Firebase
+    await auth().sendSignInLinkToEmail(email, actionCodeSettings);
+
+    // Save the email locally to complete sign-in later
+    await AsyncStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, email);
+  } catch (error) {
+    const err = error as FirebaseError;
+
+    // Handle specific Firebase errors
+    if (err.code === 'auth/invalid-email') {
+      throw new Error('Please enter a valid email address.');
+    } else if (err.code === 'auth/missing-android-pkg-name') {
+      throw new Error('Configuration error. Please contact support.');
+    } else if (err.code === 'auth/missing-continue-uri') {
+      throw new Error('Configuration error. Please contact support.');
+    } else {
+      throw new Error(err.message || 'Failed to send sign-in link. Please try again.');
+    }
+  }
+};
+
+/**
+ * Completes the passwordless sign-in flow using the email link
+ * @param emailLink - The email link received by the user
+ * @param email - Optional email (if not provided, retrieves from storage)
+ * @throws Error if sign-in fails
+ */
+export const signInWithEmailLink = async (
+  emailLink: string,
+  email?: string
+): Promise<void> => {
+  try {
+    // Check if the link is a valid sign-in link using React Native Firebase
+    const isEmailLink = await auth().isSignInWithEmailLink(emailLink);
+    if (!isEmailLink) {
+      throw new Error('Invalid sign-in link.');
+    }
+
+    // Get email from parameter or storage
+    let emailForSignIn = email;
+    if (!emailForSignIn) {
+      const storedEmail = await AsyncStorage.getItem(EMAIL_FOR_SIGN_IN_KEY);
+      emailForSignIn = storedEmail || undefined;
+    }
+
+    if (!emailForSignIn) {
+      throw new Error(
+        'Please provide your email to complete sign-in.'
+      );
+    }
+
+    // Validate Cornell email
+    if (!validateCornellEmail(emailForSignIn)) {
+      throw new Error('Please use your Cornell email address (@cornell.edu)');
+    }
+
+    // Sign in with the email link using React Native Firebase
+    const userCredential = await auth().signInWithEmailLink(
+      emailForSignIn,
+      emailLink
+    );
+    const firebaseUser = userCredential.user;
+
+    if (firebaseUser && firebaseUser.email) {
+      // Clear the stored email
+      await AsyncStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY);
+
+      // Try to login first, if user doesn't exist, create them
+      try {
+        await loginUserInBackend(firebaseUser.email);
+      } catch (loginError) {
+        // If login fails, try to create the user
+        try {
+          await createUserInBackend(firebaseUser.email);
+        } catch (createError) {
+          console.error('Failed to create user:', createError);
+          await auth().signOut();
+          throw new Error('Failed to create user account. Please try again.');
+        }
+      }
+    }
+  } catch (error) {
+    // If it's already our custom error, don't wrap it
+    if (error instanceof Error) {
+      throw error;
+    }
+
+    const err = error as FirebaseError;
+
+    // Handle specific Firebase errors
+    if (err.code === 'auth/invalid-action-code') {
+      throw new Error('This sign-in link has expired or already been used.');
+    } else if (err.code === 'auth/invalid-email') {
+      throw new Error('Please enter a valid email address.');
+    } else {
+      throw new Error(err.message || 'Sign-in failed. Please try again.');
+    }
+  }
+};
+

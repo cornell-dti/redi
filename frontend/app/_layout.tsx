@@ -1,14 +1,16 @@
 // _layout.tsx
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import auth from '@react-native-firebase/auth';
+import * as Linking from 'expo-linking';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, View, Alert } from 'react-native';
-import { onAuthStateChanged } from './api/authService';
-import { getCurrentUserProfile } from './api/profileApi';
+import { ActivityIndicator, Alert, View } from 'react-native';
 import { APIError } from './api/apiClient';
+import { onAuthStateChanged, signInWithEmailLink } from './api/authService';
+import { getCurrentUserProfile } from './api/profileApi';
+import { WEB_APP_URL } from './config';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
  * Token Refresh Configuration
@@ -45,6 +47,62 @@ function RootNavigator() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(handleAuthStateChanged);
     return unsubscribe;
+  }, []);
+
+  // Handle passwordless email link sign-in
+  useEffect(() => {
+    const handleDeepLink = async (event: { url: string }) => {
+      const url = event.url;
+      console.log('Deep link received:', url);
+
+      // Parse the URL to check if it contains Firebase auth parameters to create an account.
+      const parsedUrl = Linking.parse(url);
+      const { apiKey, oobCode, mode, email } = parsedUrl.queryParams || {};
+
+      if (apiKey && oobCode) {
+        try {
+          console.log('Processing passwordless sign-in from deep link...');
+
+          const params = new URLSearchParams({
+            apiKey: apiKey as string,
+            oobCode: oobCode as string,
+            mode: (mode as string) || 'signIn',
+          });
+
+          if (email) {
+            params.append('email', email as string);
+          }
+
+          const firebaseEmailLink = `${WEB_APP_URL}/auth-redirect?${params.toString()}`;
+          console.log('Reconstructed Firebase email link');
+
+          await signInWithEmailLink(firebaseEmailLink, email as string | undefined);
+          Alert.alert(
+            'Success',
+            'You have been signed in successfully!',
+            [{ text: 'OK' }]
+          );
+        } catch (error) {
+          console.error('Passwordless sign-in error:', error);
+          Alert.alert(
+            'Sign In Failed',
+            error instanceof Error ? error.message : 'Failed to sign in with email link'
+          );
+        }
+      }
+    };
+
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        handleDeepLink({ url });
+      }
+    });
+
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   // Automatic token refresh to maintain authentication
