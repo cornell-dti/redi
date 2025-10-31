@@ -131,7 +131,7 @@ export default function ChatScreen() {
           id: conv.id,
           userId: otherUserId || '',
           netid: otherUser?.netid || '',
-          name: otherUser?.name || 'Unknown',
+          name: otherUser?.deleted ? 'Deleted User' : (otherUser?.name || 'Unknown'),
           lastMessage: conv.lastMessage?.text || 'Start a conversation',
           timestamp,
           image: otherUser?.image || 'https://via.placeholder.com/150',

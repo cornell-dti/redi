@@ -24,6 +24,7 @@ export interface Conversation {
       name: string;
       image: string | null;
       netid: string;
+      deleted?: boolean;
     };
   };
   lastMessage: {
