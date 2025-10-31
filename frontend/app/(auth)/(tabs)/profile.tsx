@@ -175,7 +175,7 @@ export default function ProfileScreen() {
           <ListItemWrapper>
             <ListItem
               onPress={() => router.push('/preferences' as any)}
-              title="Dating preferences"
+              title="Dating Preferences"
               right={<ChevronRight size={20} />}
               left={<Heart size={20} />}
             />
@@ -189,7 +189,7 @@ export default function ProfileScreen() {
 
             <ListItem
               onPress={() => router.push('/account-settings' as any)}
-              title="Account settings"
+              title="Account Settings"
               right={<ChevronRight size={20} />}
               left={<SettingsIcon size={20} />}
             />
@@ -219,14 +219,14 @@ export default function ProfileScreen() {
 
             <ListItem
               onPress={() => {}}
-              title="Leave a rating"
+              title="Leave a Rating"
               right={<ExternalLink size={20} />}
               left={<StarIcon size={20} />}
             />
 
             <ListItem
               onPress={() => router.push('/contact' as any)}
-              title="Contact the team"
+              title="Contact the Team"
               right={<ChevronRight size={20} />}
               left={<MailIcon size={20} />}
             />
