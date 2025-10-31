@@ -627,12 +627,14 @@ export default function CreateProfileScreen() {
                   prompt={prompt}
                   onUpdate={(updated) => updatePrompt(prompt.id, updated)}
                   onRemove={() => removePrompt(prompt.id)}
-                  canRemove={data.prompts.length > 1}
+                  canRemove={true}
                 />
               ))}
               {data.prompts.length < 3 && (
                 <Button
-                  title="Add another prompt"
+                  title={
+                    data.prompts.length === 0 ? 'Select prompt' : 'Add prompt'
+                  }
                   onPress={addPrompt}
                   variant="secondary"
                   fullWidth
