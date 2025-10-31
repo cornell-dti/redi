@@ -107,7 +107,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
           <Icon size={24} color={AppColors.foregroundDimmer} />
         </Animated.View>
       </View>
-      <AppText variant="body" color="dimmer" centered>
+      <AppText variant="body" color="dimmer" centered style={styles.label}>
         {label}
       </AppText>
       {children && children}
@@ -128,6 +128,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  label: { maxWidth: 300 },
 });
 
 export default EmptyState;

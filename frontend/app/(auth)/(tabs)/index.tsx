@@ -9,11 +9,11 @@ import {
   submitPromptAnswer,
 } from '@/app/api/promptsApi';
 import { AppColors } from '@/app/components/AppColors';
-import ProfileViewSkeleton from '@/app/components/profile/ProfileViewSkeleton';
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import CountdownTimer from '@/app/components/ui/CountdownTimer';
+import EmptyState from '@/app/components/ui/EmptyState';
 import Sheet from '@/app/components/ui/Sheet';
 import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
@@ -31,8 +31,9 @@ import {
   WeeklyPromptAnswerResponse,
   WeeklyPromptResponse,
 } from '@/types';
+import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { Eye } from 'lucide-react-native';
+import { Eye, Heart } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -87,7 +88,6 @@ export default function MatchesScreen() {
     }, 60000);
 
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
   const loadData = useCallback(async () => {
@@ -268,24 +268,18 @@ export default function MatchesScreen() {
     }
   };
 
+  const [animationTrigger, setAnimationTrigger] = useState(0);
+
+  // Trigger animation every time screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      setAnimationTrigger((prev) => prev + 1);
+    }, [])
+  );
+
   const renderCountdownPeriod = () => (
     <>
       <CountdownTimer targetDate={getNextFridayMidnight()} />
-
-      {activePrompt && (
-        <View style={styles.promptSection}>
-          <Button
-            title="Show this week's prompt"
-            onPress={() => {
-              setTempAnswer(userAnswer);
-              setShowPromptSheet(true);
-            }}
-            variant="secondary"
-            iconLeft={Eye}
-            fullWidth
-          />
-        </View>
-      )}
     </>
   );
 
@@ -304,16 +298,23 @@ export default function MatchesScreen() {
   const renderCurrentMatch = () => {
     if (currentMatches.length === 0) {
       return (
-        <View style={styles.skeletonWrapper}>
-          <AppText
-            color="dimmer"
-            centered
-            style={{ maxWidth: 300, alignSelf: 'center' }}
-          >
-            No matches available yet. Check back after submitting your answer!
-          </AppText>
-          <ProfileViewSkeleton />
-        </View>
+        <EmptyState
+          icon={Heart}
+          label="No matches available yet. Check back after submitting your answer!"
+          triggerAnimation={animationTrigger}
+        >
+          {activePrompt && (
+            <Button
+              title="Show this week's prompt"
+              onPress={() => {
+                setTempAnswer(userAnswer);
+                setShowPromptSheet(true);
+              }}
+              variant="secondary"
+              iconLeft={Eye}
+            />
+          )}
+        </EmptyState>
       );
     }
 
