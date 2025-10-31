@@ -56,6 +56,7 @@ interface MatchWithProfile {
 
 export default function MatchesScreen() {
   useThemeAware();
+
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [showCountdown, setShowCountdown] = useState(isCountdownPeriod());
