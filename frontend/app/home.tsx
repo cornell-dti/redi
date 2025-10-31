@@ -247,7 +247,7 @@ export default function HomePage() {
         height="auto"
       >
         <AppText variant="body" style={styles.sheetText}>
-          We require a Cornell email address to ensure that Redi is exclusively
+          We require a Cornell email address to ensure that redi is exclusively
           for the Cornell community. This helps create a safe and trusted
           environment where you can connect with fellow Cornellians.
         </AppText>

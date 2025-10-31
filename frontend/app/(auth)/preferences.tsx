@@ -356,7 +356,7 @@ export default function DatingPreferencesPage() {
         </View>
 
         {/* Interested In (Gender) */}
-        <View style={styles.section}>
+        <View style={[styles.section, { paddingBottom: 128 }]}>
           <AppText variant="subtitle" style={styles.sectionTitle}>
             Interested in
           </AppText>
