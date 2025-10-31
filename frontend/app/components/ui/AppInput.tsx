@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   label: {
-    marginLeft: 12,
+    marginLeft: 6,
   },
   inputWrapper: {
     borderWidth: 2,
