@@ -113,6 +113,33 @@ export default function ProfileScreen() {
       ? profile.pictures
       : mockFallbackData.images;
 
+  // Format member since date
+  const getMemberSinceText = (): string => {
+    const user = getCurrentUser();
+
+    // Try to use createdAt from profile first
+    if (profile && 'createdAt' in profile && profile.createdAt) {
+      const date = new Date(profile.createdAt);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+
+    // Fall back to Firebase user creation time
+    if (user?.metadata?.creationTime) {
+      const date = new Date(user.metadata.creationTime);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+
+    return 'Recently';
+  };
+
   // Show loading spinner while fetching
   if (loading) {
     return (
@@ -149,7 +176,7 @@ export default function ProfileScreen() {
           <View style={styles.nameContainer}>
             <AppText variant="title">{displayName}</AppText>
             <AppText variant="body" color="dimmer">
-              Member since XXX
+              Member since {getMemberSinceText()}
             </AppText>
           </View>
         </View>
