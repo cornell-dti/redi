@@ -208,11 +208,23 @@ export default function ChatDetailScreen() {
       <View
         style={[
           styles.messageBubble,
-          item.isOwn ? styles.ownMessageBubble : styles.otherMessageBubble,
+          item.isOwn
+            ? {
+                backgroundColor: AppColors.accentDefault,
+                borderBottomRightRadius: 6,
+              }
+            : {
+                backgroundColor: AppColors.backgroundDimmer,
+                borderBottomLeftRadius: 4,
+              },
         ]}
       >
         <Text
-          style={[item.isOwn ? styles.ownMessageText : styles.otherMessageText]}
+          style={[
+            item.isOwn
+              ? { color: AppColors.backgroundDefault }
+              : { color: AppColors.foregroundDefault },
+          ]}
         >
           {item.text}
         </Text>
@@ -549,20 +561,6 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     marginBottom: 4,
   },
-  ownMessageBubble: {
-    backgroundColor: AppColors.accentDefault,
-    borderBottomRightRadius: 6,
-  },
-  otherMessageBubble: {
-    backgroundColor: AppColors.backgroundDimmer,
-    borderBottomLeftRadius: 4,
-  },
-  ownMessageText: {
-    color: AppColors.backgroundDefault,
-  },
-  otherMessageText: {
-    color: AppColors.foregroundDefault,
-  },
   messageTime: {
     fontSize: 11,
     marginHorizontal: 8,
@@ -581,7 +579,8 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 64,
+    marginBottom: 24,
     flex: 1,
     gap: 8,
   },
@@ -591,6 +590,7 @@ const styles = StyleSheet.create({
   },
   messageInput: {
     height: 48,
+    paddingTop: 14,
     borderRadius: 24,
   },
   sendButton: {

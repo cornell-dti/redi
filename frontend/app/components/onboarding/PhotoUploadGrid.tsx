@@ -133,8 +133,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   gridSlot: {
-    width: '48%',
-    height: 190,
+    width: '31.5%',
+    height: 120,
     aspectRatio: 1,
     borderRadius: 4,
     overflow: 'hidden',

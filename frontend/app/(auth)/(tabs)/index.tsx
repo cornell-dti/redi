@@ -33,7 +33,7 @@ import {
 } from '@/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { Eye, Heart } from 'lucide-react-native';
+import { Check, Eye, Heart } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -508,6 +508,7 @@ export default function MatchesScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
+          {/* TODO: REMOVE THIS DEBUGGING THING */}
           {/* {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()} */}
           {renderCountdownPeriod()}
           {renderWeekendPeriod()}
@@ -543,6 +544,7 @@ export default function MatchesScreen() {
               onPress={handleSubmitAnswer}
               variant="primary"
               fullWidth
+              iconLeft={Check}
               disabled={!tempAnswer.trim()}
             />
           </View>

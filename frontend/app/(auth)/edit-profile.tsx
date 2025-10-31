@@ -1,10 +1,5 @@
 import AppText from '@/app/components/ui/AppText';
-import {
-  ProfileResponse,
-  PromptData,
-  OwnProfileResponse,
-  getProfileAge,
-} from '@/types';
+import { ProfileResponse, PromptData, getProfileAge } from '@/types';
 import { router, useFocusEffect } from 'expo-router';
 import { Camera, ChevronRight, Pencil, Plus } from 'lucide-react-native';
 import React, { useCallback, useState } from 'react';
@@ -226,22 +221,53 @@ export default function EditProfileScreen() {
           <AppText variant="subtitle" style={styles.subtitle}>
             My photos
           </AppText>
-          <View style={styles.imageGrid}>
-            {displayImages.map((image: string, index: number) => (
-              <TouchableOpacity key={index} style={styles.imageContainer}>
-                <Image source={{ uri: image }} style={styles.image} />
-                {index === 0 && (
-                  <View style={styles.badge}>
-                    <AppText style={styles.badgeText}>Main</AppText>
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
-            {displayImages.length < 5 && (
-              <TouchableOpacity style={styles.addImage}>
-                <Camera size={32} color={AppColors.foregroundDimmer} />
-              </TouchableOpacity>
-            )}
+          <View style={styles.photoGrid}>
+            {Array.from({ length: 6 }, (_, slotIndex) => {
+              if (slotIndex < displayImages.length) {
+                // Show existing photo
+                return (
+                  <TouchableOpacity
+                    key={slotIndex}
+                    style={styles.photoSlot}
+                    onPress={() => {
+                      // TODO: Add photo edit/reorder functionality
+                      Alert.alert('Edit Photo', 'Photo editing coming soon!');
+                    }}
+                  >
+                    <Image
+                      source={{ uri: displayImages[slotIndex] }}
+                      style={styles.photoImage}
+                    />
+                    {slotIndex === 0 && (
+                      <Tag
+                        label="Main"
+                        style={styles.mainBadge}
+                        variant="accent"
+                      />
+                    )}
+                  </TouchableOpacity>
+                );
+              } else if (displayImages.length < 6) {
+                // Show "Add more" button for all empty slots
+                return (
+                  <TouchableOpacity
+                    key={slotIndex}
+                    style={[styles.photoSlot, styles.addPhotoButton]}
+                    onPress={() => {
+                      // TODO: Add photo upload functionality
+                      Alert.alert('Add Photo', 'Photo upload coming soon!');
+                    }}
+                  >
+                    <Camera size={32} color={AppColors.foregroundDimmer} />
+                    <AppText variant="bodySmall" style={styles.addPhotoText}>
+                      {displayImages.length === 0 ? 'Add photo' : 'Add more'}
+                    </AppText>
+                  </TouchableOpacity>
+                );
+              }
+              // This case won't happen since we return early if displayImages.length < 6
+              return null;
+            })}
           </View>
         </View>
 
@@ -498,44 +524,48 @@ const styles = StyleSheet.create({
   promptAnswer: {
     color: AppColors.foregroundDimmer,
   },
-  imageGrid: {
+  photoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 4,
     borderRadius: 24,
     overflow: 'hidden',
   },
-  imageContainer: {
+  photoSlot: {
+    width: '31.5%',
+    height: 120,
+    aspectRatio: 1,
+    borderRadius: 4,
+    overflow: 'hidden',
     position: 'relative',
-    width: '31%',
-    aspectRatio: 0.75,
   },
-  image: {
+  photoImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 4,
+    resizeMode: 'cover',
   },
-  badge: {
+  mainBadge: {
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: AppColors.accentDefault,
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
   },
-  badgeText: {
+  mainBadgeText: {
     color: AppColors.backgroundDefault,
     fontSize: 10,
     fontWeight: '600',
   },
-  addImage: {
-    width: '31%',
-    aspectRatio: 0.75,
-    borderRadius: 12,
+  addPhotoButton: {
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: AppColors.backgroundDimmest,
     backgroundColor: AppColors.backgroundDimmer,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 8,
+  },
+  addPhotoText: {
+    color: AppColors.foregroundDimmer,
+    textAlign: 'center',
   },
   tagsContainer: {
     display: 'flex',
