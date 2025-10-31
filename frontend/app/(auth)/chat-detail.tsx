@@ -29,15 +29,15 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getCurrentUser } from '../../api/authService';
-import { blockUser, getBlockedUsers, unblockUser } from '../../api/blockingApi';
+import { getCurrentUser } from '../api/authService';
+import { blockUser, getBlockedUsers, unblockUser } from '../api/blockingApi';
 import {
   createOrGetConversation,
   sendMessage as sendMessageAPI,
-} from '../../api/chatApi';
-import { createReport } from '../../api/reportsApi';
-import { AppColors } from '../../components/AppColors';
-import { useMessages } from '../../hooks/useMessages';
+} from '../api/chatApi';
+import { createReport } from '../api/reportsApi';
+import { AppColors } from '../components/AppColors';
+import { useMessages } from '../hooks/useMessages';
 
 // Mock chat messages
 const mockMessages = [
@@ -245,7 +245,7 @@ export default function ChatDetailScreen() {
 
       <View style={styles.header}>
         <IconButton
-          onPress={() => router.replace('/chat' as any)}
+          onPress={() => router.back()}
           variant="secondary"
           icon={ArrowLeft}
         />
@@ -464,7 +464,7 @@ export default function ChatDetailScreen() {
                           text: 'OK',
                           onPress: () => {
                             // Navigate back to chat list after blocking
-                            router.replace('/chat' as any);
+                            router.back();
                           },
                         },
                       ]);
