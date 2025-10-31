@@ -1,6 +1,7 @@
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
+import { MessageCircle } from 'lucide-react-native';
 import React, { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +9,7 @@ import { getCurrentUser } from '../../api/authService';
 import { getBlockedUsers } from '../../api/blockingApi';
 import { AppColors } from '../../components/AppColors';
 import ChatItem from '../../components/ui/ChatItem';
+import EmptyState from '../../components/ui/EmptyState';
 import Header from '../../components/ui/Header';
 import { useThemeAware } from '../../contexts/ThemeContext';
 import { useConversations } from '../../hooks/useConversations';
@@ -69,6 +71,7 @@ export default function ChatScreen() {
   const { conversations, loading, error } = useConversations();
   const currentUser = getCurrentUser();
   const [blockedUsers, setBlockedUsers] = useState<Set<string>>(new Set());
+  const [animationTrigger, setAnimationTrigger] = useState(0);
 
   // Fetch blocked users list when screen is focused
   useFocusEffect(
@@ -86,6 +89,8 @@ export default function ChatScreen() {
       };
 
       fetchBlockedUsers();
+      // Trigger animation every time screen is focused
+      setAnimationTrigger((prev) => prev + 1);
     }, [currentUser])
   );
 
@@ -165,21 +170,29 @@ export default function ChatScreen() {
       <Header title="Messages" />
 
       <View style={styles.chats}>
-        <ListItemWrapper>
-          {displayData.map((item) => (
-            <ChatItem
-              key={item.id}
-              name={item.name}
-              lastMessage={item.lastMessage}
-              image={item.image}
-              onPress={() =>
-                router.push(
-                  `/chat-detail?conversationId=${item.id}&userId=${item.userId}&name=${item.name}&netid=${item.netid}`
-                )
-              }
-            />
-          ))}
-        </ListItemWrapper>
+        {displayData.length === 0 ? (
+          <EmptyState
+            icon={MessageCircle}
+            label="No conversations yet"
+            triggerAnimation={animationTrigger}
+          />
+        ) : (
+          <ListItemWrapper>
+            {displayData.map((item) => (
+              <ChatItem
+                key={item.id}
+                name={item.name}
+                lastMessage={item.lastMessage}
+                image={item.image}
+                onPress={() =>
+                  router.push(
+                    `/chat-detail?conversationId=${item.id}&userId=${item.userId}&name=${item.name}&netid=${item.netid}`
+                  )
+                }
+              />
+            ))}
+          </ListItemWrapper>
+        )}
       </View>
     </SafeAreaView>
   );
