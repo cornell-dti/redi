@@ -38,6 +38,7 @@ export interface FirestoreConversation {
       name: string;
       image: string | null;
       netid: string;
+      deleted?: boolean;
     };
   };
   lastMessage: {
