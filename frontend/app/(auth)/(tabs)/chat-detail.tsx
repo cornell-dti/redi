@@ -17,7 +17,7 @@ import {
   Send,
   User2,
 } from 'lucide-react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -502,7 +502,12 @@ export default function ChatDetailScreen() {
         style={styles.inputContainer}
       >
         <View style={styles.inputRow}>
-          <View style={styles.textInputContainer}>
+          <View
+            style={[
+              styles.textInputContainer,
+              !newMessage.trim() && { flex: 1 },
+            ]}
+          >
             <AppInput
               value={newMessage}
               onChangeText={setNewMessage}
@@ -514,12 +519,15 @@ export default function ChatDetailScreen() {
               onSubmitEditing={sendMessage}
             />
           </View>
-          <IconButton
-            onPress={sendMessage}
-            disabled={!newMessage.trim() || sending}
-            icon={Send}
-            style={styles.sendButton}
-          />
+
+          {!!newMessage.trim() && (
+            <IconButton
+              onPress={sendMessage}
+              disabled={sending}
+              icon={Send}
+              style={styles.sendButton}
+            />
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
