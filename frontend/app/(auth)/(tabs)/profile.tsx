@@ -288,6 +288,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 24,
+    paddingBottom: 64,
   },
   profileTop: {
     display: 'flex',
