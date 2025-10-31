@@ -70,7 +70,7 @@ export default function PromptSelector({
             onChangeText={handleAnswerChange}
             multiline
             numberOfLines={3}
-            maxLength={150}
+            maxLength={120}
             noRound
             style={styles.answerInput}
           />

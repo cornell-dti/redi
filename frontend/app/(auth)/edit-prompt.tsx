@@ -212,7 +212,7 @@ export default function EditPromptPage() {
               onChangeText={setAnswer}
               multiline
               numberOfLines={4}
-              maxLength={150}
+              maxLength={120}
               style={{ height: 100 }}
             />
           </View>

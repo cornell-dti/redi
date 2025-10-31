@@ -123,7 +123,7 @@ export default function ProfileScreen() {
       return date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
-        year: 'numeric'
+        year: 'numeric',
       });
     }
 
@@ -133,7 +133,7 @@ export default function ProfileScreen() {
       return date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
-        year: 'numeric'
+        year: 'numeric',
       });
     }
 
