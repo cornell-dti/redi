@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Ban,
   Check,
+  ChevronRight,
   FlagIcon,
   MoreVertical,
   Send,
@@ -212,47 +213,182 @@ export default function ChatDetailScreen() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const renderMessage = ({ item }: { item: Message }) => (
-    <View
-      style={[
-        styles.messageContainer,
-        item.isOwn ? styles.ownMessageContainer : styles.otherMessageContainer,
-      ]}
-    >
+  // Helper function to determine if we should show timestamp
+  const shouldShowTimestamp = (
+    currentMessage: Message,
+    nextMessage: Message | null
+  ) => {
+    if (!nextMessage) return true; // Always show on last message in group
+
+    // Show timestamp if next message is from different sender
+    if (currentMessage.isOwn !== nextMessage.isOwn) return true;
+
+    // Show timestamp if messages are more than 5 minutes apart
+    const timeDiff = Math.abs(
+      nextMessage.timestamp.getTime() - currentMessage.timestamp.getTime()
+    );
+    const fiveMinutes = 5 * 60 * 1000;
+    if (timeDiff > fiveMinutes) return true;
+
+    return false; // Same sender and within 5 minutes - don't show
+  };
+
+  // Helper function to determine message position in group
+  const getMessagePosition = (
+    currentMessage: Message,
+    prevMessage: Message | null,
+    nextMessage: Message | null
+  ): 'single' | 'first' | 'middle' | 'last' => {
+    const isGroupedWithPrev =
+      prevMessage &&
+      prevMessage.isOwn === currentMessage.isOwn &&
+      Math.abs(
+        currentMessage.timestamp.getTime() - prevMessage.timestamp.getTime()
+      ) <=
+        5 * 60 * 1000;
+
+    const isGroupedWithNext =
+      nextMessage &&
+      nextMessage.isOwn === currentMessage.isOwn &&
+      Math.abs(
+        nextMessage.timestamp.getTime() - currentMessage.timestamp.getTime()
+      ) <=
+        5 * 60 * 1000;
+
+    if (!isGroupedWithPrev && !isGroupedWithNext) return 'single';
+    if (!isGroupedWithPrev && isGroupedWithNext) return 'first';
+    if (isGroupedWithPrev && isGroupedWithNext) return 'middle';
+    return 'last'; // isGroupedWithPrev && !isGroupedWithNext
+  };
+
+  const getBubbleStyle = (isOwn: boolean, position: string) => {
+    const baseRadius = 24;
+    const tightRadius = 6;
+
+    if (isOwn) {
+      // Own messages (right side)
+      switch (position) {
+        case 'single':
+          return {
+            borderTopLeftRadius: baseRadius,
+            borderTopRightRadius: baseRadius,
+            borderBottomLeftRadius: baseRadius,
+            borderBottomRightRadius: tightRadius,
+          };
+        case 'first':
+          return {
+            borderTopLeftRadius: baseRadius,
+            borderTopRightRadius: baseRadius,
+            borderBottomLeftRadius: baseRadius,
+            borderBottomRightRadius: tightRadius,
+          };
+        case 'middle':
+          return {
+            borderTopLeftRadius: baseRadius,
+            borderTopRightRadius: tightRadius,
+            borderBottomLeftRadius: baseRadius,
+            borderBottomRightRadius: tightRadius,
+          };
+        case 'last':
+          return {
+            borderTopLeftRadius: baseRadius,
+            borderTopRightRadius: tightRadius,
+            borderBottomLeftRadius: baseRadius,
+            borderBottomRightRadius: baseRadius,
+          };
+      }
+    } else {
+      // Other's messages (left side)
+      switch (position) {
+        case 'single':
+          return {
+            borderTopLeftRadius: baseRadius,
+            borderTopRightRadius: baseRadius,
+            borderBottomLeftRadius: tightRadius,
+            borderBottomRightRadius: baseRadius,
+          };
+        case 'first':
+          return {
+            borderTopLeftRadius: baseRadius,
+            borderTopRightRadius: baseRadius,
+            borderBottomLeftRadius: tightRadius,
+            borderBottomRightRadius: baseRadius,
+          };
+        case 'middle':
+          return {
+            borderTopLeftRadius: tightRadius,
+            borderTopRightRadius: baseRadius,
+            borderBottomLeftRadius: tightRadius,
+            borderBottomRightRadius: baseRadius,
+          };
+        case 'last':
+          return {
+            borderTopLeftRadius: tightRadius,
+            borderTopRightRadius: baseRadius,
+            borderBottomLeftRadius: baseRadius,
+            borderBottomRightRadius: baseRadius,
+          };
+      }
+    }
+  };
+
+  const renderMessage = ({ item, index }: { item: Message; index: number }) => {
+    const messages =
+      displayMessages.length > 0 ? displayMessages : mockMessages;
+    const prevMessage = index > 0 ? messages[index - 1] : null;
+    const nextMessage =
+      index < messages.length - 1 ? messages[index + 1] : null;
+    const showTimestamp = shouldShowTimestamp(item, nextMessage);
+    const position = getMessagePosition(item, prevMessage, nextMessage);
+    const bubbleStyle = getBubbleStyle(item.isOwn, position);
+
+    return (
       <View
         style={[
-          styles.messageBubble,
+          styles.messageContainer,
           item.isOwn
-            ? {
-                backgroundColor: AppColors.accentDefault,
-                borderBottomRightRadius: 6,
-              }
-            : {
-                backgroundColor: AppColors.backgroundDimmer,
-                borderBottomLeftRadius: 4,
-              },
+            ? styles.ownMessageContainer
+            : styles.otherMessageContainer,
+          // Add less margin for grouped messages
+          position === 'middle' || position === 'first'
+            ? { marginBottom: 0 }
+            : { marginBottom: 4 },
         ]}
       >
-        <AppText
+        <View
           style={[
-            item.isOwn
-              ? { color: AppColors.backgroundDefault }
-              : { color: AppColors.foregroundDefault },
+            styles.messageBubble,
+            {
+              backgroundColor: item.isOwn
+                ? AppColors.accentDefault
+                : AppColors.backgroundDimmer,
+            },
+            bubbleStyle,
           ]}
         >
-          {item.text}
-        </AppText>
+          <AppText
+            style={[
+              item.isOwn
+                ? { color: AppColors.backgroundDefault }
+                : { color: AppColors.foregroundDefault },
+            ]}
+          >
+            {item.text}
+          </AppText>
+        </View>
+        {showTimestamp && (
+          <AppText
+            style={[
+              styles.messageTime,
+              item.isOwn ? styles.ownMessageTime : styles.otherMessageTime,
+            ]}
+          >
+            {formatTime(item.timestamp)}
+          </AppText>
+        )}
       </View>
-      <AppText
-        style={[
-          styles.messageTime,
-          item.isOwn ? styles.ownMessageTime : styles.otherMessageTime,
-        ]}
-      >
-        {formatTime(item.timestamp)}
-      </AppText>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -318,7 +454,8 @@ export default function ChatDetailScreen() {
         {sheetView === 'menu' && (
           <ListItemWrapper>
             <ListItem
-              left={<User2 />}
+              left={<User2 size={20} />}
+              right={<ChevronRight size={20} />}
               title="View profile"
               onPress={() => {
                 setShowOptionsSheet(false);
@@ -327,14 +464,14 @@ export default function ChatDetailScreen() {
             />
 
             <ListItem
-              left={<FlagIcon color={AppColors.negativeDefault} />}
+              left={<FlagIcon color={AppColors.negativeDefault} size={20} />}
               title="Report"
               destructive
               onPress={() => setSheetView('report')}
             />
 
             <ListItem
-              left={<Ban color={AppColors.negativeDefault} />}
+              left={<Ban color={AppColors.negativeDefault} size={20} />}
               title="Block"
               destructive
               onPress={() => setSheetView('block')}
@@ -599,7 +736,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   messageContainer: {
-    marginVertical: 4,
+    marginTop: 4,
     maxWidth: '80%',
   },
   ownMessageContainer: {
@@ -614,7 +751,7 @@ const styles = StyleSheet.create({
     padding: 18,
     paddingVertical: 12,
     borderRadius: 24,
-    marginBottom: 4,
+    marginBottom: 0,
   },
   messageTime: {
     fontSize: 11,
