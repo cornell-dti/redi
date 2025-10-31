@@ -699,7 +699,6 @@ export default function ChatDetailScreen() {
         style={styles.inputContainer}
       >
         <View style={styles.inputRow}>
-          {/* <View style={styles.textInputContainer}> */}
           <AppInput
             value={newMessage}
             onChangeText={setNewMessage}
@@ -710,7 +709,6 @@ export default function ChatDetailScreen() {
             style={styles.messageInput}
             onSubmitEditing={sendMessage}
           />
-          {/* </View> */}
 
           <Animated.View
             style={[
