@@ -21,6 +21,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -129,7 +130,21 @@ export default function ChatDetailScreen() {
   const currentUser = getCurrentUser();
   const flatListRef = useRef<FlatList>(null);
 
+  // Animation for send button
+  const sendButtonAnim = useRef(new Animated.Value(0)).current;
+
   const { messages: firebaseMessages, loading } = useMessages(conversationId);
+
+  // Animate send button in/out based on message input
+  useEffect(() => {
+    const hasText = newMessage.trim().length > 0;
+    Animated.spring(sendButtonAnim, {
+      toValue: hasText ? 1 : 0,
+      useNativeDriver: true,
+      friction: 8,
+      tension: 60,
+    }).start();
+  }, [newMessage, sendButtonAnim]);
 
   // Create conversation if it doesn't exist
   useEffect(() => {
@@ -520,14 +535,45 @@ export default function ChatDetailScreen() {
             />
           </View>
 
-          {!!newMessage.trim() && (
+          <Animated.View
+            style={[
+              styles.sendButtonContainer,
+              {
+                transform: [
+                  {
+                    translateX: sendButtonAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [80, -62], // Slide in from right (80px off-screen)
+                    }),
+                  },
+                  {
+                    rotate: sendButtonAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['15deg', '0deg'], // Slight rotation
+                    }),
+                  },
+                  {
+                    scale: sendButtonAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.3, 1], // Scale up for bounce effect
+                    }),
+                  },
+                ],
+                opacity: sendButtonAnim.interpolate({
+                  inputRange: [0, 0.5, 1],
+                  outputRange: [0, 0.5, 1],
+                }),
+              },
+            ]}
+            pointerEvents={newMessage.trim() ? 'auto' : 'none'}
+          >
             <IconButton
               onPress={sendMessage}
               disabled={sending}
               icon={Send}
               style={styles.sendButton}
             />
-          )}
+          </Animated.View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -565,7 +611,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   messageBubble: {
-    padding: 16,
+    padding: 18,
+    paddingVertical: 12,
     borderRadius: 24,
     marginBottom: 4,
   },
@@ -593,17 +640,24 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   textInputContainer: {
-    minHeight: 48,
-    width: '85%',
+    minHeight: 56,
+    flex: 1,
   },
   messageInput: {
-    height: 48,
-    paddingTop: 14,
+    height: 54,
+    paddingTop: 17,
+    paddingLeft: 20,
     borderRadius: 24,
+    fontSize: 16,
+  },
+  sendButtonContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sendButton: {
-    width: 54,
-    height: 54,
+    width: 50,
+    height: 50,
+    top: 4,
   },
   sendButtonActive: {
     backgroundColor: AppColors.accentDefault,
