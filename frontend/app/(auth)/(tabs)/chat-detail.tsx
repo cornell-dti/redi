@@ -26,7 +26,6 @@ import {
   Platform,
   StatusBar,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -219,7 +218,7 @@ export default function ChatDetailScreen() {
               },
         ]}
       >
-        <Text
+        <AppText
           style={[
             item.isOwn
               ? { color: AppColors.backgroundDefault }
@@ -227,16 +226,16 @@ export default function ChatDetailScreen() {
           ]}
         >
           {item.text}
-        </Text>
+        </AppText>
       </View>
-      <Text
+      <AppText
         style={[
           styles.messageTime,
           item.isOwn ? styles.ownMessageTime : styles.otherMessageTime,
         ]}
       >
         {formatTime(item.timestamp)}
-      </Text>
+      </AppText>
     </View>
   );
 
@@ -512,6 +511,7 @@ export default function ChatDetailScreen() {
               multiline
               fullRound
               style={styles.messageInput}
+              onSubmitEditing={sendMessage}
             />
           </View>
           <IconButton
