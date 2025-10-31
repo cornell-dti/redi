@@ -139,7 +139,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
       <ScrollView style={styles.scrollView}>
@@ -251,7 +251,7 @@ export default function ProfileScreen() {
         onDismiss={() => setShowSignOutSheet(false)}
         onConfirm={confirmSignOut}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -262,6 +262,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 24,
     backgroundColor: AppColors.backgroundDefault,
+    paddingTop: 64,
   },
   centerContent: {
     justifyContent: 'center',
