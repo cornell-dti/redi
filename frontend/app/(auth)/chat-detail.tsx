@@ -458,6 +458,21 @@ export default function ChatDetailScreen() {
               right={<ChevronRight size={20} />}
               title="View profile"
               onPress={() => {
+                // Check if this is mock data
+                if (
+                  netid &&
+                  typeof netid === 'string' &&
+                  netid.startsWith('mock-')
+                ) {
+                  Alert.alert(
+                    'Demo Profile',
+                    'This is a demo conversation. Profile viewing is only available for real users.',
+                    [{ text: 'OK' }]
+                  );
+                  setShowOptionsSheet(false);
+                  return;
+                }
+
                 setShowOptionsSheet(false);
                 router.push(`/view-profile?netid=${netid}` as any);
               }}
@@ -467,14 +482,44 @@ export default function ChatDetailScreen() {
               left={<FlagIcon color={AppColors.negativeDefault} size={20} />}
               title="Report"
               destructive
-              onPress={() => setSheetView('report')}
+              onPress={() => {
+                // Check if this is mock data
+                if (
+                  netid &&
+                  typeof netid === 'string' &&
+                  netid.startsWith('mock-')
+                ) {
+                  Alert.alert(
+                    'Demo Profile',
+                    'This is a demo conversation. Reporting is only available for real users.',
+                    [{ text: 'OK' }]
+                  );
+                  return;
+                }
+                setSheetView('report');
+              }}
             />
 
             <ListItem
               left={<Ban color={AppColors.negativeDefault} size={20} />}
               title="Block"
               destructive
-              onPress={() => setSheetView('block')}
+              onPress={() => {
+                // Check if this is mock data
+                if (
+                  netid &&
+                  typeof netid === 'string' &&
+                  netid.startsWith('mock-')
+                ) {
+                  Alert.alert(
+                    'Demo Profile',
+                    'This is a demo conversation. Blocking is only available for real users.',
+                    [{ text: 'OK' }]
+                  );
+                  return;
+                }
+                setSheetView('block');
+              }}
             />
           </ListItemWrapper>
         )}
@@ -654,23 +699,18 @@ export default function ChatDetailScreen() {
         style={styles.inputContainer}
       >
         <View style={styles.inputRow}>
-          <View
-            style={[
-              styles.textInputContainer,
-              !newMessage.trim() && { flex: 1 },
-            ]}
-          >
-            <AppInput
-              value={newMessage}
-              onChangeText={setNewMessage}
-              placeholder="Send a message..."
-              placeholderTextColor={AppColors.foregroundDimmer}
-              multiline
-              fullRound
-              style={styles.messageInput}
-              onSubmitEditing={sendMessage}
-            />
-          </View>
+          {/* <View style={styles.textInputContainer}> */}
+          <AppInput
+            value={newMessage}
+            onChangeText={setNewMessage}
+            placeholder="Send a message..."
+            placeholderTextColor={AppColors.foregroundDimmer}
+            multiline
+            fullRound
+            style={styles.messageInput}
+            onSubmitEditing={sendMessage}
+          />
+          {/* </View> */}
 
           <Animated.View
             style={[
@@ -728,6 +768,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
+    backgroundColor: AppColors.backgroundDefault,
+    borderBottomWidth: 1,
+    borderBottomColor: AppColors.backgroundDimmest,
   },
   messagesList: {
     flex: 1,
@@ -766,26 +809,29 @@ const styles = StyleSheet.create({
   inputContainer: {
     backgroundColor: AppColors.backgroundDefault,
     borderTopWidth: 1,
-    borderTopColor: AppColors.backgroundDimmer,
+    borderTopColor: AppColors.backgroundDimmest,
+    minHeight: 80,
   },
   inputRow: {
     flexDirection: 'row',
     padding: 16,
-    paddingBottom: 64,
-    marginBottom: 24,
+    paddingBottom: 48,
+    marginBottom: 8,
     flex: 1,
     gap: 8,
   },
   textInputContainer: {
-    minHeight: 56,
+    minHeight: 80,
     flex: 1,
   },
   messageInput: {
     height: 54,
     paddingTop: 17,
     paddingLeft: 20,
+    paddingRight: 64,
     borderRadius: 24,
     fontSize: 16,
+    width: 390,
   },
   sendButtonContainer: {
     justifyContent: 'center',
@@ -794,7 +840,7 @@ const styles = StyleSheet.create({
   sendButton: {
     width: 50,
     height: 50,
-    top: 4,
+    top: 25,
   },
   sendButtonActive: {
     backgroundColor: AppColors.accentDefault,

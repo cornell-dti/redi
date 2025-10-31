@@ -73,6 +73,8 @@ const styles = StyleSheet.create({
     display: 'flex',
     padding: 16,
     position: 'relative',
+    borderBottomWidth: 1,
+    borderBottomColor: AppColors.backgroundDimmest,
   },
   buttonRow: {
     display: 'flex',

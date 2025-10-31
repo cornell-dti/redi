@@ -1,8 +1,8 @@
 import { Gender, School, UpdatePreferencesInput } from '@/types';
 import { router } from 'expo-router';
 import { Check, Square } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ALL_MAJORS,
@@ -30,6 +30,7 @@ export default function DatingPreferencesPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showUnsavedSheet, setShowUnsavedSheet] = useState(false);
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   // Form state
   const [ageMin, setAgeMin] = useState(18);
@@ -220,13 +221,19 @@ export default function DatingPreferencesPage() {
         onBack={handleBack}
         isSaving={saving}
         title="Dating preferences"
+        scrollY={scrollY}
       />
 
-      <ScrollView
+      <Animated.ScrollView
         contentContainerStyle={{
           rowGap: 24,
         }}
         style={styles.scrollView}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
       >
         {/* Age Range */}
         <View style={styles.section}>
@@ -392,7 +399,7 @@ export default function DatingPreferencesPage() {
             />
           </ListItemWrapper>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* Unsaved Changes Confirmation Sheet */}
       <UnsavedChangesSheet

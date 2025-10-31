@@ -17,19 +17,6 @@ export default function AuthLayout() {
             presentation: 'modal',
           }}
         />
-        <Stack.Screen
-          name="(tabs)"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="chat-detail"
-          options={{
-            headerShown: false,
-            animation: 'default', // Native iOS slide animation
-          }}
-        />
       </Stack>
     </NotificationsProvider>
   );
