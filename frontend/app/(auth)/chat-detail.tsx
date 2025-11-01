@@ -41,52 +41,6 @@ import { createReport } from '../api/reportsApi';
 import { AppColors } from '../components/AppColors';
 import { useMessages } from '../hooks/useMessages';
 
-// Mock chat messages
-const mockMessages = [
-  {
-    id: '1',
-    text: 'Hey! How are you doing?',
-    timestamp: new Date(Date.now() - 3600000),
-    isOwn: false,
-  },
-  {
-    id: '2',
-    text: "Hi there! I'm doing great, thanks for asking! How about you?",
-    timestamp: new Date(Date.now() - 3580000),
-    isOwn: true,
-  },
-  {
-    id: '3',
-    text: "Pretty good! I saw you're in CS too. What year are you?",
-    timestamp: new Date(Date.now() - 3560000),
-    isOwn: false,
-  },
-  {
-    id: '4',
-    text: "I'm a junior! What about you?",
-    timestamp: new Date(Date.now() - 3540000),
-    isOwn: true,
-  },
-  {
-    id: '5',
-    text: 'Same here! Have you taken CS 4820 yet?',
-    timestamp: new Date(Date.now() - 3520000),
-    isOwn: false,
-  },
-  {
-    id: '6',
-    text: 'Yes, I took it last semester. Really challenging but fun!',
-    timestamp: new Date(Date.now() - 3500000),
-    isOwn: true,
-  },
-  {
-    id: '7',
-    text: "Want to grab coffee at CTB this weekend? I'd love to hear more about your experience with the class",
-    timestamp: new Date(Date.now() - 120000),
-    isOwn: false,
-  },
-];
-
 interface Message {
   id: string;
   text: string;
@@ -333,11 +287,9 @@ export default function ChatDetailScreen() {
   };
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-    const messages =
-      displayMessages.length > 0 ? displayMessages : mockMessages;
-    const prevMessage = index > 0 ? messages[index - 1] : null;
+    const prevMessage = index > 0 ? displayMessages[index - 1] : null;
     const nextMessage =
-      index < messages.length - 1 ? messages[index + 1] : null;
+      index < displayMessages.length - 1 ? displayMessages[index + 1] : null;
     const showTimestamp = shouldShowTimestamp(item, nextMessage);
     const position = getMessagePosition(item, prevMessage, nextMessage);
     const bubbleStyle = getBubbleStyle(item.isOwn, position);
@@ -422,7 +374,7 @@ export default function ChatDetailScreen() {
       ) : (
         <FlatList
           ref={flatListRef}
-          data={displayMessages.length > 0 ? displayMessages : mockMessages}
+          data={displayMessages}
           keyExtractor={(item) => item.id}
           renderItem={renderMessage}
           style={styles.messagesList}
@@ -458,21 +410,6 @@ export default function ChatDetailScreen() {
               right={<ChevronRight size={20} />}
               title="View profile"
               onPress={() => {
-                // Check if this is mock data
-                if (
-                  netid &&
-                  typeof netid === 'string' &&
-                  netid.startsWith('mock-')
-                ) {
-                  Alert.alert(
-                    'Demo Profile',
-                    'This is a demo conversation. Profile viewing is only available for real users.',
-                    [{ text: 'OK' }]
-                  );
-                  setShowOptionsSheet(false);
-                  return;
-                }
-
                 setShowOptionsSheet(false);
                 router.push(`/view-profile?netid=${netid}` as any);
               }}
@@ -483,19 +420,6 @@ export default function ChatDetailScreen() {
               title="Report"
               destructive
               onPress={() => {
-                // Check if this is mock data
-                if (
-                  netid &&
-                  typeof netid === 'string' &&
-                  netid.startsWith('mock-')
-                ) {
-                  Alert.alert(
-                    'Demo Profile',
-                    'This is a demo conversation. Reporting is only available for real users.',
-                    [{ text: 'OK' }]
-                  );
-                  return;
-                }
                 setSheetView('report');
               }}
             />
@@ -505,19 +429,6 @@ export default function ChatDetailScreen() {
               title="Block"
               destructive
               onPress={() => {
-                // Check if this is mock data
-                if (
-                  netid &&
-                  typeof netid === 'string' &&
-                  netid.startsWith('mock-')
-                ) {
-                  Alert.alert(
-                    'Demo Profile',
-                    'This is a demo conversation. Blocking is only available for real users.',
-                    [{ text: 'OK' }]
-                  );
-                  return;
-                }
                 setSheetView('block');
               }}
             />
