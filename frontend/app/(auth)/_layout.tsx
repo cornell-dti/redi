@@ -7,6 +7,7 @@ export default function AuthLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
+          animation: 'default', // Use default iOS slide animation
         }}
       >
         <Stack.Screen
@@ -14,18 +15,6 @@ export default function AuthLayout() {
           options={{
             headerShown: false,
             presentation: 'modal',
-          }}
-        />
-        <Stack.Screen
-          name="(tabs)"
-          options={{
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="chat-detail"
-          options={{
-            headerShown: false,
           }}
         />
       </Stack>

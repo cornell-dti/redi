@@ -1,6 +1,7 @@
 import { AVAILABLE_PROMPTS } from '@/types';
 import { Check } from 'lucide-react-native';
 import React from 'react';
+import { ScrollView } from 'react-native';
 import { AppColors } from '../AppColors';
 import ListItem from './ListItem';
 import ListItemWrapper from './ListItemWrapper';
@@ -21,21 +22,23 @@ export default function AvailablePromptsSheet({
 }: AvailablePromptsSheetProps) {
   return (
     <Sheet visible={visible} onDismiss={onDismiss} title="Select a prompt">
-      <ListItemWrapper>
-        {AVAILABLE_PROMPTS.map((promptOption, index) => (
-          <ListItem
-            key={index}
-            title={promptOption}
-            onPress={() => onSelectPrompt(promptOption)}
-            selected={selectedPrompt === promptOption}
-            right={
-              selectedPrompt === promptOption ? (
-                <Check size={20} color={AppColors.accentDefault} />
-              ) : null
-            }
-          />
-        ))}
-      </ListItemWrapper>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <ListItemWrapper>
+          {AVAILABLE_PROMPTS.map((promptOption, index) => (
+            <ListItem
+              key={index}
+              title={promptOption}
+              onPress={() => onSelectPrompt(promptOption)}
+              selected={selectedPrompt === promptOption}
+              right={
+                selectedPrompt === promptOption ? (
+                  <Check size={20} color={AppColors.accentDefault} />
+                ) : null
+              }
+            />
+          ))}
+        </ListItemWrapper>
+      </ScrollView>
     </Sheet>
   );
 }

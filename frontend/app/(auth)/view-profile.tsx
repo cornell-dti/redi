@@ -10,13 +10,7 @@ import Sheet from '@/app/components/ui/Sheet';
 import { ProfileResponse, ReportReason } from '@/types';
 import auth from '@react-native-firebase/auth';
 import { router, useLocalSearchParams } from 'expo-router';
-import {
-  Ban,
-  Check,
-  ChevronLeft,
-  Flag,
-  MoreVertical,
-} from 'lucide-react-native';
+import { ArrowLeft, Ban, Check, Flag, MoreVertical } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -147,7 +141,7 @@ export default function ViewProfileScreen() {
       <View style={styles.content}>
         <View style={styles.header}>
           <IconButton
-            icon={ChevronLeft}
+            icon={ArrowLeft}
             onPress={() => router.back()}
             variant="secondary"
           />

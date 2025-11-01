@@ -13,7 +13,7 @@ import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import CountdownTimer from '@/app/components/ui/CountdownTimer';
-import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
+import EmptyState from '@/app/components/ui/EmptyState';
 import Sheet from '@/app/components/ui/Sheet';
 import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
@@ -31,8 +31,9 @@ import {
   WeeklyPromptAnswerResponse,
   WeeklyPromptResponse,
 } from '@/types';
+import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { Eye, Send } from 'lucide-react-native';
+import { Check, Eye, Heart } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -56,6 +57,7 @@ interface MatchWithProfile {
 
 export default function MatchesScreen() {
   useThemeAware();
+
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [showCountdown, setShowCountdown] = useState(isCountdownPeriod());
@@ -69,7 +71,6 @@ export default function MatchesScreen() {
   );
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [showPromptSheet, setShowPromptSheet] = useState(false);
-  const [showAnswerSheet, setShowAnswerSheet] = useState(false);
   const [tempAnswer, setTempAnswer] = useState('');
   const lastLoadTime = useRef<number>(0);
 
@@ -87,7 +88,6 @@ export default function MatchesScreen() {
     }, 60000);
 
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
   const loadData = useCallback(async () => {
@@ -261,60 +261,25 @@ export default function MatchesScreen() {
     try {
       await submitPromptAnswer(activePrompt.promptId, tempAnswer);
       setUserAnswer(tempAnswer);
-      setShowAnswerSheet(false);
+      setShowPromptSheet(false);
       setTempAnswer('');
     } catch (error) {
       console.error('Error submitting answer:', error);
     }
   };
 
+  const [animationTrigger, setAnimationTrigger] = useState(0);
+
+  // Trigger animation every time screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      setAnimationTrigger((prev) => prev + 1);
+    }, [])
+  );
+
   const renderCountdownPeriod = () => (
     <>
       <CountdownTimer targetDate={getNextFridayMidnight()} />
-
-      {activePrompt && (
-        <View style={styles.promptSection}>
-          <ListItemWrapper>
-            <View style={styles.promptCard}>
-              <AppText variant="body" color="dimmer">
-                This week&apos;s prompt
-              </AppText>
-
-              <AppText variant="subtitle" color="accent">
-                {activePrompt.question}
-              </AppText>
-            </View>
-
-            {userAnswer ? (
-              <View style={styles.answerCard}>
-                <AppText color="dimmer">Your answer</AppText>
-                <AppText variant="body" style={{ marginTop: 8 }}>
-                  {userAnswer}
-                </AppText>
-              </View>
-            ) : (
-              <Button
-                title="Submit your answer"
-                onPress={() => {
-                  setTempAnswer('');
-                  setShowAnswerSheet(true);
-                }}
-                variant="primary"
-                iconLeft={Send}
-                fullWidth
-              />
-            )}
-          </ListItemWrapper>
-
-          <Button
-            title="Show this week's prompt"
-            onPress={() => setShowPromptSheet(true)}
-            variant="secondary"
-            iconLeft={Eye}
-            fullWidth
-          />
-        </View>
-      )}
     </>
   );
 
@@ -333,11 +298,23 @@ export default function MatchesScreen() {
   const renderCurrentMatch = () => {
     if (currentMatches.length === 0) {
       return (
-        <View style={styles.emptyState}>
-          <AppText variant="body" color="dimmer">
-            No matches available yet. Check back after submitting your answer!
-          </AppText>
-        </View>
+        <EmptyState
+          icon={Heart}
+          label="No matches available yet. Check back after submitting your answer!"
+          triggerAnimation={animationTrigger}
+        >
+          {activePrompt && (
+            <Button
+              title="Show this week's prompt"
+              onPress={() => {
+                setTempAnswer(userAnswer);
+                setShowPromptSheet(true);
+              }}
+              variant="secondary"
+              iconLeft={Eye}
+            />
+          )}
+        </EmptyState>
       );
     }
 
@@ -516,7 +493,7 @@ export default function MatchesScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.headerContainer}>
@@ -531,6 +508,7 @@ export default function MatchesScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
+          {/* TODO: REMOVE THIS DEBUGGING THING */}
           {/* {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()} */}
           {renderCountdownPeriod()}
           {renderWeekendPeriod()}
@@ -539,63 +517,40 @@ export default function MatchesScreen() {
         </View>
       </ScrollView>
 
-      {/* Prompt Details Sheet */}
+      {/* Weekly Prompt Sheet */}
       <Sheet
         visible={showPromptSheet}
         onDismiss={() => setShowPromptSheet(false)}
-        height={300}
-        title="This Week's Prompt"
-      >
-        {activePrompt && (
-          <View style={{ gap: 16 }}>
-            <AppText variant="body">{activePrompt.question}</AppText>
-            {userAnswer && (
-              <>
-                <AppText variant="subtitle">Your Answer</AppText>
-                <View style={styles.answerCard}>
-                  <AppText variant="body">{userAnswer}</AppText>
-                </View>
-              </>
-            )}
-          </View>
-        )}
-      </Sheet>
-
-      {/* Submit Answer Sheet */}
-      <Sheet
-        visible={showAnswerSheet}
-        onDismiss={() => setShowAnswerSheet(false)}
-        height={400}
-        title="Submit Your Answer"
+        title={activePrompt.question}
       >
         {activePrompt && (
           <View style={{ gap: 16, flex: 1 }}>
-            <AppText variant="body" color="dimmer">
-              {activePrompt.question}
-            </AppText>
             <AppInput
               placeholder="Your answer..."
               value={tempAnswer}
               onChangeText={setTempAnswer}
               multiline
-              numberOfLines={4}
-              maxLength={500}
-              style={{ height: 120 }}
+              numberOfLines={3}
+              maxLength={120}
+              style={{ height: 84 }}
             />
+
             <AppText variant="bodySmall" color="dimmer">
-              {tempAnswer.length}/500 characters
+              {tempAnswer.length}/120 characters
             </AppText>
+
             <Button
-              title="Submit"
+              title={userAnswer ? 'Update answer' : 'Submit answer'}
               onPress={handleSubmitAnswer}
               variant="primary"
               fullWidth
+              iconLeft={Check}
               disabled={!tempAnswer.trim()}
             />
           </View>
         )}
       </Sheet>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -603,6 +558,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: AppColors.backgroundDefault,
+    paddingTop: 64,
   },
   scrollView: {
     flex: 1,
@@ -686,11 +642,11 @@ const styles = StyleSheet.create({
     marginVertical: 24,
   },
   emptyState: {
-    backgroundColor: AppColors.backgroundDefault,
-    borderRadius: 12,
+    backgroundColor: AppColors.backgroundDimmer,
+    borderRadius: 24,
     padding: 40,
     alignItems: 'center',
-    marginBottom: 24,
+    margin: 16,
   },
   previousMatchesGrid: {
     flexDirection: 'row',
@@ -711,5 +667,11 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     padding: 16,
+  },
+  skeletonWrapper: {
+    padding: 16,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
   },
 });

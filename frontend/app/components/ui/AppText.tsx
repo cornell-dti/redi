@@ -7,12 +7,14 @@ interface AppTextProps extends TextProps {
   variant?: 'title' | 'subtitle' | 'body' | 'bodySmall';
   color?: 'default' | 'dimmer' | 'negative' | 'inverse' | 'accent';
   indented?: boolean;
+  centered?: boolean;
 }
 
 export default function AppText({
   variant = 'body',
   color = 'default',
   indented = false,
+  centered = false,
   style,
   ...props
 }: AppTextProps) {
@@ -27,12 +29,15 @@ export default function AppText({
             ? AppColors.accentDefault
             : AppColors.foregroundDefault;
 
+  const textAlign = centered ? 'center' : 'left';
+
   return (
     <Text
       style={[
         AppTypography[variant],
         { color: resolvedColor },
         indented && { marginLeft: 16 },
+        { textAlign },
         style,
       ]}
       {...props}

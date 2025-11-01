@@ -62,11 +62,15 @@ export default function ListItem({
         style={({ pressed }) => [
           styles.container,
           selected && { backgroundColor: AppColors.accentAlpha },
-          // keep original pressed styling logic; rely on pressed OR local isPressed
+
+          // 🔹 pressed or isPressed logic
           (pressed || isPressed) &&
             (selected
               ? { backgroundColor: AppColors.accentAlpha }
-              : styles.pressed),
+              : destructive
+                ? { backgroundColor: AppColors.negativeDimmest } // 🔸 if destructive & pressed
+                : styles.pressed),
+
           description ? { height: 'auto' } : { height: 54 },
           style,
         ]}

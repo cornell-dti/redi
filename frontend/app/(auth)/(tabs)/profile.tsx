@@ -113,6 +113,33 @@ export default function ProfileScreen() {
       ? profile.pictures
       : mockFallbackData.images;
 
+  // Format member since date
+  const getMemberSinceText = (): string => {
+    const user = getCurrentUser();
+
+    // Try to use createdAt from profile first
+    if (profile && 'createdAt' in profile && profile.createdAt) {
+      const date = new Date(profile.createdAt);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    }
+
+    // Fall back to Firebase user creation time
+    if (user?.metadata?.creationTime) {
+      const date = new Date(user.metadata.creationTime);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    }
+
+    return 'Recently';
+  };
+
   // Show loading spinner while fetching
   if (loading) {
     return (
@@ -139,7 +166,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
       <ScrollView style={styles.scrollView}>
@@ -149,7 +176,7 @@ export default function ProfileScreen() {
           <View style={styles.nameContainer}>
             <AppText variant="title">{displayName}</AppText>
             <AppText variant="body" color="dimmer">
-              Member since XXX
+              Member since {getMemberSinceText()}
             </AppText>
           </View>
         </View>
@@ -175,7 +202,7 @@ export default function ProfileScreen() {
           <ListItemWrapper>
             <ListItem
               onPress={() => router.push('/preferences' as any)}
-              title="Dating preferences"
+              title="Dating Preferences"
               right={<ChevronRight size={20} />}
               left={<Heart size={20} />}
             />
@@ -189,7 +216,7 @@ export default function ProfileScreen() {
 
             <ListItem
               onPress={() => router.push('/account-settings' as any)}
-              title="Account settings"
+              title="Account Settings"
               right={<ChevronRight size={20} />}
               left={<SettingsIcon size={20} />}
             />
@@ -219,14 +246,14 @@ export default function ProfileScreen() {
 
             <ListItem
               onPress={() => {}}
-              title="Leave a rating"
+              title="Leave a Rating"
               right={<ExternalLink size={20} />}
               left={<StarIcon size={20} />}
             />
 
             <ListItem
               onPress={() => router.push('/contact' as any)}
-              title="Contact the team"
+              title="Contact the Team"
               right={<ChevronRight size={20} />}
               left={<MailIcon size={20} />}
             />
@@ -251,7 +278,7 @@ export default function ProfileScreen() {
         onDismiss={() => setShowSignOutSheet(false)}
         onConfirm={confirmSignOut}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -262,6 +289,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 24,
     backgroundColor: AppColors.backgroundDefault,
+    paddingTop: 64,
   },
   centerContent: {
     justifyContent: 'center',
@@ -287,6 +315,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 24,
+    paddingBottom: 64,
   },
   profileTop: {
     display: 'flex',

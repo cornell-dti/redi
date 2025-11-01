@@ -149,7 +149,7 @@ export default function AccountSettingsPage() {
           </AppText>
           <ListItemWrapper>
             <ListItem
-              title="Log Out"
+              title="Sign Out"
               left={<LogOut color={AppColors.negativeDefault} size={20} />}
               onPress={() => setShowSignOutSheet(true)}
               destructive

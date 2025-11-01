@@ -40,7 +40,7 @@ export default function PhotoUploadGrid({
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [3, 4],
+      aspect: [1, 1],
       quality: 0.8,
     });
 
@@ -133,11 +133,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   gridSlot: {
-    width: '48.5%',
+    width: '31.5%',
+    height: 120,
     aspectRatio: 1,
     borderRadius: 4,
     overflow: 'hidden',
-    display: 'flex',
     position: 'relative',
   },
   photo: {

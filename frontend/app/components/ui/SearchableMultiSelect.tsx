@@ -130,7 +130,7 @@ export default function SearchableMultiSelect({
                   onPress={() => toggleOption(item)}
                   right={
                     selected.includes(item) ? (
-                      <Check size={20} color={AppColors.backgroundDefault} />
+                      <Check size={20} color={AppColors.accentDefault} />
                     ) : (
                       <Square color={AppColors.foregroundDimmer} />
                     )
@@ -147,14 +147,13 @@ export default function SearchableMultiSelect({
 
         {/* Actions */}
 
-        <ListItemWrapper style={styles.actions}>
+        <View style={styles.actions}>
           <Button
             title="Done"
             iconLeft={Check}
             onPress={() => setIsOpen(false)}
             variant="primary"
             fullWidth
-            noRound
           />
 
           {selected.length > 0 && (
@@ -162,11 +161,10 @@ export default function SearchableMultiSelect({
               title="Clear All"
               onPress={clearAll}
               variant="negative"
-              noRound
               iconLeft={X}
             />
           )}
-        </ListItemWrapper>
+        </View>
       </Sheet>
     </View>
   );
@@ -209,6 +207,7 @@ const styles = StyleSheet.create({
     color: AppColors.foregroundDimmer,
   },
   actions: {
-    paddingTop: 12,
+    paddingTop: 16,
+    gap: 12,
   },
 });

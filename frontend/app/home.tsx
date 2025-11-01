@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { Info } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -8,6 +9,7 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,6 +25,7 @@ import LegalFooterText from './components/onboarding/LegalFooterText';
 import AppInput from './components/ui/AppInput';
 import AppText from './components/ui/AppText';
 import Button from './components/ui/Button';
+import Sheet from './components/ui/Sheet';
 
 type AuthMode = 'welcome' | 'signup' | 'login';
 
@@ -31,6 +34,7 @@ export default function HomePage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showInfoSheet, setShowInfoSheet] = useState(false);
 
   const handleCreateAccount = async () => {
     if (!email || !password) {
@@ -133,13 +137,13 @@ export default function HomePage() {
 
       <View style={styles.buttonContainer}>
         <Button
-          title="Create an account"
+          title="Create account"
           onPress={() => setMode('signup')}
           variant="primary"
           fullWidth
         />
         <Button
-          title="Log in with existing account"
+          title="Log in"
           onPress={() => setMode('login')}
           variant="secondary"
           fullWidth
@@ -156,7 +160,7 @@ export default function HomePage() {
       >
         <View style={styles.formContainer}>
           <AppText variant="title" style={styles.formTitle}>
-            {mode === 'signup' ? 'Create Account' : 'Welcome Back'}
+            {mode === 'signup' ? 'Create account' : 'Welcome back!'}
           </AppText>
           <AppText variant="body" style={styles.formSubtitle}>
             {mode === 'signup'
@@ -166,7 +170,7 @@ export default function HomePage() {
 
           <View style={styles.inputContainer}>
             <AppInput
-              label="Cornell Email"
+              label="Cornell email"
               placeholder="netid@cornell.edu"
               value={email}
               onChangeText={setEmail}
@@ -175,6 +179,14 @@ export default function HomePage() {
               editable={!loading}
               required
             />
+
+            <TouchableOpacity
+              onPress={() => setShowInfoSheet(true)}
+              style={styles.infoIcon}
+            >
+              <Info size={16} color={AppColors.foregroundDimmer} />
+            </TouchableOpacity>
+
             <AppInput
               label="Password"
               placeholder="Enter your password"
@@ -185,31 +197,31 @@ export default function HomePage() {
               required
             />
           </View>
-
-          {loading ? (
-            <ActivityIndicator
-              size="large"
-              color={AppColors.accentDefault}
-              style={styles.loader}
-            />
-          ) : (
-            <View style={styles.buttonContainer}>
-              <Button
-                title={mode === 'signup' ? 'Create Account' : 'Log In'}
-                onPress={mode === 'signup' ? handleCreateAccount : handleLogin}
-                variant="primary"
-                fullWidth
-              />
-              <Button
-                title="Back"
-                onPress={handleBack}
-                variant="secondary"
-                fullWidth
-              />
-            </View>
-          )}
         </View>
       </ScrollView>
+
+      {loading ? (
+        <ActivityIndicator
+          size="large"
+          color={AppColors.accentDefault}
+          style={styles.loader}
+        />
+      ) : (
+        <View style={styles.buttonContainer}>
+          <Button
+            title={mode === 'signup' ? 'Create account' : 'Log in'}
+            onPress={mode === 'signup' ? handleCreateAccount : handleLogin}
+            variant="primary"
+            fullWidth
+          />
+          <Button
+            title="Back"
+            onPress={handleBack}
+            variant="secondary"
+            fullWidth
+          />
+        </View>
+      )}
     </>
   );
 
@@ -227,6 +239,23 @@ export default function HomePage() {
       </KeyboardAvoidingView>
 
       <LegalFooterText text="By signing up, you agree to our {terms}. Learn how we process your data in our {privacy}." />
+
+      <Sheet
+        visible={showInfoSheet}
+        onDismiss={() => setShowInfoSheet(false)}
+        title="Why Cornell Email?"
+        height="auto"
+      >
+        <AppText variant="body" style={styles.sheetText}>
+          We require a Cornell email address to ensure that redi is exclusively
+          for the Cornell community. This helps create a safe and trusted
+          environment where you can connect with fellow Cornellians.
+        </AppText>
+        <AppText variant="body" style={styles.sheetText}>
+          Your email is kept private and is only used for account verification
+          and authentication purposes.
+        </AppText>
+      </Sheet>
     </SafeAreaView>
   );
 }
@@ -255,6 +284,7 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: '700',
     marginBottom: 8,
+    paddingTop: 24,
   },
   subtitle: {
     color: AppColors.foregroundDimmer,
@@ -288,8 +318,14 @@ const styles = StyleSheet.create({
   inputContainer: {
     gap: 16,
     marginBottom: 24,
+    position: 'relative',
   },
+  infoIcon: { position: 'absolute', top: 0, right: 8 },
   loader: {
     marginVertical: 20,
+  },
+  sheetText: {
+    marginBottom: 16,
+    lineHeight: 22,
   },
 });

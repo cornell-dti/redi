@@ -149,7 +149,8 @@ export default function Sheet({
           style={
             [
               styles.sheet,
-              { height, transform: [{ translateY: combinedTranslate }] },
+              height && height !== 'auto' && { height },
+              { transform: [{ translateY: combinedTranslate }] },
             ] as any
           }
         >
@@ -160,7 +161,9 @@ export default function Sheet({
             <View style={styles.dragHandle} />
           </View>
           <View>{title && <AppText variant="subtitle">{title}</AppText>}</View>
-          <View style={styles.content}>{children}</View>
+          <View style={[styles.content, height && height !== 'auto' ? { flex: 1 } : undefined]}>
+            {children}
+          </View>
         </Animated.View>
       </View>
     </Modal>

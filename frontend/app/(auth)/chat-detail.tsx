@@ -7,84 +7,39 @@ import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
 import { ReportReason } from '@/types/report';
-import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import {
+  ArrowLeft,
   Ban,
   Check,
-  ChevronLeft,
+  ChevronRight,
   FlagIcon,
   MoreVertical,
   Send,
   User2,
 } from 'lucide-react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   FlatList,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getCurrentUser } from '../../api/authService';
-import { blockUser, getBlockedUsers, unblockUser } from '../../api/blockingApi';
+import { getCurrentUser } from '../api/authService';
+import { blockUser, getBlockedUsers, unblockUser } from '../api/blockingApi';
 import {
   createOrGetConversation,
   sendMessage as sendMessageAPI,
-} from '../../api/chatApi';
-import { createReport } from '../../api/reportsApi';
-import { AppColors } from '../../components/AppColors';
-import { useMessages } from '../../hooks/useMessages';
-
-// Mock chat messages
-const mockMessages = [
-  {
-    id: '1',
-    text: 'Hey! How are you doing?',
-    timestamp: new Date(Date.now() - 3600000),
-    isOwn: false,
-  },
-  {
-    id: '2',
-    text: "Hi there! I'm doing great, thanks for asking! How about you?",
-    timestamp: new Date(Date.now() - 3580000),
-    isOwn: true,
-  },
-  {
-    id: '3',
-    text: "Pretty good! I saw you're in CS too. What year are you?",
-    timestamp: new Date(Date.now() - 3560000),
-    isOwn: false,
-  },
-  {
-    id: '4',
-    text: "I'm a junior! What about you?",
-    timestamp: new Date(Date.now() - 3540000),
-    isOwn: true,
-  },
-  {
-    id: '5',
-    text: 'Same here! Have you taken CS 4820 yet?',
-    timestamp: new Date(Date.now() - 3520000),
-    isOwn: false,
-  },
-  {
-    id: '6',
-    text: 'Yes, I took it last semester. Really challenging but fun!',
-    timestamp: new Date(Date.now() - 3500000),
-    isOwn: true,
-  },
-  {
-    id: '7',
-    text: "Want to grab coffee at CTB this weekend? I'd love to hear more about your experience with the class",
-    timestamp: new Date(Date.now() - 120000),
-    isOwn: false,
-  },
-];
+} from '../api/chatApi';
+import { createReport } from '../api/reportsApi';
+import { AppColors } from '../components/AppColors';
+import { useMessages } from '../hooks/useMessages';
 
 interface Message {
   id: string;
@@ -130,7 +85,21 @@ export default function ChatDetailScreen() {
   const currentUser = getCurrentUser();
   const flatListRef = useRef<FlatList>(null);
 
+  // Animation for send button
+  const sendButtonAnim = useRef(new Animated.Value(0)).current;
+
   const { messages: firebaseMessages, loading } = useMessages(conversationId);
+
+  // Animate send button in/out based on message input
+  useEffect(() => {
+    const hasText = newMessage.trim().length > 0;
+    Animated.spring(sendButtonAnim, {
+      toValue: hasText ? 1 : 0,
+      useNativeDriver: true,
+      friction: 8,
+      tension: 60,
+    }).start();
+  }, [newMessage, sendButtonAnim]);
 
   // Create conversation if it doesn't exist
   useEffect(() => {
@@ -198,35 +167,180 @@ export default function ChatDetailScreen() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const renderMessage = ({ item }: { item: Message }) => (
-    <View
-      style={[
-        styles.messageContainer,
-        item.isOwn ? styles.ownMessageContainer : styles.otherMessageContainer,
-      ]}
-    >
+  // Helper function to determine if we should show timestamp
+  const shouldShowTimestamp = (
+    currentMessage: Message,
+    nextMessage: Message | null
+  ) => {
+    if (!nextMessage) return true; // Always show on last message in group
+
+    // Show timestamp if next message is from different sender
+    if (currentMessage.isOwn !== nextMessage.isOwn) return true;
+
+    // Show timestamp if messages are more than 5 minutes apart
+    const timeDiff = Math.abs(
+      nextMessage.timestamp.getTime() - currentMessage.timestamp.getTime()
+    );
+    const fiveMinutes = 5 * 60 * 1000;
+    if (timeDiff > fiveMinutes) return true;
+
+    return false; // Same sender and within 5 minutes - don't show
+  };
+
+  // Helper function to determine message position in group
+  const getMessagePosition = (
+    currentMessage: Message,
+    prevMessage: Message | null,
+    nextMessage: Message | null
+  ): 'single' | 'first' | 'middle' | 'last' => {
+    const isGroupedWithPrev =
+      prevMessage &&
+      prevMessage.isOwn === currentMessage.isOwn &&
+      Math.abs(
+        currentMessage.timestamp.getTime() - prevMessage.timestamp.getTime()
+      ) <=
+        5 * 60 * 1000;
+
+    const isGroupedWithNext =
+      nextMessage &&
+      nextMessage.isOwn === currentMessage.isOwn &&
+      Math.abs(
+        nextMessage.timestamp.getTime() - currentMessage.timestamp.getTime()
+      ) <=
+        5 * 60 * 1000;
+
+    if (!isGroupedWithPrev && !isGroupedWithNext) return 'single';
+    if (!isGroupedWithPrev && isGroupedWithNext) return 'first';
+    if (isGroupedWithPrev && isGroupedWithNext) return 'middle';
+    return 'last'; // isGroupedWithPrev && !isGroupedWithNext
+  };
+
+  const getBubbleStyle = (isOwn: boolean, position: string) => {
+    const baseRadius = 24;
+    const tightRadius = 6;
+
+    if (isOwn) {
+      // Own messages (right side)
+      switch (position) {
+        case 'single':
+          return {
+            borderTopLeftRadius: baseRadius,
+            borderTopRightRadius: baseRadius,
+            borderBottomLeftRadius: baseRadius,
+            borderBottomRightRadius: tightRadius,
+          };
+        case 'first':
+          return {
+            borderTopLeftRadius: baseRadius,
+            borderTopRightRadius: baseRadius,
+            borderBottomLeftRadius: baseRadius,
+            borderBottomRightRadius: tightRadius,
+          };
+        case 'middle':
+          return {
+            borderTopLeftRadius: baseRadius,
+            borderTopRightRadius: tightRadius,
+            borderBottomLeftRadius: baseRadius,
+            borderBottomRightRadius: tightRadius,
+          };
+        case 'last':
+          return {
+            borderTopLeftRadius: baseRadius,
+            borderTopRightRadius: tightRadius,
+            borderBottomLeftRadius: baseRadius,
+            borderBottomRightRadius: baseRadius,
+          };
+      }
+    } else {
+      // Other's messages (left side)
+      switch (position) {
+        case 'single':
+          return {
+            borderTopLeftRadius: baseRadius,
+            borderTopRightRadius: baseRadius,
+            borderBottomLeftRadius: tightRadius,
+            borderBottomRightRadius: baseRadius,
+          };
+        case 'first':
+          return {
+            borderTopLeftRadius: baseRadius,
+            borderTopRightRadius: baseRadius,
+            borderBottomLeftRadius: tightRadius,
+            borderBottomRightRadius: baseRadius,
+          };
+        case 'middle':
+          return {
+            borderTopLeftRadius: tightRadius,
+            borderTopRightRadius: baseRadius,
+            borderBottomLeftRadius: tightRadius,
+            borderBottomRightRadius: baseRadius,
+          };
+        case 'last':
+          return {
+            borderTopLeftRadius: tightRadius,
+            borderTopRightRadius: baseRadius,
+            borderBottomLeftRadius: baseRadius,
+            borderBottomRightRadius: baseRadius,
+          };
+      }
+    }
+  };
+
+  const renderMessage = ({ item, index }: { item: Message; index: number }) => {
+    const prevMessage = index > 0 ? displayMessages[index - 1] : null;
+    const nextMessage =
+      index < displayMessages.length - 1 ? displayMessages[index + 1] : null;
+    const showTimestamp = shouldShowTimestamp(item, nextMessage);
+    const position = getMessagePosition(item, prevMessage, nextMessage);
+    const bubbleStyle = getBubbleStyle(item.isOwn, position);
+
+    return (
       <View
         style={[
-          styles.messageBubble,
-          item.isOwn ? styles.ownMessageBubble : styles.otherMessageBubble,
+          styles.messageContainer,
+          item.isOwn
+            ? styles.ownMessageContainer
+            : styles.otherMessageContainer,
+          // Add less margin for grouped messages
+          position === 'middle' || position === 'first'
+            ? { marginBottom: 0 }
+            : { marginBottom: 4 },
         ]}
       >
-        <Text
-          style={[item.isOwn ? styles.ownMessageText : styles.otherMessageText]}
+        <View
+          style={[
+            styles.messageBubble,
+            {
+              backgroundColor: item.isOwn
+                ? AppColors.accentDefault
+                : AppColors.backgroundDimmer,
+            },
+            bubbleStyle,
+          ]}
         >
-          {item.text}
-        </Text>
+          <AppText
+            style={[
+              item.isOwn
+                ? { color: AppColors.backgroundDefault }
+                : { color: AppColors.foregroundDefault },
+            ]}
+          >
+            {item.text}
+          </AppText>
+        </View>
+        {showTimestamp && (
+          <AppText
+            style={[
+              styles.messageTime,
+              item.isOwn ? styles.ownMessageTime : styles.otherMessageTime,
+            ]}
+          >
+            {formatTime(item.timestamp)}
+          </AppText>
+        )}
       </View>
-      <Text
-        style={[
-          styles.messageTime,
-          item.isOwn ? styles.ownMessageTime : styles.otherMessageTime,
-        ]}
-      >
-        {formatTime(item.timestamp)}
-      </Text>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -234,9 +348,9 @@ export default function ChatDetailScreen() {
 
       <View style={styles.header}>
         <IconButton
-          onPress={() => router.replace('/chat' as any)}
+          onPress={() => router.back()}
           variant="secondary"
-          icon={ChevronLeft}
+          icon={ArrowLeft}
         />
 
         <AppText variant="subtitle">{name}</AppText>
@@ -260,7 +374,7 @@ export default function ChatDetailScreen() {
       ) : (
         <FlatList
           ref={flatListRef}
-          data={displayMessages.length > 0 ? displayMessages : mockMessages}
+          data={displayMessages}
           keyExtractor={(item) => item.id}
           renderItem={renderMessage}
           style={styles.messagesList}
@@ -292,7 +406,8 @@ export default function ChatDetailScreen() {
         {sheetView === 'menu' && (
           <ListItemWrapper>
             <ListItem
-              left={<User2 />}
+              left={<User2 size={20} />}
+              right={<ChevronRight size={20} />}
               title="View profile"
               onPress={() => {
                 setShowOptionsSheet(false);
@@ -301,17 +416,21 @@ export default function ChatDetailScreen() {
             />
 
             <ListItem
-              left={<FlagIcon color={AppColors.negativeDefault} />}
+              left={<FlagIcon color={AppColors.negativeDefault} size={20} />}
               title="Report"
               destructive
-              onPress={() => setSheetView('report')}
+              onPress={() => {
+                setSheetView('report');
+              }}
             />
 
             <ListItem
-              left={<Ban color={AppColors.negativeDefault} />}
+              left={<Ban color={AppColors.negativeDefault} size={20} />}
               title="Block"
               destructive
-              onPress={() => setSheetView('block')}
+              onPress={() => {
+                setSheetView('block');
+              }}
             />
           </ListItemWrapper>
         )}
@@ -319,8 +438,8 @@ export default function ChatDetailScreen() {
         {sheetView === 'report' && (
           <View style={styles.sheetContent}>
             <AppText>
-              Help us understand what&apos;s wrong with this user. Your report is
-              anonymous.
+              Help us understand what&apos;s wrong with this user. Your report
+              is anonymous.
             </AppText>
 
             {/* Reason selector */}
@@ -453,7 +572,7 @@ export default function ChatDetailScreen() {
                           text: 'OK',
                           onPress: () => {
                             // Navigate back to chat list after blocking
-                            router.replace('/chat' as any);
+                            router.back();
                           },
                         },
                       ]);
@@ -491,23 +610,56 @@ export default function ChatDetailScreen() {
         style={styles.inputContainer}
       >
         <View style={styles.inputRow}>
-          <View style={styles.textInputContainer}>
-            <AppInput
-              value={newMessage}
-              onChangeText={setNewMessage}
-              placeholder="Send a message..."
-              placeholderTextColor={AppColors.foregroundDimmer}
-              multiline
-              fullRound
-              style={styles.messageInput}
-            />
-          </View>
-          <IconButton
-            onPress={sendMessage}
-            disabled={!newMessage.trim() || sending}
-            icon={Send}
-            style={styles.sendButton}
+          <AppInput
+            value={newMessage}
+            onChangeText={setNewMessage}
+            placeholder="Send a message..."
+            placeholderTextColor={AppColors.foregroundDimmer}
+            multiline
+            fullRound
+            style={styles.messageInput}
+            onSubmitEditing={sendMessage}
           />
+
+          <Animated.View
+            style={[
+              styles.sendButtonContainer,
+              {
+                transform: [
+                  {
+                    translateX: sendButtonAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [80, -62], // Slide in from right (80px off-screen)
+                    }),
+                  },
+                  {
+                    rotate: sendButtonAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ['15deg', '0deg'], // Slight rotation
+                    }),
+                  },
+                  {
+                    scale: sendButtonAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.3, 1], // Scale up for bounce effect
+                    }),
+                  },
+                ],
+                opacity: sendButtonAnim.interpolate({
+                  inputRange: [0, 0.5, 1],
+                  outputRange: [0, 0.5, 1],
+                }),
+              },
+            ]}
+            pointerEvents={newMessage.trim() ? 'auto' : 'none'}
+          >
+            <IconButton
+              onPress={sendMessage}
+              disabled={sending}
+              icon={Send}
+              style={styles.sendButton}
+            />
+          </Animated.View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -525,6 +677,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
+    backgroundColor: AppColors.backgroundDefault,
+    borderBottomWidth: 1,
+    borderBottomColor: AppColors.backgroundDimmest,
   },
   messagesList: {
     flex: 1,
@@ -533,7 +688,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   messageContainer: {
-    marginVertical: 4,
+    marginTop: 4,
     maxWidth: '80%',
   },
   ownMessageContainer: {
@@ -545,23 +700,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   messageBubble: {
-    padding: 16,
+    padding: 18,
+    paddingVertical: 12,
     borderRadius: 24,
-    marginBottom: 4,
-  },
-  ownMessageBubble: {
-    backgroundColor: AppColors.accentDefault,
-    borderBottomRightRadius: 6,
-  },
-  otherMessageBubble: {
-    backgroundColor: AppColors.backgroundDimmer,
-    borderBottomLeftRadius: 4,
-  },
-  ownMessageText: {
-    color: AppColors.backgroundDefault,
-  },
-  otherMessageText: {
-    color: AppColors.foregroundDefault,
+    marginBottom: 0,
   },
   messageTime: {
     fontSize: 11,
@@ -576,26 +718,38 @@ const styles = StyleSheet.create({
   inputContainer: {
     backgroundColor: AppColors.backgroundDefault,
     borderTopWidth: 1,
-    borderTopColor: AppColors.backgroundDimmer,
+    borderTopColor: AppColors.backgroundDimmest,
+    minHeight: 80,
   },
   inputRow: {
     flexDirection: 'row',
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 48,
+    marginBottom: 8,
     flex: 1,
     gap: 8,
   },
   textInputContainer: {
-    minHeight: 48,
-    width: '85%',
+    minHeight: 80,
+    flex: 1,
   },
   messageInput: {
-    height: 48,
+    height: 54,
+    paddingTop: 17,
+    paddingLeft: 20,
+    paddingRight: 64,
     borderRadius: 24,
+    fontSize: 16,
+    width: 390,
+  },
+  sendButtonContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sendButton: {
-    width: 54,
-    height: 54,
+    width: 50,
+    height: 50,
+    top: 25,
   },
   sendButtonActive: {
     backgroundColor: AppColors.accentDefault,
