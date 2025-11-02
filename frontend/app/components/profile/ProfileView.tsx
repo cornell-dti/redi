@@ -114,9 +114,13 @@ const ProfileView: React.FC<ProfileViewProps> = ({
 
         {showNudgeButton && (
           <Button
-            title={nudgeDisabled ? "It's a match!" : nudgeSent ? 'Nudged' : 'Nudge'}
+            title={
+              nudgeDisabled ? "It's a match!" : nudgeSent ? 'Nudged' : 'Nudge'
+            }
             onPress={onNudge || (() => console.log('Nudge pressed'))}
-            variant={nudgeDisabled ? 'positive' : nudgeSent ? 'secondary' : 'primary'}
+            variant={
+              nudgeDisabled ? 'positive' : nudgeSent ? 'secondary' : 'primary'
+            }
             iconLeft={Bell}
             fullWidth
             disabled={nudgeDisabled || nudgeSent}

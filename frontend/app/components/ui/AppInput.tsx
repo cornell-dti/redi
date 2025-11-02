@@ -43,7 +43,12 @@ const AppInput: React.FC<AppInputProps> = ({
       formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
     }
     if (cleaned.length >= 4) {
-      formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4) + '/' + cleaned.slice(4, 8);
+      formatted =
+        cleaned.slice(0, 2) +
+        '/' +
+        cleaned.slice(2, 4) +
+        '/' +
+        cleaned.slice(4, 8);
     }
 
     return formatted;

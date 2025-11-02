@@ -141,7 +141,9 @@ export default function MatchesScreen() {
           // Get current week's matches using batch endpoint with caching
           if (currentWeekMatch.matches.length > 0) {
             // Try to get cached data first
-            const cachedData = await getCachedMatchData(currentWeekMatch.promptId);
+            const cachedData = await getCachedMatchData(
+              currentWeekMatch.promptId
+            );
 
             let batchData;
             if (cachedData) {
@@ -159,8 +161,8 @@ export default function MatchesScreen() {
             }
 
             // Map the batch data back to the expected format
-            const matchesWithProfiles: MatchWithProfile[] = currentWeekMatch.matches.map(
-              (netid: string, index: number) => {
+            const matchesWithProfiles: MatchWithProfile[] =
+              currentWeekMatch.matches.map((netid: string, index: number) => {
                 // Find matching profile from batch response
                 const profile =
                   batchData.profiles.find((p) => p.netid === netid) || null;
@@ -179,8 +181,7 @@ export default function MatchesScreen() {
                   nudgeStatus,
                   promptId: currentWeekMatch.promptId, // Include promptId for nudging
                 };
-              }
-            );
+              });
 
             setCurrentMatches(matchesWithProfiles);
           } else {
@@ -203,7 +204,9 @@ export default function MatchesScreen() {
             // Fetch all profiles at once (we don't need nudge statuses for previous matches)
             // We'll use the batch endpoint with the oldest promptId
             if (netidPromptMap.length > 0) {
-              const allPreviousNetids = netidPromptMap.map(item => item.netid);
+              const allPreviousNetids = netidPromptMap.map(
+                (item) => item.netid
+              );
               const oldestPromptId = oldMatches[0]?.promptId;
               const batchData = await getBatchMatchData(
                 oldestPromptId,
@@ -214,7 +217,8 @@ export default function MatchesScreen() {
               const previousMatchesWithProfiles: MatchWithProfile[] =
                 netidPromptMap.map((item) => {
                   const profile =
-                    batchData.profiles.find((p) => p.netid === item.netid) || null;
+                    batchData.profiles.find((p) => p.netid === item.netid) ||
+                    null;
 
                   return {
                     netid: item.netid,
@@ -409,7 +413,9 @@ export default function MatchesScreen() {
                   key={match.netid + index}
                   style={styles.previousMatchCard}
                   onPress={() =>
-                    router.push(`/view-profile?netid=${profile.netid}&promptId=${match.promptId}` as any)
+                    router.push(
+                      `/view-profile?netid=${profile.netid}&promptId=${match.promptId}` as any
+                    )
                   }
                 >
                   <View style={styles.previousMatchImage}>

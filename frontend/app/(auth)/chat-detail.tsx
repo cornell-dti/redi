@@ -82,7 +82,12 @@ export default function ChatDetailScreen() {
 
   // Debug logging
   useEffect(() => {
-    console.log('Chat detail params:', { conversationId: routeConversationId, userId, name, netid });
+    console.log('Chat detail params:', {
+      conversationId: routeConversationId,
+      userId,
+      name,
+      netid,
+    });
   }, [routeConversationId, userId, name, netid]);
 
   const [conversationId, setConversationId] = useState<string | null>(
@@ -419,7 +424,10 @@ export default function ChatDetailScreen() {
               title="View profile"
               onPress={() => {
                 if (!netid) {
-                  Alert.alert('Error', 'Unable to view profile. User information is missing.');
+                  Alert.alert(
+                    'Error',
+                    'Unable to view profile. User information is missing.'
+                  );
                   return;
                 }
                 setShowOptionsSheet(false);

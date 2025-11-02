@@ -161,7 +161,12 @@ export default function Sheet({
             <View style={styles.dragHandle} />
           </View>
           <View>{title && <AppText variant="subtitle">{title}</AppText>}</View>
-          <View style={[styles.content, height && height !== 'auto' ? { flex: 1 } : undefined]}>
+          <View
+            style={[
+              styles.content,
+              height && height !== 'auto' ? { flex: 1 } : undefined,
+            ]}
+          >
             {children}
           </View>
         </Animated.View>

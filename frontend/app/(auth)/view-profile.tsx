@@ -40,7 +40,10 @@ const REPORT_REASONS: { value: ReportReason; label: string }[] = [
 ];
 
 export default function ViewProfileScreen() {
-  const { netid, promptId } = useLocalSearchParams<{ netid: string; promptId?: string }>();
+  const { netid, promptId } = useLocalSearchParams<{
+    netid: string;
+    promptId?: string;
+  }>();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +55,9 @@ export default function ViewProfileScreen() {
   const [reportText, setReportText] = useState('');
   const [isBlocked, setIsBlocked] = useState(false);
   const [blocking, setBlocking] = useState(false);
-  const [nudgeStatus, setNudgeStatus] = useState<NudgeStatusResponse | null>(null);
+  const [nudgeStatus, setNudgeStatus] = useState<NudgeStatusResponse | null>(
+    null
+  );
   const [isNudging, setIsNudging] = useState(false);
 
   const user = auth().currentUser;
@@ -126,10 +131,16 @@ export default function ViewProfileScreen() {
       // Refresh nudge status after sending
       await fetchNudgeStatus();
 
-      Alert.alert('Nudge sent!', `You nudged ${profile?.firstName}. If they nudge you back, you'll both be notified!`);
+      Alert.alert(
+        'Nudge sent!',
+        `You nudged ${profile?.firstName}. If they nudge you back, you'll both be notified!`
+      );
     } catch (error: any) {
       console.error('Error sending nudge:', error);
-      Alert.alert('Error', error.message || 'Failed to send nudge. Please try again.');
+      Alert.alert(
+        'Error',
+        error.message || 'Failed to send nudge. Please try again.'
+      );
     } finally {
       setIsNudging(false);
     }

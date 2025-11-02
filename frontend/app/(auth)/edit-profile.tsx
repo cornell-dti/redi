@@ -175,7 +175,8 @@ export default function EditProfileScreen() {
 
       // Step 4: Delete removed images from Firebase Storage
       const removedImages = originalPhotos.filter(
-        (oldUrl) => !finalImageUrls.includes(oldUrl) && !oldUrl.startsWith('file://')
+        (oldUrl) =>
+          !finalImageUrls.includes(oldUrl) && !oldUrl.startsWith('file://')
       );
 
       if (removedImages.length > 0) {

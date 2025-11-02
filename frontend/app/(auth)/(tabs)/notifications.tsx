@@ -160,7 +160,11 @@ export default function NotificationsScreen() {
                     size="large"
                     color={AppColors.accentDefault}
                   />
-                  <AppText variant="body" color="dimmer" style={{ marginTop: 8 }}>
+                  <AppText
+                    variant="body"
+                    color="dimmer"
+                    style={{ marginTop: 8 }}
+                  >
                     Loading notifications...
                   </AppText>
                 </View>
