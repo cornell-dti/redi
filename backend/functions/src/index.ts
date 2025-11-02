@@ -1,10 +1,8 @@
-import * as admin from 'firebase-admin';
-import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { generateMatchesForPrompt } from './services/matchingService';
+import * as admin from "firebase-admin";
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import { generateMatchesForPrompt } from "./services/matchingService";
 
-// Initialize Firebase Admin
-admin.initializeApp();
-
+// Firebase Admin is initialized in firebaseAdmin.ts (imported by services)
 const db = admin.firestore();
 
 /**
@@ -13,12 +11,12 @@ const db = admin.firestore();
  */
 export const activateWeeklyPrompt = onSchedule(
   {
-    schedule: '1 0 * * 1', // Every Monday at 12:01 AM
-    timeZone: 'America/New_York',
+    schedule: "1 0 * * 1", // Every Monday at 12:01 AM
+    timeZone: "America/New_York",
   },
   async () => {
     try {
-      console.log('Starting weekly prompt activation');
+      console.log("Starting weekly prompt activation");
 
       const today = new Date();
       const promptId = generatePromptId(today);
@@ -27,7 +25,7 @@ export const activateWeeklyPrompt = onSchedule(
 
       // Get the prompt for this week
       const promptDoc = await db
-        .collection('weeklyPrompts')
+        .collection("weeklyPrompts")
         .doc(promptId)
         .get();
 
@@ -51,9 +49,12 @@ export const activateWeeklyPrompt = onSchedule(
       }
 
       // Deactivate all other prompts
+      // NOTE: Old matches remain visible until Friday when they expire.
+      // This is intentional - matches have an expiresAt field set to next Friday,
+      // so they automatically disappear when new matches are generated.
       const activePrompts = await db
-        .collection('weeklyPrompts')
-        .where('active', '==', true)
+        .collection("weeklyPrompts")
+        .where("active", "==", true)
         .get();
 
       const batch = db.batch();
@@ -66,7 +67,7 @@ export const activateWeeklyPrompt = onSchedule(
       // Activate the new prompt
       batch.update(promptDoc.ref, {
         active: true,
-        status: 'active',
+        status: "active",
         activatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
@@ -75,7 +76,7 @@ export const activateWeeklyPrompt = onSchedule(
       console.log(`Successfully activated prompt: ${promptId}`);
       console.log(`Question: ${promptData?.question}`);
     } catch (error) {
-      console.error('Error activating weekly prompt:', error);
+      console.error("Error activating weekly prompt:", error);
       throw error;
     }
   }
@@ -87,22 +88,22 @@ export const activateWeeklyPrompt = onSchedule(
  */
 export const generateWeeklyMatches = onSchedule(
   {
-    schedule: '1 0 * * 5', // Every Friday at 12:01 AM
-    timeZone: 'America/New_York',
+    schedule: "1 0 * * 5", // Every Friday at 12:01 AM
+    timeZone: "America/New_York",
   },
   async () => {
     try {
-      console.log('Starting weekly match generation');
+      console.log("Starting weekly match generation");
 
       // Get the active prompt
       const activePromptSnapshot = await db
-        .collection('weeklyPrompts')
-        .where('active', '==', true)
+        .collection("weeklyPrompts")
+        .where("active", "==", true)
         .limit(1)
         .get();
 
       if (activePromptSnapshot.empty) {
-        console.error('No active prompt found');
+        console.error("No active prompt found");
         return;
       }
 
@@ -128,13 +129,16 @@ export const generateWeeklyMatches = onSchedule(
       }
 
       // Generate matches using shared service
-      const matchedCount = await generateMatchesForPrompt(promptId, db);
+      // NOTE: New matches are created with expiresAt set to next Friday (7 days).
+      // Old matches from previous prompts automatically expire now since their
+      // expiresAt date has passed, ensuring only current matches are visible.
+      const matchedCount = await generateMatchesForPrompt(promptId);
 
       console.log(
         `Match generation complete. Created matches for ${matchedCount} users.`
       );
     } catch (error) {
-      console.error('Error generating weekly matches:', error);
+      console.error("Error generating weekly matches:", error);
       throw error;
     }
   }
@@ -158,17 +162,17 @@ function toDate(dateValue: any): Date {
   }
 
   // If it's a Firestore Timestamp with a toDate() method
-  if (dateValue && typeof dateValue.toDate === 'function') {
+  if (dateValue && typeof dateValue.toDate === "function") {
     return dateValue.toDate();
   }
 
   // If it's a string or number, try to convert it
-  if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+  if (typeof dateValue === "string" || typeof dateValue === "number") {
     return new Date(dateValue);
   }
 
   // If it's an object with seconds (Firestore Timestamp-like structure)
-  if (dateValue && typeof dateValue.seconds === 'number') {
+  if (dateValue && typeof dateValue.seconds === "number") {
     return new Date(dateValue.seconds * 1000);
   }
 
@@ -190,7 +194,7 @@ function generatePromptId(date: Date): string {
     (daysSinceStartOfYear + startOfYear.getDay()) / 7
   );
 
-  return `${year}-W${weekNumber.toString().padStart(2, '0')}`;
+  return `${year}-W${weekNumber.toString().padStart(2, "0")}`;
 }
 
 /**

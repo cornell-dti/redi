@@ -355,6 +355,7 @@ export interface WeeklyMatchDoc {
   matches: string[]; // Array of 3 matched user netids
   revealed: boolean[]; // Array of 3 booleans indicating if match was viewed
   createdAt: FirestoreTimestampType; // When matches were generated (Friday)
+  expiresAt: FirestoreTimestampType; // When matches expire (next Friday 12:00 AM ET)
 }
 
 // Weekly match document when writing to Firestore
@@ -364,6 +365,7 @@ export interface WeeklyMatchDocWrite {
   matches: string[];
   revealed: boolean[];
   createdAt: FirestoreTimestampType | FieldValue;
+  expiresAt: FirestoreTimestampType | FieldValue;
 }
 
 // Weekly match data for API responses
@@ -373,10 +375,11 @@ export interface WeeklyMatchResponse {
   matches: string[];
   revealed: boolean[];
   createdAt: string; // ISO string format for JSON
+  expiresAt: string; // ISO string format for JSON
 }
 
 // For creating new weekly matches
-export type CreateWeeklyMatchInput = Omit<WeeklyMatchDoc, 'createdAt'>;
+export type CreateWeeklyMatchInput = Omit<WeeklyMatchDoc, 'createdAt' | 'expiresAt'>;
 
 // For updating match revealed status
 export interface UpdateWeeklyMatchRevealedInput {

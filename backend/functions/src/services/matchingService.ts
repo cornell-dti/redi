@@ -1,19 +1,56 @@
-import { db } from '../../firebaseAdmin';
+import { db } from "../firebaseAdmin";
 import {
   WeeklyMatchDoc,
   WeeklyMatchDocWrite,
   WeeklyMatchResponse,
   ProfileDoc,
-  PreferencesDoc,
-} from '../../types';
-import { FieldValue } from 'firebase-admin/firestore';
-import { getUsersWhoAnswered } from './promptsService';
-import { getPreferences } from './preferencesService';
-import { UserData, findMatchesForUser } from './matchingAlgorithm';
-import { getBlockedUsersMap } from './blockingService';
+} from "../types";
+import { FieldValue } from "firebase-admin/firestore";
+import { getUsersWhoAnswered } from "./promptsService";
+import { getPreferences } from "./preferencesService";
+import { UserData, findMatchesForUser } from "./matchingAlgorithm";
+import { getBlockedUsersMap } from "./blockingService";
 
-const MATCHES_COLLECTION = 'weeklyMatches';
-const PROFILES_COLLECTION = 'profiles';
+const MATCHES_COLLECTION = "weeklyMatches";
+const PROFILES_COLLECTION = "profiles";
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+/**
+ * Calculate the next Friday at 12:00 AM ET from a given date
+ * @param fromDate - The date to calculate from (defaults to now)
+ * @returns Date object set to next Friday at 12:00 AM ET
+ */
+function getNextFridayMidnight(fromDate: Date = new Date()): Date {
+  const date = new Date(fromDate);
+
+  // Set to midnight
+  date.setHours(0, 0, 0, 0);
+
+  // Get day of week (0 = Sunday, 5 = Friday)
+  const dayOfWeek = date.getDay();
+
+  // Calculate days until next Friday
+  // If today is Friday (5), add 7 days to get next Friday
+  // Otherwise, calculate days until next Friday
+  let daysUntilFriday;
+  if (dayOfWeek === 5) {
+    // If it's Friday, expire next Friday (7 days)
+    daysUntilFriday = 7;
+  } else if (dayOfWeek < 5) {
+    // If before Friday this week, expire this coming Friday
+    daysUntilFriday = 5 - dayOfWeek;
+  } else {
+    // If after Friday (Saturday or Sunday), expire next Friday
+    daysUntilFriday = 5 + (7 - dayOfWeek);
+  }
+
+  date.setDate(date.getDate() + daysUntilFriday);
+
+  return date;
+}
 
 // =============================================================================
 // WEEKLY MATCHES OPERATIONS
@@ -33,12 +70,16 @@ export async function createWeeklyMatch(
 ): Promise<WeeklyMatchDoc> {
   const docId = `${netid}_${promptId}`;
 
+  // Calculate expiration date (next Friday at 12:00 AM ET)
+  const expiresAt = getNextFridayMidnight();
+
   const matchDoc: WeeklyMatchDocWrite = {
     netid,
     promptId,
     matches: matches.slice(0, 3), // Ensure max 3 matches
     revealed: matches.slice(0, 3).map(() => false), // All matches start unrevealed
     createdAt: FieldValue.serverTimestamp(),
+    expiresAt: expiresAt, // Matches expire next Friday at midnight
   };
 
   await db.collection(MATCHES_COLLECTION).doc(docId).set(matchDoc);
@@ -68,18 +109,23 @@ export async function getWeeklyMatch(
 
 /**
  * Get all matches for a user across all prompts
+ * Only returns non-expired matches (where expiresAt > now)
  * @param netid - User's Cornell NetID
  * @param limit - Maximum number of matches to return (default: 10)
  * @returns Promise resolving to array of WeeklyMatchDoc
  */
 export async function getUserMatchHistory(
   netid: string,
-  limit: number = 10
+  limit = 10
 ): Promise<WeeklyMatchDoc[]> {
+  const now = new Date();
+
   const snapshot = await db
     .collection(MATCHES_COLLECTION)
-    .where('netid', '==', netid)
-    .orderBy('createdAt', 'desc')
+    .where("netid", "==", netid)
+    .where("expiresAt", ">", now)
+    .orderBy("expiresAt", "desc")
+    .orderBy("createdAt", "desc")
     .limit(limit)
     .get();
 
@@ -99,18 +145,18 @@ export async function revealMatch(
   matchIndex: number
 ): Promise<WeeklyMatchDoc> {
   if (matchIndex < 0 || matchIndex > 2) {
-    throw new Error('Match index must be between 0 and 2');
+    throw new Error("Match index must be between 0 and 2");
   }
 
   const docId = `${netid}_${promptId}`;
   const matchDoc = await getWeeklyMatch(netid, promptId);
 
   if (!matchDoc) {
-    throw new Error('Match not found');
+    throw new Error("Match not found");
   }
 
   if (matchIndex >= matchDoc.matches.length) {
-    throw new Error('Match index out of bounds');
+    throw new Error("Match index out of bounds");
   }
 
   const revealed = [...matchDoc.revealed];
@@ -136,6 +182,10 @@ export function matchToResponse(doc: WeeklyMatchDoc): WeeklyMatchResponse {
       doc.createdAt instanceof Date
         ? doc.createdAt.toISOString()
         : doc.createdAt.toDate().toISOString(),
+    expiresAt:
+      doc.expiresAt instanceof Date
+        ? doc.expiresAt.toISOString()
+        : doc.expiresAt.toDate().toISOString(),
   };
 }
 
@@ -204,8 +254,8 @@ export async function generateMatchesForPrompt(
   console.log(`Match generation complete. Matched ${matchedCount} users.`);
 
   // Update prompt status to completed
-  await db.collection('weeklyPrompts').doc(promptId).update({
-    status: 'completed',
+  await db.collection("weeklyPrompts").doc(promptId).update({
+    status: "completed",
     matchesGeneratedAt: FieldValue.serverTimestamp(),
     active: false,
   });
@@ -230,7 +280,7 @@ async function getUserDataMap(
   // Fetch all profiles
   const profilesSnapshot = await db
     .collection(PROFILES_COLLECTION)
-    .where('netid', 'in', netids.slice(0, 10)) // Firestore 'in' limit is 10
+    .where("netid", "in", netids.slice(0, 10)) // Firestore 'in' limit is 10
     .get();
 
   const profiles = new Map<string, ProfileDoc>();
@@ -245,7 +295,7 @@ async function getUserDataMap(
       const batch = netids.slice(i, i + 10);
       const batchSnapshot = await db
         .collection(PROFILES_COLLECTION)
-        .where('netid', 'in', batch)
+        .where("netid", "in", batch)
         .get();
 
       batchSnapshot.docs.forEach((doc) => {
