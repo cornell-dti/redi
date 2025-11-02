@@ -64,6 +64,9 @@ export default {
     },
     extra: {
       apiBaseUrl: process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001',
+      eas: {
+        projectId: 'a8a89a20-069d-46de-9994-8e37117865b4',
+      },
     },
   },
 };
