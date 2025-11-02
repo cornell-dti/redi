@@ -35,12 +35,16 @@ interface ProfileViewProps {
   isLoading?: boolean;
   showNudgeButton?: boolean;
   onNudge?: () => void;
+  nudgeSent?: boolean;
+  nudgeDisabled?: boolean;
 }
 
 const ProfileView: React.FC<ProfileViewProps> = ({
   profile,
   showNudgeButton = false,
   onNudge,
+  nudgeSent = false,
+  nudgeDisabled = false,
 }) => {
   const screenWidth = Dimensions.get('window').width;
   const age = getProfileAge(profile);
@@ -110,11 +114,12 @@ const ProfileView: React.FC<ProfileViewProps> = ({
 
         {showNudgeButton && (
           <Button
-            title="Nudge"
+            title={nudgeDisabled ? "It's a match!" : nudgeSent ? 'Nudged' : 'Nudge'}
             onPress={onNudge || (() => console.log('Nudge pressed'))}
-            variant="primary"
+            variant={nudgeDisabled ? 'positive' : nudgeSent ? 'secondary' : 'primary'}
             iconLeft={Bell}
             fullWidth
+            disabled={nudgeDisabled || nudgeSent}
           />
         )}
 

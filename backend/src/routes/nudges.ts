@@ -85,6 +85,24 @@ router.post(
         });
       }
 
+      // Check if the match has expired
+      const now = new Date();
+      let expiresAt: Date;
+
+      if (matchData.expiresAt instanceof Date) {
+        expiresAt = matchData.expiresAt;
+      } else if (matchData.expiresAt && typeof matchData.expiresAt.toDate === 'function') {
+        expiresAt = matchData.expiresAt.toDate();
+      } else {
+        expiresAt = new Date(matchData.expiresAt);
+      }
+
+      if (now > expiresAt) {
+        return res.status(400).json({
+          error: 'Cannot nudge: this match has expired',
+        });
+      }
+
       // Create the nudge
       const nudge = await createNudge(fromNetid, toNetid, promptId);
       const response = nudgeToResponse(nudge);

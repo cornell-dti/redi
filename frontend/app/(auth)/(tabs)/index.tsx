@@ -5,7 +5,6 @@ import {
   getBatchMatchData,
   getMatchHistory,
   getPromptAnswer,
-  getPromptMatches,
   submitPromptAnswer,
 } from '@/app/api/promptsApi';
 import { AppColors } from '@/app/components/AppColors';
@@ -53,6 +52,7 @@ interface MatchWithProfile {
   profile: ProfileResponse | null;
   revealed: boolean;
   nudgeStatus?: NudgeStatusResponse;
+  promptId: string; // Store promptId with each match for nudging
 }
 
 export default function MatchesScreen() {
@@ -107,142 +107,138 @@ export default function MatchesScreen() {
       setLoading(true);
       let prompt: WeeklyPromptResponse | null = null;
 
-      // Get active prompt
+      // Get active prompt (optional - matches can exist without an active prompt)
       try {
         prompt = await getActivePrompt();
         setActivePrompt(prompt);
       } catch (promptError) {
         console.error('Error fetching active prompt:', promptError);
         setActivePrompt(null);
-        setLoading(false);
-        return;
+        // Don't return early - continue loading matches even without an active prompt
       }
 
-      if (!prompt) {
-        setLoading(false);
-        return;
-      }
-
-      // Get user's answer to the prompt
-      try {
-        const answer: WeeklyPromptAnswerResponse = await getPromptAnswer(
-          prompt.promptId
-        );
-        setUserAnswer(answer.answer);
-      } catch {
-        // No answer yet
-        setUserAnswer('');
-      }
-
-      // Get current week's matches using batch endpoint with caching
-      try {
-        const matches: WeeklyMatchResponse = await getPromptMatches(
-          prompt.promptId
-        );
-
-        if (matches.matches.length > 0) {
-          // Try to get cached data first
-          const cachedData = await getCachedMatchData(prompt.promptId);
-
-          let batchData;
-          if (cachedData) {
-            // Use cached data
-            batchData = cachedData;
-            console.log('✅ Using cached match data');
-          } else {
-            // Fetch fresh data and cache it
-            batchData = await getBatchMatchData(
-              prompt.promptId,
-              matches.matches
-            );
-            await cacheMatchData(prompt.promptId, batchData);
-            console.log('✅ Fetched and cached fresh match data');
-          }
-
-          // Map the batch data back to the expected format
-          const matchesWithProfiles: MatchWithProfile[] = matches.matches.map(
-            (netid: string, index: number) => {
-              // Find matching profile from batch response
-              const profile =
-                batchData.profiles.find((p) => p.netid === netid) || null;
-
-              // Get nudge status from batch response
-              const nudgeStatus = batchData.nudgeStatuses[index] || {
-                sent: false,
-                received: false,
-                mutual: false,
-              };
-
-              return {
-                netid,
-                profile,
-                revealed: matches.revealed[index],
-                nudgeStatus,
-              };
-            }
+      // Get user's answer to the prompt (if there's an active prompt)
+      if (prompt) {
+        try {
+          const answer: WeeklyPromptAnswerResponse = await getPromptAnswer(
+            prompt.promptId
           );
-
-          setCurrentMatches(matchesWithProfiles);
-        } else {
-          setCurrentMatches([]);
+          setUserAnswer(answer.answer);
+        } catch {
+          // No answer yet
+          setUserAnswer('');
         }
-      } catch (error) {
-        console.error('Error loading current matches:', error);
-        // No matches yet
-        setCurrentMatches([]);
       }
 
-      // Get previous matches
-      // TODO: Idk if we want to reset previous matches every week or keep them displayed to users
-      // maybe if neither nudges after a week they go away?
+      // Get all match history - backend filters by expiration date automatically
       try {
         const history: WeeklyMatchResponse[] = await getMatchHistory(10);
-        // Filter out current week's matches
-        const oldMatches = history.filter(
-          (m: WeeklyMatchResponse) => m.promptId !== prompt.promptId
-        );
 
-        if (oldMatches.length > 0) {
-          // Collect all netids from previous matches
-          const allPreviousNetids: string[] = [];
+        if (history.length > 0) {
+          // First match in history is the most recent (current week's matches)
+          const currentWeekMatch = history[0];
 
-          oldMatches.forEach((matchRecord: WeeklyMatchResponse) => {
-            matchRecord.matches.forEach((netid: string) => {
-              allPreviousNetids.push(netid);
-            });
-          });
+          // Get current week's matches using batch endpoint with caching
+          if (currentWeekMatch.matches.length > 0) {
+            // Try to get cached data first
+            const cachedData = await getCachedMatchData(currentWeekMatch.promptId);
 
-          // Fetch all profiles at once (we don't need nudge statuses for previous matches)
-          // We'll use the batch endpoint with the oldest promptId
-          if (allPreviousNetids.length > 0) {
-            const oldestPromptId = oldMatches[0]?.promptId || prompt.promptId;
-            const batchData = await getBatchMatchData(
-              oldestPromptId,
-              allPreviousNetids
-            );
+            let batchData;
+            if (cachedData) {
+              // Use cached data
+              batchData = cachedData;
+              console.log('✅ Using cached match data');
+            } else {
+              // Fetch fresh data and cache it
+              batchData = await getBatchMatchData(
+                currentWeekMatch.promptId,
+                currentWeekMatch.matches
+              );
+              await cacheMatchData(currentWeekMatch.promptId, batchData);
+              console.log('✅ Fetched and cached fresh match data');
+            }
 
-            // Map profiles back
-            const previousMatchesWithProfiles: MatchWithProfile[] =
-              allPreviousNetids.map((netid: string) => {
+            // Map the batch data back to the expected format
+            const matchesWithProfiles: MatchWithProfile[] = currentWeekMatch.matches.map(
+              (netid: string, index: number) => {
+                // Find matching profile from batch response
                 const profile =
                   batchData.profiles.find((p) => p.netid === netid) || null;
+
+                // Get nudge status from batch response
+                const nudgeStatus = batchData.nudgeStatuses[index] || {
+                  sent: false,
+                  received: false,
+                  mutual: false,
+                };
 
                 return {
                   netid,
                   profile,
-                  revealed: true, // Previous matches are always revealed
+                  revealed: currentWeekMatch.revealed[index],
+                  nudgeStatus,
+                  promptId: currentWeekMatch.promptId, // Include promptId for nudging
                 };
-              });
+              }
+            );
 
-            setPreviousMatches(previousMatchesWithProfiles);
+            setCurrentMatches(matchesWithProfiles);
+          } else {
+            setCurrentMatches([]);
+          }
+
+          // Get previous matches (everything after the first/current match)
+          const oldMatches = history.slice(1);
+
+          if (oldMatches.length > 0) {
+            // Collect all netids and track their promptIds
+            const netidPromptMap: { netid: string; promptId: string }[] = [];
+
+            oldMatches.forEach((matchRecord: WeeklyMatchResponse) => {
+              matchRecord.matches.forEach((netid: string) => {
+                netidPromptMap.push({ netid, promptId: matchRecord.promptId });
+              });
+            });
+
+            // Fetch all profiles at once (we don't need nudge statuses for previous matches)
+            // We'll use the batch endpoint with the oldest promptId
+            if (netidPromptMap.length > 0) {
+              const allPreviousNetids = netidPromptMap.map(item => item.netid);
+              const oldestPromptId = oldMatches[0]?.promptId;
+              const batchData = await getBatchMatchData(
+                oldestPromptId,
+                allPreviousNetids
+              );
+
+              // Map profiles back with their associated promptIds
+              const previousMatchesWithProfiles: MatchWithProfile[] =
+                netidPromptMap.map((item) => {
+                  const profile =
+                    batchData.profiles.find((p) => p.netid === item.netid) || null;
+
+                  return {
+                    netid: item.netid,
+                    profile,
+                    revealed: true, // Previous matches are always revealed
+                    promptId: item.promptId, // Include promptId for nudging
+                  };
+                });
+
+              setPreviousMatches(previousMatchesWithProfiles);
+            } else {
+              setPreviousMatches([]);
+            }
           } else {
             setPreviousMatches([]);
           }
         } else {
+          // No match history at all
+          setCurrentMatches([]);
           setPreviousMatches([]);
         }
       } catch (error) {
-        console.error('Error loading previous matches:', error);
+        console.error('Error loading matches:', error);
+        setCurrentMatches([]);
         setPreviousMatches([]);
       }
     } catch (error) {
@@ -335,13 +331,12 @@ export default function MatchesScreen() {
           style={{ paddingLeft: 16 }}
         >
           {currentMatches.map((m, index) => {
-            if (!m.profile || !activePrompt) return null;
+            if (!m.profile) return null;
             const matchProfile = m.profile;
             const matchAge = getProfileAge(matchProfile);
 
             const handleNudge = async () => {
-              if (!activePrompt) return;
-              await sendNudge(matchProfile.netid, activePrompt.promptId);
+              await sendNudge(matchProfile.netid, m.promptId);
               // Reload matches to update nudge status (debounced)
               loadDataDebounced();
             };
@@ -369,7 +364,7 @@ export default function MatchesScreen() {
                       onNudge={handleNudge}
                       onViewProfile={() =>
                         router.push(
-                          `/view-profile?netid=${matchProfile.netid}` as any
+                          `/view-profile?netid=${matchProfile.netid}&promptId=${m.promptId}` as any
                         )
                       }
                       nudgeSent={m.nudgeStatus?.sent || false}
@@ -419,7 +414,7 @@ export default function MatchesScreen() {
                   key={match.netid + index}
                   style={styles.previousMatchCard}
                   onPress={() =>
-                    router.push(`/view-profile?netid=${profile.netid}` as any)
+                    router.push(`/view-profile?netid=${profile.netid}&promptId=${match.promptId}` as any)
                   }
                 >
                   <View style={styles.previousMatchImage}>
@@ -457,41 +452,6 @@ export default function MatchesScreen() {
     );
   }
 
-  // Show error state if no active prompt
-  if (!activePrompt) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-
-        <View style={styles.headerContainer}>
-          <AppText variant="title">Matches</AppText>
-          <AppText variant="subtitle" color="dimmer">
-            Dropping Friday at 12:00 AM
-          </AppText>
-        </View>
-
-        <ScrollView
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.content}>
-            <View style={styles.emptyState}>
-              <AppText variant="title" style={{ marginBottom: 12 }}>
-                Unable to load matches
-              </AppText>
-              <Button
-                title="Retry"
-                onPress={loadData}
-                variant="primary"
-                style={{ marginTop: 24 }}
-              />
-            </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -521,7 +481,7 @@ export default function MatchesScreen() {
       <Sheet
         visible={showPromptSheet}
         onDismiss={() => setShowPromptSheet(false)}
-        title={activePrompt.question}
+        title={activePrompt?.question || 'Weekly Prompt'}
       >
         {activePrompt && (
           <View style={{ gap: 16, flex: 1 }}>

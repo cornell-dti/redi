@@ -74,8 +74,16 @@ export default function ChatDetailScreen() {
     conversationId: routeConversationId,
     userId,
     name,
-    netid,
+    netid: routeNetid,
   } = useLocalSearchParams();
+
+  // Ensure params are strings, not arrays
+  const netid = Array.isArray(routeNetid) ? routeNetid[0] : routeNetid;
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Chat detail params:', { conversationId: routeConversationId, userId, name, netid });
+  }, [routeConversationId, userId, name, netid]);
 
   const [conversationId, setConversationId] = useState<string | null>(
     (routeConversationId as string) || null
@@ -410,6 +418,10 @@ export default function ChatDetailScreen() {
               right={<ChevronRight size={20} />}
               title="View profile"
               onPress={() => {
+                if (!netid) {
+                  Alert.alert('Error', 'Unable to view profile. User information is missing.');
+                  return;
+                }
                 setShowOptionsSheet(false);
                 router.push(`/view-profile?netid=${netid}` as any);
               }}

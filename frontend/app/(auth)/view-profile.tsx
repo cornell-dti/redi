@@ -1,5 +1,6 @@
 import { getProfileByNetid } from '@/app/api/profileApi';
 import { createReport } from '@/app/api/reportsApi';
+import { sendNudge, getNudgeStatus } from '@/app/api/nudgesApi';
 import { AppColors } from '@/app/components/AppColors';
 import ProfileView from '@/app/components/profile/ProfileView';
 import AppInput from '@/app/components/ui/AppInput';
@@ -7,7 +8,7 @@ import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import ListItem from '@/app/components/ui/ListItem';
 import Sheet from '@/app/components/ui/Sheet';
-import { ProfileResponse, ReportReason } from '@/types';
+import { ProfileResponse, ReportReason, NudgeStatusResponse } from '@/types';
 import auth from '@react-native-firebase/auth';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Ban, Check, Flag, MoreVertical } from 'lucide-react-native';
@@ -39,7 +40,7 @@ const REPORT_REASONS: { value: ReportReason; label: string }[] = [
 ];
 
 export default function ViewProfileScreen() {
-  const { netid } = useLocalSearchParams<{ netid: string }>();
+  const { netid, promptId } = useLocalSearchParams<{ netid: string; promptId?: string }>();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +52,8 @@ export default function ViewProfileScreen() {
   const [reportText, setReportText] = useState('');
   const [isBlocked, setIsBlocked] = useState(false);
   const [blocking, setBlocking] = useState(false);
+  const [nudgeStatus, setNudgeStatus] = useState<NudgeStatusResponse | null>(null);
+  const [isNudging, setIsNudging] = useState(false);
 
   const user = auth().currentUser;
   const currentNetid = user?.email?.split('@')[0] || '';
@@ -60,11 +63,14 @@ export default function ViewProfileScreen() {
     if (netid) {
       fetchProfile();
       checkIfBlocked();
+      if (promptId) {
+        fetchNudgeStatus();
+      }
     } else {
       setError('No user specified');
       setLoading(false);
     }
-  }, [netid]);
+  }, [netid, promptId]);
 
   const checkIfBlocked = async () => {
     if (!netid || !currentNetid) return;
@@ -95,6 +101,37 @@ export default function ViewProfileScreen() {
       setError(err instanceof Error ? err.message : 'Failed to load profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchNudgeStatus = async () => {
+    if (!netid || !promptId) return;
+
+    try {
+      const status = await getNudgeStatus(promptId, netid);
+      setNudgeStatus(status);
+    } catch (error) {
+      console.error('Error fetching nudge status:', error);
+      // Don't set nudgeStatus on error - just leave it null
+    }
+  };
+
+  const handleNudge = async () => {
+    if (!netid || !promptId || isNudging) return;
+
+    try {
+      setIsNudging(true);
+      await sendNudge(netid, promptId);
+
+      // Refresh nudge status after sending
+      await fetchNudgeStatus();
+
+      Alert.alert('Nudge sent!', `You nudged ${profile?.firstName}. If they nudge you back, you'll both be notified!`);
+    } catch (error: any) {
+      console.error('Error sending nudge:', error);
+      Alert.alert('Error', error.message || 'Failed to send nudge. Please try again.');
+    } finally {
+      setIsNudging(false);
     }
   };
 
@@ -157,8 +194,10 @@ export default function ViewProfileScreen() {
       {/* Profile view */}
       <ProfileView
         profile={profile}
-        showNudgeButton={true}
-        onNudge={() => console.log('Nudge user:', netid)}
+        showNudgeButton={!!promptId}
+        onNudge={handleNudge}
+        nudgeSent={nudgeStatus?.sent || false}
+        nudgeDisabled={nudgeStatus?.mutual || isNudging}
       />
 
       {/* More Options Sheet */}
