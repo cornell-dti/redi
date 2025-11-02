@@ -342,37 +342,32 @@ export default function MatchesScreen() {
             };
 
             return (
-              <>
-                {/* TEMPORARY FOR NOW JUST TO TEST CAROUSEL */}
-                {[0, 1, 2].map((cardIndex) => (
-                  <View
-                    key={`${index}-${cardIndex}`}
-                    style={{
-                      width: width - 60,
-                      marginRight: 12,
-                    }}
-                  >
-                    <WeeklyMatchCard
-                      name={matchProfile.firstName}
-                      age={matchAge}
-                      year={matchProfile.year}
-                      major={matchProfile.major.join(', ')}
-                      image={
-                        matchProfile.pictures[0] ||
-                        'https://via.placeholder.com/400'
-                      }
-                      onNudge={handleNudge}
-                      onViewProfile={() =>
-                        router.push(
-                          `/view-profile?netid=${matchProfile.netid}&promptId=${m.promptId}` as any
-                        )
-                      }
-                      nudgeSent={m.nudgeStatus?.sent || false}
-                      nudgeDisabled={m.nudgeStatus?.mutual || false}
-                    />
-                  </View>
-                ))}
-              </>
+              <View
+                key={index}
+                style={{
+                  width: width - 60,
+                  marginRight: 12,
+                }}
+              >
+                <WeeklyMatchCard
+                  name={matchProfile.firstName}
+                  age={matchAge}
+                  year={matchProfile.year}
+                  major={matchProfile.major.join(', ')}
+                  image={
+                    matchProfile.pictures[0] ||
+                    'https://via.placeholder.com/400'
+                  }
+                  onNudge={handleNudge}
+                  onViewProfile={() =>
+                    router.push(
+                      `/view-profile?netid=${matchProfile.netid}&promptId=${m.promptId}` as any
+                    )
+                  }
+                  nudgeSent={m.nudgeStatus?.sent || false}
+                  nudgeDisabled={m.nudgeStatus?.mutual || false}
+                />
+              </View>
             );
           })}
         </ScrollView>
