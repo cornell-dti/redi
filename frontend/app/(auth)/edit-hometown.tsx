@@ -126,7 +126,7 @@ export default function EditHometownPage() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.sentence}>
-            <AppText>I'm from </AppText>
+            <AppText>I&apos;m from </AppText>
             <AppInput
               placeholder="e.g., New York, NY"
               value={hometown}

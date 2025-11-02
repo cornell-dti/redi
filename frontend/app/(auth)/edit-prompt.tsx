@@ -238,7 +238,7 @@ export default function EditPromptPage() {
       >
         <View style={styles.sheetContent}>
           <AppText>
-            Are you sure you want to delete this prompt? You'll lose your
+            Are you sure you want to delete this prompt? You&apos;ll lose your
             answer.
           </AppText>
 

@@ -111,7 +111,7 @@ export default function SafetyPage() {
                   Blocked Users
                 </AppText>
                 <AppText color="dimmer" indented>
-                  These are users that you won't be matched with. They also
+                  These are users that you won&apos;t be matched with. They also
                   cannot be matched with you.
                 </AppText>
               </View>

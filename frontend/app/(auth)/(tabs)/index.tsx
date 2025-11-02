@@ -463,10 +463,7 @@ export default function MatchesScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          {/* TODO: REMOVE THIS DEBUGGING THING */}
-          {/* {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()} */}
-          {renderCountdownPeriod()}
-          {renderWeekendPeriod()}
+          {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()}
           {renderCurrentMatch()}
           {renderPreviousMatches()}
         </View>

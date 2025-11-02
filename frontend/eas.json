@@ -1,0 +1,28 @@
+{
+  "cli": {
+    "version": ">= 13.2.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "REACT_APP_API_BASE_URL": "http://localhost:3001"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "REACT_APP_API_BASE_URL": "https://redi-app-8ea0a6e9c3d9.herokuapp.com"
+      }
+    },
+    "production": {
+      "env": {
+        "REACT_APP_API_BASE_URL": "https://redi-app-8ea0a6e9c3d9.herokuapp.com"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

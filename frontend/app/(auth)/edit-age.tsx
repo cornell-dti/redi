@@ -142,7 +142,7 @@ export default function EditAgePage() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.sentence}>
-          <AppText>I'm</AppText>
+          <AppText>I&apos;m</AppText>
           <AppInput
             value={age}
             onChangeText={handleAgeChange}
