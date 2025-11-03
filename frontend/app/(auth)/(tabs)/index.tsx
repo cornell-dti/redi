@@ -639,5 +639,6 @@ const styles = StyleSheet.create({
     minHeight: 400,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 175,
   },
 });
