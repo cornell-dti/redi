@@ -267,12 +267,6 @@ export default function CreateProfileScreen() {
       // Clear storage and navigate to main app
       await clearStorage();
       router.replace('/(auth)/(tabs)' as any);
-      // Alert.alert('Welcome!', 'Your profile has been created successfully!', [
-      //   {
-      //     text: 'Get Started',
-      //     onPress: () => router.replace('/(auth)/(tabs)' as any),
-      //   },
-      // ]);
     } catch (error) {
       Alert.alert(
         'Error',
