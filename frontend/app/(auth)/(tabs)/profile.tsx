@@ -286,7 +286,7 @@ export default function ProfileScreen() {
           </ListItemWrapper>
         </View>
 
-        <FooterSpacer height={64} />
+        <FooterSpacer height={32} />
       </ScrollView>
 
       <SignOutSheet
