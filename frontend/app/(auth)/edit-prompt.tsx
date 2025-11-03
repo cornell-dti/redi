@@ -21,6 +21,7 @@ import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
+import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
 
 export default function EditPromptPage() {
@@ -34,6 +35,7 @@ export default function EditPromptPage() {
   const [answer, setAnswer] = useState(initialAnswer || '');
   const [showPromptsSheet, setShowPromptsSheet] = useState(false);
   const [showDeleteSheet, setShowDeleteSheet] = useState(false);
+  const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [currentPrompts, setCurrentPrompts] = useState<
@@ -122,6 +124,30 @@ export default function EditPromptPage() {
     setShowPromptsSheet(false);
   };
 
+  const hasUnsavedChanges = () => {
+    return (
+      question.trim() !== (initialQuestion || '').trim() ||
+      answer.trim() !== (initialAnswer || '').trim()
+    );
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges()) {
+      setShowUnsavedChangesSheet(true);
+    } else {
+      router.back();
+    }
+  };
+
+  const handleSaveAndExit = async () => {
+    await handleSave();
+  };
+
+  const handleDiscardChanges = () => {
+    setShowUnsavedChangesSheet(false);
+    router.back();
+  };
+
   const handleConfirmDelete = async () => {
     const user = getCurrentUser();
     if (!user?.uid) {
@@ -156,7 +182,7 @@ export default function EditPromptPage() {
       <StatusBar barStyle="dark-content" />
 
       <EditingHeader
-        onBack={() => router.back()}
+        onBack={handleBack}
         onSave={handleSave}
         title={isNewPrompt ? 'Add prompt' : 'Edit prompt'}
         isSaving={saving}
@@ -265,6 +291,14 @@ export default function EditPromptPage() {
         onDismiss={() => setShowPromptsSheet(false)}
         onSelectPrompt={handleSelectPrompt}
         selectedPrompt={question}
+      />
+
+      {/* Unsaved Changes Sheet */}
+      <UnsavedChangesSheet
+        visible={showUnsavedChangesSheet}
+        onSave={handleSaveAndExit}
+        onDiscard={handleDiscardChanges}
+        onDismiss={() => setShowUnsavedChangesSheet(false)}
       />
     </SafeAreaView>
   );

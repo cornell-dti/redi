@@ -16,6 +16,7 @@ import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
+import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
 
 export default function EditHometownPage() {
@@ -24,6 +25,7 @@ export default function EditHometownPage() {
   const [saving, setSaving] = useState(false);
   const [hometown, setHometown] = useState('');
   const [originalHometown, setOriginalHometown] = useState('');
+  const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -89,21 +91,19 @@ export default function EditHometownPage() {
 
   const handleBack = () => {
     if (hasUnsavedChanges()) {
-      Alert.alert(
-        'Unsaved Changes',
-        'You have unsaved changes. Do you want to discard them?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Discard',
-            style: 'destructive',
-            onPress: () => router.back(),
-          },
-        ]
-      );
+      setShowUnsavedChangesSheet(true);
     } else {
       router.back();
     }
+  };
+
+  const handleSaveAndExit = async () => {
+    await handleSave();
+  };
+
+  const handleDiscardChanges = () => {
+    setShowUnsavedChangesSheet(false);
+    router.back();
   };
 
   return (
@@ -137,6 +137,14 @@ export default function EditHometownPage() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Unsaved Changes Sheet */}
+      <UnsavedChangesSheet
+        visible={showUnsavedChangesSheet}
+        onSave={handleSaveAndExit}
+        onDiscard={handleDiscardChanges}
+        onDismiss={() => setShowUnsavedChangesSheet(false)}
+      />
     </SafeAreaView>
   );
 }

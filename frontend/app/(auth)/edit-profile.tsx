@@ -14,12 +14,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { uploadImages, deleteImage } from '../api/imageApi';
+import { deleteImage, uploadImages } from '../api/imageApi';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import PhotoUploadGrid from '../components/onboarding/PhotoUploadGrid';
 import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
+import FooterSpacer from '../components/ui/FooterSpacer';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Tag from '../components/ui/Tag';
@@ -516,6 +517,8 @@ export default function EditProfileScreen() {
             />
           </ListItemWrapper>
         </View>
+
+        <FooterSpacer height={128} />
       </ScrollView>
 
       {/* Unsaved Changes Confirmation Sheet */}

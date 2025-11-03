@@ -1,5 +1,6 @@
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
+import FooterSpacer from '@/app/components/ui/FooterSpacer';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import SignOutSheet from '@/app/components/ui/SignOutSheet';
@@ -271,6 +272,8 @@ export default function ProfileScreen() {
             />
           </ListItemWrapper>
         </View>
+
+        <FooterSpacer height={64} />
       </ScrollView>
 
       <SignOutSheet

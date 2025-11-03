@@ -23,6 +23,7 @@ import SnapchatIcon from '../components/icons/SnapchatIcon';
 import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
 import Sheet from '../components/ui/Sheet';
+import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
 
 type SocialType = 'instagram' | 'snapchat' | 'linkedin' | 'github' | 'website';
@@ -56,6 +57,7 @@ export default function EditSocialsPage() {
   const [sheetVisible, setSheetVisible] = useState(false);
   const [selectedSocial, setSelectedSocial] = useState<SocialType | null>(null);
   const [inputValue, setInputValue] = useState('');
+  const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -126,21 +128,20 @@ export default function EditSocialsPage() {
 
   const handleBack = () => {
     if (hasUnsavedChanges()) {
-      Alert.alert(
-        'Unsaved Changes',
-        'You have unsaved changes. Do you want to discard them?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Discard',
-            style: 'destructive',
-            onPress: () => router.back(),
-          },
-        ]
-      );
+      setShowUnsavedChangesSheet(true);
     } else {
       router.back();
     }
+  };
+
+  const handleSaveAndExit = async () => {
+    await handleSave();
+    // handleSave already navigates back on success
+  };
+
+  const handleDiscardChanges = () => {
+    setShowUnsavedChangesSheet(false);
+    router.back();
   };
 
   const openSocialSheet = (social: SocialType) => {
@@ -297,6 +298,14 @@ export default function EditSocialsPage() {
           )}
         </KeyboardAvoidingView>
       </Sheet>
+
+      {/* Unsaved Changes Sheet */}
+      <UnsavedChangesSheet
+        visible={showUnsavedChangesSheet}
+        onSave={handleSaveAndExit}
+        onDiscard={handleDiscardChanges}
+        onDismiss={() => setShowUnsavedChangesSheet(false)}
+      />
     </SafeAreaView>
   );
 }
