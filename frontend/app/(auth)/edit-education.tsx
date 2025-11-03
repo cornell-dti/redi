@@ -30,9 +30,11 @@ import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EditEducationPage() {
   useThemeAware();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -117,7 +119,12 @@ export default function EditEducationPage() {
       setOriginalSchool(school);
       setOriginalMajors(majors);
       setOriginalYear(year);
-      Alert.alert('Success', 'Education updated successfully');
+
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Education updated',
+      });
+
       router.back();
     } catch (error) {
       console.error('Failed to update education:', error);

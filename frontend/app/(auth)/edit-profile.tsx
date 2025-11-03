@@ -1,7 +1,7 @@
 import AppText from '@/app/components/ui/AppText';
 import { ProfileResponse, PromptData, getProfileAge } from '@/types';
 import { router, useFocusEffect } from 'expo-router';
-import { ChevronRight, Pencil, Plus } from 'lucide-react-native';
+import { Check, ChevronRight, Pencil, Plus } from 'lucide-react-native';
 import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -26,9 +26,11 @@ import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EditProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
+  const { showToast } = useToast();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -197,7 +199,11 @@ export default function EditProfileScreen() {
       setOriginalPrompts(prompts);
       setOriginalPhotos(finalImageUrls);
       setPhotos(finalImageUrls); // Update local state with remote URLs
-      Alert.alert('Success', 'Photos updated successfully');
+
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Photos updated',
+      });
     } catch (error) {
       console.error('Failed to update profile:', error);
       Alert.alert('Error', 'Failed to update profile');

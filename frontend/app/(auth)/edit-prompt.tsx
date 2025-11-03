@@ -4,7 +4,7 @@ import AvailablePromptsSheet from '@/app/components/ui/AvailablePromptsSheet';
 import Button from '@/app/components/ui/Button';
 import Sheet from '@/app/components/ui/Sheet';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Quote, Trash2 } from 'lucide-react-native';
+import { Check, Quote, RotateCcw, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -23,9 +23,11 @@ import EditingHeader from '../components/ui/EditingHeader';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EditPromptPage() {
   useThemeAware(); // Force re-render when theme changes
+  const { showToast } = useToast();
   const params = useLocalSearchParams();
   const promptId = params.promptId as string;
   const initialQuestion = params.question as string | undefined;
@@ -109,7 +111,11 @@ export default function EditPromptPage() {
         prompts: updatedPrompts,
       });
 
-      Alert.alert('Success', 'Prompt saved successfully');
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Prompt saved',
+      });
+
       router.back();
     } catch (error) {
       console.error('Failed to save prompt:', error);
@@ -166,7 +172,11 @@ export default function EditPromptPage() {
         prompts: updatedPrompts,
       });
 
-      Alert.alert('Success', 'Prompt deleted successfully');
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Prompt deleted',
+      });
+
       setShowDeleteSheet(false);
       router.back();
     } catch (error) {
@@ -212,7 +222,7 @@ export default function EditPromptPage() {
                   onPress={() => setShowPromptsSheet(true)}
                   variant="secondary"
                   fullWidth
-                  iconLeft={Quote}
+                  iconLeft={RotateCcw}
                   noRound
                 />
               </ListItemWrapper>

@@ -12,9 +12,11 @@ import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EditSexualityPage() {
   useThemeAware();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [selectedOrientation, setSelectedOrientation] = useState<string | null>(
@@ -74,7 +76,12 @@ export default function EditSexualityPage() {
       });
 
       setOriginalOrientation(selectedOrientation);
-      Alert.alert('Success', 'Sexual orientation updated successfully');
+
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Sexual orientation updated',
+      });
+
       router.back();
     } catch (error) {
       console.error('Failed to update sexual orientation:', error);

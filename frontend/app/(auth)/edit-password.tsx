@@ -1,6 +1,7 @@
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import { router } from 'expo-router';
+import { Check } from 'lucide-react-native';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -12,11 +13,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
-import { useThemeAware } from '../contexts/ThemeContext';
 import EditingHeader from '../components/ui/EditingHeader';
+import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EditPasswordPage() {
   useThemeAware(); // Force re-render when theme changes
+  const { showToast } = useToast();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [saving, setSaving] = useState(false);
@@ -44,9 +47,12 @@ export default function EditPasswordPage() {
       // TODO: Implement password update logic
       // await updatePassword(currentPassword, newPassword);
 
-      Alert.alert('Success', 'Password updated successfully', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Password updated',
+      });
+
+      router.back();
     } catch (error) {
       console.error('Failed to update password:', error);
       Alert.alert(

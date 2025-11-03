@@ -1,6 +1,7 @@
 import AppText from '@/app/components/ui/AppText';
-import { OwnProfileResponse, hasBirthdate } from '@/types';
+import { hasBirthdate } from '@/types';
 import { router } from 'expo-router';
+import { Check } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,10 +12,12 @@ import AppInput from '../components/ui/AppInput';
 import EditingHeader from '../components/ui/EditingHeader';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 import { calculateAge } from '../utils/profileUtils';
 
 export default function EditAgePage() {
   useThemeAware();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [birthdate, setBirthdate] = useState<Date>(new Date());
@@ -95,7 +98,13 @@ export default function EditAgePage() {
       });
 
       setOriginalBirthdate(birthdate);
-      Alert.alert('Success', 'Age updated successfully');
+
+      // Show toast and navigate back
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Age updated',
+      });
+
       router.back();
     } catch (error) {
       console.error('Failed to update age:', error);

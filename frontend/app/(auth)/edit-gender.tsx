@@ -13,9 +13,11 @@ import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EditGenderPage() {
   useThemeAware();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [selectedGender, setSelectedGender] = useState<Gender | null>(null);
@@ -69,7 +71,12 @@ export default function EditGenderPage() {
       });
 
       setOriginalGender(selectedGender);
-      Alert.alert('Success', 'Gender updated successfully');
+
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Gender updated',
+      });
+
       router.back();
     } catch (error) {
       console.error('Failed to update gender:', error);

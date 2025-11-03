@@ -25,6 +25,7 @@ import EditingHeader from '../components/ui/EditingHeader';
 import Sheet from '../components/ui/Sheet';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 type SocialType = 'instagram' | 'snapchat' | 'linkedin' | 'github' | 'website';
 
@@ -38,6 +39,7 @@ interface SocialLinks {
 
 export default function EditSocialsPage() {
   useThemeAware();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [socials, setSocials] = useState<SocialLinks>({
@@ -112,7 +114,12 @@ export default function EditSocialsPage() {
       });
 
       setOriginalSocials(socials);
-      Alert.alert('Success', 'Social links updated successfully');
+
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Social links updated',
+      });
+
       router.back();
     } catch (error) {
       console.error('Failed to update socials:', error);

@@ -1,6 +1,6 @@
 import AppInput from '@/app/components/ui/AppInput';
 import { router } from 'expo-router';
-import { Plus } from 'lucide-react-native';
+import { Check, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -21,9 +21,11 @@ import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EditClubsPage() {
   useThemeAware();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [clubs, setClubs] = useState<string[]>([]);
@@ -75,7 +77,12 @@ export default function EditClubsPage() {
       });
 
       setOriginalClubs(clubs);
-      Alert.alert('Success', 'Clubs updated successfully');
+
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Clubs updated',
+      });
+
       router.back();
     } catch (error) {
       console.error('Failed to update clubs:', error);

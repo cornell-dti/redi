@@ -1,6 +1,7 @@
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import { router } from 'expo-router';
+import { Check } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -18,9 +19,11 @@ import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EditHometownPage() {
   useThemeAware();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hometown, setHometown] = useState('');
@@ -75,7 +78,12 @@ export default function EditHometownPage() {
       });
 
       setOriginalHometown(hometown);
-      Alert.alert('Success', 'Hometown updated successfully');
+
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Hometown updated',
+      });
+
       router.back();
     } catch (error) {
       console.error('Failed to update hometown:', error);
