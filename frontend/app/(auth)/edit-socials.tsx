@@ -2,14 +2,7 @@ import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Pressable from '@/app/components/ui/Pressable';
 import { router } from 'expo-router';
-import {
-  Github,
-  Globe,
-  Instagram,
-  Linkedin,
-  MessageCircle,
-  Trash2,
-} from 'lucide-react-native';
+import { Check, Globe, Instagram, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -24,6 +17,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
+import GithubIcon from '../components/icons/GithubIcon';
+import LinkedinIcon from '../components/icons/LinkedinIcon';
+import SnapchatIcon from '../components/icons/SnapchatIcon';
 import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
 import Sheet from '../components/ui/Sheet';
@@ -177,30 +173,40 @@ export default function EditSocialsPage() {
       icon: Instagram,
       label: 'Instagram',
       placeholder: 'instagram.com/username',
+      accentColor: '#E32B72',
+      backgroundColor: '#FCEAF1',
     },
     {
       type: 'snapchat' as SocialType,
-      icon: MessageCircle,
+      icon: SnapchatIcon,
       label: 'Snapchat',
       placeholder: 'snapchat.com/username',
+      accentColor: '#C5C000',
+      backgroundColor: '#FFFEF5',
     },
     {
       type: 'linkedin' as SocialType,
-      icon: Linkedin,
+      icon: LinkedinIcon,
       label: 'LinkedIn',
       placeholder: 'linkedin.com/in/username',
+      accentColor: '#006FAA',
+      backgroundColor: '#F2F8FB',
     },
     {
       type: 'github' as SocialType,
-      icon: Github,
+      icon: GithubIcon,
       label: 'GitHub',
       placeholder: 'github.com/username',
+      accentColor: '#151513',
+      backgroundColor: '#F3F3F3',
     },
     {
       type: 'website' as SocialType,
       icon: Globe,
       label: 'Website',
       placeholder: 'yourwebsite.com',
+      accentColor: '#4442F5',
+      backgroundColor: '#F6F6FE',
     },
   ];
 
@@ -222,30 +228,18 @@ export default function EditSocialsPage() {
         <View style={styles.gridContainer}>
           {socialButtons.map((social) => {
             const IconComp = social.icon;
-            const hasValue = socials[social.type].length > 0;
             return (
               <Pressable
                 key={social.type}
                 onPress={() => openSocialSheet(social.type)}
                 style={[
                   styles.socialButton,
-                  hasValue && styles.socialButtonActive,
+                  { backgroundColor: social.backgroundColor },
                 ]}
               >
-                <IconComp
-                  size={32}
-                  color={
-                    hasValue
-                      ? AppColors.accentDefault
-                      : AppColors.foregroundDimmer
-                  }
-                />
-                <AppText
-                  style={[
-                    styles.socialLabel,
-                    hasValue && styles.socialLabelActive,
-                  ]}
-                >
+                <IconComp size={32} color={social.accentColor} />
+
+                <AppText style={[{ color: social.accentColor }]}>
                   {social.label}
                 </AppText>
               </Pressable>
@@ -286,7 +280,12 @@ export default function EditSocialsPage() {
             keyboardType="url"
           />
 
-          <Button title="Save" onPress={saveSocialLink} variant="primary" />
+          <Button
+            title="Save"
+            onPress={saveSocialLink}
+            variant="primary"
+            iconLeft={Check}
+          />
 
           {inputValue.length > 0 && (
             <Button
@@ -314,31 +313,18 @@ const styles = StyleSheet.create({
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 16,
-    justifyContent: 'space-between',
+    gap: 4,
+    borderRadius: 24,
+    overflow: 'hidden',
   },
   socialButton: {
-    width: '47%',
+    width: '30%',
+    height: 130,
     aspectRatio: 1,
-    backgroundColor: AppColors.backgroundDimmer,
-    borderRadius: 16,
+    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  socialButtonActive: {
-    borderColor: AppColors.accentDefault,
-    backgroundColor: AppColors.backgroundDefault,
-  },
-  socialLabel: {
-    fontSize: 14,
-    color: AppColors.foregroundDimmer,
-    fontWeight: '500',
-  },
-  socialLabelActive: {
-    color: AppColors.accentDefault,
   },
   sheetContent: {
     gap: 16,
