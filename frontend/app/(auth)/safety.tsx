@@ -113,7 +113,7 @@ export default function SafetyPage() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={AppColors.primary} />
+          <ActivityIndicator size="large" />
           <AppText style={{ marginTop: 16 }}>Loading blocked users...</AppText>
         </View>
       ) : (
