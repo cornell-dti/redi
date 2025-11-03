@@ -47,6 +47,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
 }) => {
   const screenWidth = Dimensions.get('window').width;
   const age = getProfileAge(profile);
+  const [activeImageIndex, setActiveImageIndex] = React.useState(0);
 
   type SocialItem = {
     icon: React.ReactNode;
@@ -109,25 +110,50 @@ const ProfileView: React.FC<ProfileViewProps> = ({
       ].filter(Boolean) as SocialItem[])
     : [];
 
+  const handleScroll = (event: any) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollPosition / screenWidth);
+    setActiveImageIndex(index);
+  };
+
   return (
     <ScrollView style={styles.container}>
       {/* Image carousel */}
       {profile.pictures && profile.pictures.length > 0 && (
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          style={styles.imageCarousel}
-        >
-          {profile.pictures.map((picture, index) => (
-            <Image
-              key={index}
-              source={{ uri: picture }}
-              style={[styles.profileImage, { width: screenWidth }]}
-              resizeMode="cover"
-            />
-          ))}
-        </ScrollView>
+        <View>
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            style={styles.imageCarousel}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+          >
+            {profile.pictures.map((picture, index) => (
+              <Image
+                key={index}
+                source={{ uri: picture }}
+                style={[styles.profileImage, { width: screenWidth }]}
+                resizeMode="cover"
+              />
+            ))}
+          </ScrollView>
+
+          {/* Pagination dots */}
+          {profile.pictures.length > 1 && (
+            <View style={styles.paginationContainer}>
+              {profile.pictures.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.paginationDot,
+                    index === activeImageIndex && styles.paginationDotActive,
+                  ]}
+                />
+              ))}
+            </View>
+          )}
+        </View>
       )}
 
       <View style={styles.contentContainer}>
@@ -365,6 +391,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.16,
     shadowRadius: 8,
     elevation: 4,
+  },
+  paginationContainer: {
+    position: 'absolute',
+    bottom: 16,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    // backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+  paginationDotActive: {
+    backgroundColor: 'rgba(255, 255, 255, 1)',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
 });
 
