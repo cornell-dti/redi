@@ -492,7 +492,7 @@ export default function ChatDetailScreen() {
               onChangeText={setReportText}
               multiline
               numberOfLines={4}
-              style={{ minHeight: 128 }}
+              style={{ height: 128 }}
             />
 
             <View style={styles.buttonRow}>

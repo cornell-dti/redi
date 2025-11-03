@@ -1,6 +1,6 @@
+import { getNudgeStatus, sendNudge } from '@/app/api/nudgesApi';
 import { getProfileByNetid } from '@/app/api/profileApi';
 import { createReport } from '@/app/api/reportsApi';
-import { sendNudge, getNudgeStatus } from '@/app/api/nudgesApi';
 import { AppColors } from '@/app/components/AppColors';
 import ProfileView from '@/app/components/profile/ProfileView';
 import AppInput from '@/app/components/ui/AppInput';
@@ -8,7 +8,7 @@ import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import ListItem from '@/app/components/ui/ListItem';
 import Sheet from '@/app/components/ui/Sheet';
-import { ProfileResponse, ReportReason, NudgeStatusResponse } from '@/types';
+import { NudgeStatusResponse, ProfileResponse, ReportReason } from '@/types';
 import auth from '@react-native-firebase/auth';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Ban, Check, Flag, MoreVertical } from 'lucide-react-native';
@@ -282,7 +282,7 @@ export default function ViewProfileScreen() {
               onChangeText={setReportText}
               multiline
               numberOfLines={4}
-              style={{ minHeight: 128 }}
+              style={{ height: 128 }}
             />
             <View style={styles.buttonRow}>
               <Button

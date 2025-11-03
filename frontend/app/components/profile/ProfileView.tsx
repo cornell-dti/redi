@@ -1,5 +1,4 @@
 import AppText from '@/app/components/ui/AppText';
-import { getYearString } from '@/app/utils/profileUtils';
 import { ProfileResponse, getProfileAge } from '@/types';
 import {
   Bell,
@@ -58,32 +57,54 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   // Check if profile has these fields before accessing them
   const hasSocials = 'instagram' in profile || 'snapchat' in profile;
 
+  // Helper function to ensure URL has protocol
+  const ensureProtocol = (url: string): string => {
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return `https://${url}`;
+    }
+    return url;
+  };
+
+  // Helper function to open URL with error handling
+  const openSocialLink = async (url: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        console.error('Cannot open URL:', url);
+      }
+    } catch (error) {
+      console.error('Error opening URL:', error);
+    }
+  };
+
   const socialItems: SocialItem[] = hasSocials
     ? ([
         'instagram' in profile &&
           profile.instagram && {
             icon: <Instagram size={24} />,
-            url: `https://instagram.com/${profile.instagram}`,
+            url: `https://instagram.com/${profile.instagram.replace(/^@/, '')}`,
           },
         'snapchat' in profile &&
           profile.snapchat && {
             icon: <Ghost size={24} />,
-            url: `https://snapchat.com/add/${profile.snapchat}`,
+            url: `https://snapchat.com/add/${profile.snapchat.replace(/^@/, '')}`,
           },
         'linkedIn' in profile &&
           profile.linkedIn && {
             icon: <Linkedin size={24} />,
-            url: profile.linkedIn,
+            url: ensureProtocol(profile.linkedIn),
           },
         'github' in profile &&
           profile.github && {
             icon: <Github size={24} />,
-            url: profile.github,
+            url: ensureProtocol(profile.github),
           },
         'website' in profile &&
           profile.website && {
             icon: <Globe size={24} color={AppColors.foregroundDefault} />,
-            url: profile.website,
+            url: ensureProtocol(profile.website),
           },
       ].filter(Boolean) as SocialItem[])
     : [];
@@ -118,9 +139,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
               nudgeDisabled ? "It's a match!" : nudgeSent ? 'Nudged' : 'Nudge'
             }
             onPress={onNudge || (() => console.log('Nudge pressed'))}
-            variant={
-              nudgeDisabled ? 'positive' : nudgeSent ? 'secondary' : 'primary'
-            }
+            variant={nudgeSent ? 'secondary' : 'primary'}
             iconLeft={Bell}
             fullWidth
             disabled={nudgeDisabled || nudgeSent}
@@ -135,7 +154,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
           <ListItemWrapper>
             <View style={styles.detailRow}>
               <View style={styles.subSection}>
-                <Cake size={20} />
+                <Cake size={20} color={AppColors.foregroundDefault} />
                 <AppText>{age} y/o</AppText>
               </View>
 
@@ -195,7 +214,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                       isFirst && styles.firstItem,
                       isLast && styles.lastItem,
                     ]}
-                    onPress={() => Linking.openURL(item.url!)}
+                    onPress={() => openSocialLink(item.url)}
                   >
                     {item.icon}
                   </Pressable>
@@ -279,6 +298,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
+    flex: 1,
   },
   subSection: {
     display: 'flex',
@@ -302,10 +322,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     borderRadius: 24,
-    overflow: 'hidden',
     gap: 4,
-    flex: 1,
-    width: '100%',
   },
   socialItem: {
     display: 'flex',
@@ -313,7 +330,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    borderRadius: 4,
     flex: 1,
   },
   firstItem: {

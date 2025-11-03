@@ -114,6 +114,7 @@ const AppInput: React.FC<AppInputProps> = ({
           keyboardType={dateFormat ? 'number-pad' : props.keyboardType}
           maxLength={dateFormat ? 10 : props.maxLength}
           onChangeText={dateFormat ? handleDateChange : props.onChangeText}
+          multiline={props.multiline || false}
         />
       </Animated.View>
       {error && (
