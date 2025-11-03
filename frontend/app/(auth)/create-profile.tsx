@@ -17,7 +17,6 @@ import {
   Image,
   ScrollView,
   StatusBar,
-  StyleSheet,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -123,6 +122,9 @@ export default function CreateProfileScreen() {
     if (currentStep > 2) {
       setDirection('backward');
       setCurrentStep(currentStep - 1);
+    } else if (currentStep === 2) {
+      // Go back to home/signup screen
+      router.replace('/home' as any);
     }
   };
 
@@ -264,12 +266,13 @@ export default function CreateProfileScreen() {
 
       // Clear storage and navigate to main app
       await clearStorage();
-      Alert.alert('Welcome!', 'Your profile has been created successfully!', [
-        {
-          text: 'Get Started',
-          onPress: () => router.replace('/(auth)/(tabs)' as any),
-        },
-      ]);
+      router.replace('/(auth)/(tabs)' as any);
+      // Alert.alert('Welcome!', 'Your profile has been created successfully!', [
+      //   {
+      //     text: 'Get Started',
+      //     onPress: () => router.replace('/(auth)/(tabs)' as any),
+      //   },
+      // ]);
     } catch (error) {
       Alert.alert(
         'Error',
@@ -718,6 +721,7 @@ export default function CreateProfileScreen() {
                   placeholder="Enter club name"
                   value={clubInput}
                   onChangeText={setClubInput}
+                  autoCapitalize="words"
                 />
                 <Button
                   title="Add"
@@ -894,6 +898,7 @@ export default function CreateProfileScreen() {
         currentStep={currentStep - 1}
         totalSteps={TOTAL_STEPS}
         onBack={handleBack}
+        showBackButton={true}
       />
 
       <Animated.View
@@ -920,60 +925,3 @@ export default function CreateProfileScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
-  },
-  content: {
-    flex: 1,
-  },
-  stepContainer: {
-    padding: 20,
-    gap: 20,
-  },
-  majorContainer: {
-    gap: 12,
-  },
-  majorTags: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 16,
-  },
-  majorTagsFilled: {
-    backgroundColor: AppColors.backgroundDimmer,
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 16,
-    padding: 16,
-  },
-  majorInputRow: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
-  majorSheetContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24',
-  },
-  promptsContainer: {
-    gap: 16,
-  },
-  welcomeContainer: {
-    alignItems: 'center',
-    gap: 24,
-  },
-  welcomePhoto: {
-    width: 200,
-    height: 266,
-    borderRadius: 12,
-  },
-  welcomeText: {
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-});
