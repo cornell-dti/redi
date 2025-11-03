@@ -8,18 +8,13 @@ import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import ListItem from '@/app/components/ui/ListItem';
 import Sheet from '@/app/components/ui/Sheet';
+import { useToast } from '@/app/contexts/ToastContext';
 import { NudgeStatusResponse, ProfileResponse, ReportReason } from '@/types';
 import auth from '@react-native-firebase/auth';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Ban, Check, Flag, MoreVertical } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { blockUser, getBlockedUsers, unblockUser } from '../api/blockingApi';
 import IconButton from '../components/ui/IconButton';
@@ -40,6 +35,7 @@ const REPORT_REASONS: { value: ReportReason; label: string }[] = [
 ];
 
 export default function ViewProfileScreen() {
+  const { showToast } = useToast();
   const { netid, promptId } = useLocalSearchParams<{
     netid: string;
     promptId?: string;
@@ -131,16 +127,16 @@ export default function ViewProfileScreen() {
       // Refresh nudge status after sending
       await fetchNudgeStatus();
 
-      Alert.alert(
-        'Nudge sent!',
-        `You nudged ${profile?.firstName}. If they nudge you back, you'll both be notified!`
-      );
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: `Nudged ${profile?.firstName}!`,
+      });
     } catch (error: any) {
       console.error('Error sending nudge:', error);
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to send nudge. Please try again.'
-      );
+      showToast({
+        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        label: error.message || 'Failed to send nudge. Please try again.',
+      });
     } finally {
       setIsNudging(false);
     }
@@ -298,11 +294,12 @@ export default function ViewProfileScreen() {
                       description: reportText.trim(),
                     });
 
-                    Alert.alert(
-                      'Report Submitted',
-                      'Thank you for helping keep our community safe. We will review your report.',
-                      [{ text: 'OK' }]
-                    );
+                    showToast({
+                      icon: (
+                        <Check size={20} color={AppColors.backgroundDefault} />
+                      ),
+                      label: 'Report submitted',
+                    });
 
                     setShowOptionsSheet(false);
                     setTimeout(() => {
@@ -312,12 +309,14 @@ export default function ViewProfileScreen() {
                     }, 300);
                   } catch (err: any) {
                     console.error('Error submitting report:', err);
-                    Alert.alert(
-                      'Error',
-                      err.message ||
+                    showToast({
+                      icon: (
+                        <Flag size={20} color={AppColors.backgroundDefault} />
+                      ),
+                      label:
+                        err.message ||
                         'Failed to submit report. Please try again.',
-                      [{ text: 'OK' }]
-                    );
+                    });
                   } finally {
                     setIsSubmittingReport(false);
                   }
@@ -372,21 +371,40 @@ export default function ViewProfileScreen() {
                     if (isBlocked) {
                       await unblockUser(netid);
                       setIsBlocked(false);
-                      Alert.alert('Success', `Unblocked ${profile?.firstName}`);
+                      showToast({
+                        icon: (
+                          <Check
+                            size={20}
+                            color={AppColors.backgroundDefault}
+                          />
+                        ),
+                        label: `Unblocked ${profile?.firstName}`,
+                      });
                     } else {
                       await blockUser(netid);
                       setIsBlocked(true);
-                      Alert.alert('Success', `Blocked ${profile?.firstName}`);
+                      showToast({
+                        icon: (
+                          <Check
+                            size={20}
+                            color={AppColors.backgroundDefault}
+                          />
+                        ),
+                        label: `Blocked ${profile?.firstName}`,
+                      });
                     }
 
                     setShowOptionsSheet(false);
                     setTimeout(() => setSheetView('menu'), 300);
                   } catch (error: any) {
-                    Alert.alert(
-                      'Error',
-                      error.message ||
-                        `Failed to ${isBlocked ? 'unblock' : 'block'} user`
-                    );
+                    showToast({
+                      icon: (
+                        <Ban size={20} color={AppColors.backgroundDefault} />
+                      ),
+                      label:
+                        error.message ||
+                        `Failed to ${isBlocked ? 'unblock' : 'block'} user`,
+                    });
                   } finally {
                     setBlocking(false);
                   }

@@ -4,25 +4,26 @@ import Button from '@/app/components/ui/Button';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
 import Tag from '@/app/components/ui/Tag';
-import { Ban } from 'lucide-react-native';
-import React, { useState, useEffect } from 'react';
+import { useToast } from '@/app/contexts/ToastContext';
+import auth from '@react-native-firebase/auth';
+import { Ban, Check } from 'lucide-react-native';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   ScrollView,
   StatusBar,
   StyleSheet,
   View,
-  Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { blockUser, getBlockedUsers, unblockUser } from '../api/blockingApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import { useThemeAware } from '../contexts/ThemeContext';
-import auth from '@react-native-firebase/auth';
-import { blockUser, unblockUser, getBlockedUsers } from '../api/blockingApi';
 
 export default function SafetyPage() {
   useThemeAware(); // Force re-render when theme changes
+  const { showToast } = useToast();
   const [blockedUsers, setBlockedUsers] = useState<string[]>([]);
   const [showBlockSheet, setShowBlockSheet] = useState(false);
   const [blockInput, setBlockInput] = useState('');
@@ -45,10 +46,13 @@ export default function SafetyPage() {
       const response = await getBlockedUsers(currentNetid);
       setBlockedUsers(response.blockedUsers);
     } catch (error) {
-      Alert.alert(
-        'Error',
-        error instanceof Error ? error.message : 'Failed to fetch blocked users'
-      );
+      showToast({
+        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        label:
+          error instanceof Error
+            ? error.message
+            : 'Failed to fetch blocked users',
+      });
     } finally {
       setLoading(false);
     }
@@ -58,7 +62,10 @@ export default function SafetyPage() {
     const netidToBlock = blockInput.trim();
 
     if (!netidToBlock) {
-      Alert.alert('Error', 'Please enter a NetID');
+      showToast({
+        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        label: 'Please enter a NetID',
+      });
       return;
     }
 
@@ -68,9 +75,15 @@ export default function SafetyPage() {
       setBlockedUsers([...blockedUsers, netidToBlock]);
       setBlockInput('');
       setShowBlockSheet(false);
-      Alert.alert('Success', `Blocked ${netidToBlock} successfully`);
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: `Blocked ${netidToBlock} successfully`,
+      });
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to block user');
+      showToast({
+        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        label: error.message || 'Failed to block user',
+      });
     } finally {
       setBlocking(false);
     }
@@ -80,9 +93,15 @@ export default function SafetyPage() {
     try {
       await unblockUser(netid);
       setBlockedUsers(blockedUsers.filter((user) => user !== netid));
-      Alert.alert('Success', `Unblocked ${netid} successfully`);
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: `Unblocked ${netid} successfully`,
+      });
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to unblock user');
+      showToast({
+        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        label: error.message || 'Failed to unblock user',
+      });
     }
   };
 
@@ -159,6 +178,7 @@ export default function SafetyPage() {
             value={blockInput}
             onChangeText={setBlockInput}
             autoCapitalize="none"
+            autoFocus
           />
 
           <View style={styles.buttonRow}>

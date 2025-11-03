@@ -162,7 +162,7 @@ export default function HomePage() {
           <AppText variant="title" style={styles.formTitle}>
             {mode === 'signup' ? 'Create account' : 'Welcome back!'}
           </AppText>
-          <AppText variant="body" style={styles.formSubtitle}>
+          <AppText variant="subtitle" style={styles.formSubtitle}>
             {mode === 'signup'
               ? 'Enter your Cornell email to get started'
               : 'Log in to continue'}
