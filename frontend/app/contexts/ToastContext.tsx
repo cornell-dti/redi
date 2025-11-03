@@ -1,10 +1,6 @@
-import React, {
-  createContext,
-  ReactNode,
-  useContext,
-  useState,
-} from 'react';
+import React, { createContext, ReactNode, useContext, useState } from 'react';
 import Toast from '../components/ui/Toast';
+import { useThemeAware } from './ThemeContext';
 
 interface ToastOptions {
   icon?: React.ReactNode;
@@ -20,6 +16,8 @@ interface ToastContextType {
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  useThemeAware();
+
   const [visible, setVisible] = useState(false);
   const [toastOptions, setToastOptions] = useState<ToastOptions>({
     label: '',
