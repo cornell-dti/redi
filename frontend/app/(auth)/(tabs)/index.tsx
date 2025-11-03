@@ -298,23 +298,25 @@ export default function MatchesScreen() {
   const renderCurrentMatch = () => {
     if (currentMatches.length === 0) {
       return (
-        <EmptyState
-          icon={Heart}
-          label="No matches available yet. Check back after submitting your answer!"
-          triggerAnimation={animationTrigger}
-        >
-          {activePrompt && (
-            <Button
-              title="Show this week's prompt"
-              onPress={() => {
-                setTempAnswer(userAnswer);
-                setShowPromptSheet(true);
-              }}
-              variant="secondary"
-              iconLeft={Eye}
-            />
-          )}
-        </EmptyState>
+        <View style={styles.emptyStateContainer}>
+          <EmptyState
+            icon={Heart}
+            label="No matches available yet. Check back after submitting your answer!"
+            triggerAnimation={animationTrigger}
+          >
+            {activePrompt && (
+              <Button
+                title="Show this week's prompt"
+                onPress={() => {
+                  setTempAnswer(userAnswer);
+                  setShowPromptSheet(true);
+                }}
+                variant="secondary"
+                iconLeft={Eye}
+              />
+            )}
+          </EmptyState>
+        </View>
       );
     }
 
@@ -631,5 +633,12 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 16,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    minHeight: 400,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 175,
   },
 });

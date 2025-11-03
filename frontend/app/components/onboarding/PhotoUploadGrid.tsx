@@ -128,12 +128,12 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 4,
     borderRadius: 24,
     overflow: 'hidden',
   },
   gridSlot: {
-    width: '31.5%',
+    width: '32.5%',
     height: 120,
     aspectRatio: 1,
     borderRadius: 4,

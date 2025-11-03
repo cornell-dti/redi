@@ -9,17 +9,19 @@ interface OnboardingHeaderProps {
   currentStep: number;
   totalSteps: number;
   onBack: () => void;
+  showBackButton?: boolean;
 }
 
 export default function OnboardingHeader({
   currentStep,
   totalSteps,
   onBack,
+  showBackButton = false,
 }: OnboardingHeaderProps) {
   useThemeAware();
 
   const progress = currentStep / totalSteps;
-  const isFirstStep = currentStep === 1;
+  const isFirstStep = currentStep === 1 && !showBackButton;
   const animatedWidth = useRef(new Animated.Value(progress * 100)).current;
 
   useEffect(() => {

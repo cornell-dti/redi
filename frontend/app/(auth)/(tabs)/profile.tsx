@@ -1,11 +1,14 @@
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
+import EmptyState from '@/app/components/ui/EmptyState';
+import FooterSpacer from '@/app/components/ui/FooterSpacer';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
+import Sheet from '@/app/components/ui/Sheet';
 import SignOutSheet from '@/app/components/ui/SignOutSheet';
 import { ProfileResponse } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import {
   ChevronRight,
   ClipboardList,
@@ -19,9 +22,10 @@ import {
   Pencil,
   SettingsIcon,
   ShieldCheck,
+  Star,
   StarIcon,
 } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -45,11 +49,21 @@ const mockFallbackData = {
 };
 
 export default function ProfileScreen() {
+  const [animationTrigger, setAnimationTrigger] = useState(0);
+
+  // Trigger animation every time screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      setAnimationTrigger((prev) => prev + 1);
+    }, [])
+  );
+
   useThemeAware(); // Force re-render when theme changes
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSignOutSheet, setShowSignOutSheet] = useState(false);
+  const [showRatingSheet, setShowRatingSheet] = useState(false);
 
   // Fetch profile data on mount
   useEffect(() => {
@@ -245,7 +259,7 @@ export default function ProfileScreen() {
             />
 
             <ListItem
-              onPress={() => {}}
+              onPress={() => setShowRatingSheet(true)}
               title="Leave a Rating"
               right={<ExternalLink size={20} />}
               left={<StarIcon size={20} />}
@@ -271,6 +285,8 @@ export default function ProfileScreen() {
             />
           </ListItemWrapper>
         </View>
+
+        <FooterSpacer height={32} />
       </ScrollView>
 
       <SignOutSheet
@@ -278,6 +294,27 @@ export default function ProfileScreen() {
         onDismiss={() => setShowSignOutSheet(false)}
         onConfirm={confirmSignOut}
       />
+
+      {/* Leave a Rating Sheet */}
+      <Sheet
+        visible={showRatingSheet}
+        onDismiss={() => setShowRatingSheet(false)}
+        title="Leave a Rating"
+      >
+        <View style={styles.sheetContent}>
+          <EmptyState
+            icon={Star}
+            label="Coming soon..."
+            triggerAnimation={animationTrigger}
+          />
+          <Button
+            title="Dismiss"
+            onPress={() => setShowRatingSheet(false)}
+            variant="secondary"
+            fullWidth
+          />
+        </View>
+      </Sheet>
     </View>
   );
 }
@@ -348,6 +385,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     color: AppColors.foregroundDefault,
+    paddingVertical: 48,
+    borderRadius: 24,
+    backgroundColor: AppColors.backgroundDimmer,
   },
   sheetButtons: {
     display: 'flex',

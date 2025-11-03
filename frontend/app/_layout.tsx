@@ -8,6 +8,7 @@ import { onAuthStateChanged } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
 import { APIError } from './api/apiClient';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
+import { ToastProvider } from './contexts/ToastContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
@@ -261,7 +262,9 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <RootNavigator />
+      <ToastProvider>
+        <RootNavigator />
+      </ToastProvider>
     </ThemeProvider>
   );
 }

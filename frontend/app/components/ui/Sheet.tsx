@@ -30,9 +30,39 @@ export default function Sheet({
 }: SheetProps) {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
+  const isAnimatingRef = useRef(false);
+
+  // Helper function to handle dismiss with animation
+  const handleDismiss = () => {
+    if (isAnimatingRef.current) return; // Prevent multiple simultaneous dismiss animations
+
+    isAnimatingRef.current = true;
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: SCREEN_HEIGHT,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(overlayOpacity, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start(({ finished }) => {
+      isAnimatingRef.current = false;
+      if (finished) {
+        onDismiss();
+      }
+    });
+  };
 
   useEffect(() => {
     if (visible) {
+      // Reset animated values to starting position
+      translateY.setValue(SCREEN_HEIGHT);
+      overlayOpacity.setValue(0);
+      isAnimatingRef.current = false;
+
       // Use a spring for a subtle bounce on open
       Animated.parallel([
         Animated.spring(translateY, {
@@ -48,21 +78,6 @@ export default function Sheet({
           useNativeDriver: true,
         }),
       ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(translateY, {
-          toValue: SCREEN_HEIGHT,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-        Animated.timing(overlayOpacity, {
-          toValue: 0,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-      ]).start(({ finished }) => {
-        // nothing else for now
-      });
     }
   }, [visible, translateY, overlayOpacity]);
 
@@ -86,19 +101,8 @@ export default function Sheet({
         lastPanY.current = 0;
         const shouldDismiss = gesture.dy > 100 || gesture.vy > 0.8;
         if (shouldDismiss) {
-          Animated.timing(translateY, {
-            toValue: SCREEN_HEIGHT,
-            duration: 200,
-            useNativeDriver: true,
-          }).start(() => {
-            pan.setValue(0);
-            onDismiss();
-          });
-          Animated.timing(overlayOpacity, {
-            toValue: 0,
-            duration: 200,
-            useNativeDriver: true,
-          }).start();
+          pan.setValue(0);
+          handleDismiss();
         } else {
           Animated.timing(pan, {
             toValue: 0,
@@ -117,28 +121,12 @@ export default function Sheet({
       transparent
       visible={visible}
       animationType="none"
-      onRequestClose={onDismiss}
+      onRequestClose={handleDismiss}
     >
       <View style={styles.container} pointerEvents={visible ? 'auto' : 'none'}>
         <Pressable
           style={StyleSheet.absoluteFill}
-          onPress={() => {
-            // Animate the sheet down and fade the overlay, then notify parent
-            Animated.parallel([
-              Animated.timing(translateY, {
-                toValue: SCREEN_HEIGHT,
-                duration: 250,
-                useNativeDriver: true,
-              }),
-              Animated.timing(overlayOpacity, {
-                toValue: 0,
-                duration: 250,
-                useNativeDriver: true,
-              }),
-            ]).start(() => {
-              onDismiss();
-            });
-          }}
+          onPress={handleDismiss}
         >
           <Animated.View
             style={[styles.overlay, { opacity: overlayOpacity }]}

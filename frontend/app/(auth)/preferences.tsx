@@ -24,9 +24,11 @@ import ListItemWrapper from '../components/ui/ListItemWrapper';
 import SearchableMultiSelect from '../components/ui/SearchableMultiSelect';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function DatingPreferencesPage() {
   useThemeAware(); // Force re-render when theme changes
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showUnsavedSheet, setShowUnsavedSheet] = useState(false);
@@ -142,7 +144,10 @@ export default function DatingPreferencesPage() {
         genders: selectedGenders,
       });
 
-      Alert.alert('Success', 'Preferences saved!');
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Dating preferences updated',
+      });
       router.back();
     } catch (error) {
       console.error('Failed to save preferences:', error);
@@ -221,7 +226,6 @@ export default function DatingPreferencesPage() {
         onBack={handleBack}
         isSaving={saving}
         title="Dating preferences"
-        scrollY={scrollY}
       />
 
       <Animated.ScrollView

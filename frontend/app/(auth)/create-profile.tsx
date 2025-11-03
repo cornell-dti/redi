@@ -9,9 +9,11 @@ import {
 } from '@/types';
 import { router } from 'expo-router';
 import { Check, ChevronDown, Plus } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  Animated,
+  Dimensions,
   Image,
   ScrollView,
   StatusBar,
@@ -47,10 +49,15 @@ import {
 } from '../utils/onboardingTransform';
 
 const TOTAL_STEPS = 15; // Steps 2-16 (Step 1 is in home.tsx)
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function CreateProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
   const [currentStep, setCurrentStep] = useState(2); // Start at step 2
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
   const {
     data,
     updateField,
@@ -68,6 +75,28 @@ export default function CreateProfileScreen() {
   const [interestInput, setInterestInput] = useState('');
   const [showMajorSheet, setShowMajorSheet] = useState(false);
 
+  // Animate page transitions
+  useEffect(() => {
+    // Reset position based on direction
+    slideAnim.setValue(direction === 'forward' ? SCREEN_WIDTH : -SCREEN_WIDTH);
+    fadeAnim.setValue(0);
+
+    // Animate in
+    Animated.parallel([
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 10,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [currentStep]);
+
   if (!isLoaded) {
     return null; // Wait for AsyncStorage to load
   }
@@ -83,6 +112,7 @@ export default function CreateProfileScreen() {
     }
 
     if (currentStep < 16) {
+      setDirection('forward');
       setCurrentStep(currentStep + 1);
     } else {
       handleSubmit();
@@ -91,7 +121,11 @@ export default function CreateProfileScreen() {
 
   const handleBack = () => {
     if (currentStep > 2) {
+      setDirection('backward');
       setCurrentStep(currentStep - 1);
+    } else if (currentStep === 2) {
+      // Go back to home/signup screen
+      router.replace('/home' as any);
     }
   };
 
@@ -233,12 +267,7 @@ export default function CreateProfileScreen() {
 
       // Clear storage and navigate to main app
       await clearStorage();
-      Alert.alert('Welcome!', 'Your profile has been created successfully!', [
-        {
-          text: 'Get Started',
-          onPress: () => router.replace('/(auth)/(tabs)' as any),
-        },
-      ]);
+      router.replace('/(auth)/(tabs)' as any);
     } catch (error) {
       Alert.alert(
         'Error',
@@ -687,6 +716,7 @@ export default function CreateProfileScreen() {
                   placeholder="Enter club name"
                   value={clubInput}
                   onChangeText={setClubInput}
+                  autoCapitalize="words"
                 />
                 <Button
                   title="Add"
@@ -863,11 +893,20 @@ export default function CreateProfileScreen() {
         currentStep={currentStep - 1}
         totalSteps={TOTAL_STEPS}
         onBack={handleBack}
+        showBackButton={true}
       />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {renderStep()}
-      </ScrollView>
+      <Animated.View
+        style={{
+          flex: 1,
+          transform: [{ translateX: slideAnim }],
+          opacity: fadeAnim,
+        }}
+      >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {renderStep()}
+        </ScrollView>
+      </Animated.View>
 
       <OnboardingFooter
         onNext={handleNext}

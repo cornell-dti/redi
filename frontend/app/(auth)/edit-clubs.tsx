@@ -1,6 +1,6 @@
 import AppInput from '@/app/components/ui/AppInput';
 import { router } from 'expo-router';
-import { Plus } from 'lucide-react-native';
+import { Check, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -19,16 +19,20 @@ import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
+import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EditClubsPage() {
   useThemeAware();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [clubs, setClubs] = useState<string[]>([]);
   const [originalClubs, setOriginalClubs] = useState<string[]>([]);
   const [sheetVisible, setSheetVisible] = useState(false);
   const [newClub, setNewClub] = useState('');
+  const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -73,7 +77,12 @@ export default function EditClubsPage() {
       });
 
       setOriginalClubs(clubs);
-      Alert.alert('Success', 'Clubs updated successfully');
+
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Clubs updated',
+      });
+
       router.back();
     } catch (error) {
       console.error('Failed to update clubs:', error);
@@ -89,21 +98,19 @@ export default function EditClubsPage() {
 
   const handleBack = () => {
     if (hasUnsavedChanges()) {
-      Alert.alert(
-        'Unsaved Changes',
-        'You have unsaved changes. Do you want to discard them?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Discard',
-            style: 'destructive',
-            onPress: () => router.back(),
-          },
-        ]
-      );
+      setShowUnsavedChangesSheet(true);
     } else {
       router.back();
     }
+  };
+
+  const handleSaveAndExit = async () => {
+    await handleSave();
+  };
+
+  const handleDiscardChanges = () => {
+    setShowUnsavedChangesSheet(false);
+    router.back();
   };
 
   const addClub = () => {
@@ -186,6 +193,14 @@ export default function EditClubsPage() {
           />
         </KeyboardAvoidingView>
       </Sheet>
+
+      {/* Unsaved Changes Sheet */}
+      <UnsavedChangesSheet
+        visible={showUnsavedChangesSheet}
+        onSave={handleSaveAndExit}
+        onDiscard={handleDiscardChanges}
+        onDismiss={() => setShowUnsavedChangesSheet(false)}
+      />
     </SafeAreaView>
   );
 }
