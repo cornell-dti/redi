@@ -17,6 +17,7 @@ import {
   Image,
   ScrollView,
   StatusBar,
+  StyleSheet,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -919,3 +920,60 @@ export default function CreateProfileScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: AppColors.backgroundDefault,
+  },
+  content: {
+    flex: 1,
+  },
+  stepContainer: {
+    padding: 20,
+    gap: 20,
+  },
+  majorContainer: {
+    gap: 12,
+  },
+  majorTags: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  majorTagsFilled: {
+    backgroundColor: AppColors.backgroundDimmer,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 16,
+    padding: 16,
+  },
+  majorInputRow: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  majorSheetContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '24',
+  },
+  promptsContainer: {
+    gap: 16,
+  },
+  welcomeContainer: {
+    alignItems: 'center',
+    gap: 24,
+  },
+  welcomePhoto: {
+    width: 200,
+    height: 266,
+    borderRadius: 12,
+  },
+  welcomeText: {
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+});
