@@ -386,6 +386,19 @@ router.delete(
       await batch.commit();
       console.log(`Deleted ${notificationsSnapshot.size} notification documents`);
 
+      const blockedByUserSnapshot = await db
+        .collection('blockedUsers')
+        .where('blockerNetid', '==', netid)
+        .get();
+      batch = db.batch();
+      blockedByUserSnapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      console.log(
+        `Deleted ${blockedByUserSnapshot.size} blocked user documents (users blocked by deleted account)`
+      );
+
       if (!profileSnapshot.empty) {
         const profileData = profileSnapshot.docs[0].data();
         if (profileData.pictures && Array.isArray(profileData.pictures)) {
