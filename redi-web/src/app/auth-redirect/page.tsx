@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function AuthRedirect() {
+function AuthRedirectContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'manual'>('loading');
 
@@ -101,5 +101,23 @@ export default function AuthRedirect() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AuthRedirect() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 to-blue-500 p-5">
+          <div className="text-center max-w-md">
+            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-6" />
+            <h1 className="text-5xl font-bold text-white mb-4">redi</h1>
+            <p className="text-xl text-white/90">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <AuthRedirectContent />
+    </Suspense>
   );
 }
