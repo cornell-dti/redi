@@ -1,10 +1,31 @@
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
 import { AppColors } from './components/AppColors';
 import AppText from './components/ui/AppText';
 import Button from './components/ui/Button';
 
 export default function Index() {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    // Animate in when component mounts
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 8,
+      }),
+    ]).start();
+  }, []);
+
   const handleGetStarted = () => {
     router.push('/home');
   };
@@ -14,7 +35,15 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <Animated.View
+        style={[
+          styles.content,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
         <View style={styles.centerContent}>
           <AppText variant="title">redi</AppText>
           <AppText variant="subtitle">cornell&apos;s first dating app</AppText>
@@ -28,7 +57,7 @@ export default function Index() {
           variant="primary"
           fullWidth
         />
-      </View>
+      </Animated.View>
     </View>
   );
 }
