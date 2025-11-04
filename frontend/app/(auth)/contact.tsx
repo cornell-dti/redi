@@ -1,6 +1,6 @@
 import { Mail } from 'lucide-react-native';
 import React from 'react';
-import { ScrollView, StatusBar, StyleSheet, View } from 'react-native';
+import { Linking, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
 import AppText from '../components/ui/AppText';
@@ -24,10 +24,12 @@ export default function ContactPage() {
         <View style={styles.mainContainer}>
           <ListItemWrapper>
             <View style={styles.textWrapper}>
-              <AppText>Please contact us at [EMAIL] for any inquiries.</AppText>
+              <AppText>
+                Please contact us at redicornell@gmail.com for any inquiries.
+              </AppText>
             </View>
             <Button
-              onPress={() => {}}
+              onPress={() => Linking.openURL('mailto:redicornell@gmail.com')}
               title="Email us"
               iconLeft={Mail}
               variant="secondary"

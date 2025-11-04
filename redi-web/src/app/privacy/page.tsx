@@ -34,8 +34,8 @@ export default function PrivacyPage() {
             privacy and are committed to keeping your information safe and
             minimal. This Privacy Policy explains how we collect, use, and
             protect information when you use the Redi mobile application and
-            related services (collectively, the &quot;Service&quot;). By using Redi, you
-            agree to the practices described below.
+            related services (collectively, the &quot;Service&quot;). By using
+            Redi, you agree to the practices described below.
           </p>
 
           <section className="mb-8">
@@ -176,10 +176,10 @@ export default function PrivacyPage() {
               <li>
                 Request deletion of your data at any time by contacting{' '}
                 <a
-                  href="mailto:support@redi.love"
+                  href="mailto:redicornell@gmail.com"
                   className="text-purple-600 hover:text-purple-700 font-medium"
                 >
-                  EMAIL
+                  redicornell@gmail.com
                 </a>
                 .
               </li>
@@ -241,10 +241,10 @@ export default function PrivacyPage() {
               If you have questions or concerns about this Privacy Policy or our
               data handling practices, you can contact us at:{' '}
               <a
-                href="mailto:support@redi.love"
+                href="mailto:redicornell@gmail.com"
                 className="text-purple-600 hover:text-purple-700 font-medium"
               >
-                EMAIL
+                redicornell@gmail.com
               </a>
             </p>
           </section>

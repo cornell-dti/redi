@@ -30,12 +30,13 @@ export default function TermsPage() {
         {/* Content */}
         <div className="prose prose-lg max-w-none">
           <p className="text-gray-700 leading-relaxed mb-6">
-            Welcome to <span className="font-semibold">Redi</span> (&quot;Redi,&quot;
-            &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). By downloading or using the Redi mobile
-            application and related services (collectively, the &quot;Service&quot;), you
-            agree to these Terms and Conditions (&quot;Terms&quot;). Please read them
-            carefully before use. If you do not agree, please do not use the
-            Service.
+            Welcome to <span className="font-semibold">Redi</span>{' '}
+            (&quot;Redi,&quot; &quot;we,&quot; &quot;us,&quot; or
+            &quot;our&quot;). By downloading or using the Redi mobile
+            application and related services (collectively, the
+            &quot;Service&quot;), you agree to these Terms and Conditions
+            (&quot;Terms&quot;). Please read them carefully before use. If you
+            do not agree, please do not use the Service.
           </p>
 
           <section className="mb-8">
@@ -84,12 +85,6 @@ export default function TermsPage() {
             </h2>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
               <li>
-                Redi does{' '}
-                <span className="font-semibold">
-                  not permanently store user profile data.
-                </span>
-              </li>
-              <li>
                 Profile inputs (e.g., preferences, prompts, responses, photos)
                 are <span className="font-semibold">temporarily processed</span>{' '}
                 through a machine-learning model to generate match
@@ -133,9 +128,9 @@ export default function TermsPage() {
               7. Disclaimers
             </h2>
             <p className="text-gray-700 leading-relaxed">
-              Redi is provided &quot;as is,&quot; without warranties of any kind. We do
-              not guarantee the accuracy of match results or continuous
-              availability of the Service.
+              Redi is provided &quot;as is,&quot; without warranties of any
+              kind. We do not guarantee the accuracy of match results or
+              continuous availability of the Service.
             </p>
           </section>
 
@@ -177,10 +172,10 @@ export default function TermsPage() {
             <p className="text-gray-700 leading-relaxed">
               For questions about these Terms, contact us at:{' '}
               <a
-                href="mailto:support@redi.love"
+                href="mailto:redicornell@gmail.com"
                 className="text-purple-600 hover:text-purple-700 font-medium"
               >
-                EMAIL
+                redicornell@gmail.com
               </a>
             </p>
           </section>

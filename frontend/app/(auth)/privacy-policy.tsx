@@ -150,7 +150,7 @@ export default function PrivacyPolicyPage() {
               {'\n'}
               If you have questions or concerns about this Privacy Policy or our
               data handling practices, you can contact us at:{'\n'}
-              [EMAIL]
+              redicornell@gmail.com
             </AppText>
           </ListItemWrapper>
         </View>
