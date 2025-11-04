@@ -3,13 +3,10 @@ import { ProfileResponse, getProfileAge } from '@/types';
 import {
   Bell,
   Cake,
-  Ghost,
-  Github,
   Globe,
   GraduationCap,
   Home,
   Instagram,
-  Linkedin,
   Magnet,
 } from 'lucide-react-native';
 import React from 'react';
@@ -23,6 +20,9 @@ import {
 } from 'react-native';
 import { AppColors } from '../AppColors';
 import GenderIcon from '../icons/GenderIcon';
+import GithubIcon from '../icons/GithubIcon';
+import LinkedinIcon from '../icons/LinkedinIcon';
+import SnapchatIcon from '../icons/SnapchatIcon';
 import Button from '../ui/Button';
 import FooterSpacer from '../ui/FooterSpacer';
 import ListItemWrapper from '../ui/ListItemWrapper';
@@ -89,17 +89,21 @@ const ProfileView: React.FC<ProfileViewProps> = ({
           },
         'snapchat' in profile &&
           profile.snapchat && {
-            icon: <Ghost size={24} />,
+            icon: (
+              <SnapchatIcon size={24} color={AppColors.foregroundDefault} />
+            ),
             url: `https://snapchat.com/add/${profile.snapchat.replace(/^@/, '')}`,
           },
         'linkedIn' in profile &&
           profile.linkedIn && {
-            icon: <Linkedin size={24} />,
+            icon: (
+              <LinkedinIcon size={24} color={AppColors.foregroundDefault} />
+            ),
             url: ensureProtocol(profile.linkedIn),
           },
         'github' in profile &&
           profile.github && {
-            icon: <Github size={24} />,
+            icon: <GithubIcon size={24} color={AppColors.foregroundDefault} />,
             url: ensureProtocol(profile.github),
           },
         'website' in profile &&
