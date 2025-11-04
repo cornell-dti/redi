@@ -5,6 +5,7 @@ import {
   Modal,
   PanResponder,
   Pressable,
+  ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
@@ -84,6 +85,7 @@ export default function Sheet({
   const pan = useRef(new Animated.Value(0)).current;
   const lastPanY = useRef(0);
 
+  // PanResponder only for the drag handle area
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -124,10 +126,7 @@ export default function Sheet({
       onRequestClose={handleDismiss}
     >
       <View style={styles.container} pointerEvents={visible ? 'auto' : 'none'}>
-        <Pressable
-          style={StyleSheet.absoluteFill}
-          onPress={handleDismiss}
-        >
+        <Pressable style={StyleSheet.absoluteFill} onPress={handleDismiss}>
           <Animated.View
             style={[styles.overlay, { opacity: overlayOpacity }]}
           />
@@ -148,15 +147,21 @@ export default function Sheet({
           >
             <View style={styles.dragHandle} />
           </View>
-          <View>{title && <AppText variant="subtitle">{title}</AppText>}</View>
-          <View
+          <View style={styles.titleContainer}>
+            {title && <AppText variant="subtitle">{title}</AppText>}
+          </View>
+          <ScrollView
             style={[
-              styles.content,
-              height && height !== 'auto' ? { flex: 1 } : undefined,
+              height && height !== 'auto'
+                ? styles.scrollContent
+                : styles.scrollContentAuto,
             ]}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled={true}
           >
             {children}
-          </View>
+          </ScrollView>
         </Animated.View>
       </View>
     </Modal>
@@ -196,7 +201,16 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: '#e0e0e0',
   },
+  titleContainer: {
+    marginBottom: 8,
+  },
+  scrollContent: {
+    flex: 1,
+  },
+  scrollContentAuto: {
+    maxHeight: 600,
+  },
   content: {
-    marginTop: 24,
+    paddingBottom: 24,
   },
 });

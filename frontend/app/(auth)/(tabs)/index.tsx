@@ -492,7 +492,7 @@ export default function MatchesScreen() {
               multiline
               numberOfLines={3}
               maxLength={120}
-              style={{ height: 84 }}
+              style={{ height: 84, borderRadius: 24 }}
             />
 
             <AppText variant="bodySmall" color="dimmer">
