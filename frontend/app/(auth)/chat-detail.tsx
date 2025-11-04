@@ -441,8 +441,11 @@ export default function ChatDetailScreen() {
               onPress={() => {
                 if (!netid) {
                   showToast({
-                    icon: <User2 size={20} color={AppColors.backgroundDefault} />,
-                    label: 'Unable to view profile. User information is missing.',
+                    icon: (
+                      <User2 size={20} color={AppColors.backgroundDefault} />
+                    ),
+                    label:
+                      'Unable to view profile. User information is missing.',
                   });
                   return;
                 }
@@ -526,7 +529,9 @@ export default function ChatDetailScreen() {
                     });
 
                     showToast({
-                      icon: <Check size={20} color={AppColors.backgroundDefault} />,
+                      icon: (
+                        <Check size={20} color={AppColors.backgroundDefault} />
+                      ),
                       label: 'Report submitted',
                     });
 
@@ -539,8 +544,15 @@ export default function ChatDetailScreen() {
                   } catch (err: any) {
                     console.error('Error submitting report:', err);
                     showToast({
-                      icon: <FlagIcon size={20} color={AppColors.backgroundDefault} />,
-                      label: err.message || 'Failed to submit report. Please try again.',
+                      icon: (
+                        <FlagIcon
+                          size={20}
+                          color={AppColors.backgroundDefault}
+                        />
+                      ),
+                      label:
+                        err.message ||
+                        'Failed to submit report. Please try again.',
                     });
                   } finally {
                     setIsSubmittingReport(false);
@@ -597,14 +609,24 @@ export default function ChatDetailScreen() {
                       await unblockUser(netid as string);
                       setIsBlocked(false);
                       showToast({
-                        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+                        icon: (
+                          <Check
+                            size={20}
+                            color={AppColors.backgroundDefault}
+                          />
+                        ),
                         label: `Unblocked ${name}`,
                       });
                     } else {
                       await blockUser(netid as string);
                       setIsBlocked(true);
                       showToast({
-                        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+                        icon: (
+                          <Check
+                            size={20}
+                            color={AppColors.backgroundDefault}
+                          />
+                        ),
                         label: `Blocked ${name}`,
                       });
                       // Navigate back to chat list after blocking
@@ -615,8 +637,12 @@ export default function ChatDetailScreen() {
                     setTimeout(() => setSheetView('menu'), 300);
                   } catch (error: any) {
                     showToast({
-                      icon: <Ban size={20} color={AppColors.backgroundDefault} />,
-                      label: error.message || `Failed to ${isBlocked ? 'unblock' : 'block'} user`,
+                      icon: (
+                        <Ban size={20} color={AppColors.backgroundDefault} />
+                      ),
+                      label:
+                        error.message ||
+                        `Failed to ${isBlocked ? 'unblock' : 'block'} user`,
                     });
                   } finally {
                     setBlocking(false);

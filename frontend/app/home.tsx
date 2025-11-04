@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Info } from 'lucide-react-native';
+import { ArrowLeft, Info, LogIn, Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -185,12 +185,14 @@ export default function HomePage() {
           onPress={() => handleModeChange('signup')}
           variant="primary"
           fullWidth
+          iconLeft={Plus}
         />
         <Button
           title="Log in"
           onPress={() => handleModeChange('login')}
           variant="secondary"
           fullWidth
+          iconLeft={LogIn}
         />
       </View>
     </Animated.View>
@@ -265,12 +267,14 @@ export default function HomePage() {
             onPress={mode === 'signup' ? handleCreateAccount : handleLogin}
             variant="primary"
             fullWidth
+            iconLeft={mode === 'signup' ? Plus : LogIn}
           />
           <Button
             title="Back"
             onPress={handleBack}
             variant="secondary"
             fullWidth
+            iconLeft={ArrowLeft}
           />
         </View>
       )}

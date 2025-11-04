@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { ArrowRight } from 'lucide-react-native';
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { AppColors } from './components/AppColors';
@@ -48,15 +49,18 @@ export default function Index() {
           <AppText variant="title">redi</AppText>
           <AppText variant="subtitle">cornell&apos;s first dating app</AppText>
         </View>
-        <AppText variant="body" style={styles.madeByText}>
-          Made by Incubator
-        </AppText>
+
         <Button
           title="Get Started"
           onPress={handleGetStarted}
           variant="primary"
           fullWidth
+          iconRight={ArrowRight}
         />
+
+        <AppText variant="body" style={styles.madeByText} color="dimmer">
+          Made by Incubator
+        </AppText>
       </Animated.View>
     </View>
   );
@@ -74,7 +78,8 @@ const styles = StyleSheet.create({
     paddingVertical: 80,
   },
   madeByText: {
-    textAlign: 'center' as const,
+    textAlign: 'center',
+    marginTop: 24,
   },
   centerContent: {
     flex: 1,
