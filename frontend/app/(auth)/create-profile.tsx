@@ -473,7 +473,6 @@ export default function CreateProfileScreen() {
               visible={showSchoolSheet}
               onDismiss={() => setShowSchoolSheet(false)}
               title="Select your college"
-              height={500}
             >
               <ListItemWrapper>
                 {CORNELL_SCHOOLS.map((school) => (
@@ -723,6 +722,7 @@ export default function CreateProfileScreen() {
                   onPress={addClub}
                   variant="primary"
                   fullWidth
+                  iconLeft={Plus}
                 />
               </View>
             </Sheet>
@@ -817,6 +817,7 @@ export default function CreateProfileScreen() {
                   onPress={addInterest}
                   variant="primary"
                   fullWidth
+                  iconLeft={Plus}
                 />
               </View>
             </Sheet>
@@ -826,7 +827,7 @@ export default function CreateProfileScreen() {
       case 16:
         return (
           <View style={styles.stepContainer}>
-            <OnboardingTitle title={`Welcome ${data.firstName}!`} />
+            <AppText variant="title">Welcome, {data.firstName}!</AppText>
             <View style={styles.welcomeContainer}>
               {data.pictures[0] && (
                 <Image
@@ -835,8 +836,8 @@ export default function CreateProfileScreen() {
                 />
               )}
               <AppText variant="body" style={styles.welcomeText}>
-                Matches drop every Friday at 9am. Send a nudge to show interest,
-                and if they nudge back, you&apos;ll unlock chat!
+                Matches drop every Friday at 9:00 AM. Send a nudge to show
+                interest, and if they nudge back, you&apos;ll unlock chat!
               </AppText>
             </View>
           </View>
@@ -850,7 +851,7 @@ export default function CreateProfileScreen() {
   const getNextLabel = () => {
     if (uploadingImages) return 'Uploading images...';
     if (isSubmitting) return 'Creating profile...';
-    if (currentStep === 16) return 'Get Started';
+    if (currentStep === 16) return 'Get started';
     return 'Next';
   };
 
@@ -932,6 +933,8 @@ const styles = StyleSheet.create({
   stepContainer: {
     padding: 20,
     gap: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   majorContainer: {
     gap: 12,
@@ -975,5 +978,6 @@ const styles = StyleSheet.create({
   welcomeText: {
     textAlign: 'center',
     lineHeight: 24,
+    maxWidth: 360,
   },
 });

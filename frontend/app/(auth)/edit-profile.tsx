@@ -2,7 +2,7 @@ import AppText from '@/app/components/ui/AppText';
 import { ProfileResponse, PromptData, getProfileAge } from '@/types';
 import { router, useFocusEffect } from 'expo-router';
 import { Check, ChevronRight, Pencil, Plus } from 'lucide-react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -42,10 +42,27 @@ export default function EditProfileScreen() {
   const [saving, setSaving] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
 
+  // Scroll position preservation
+  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollPositionRef = useRef(0);
+  const hasInitiallyLoaded = useRef(false);
+
   // Fetch profile data on mount and when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      fetchProfile();
+      // Only fetch on initial load, not on subsequent focus events
+      if (!hasInitiallyLoaded.current) {
+        fetchProfile();
+        hasInitiallyLoaded.current = true;
+      } else {
+        // Restore scroll position when returning to this screen
+        setTimeout(() => {
+          scrollViewRef.current?.scrollTo({
+            y: scrollPositionRef.current,
+            animated: false,
+          });
+        }, 100);
+      }
     }, [])
   );
 
@@ -324,10 +341,15 @@ export default function EditProfileScreen() {
       />
 
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={{
           rowGap: 24,
         }}
+        onScroll={(event) => {
+          scrollPositionRef.current = event.nativeEvent.contentOffset.y;
+        }}
+        scrollEventThrottle={16}
       >
         <View style={styles.section}>
           <AppText variant="subtitle" style={styles.subtitle}>
@@ -426,7 +448,15 @@ export default function EditProfileScreen() {
 
             <ListItem
               title="Education"
-              description={`${profile?.year} in ${profile?.school} studying ${profile?.major?.join(', ')}`}
+              description={
+                <AppText color="dimmer">
+                  <AppText>{profile?.year}</AppText>
+                  {' in '}
+                  <AppText>{profile?.school}</AppText>
+                  {' studying '}
+                  <AppText>{profile?.major?.join(', ')}</AppText>
+                </AppText>
+              }
               right={<ChevronRight size={20} />}
               onPress={() => router.push('/edit-education' as any)}
             />

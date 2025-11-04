@@ -6,6 +6,7 @@ import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
+import { useToast } from '@/app/contexts/ToastContext';
 import { ReportReason } from '@/types/report';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import {
@@ -21,7 +22,6 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Animated,
   FlatList,
   KeyboardAvoidingView,
@@ -39,6 +39,7 @@ import {
 } from '../api/chatApi';
 import { createReport } from '../api/reportsApi';
 import { AppColors } from '../components/AppColors';
+import Pressable from '../components/ui/Pressable';
 import { useMessages } from '../hooks/useMessages';
 
 interface Message {
@@ -58,6 +59,7 @@ const REPORT_REASONS: { value: ReportReason; label: string }[] = [
 
 export default function ChatDetailScreen() {
   useThemeAware();
+  const { showToast } = useToast();
 
   const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   type SheetView = 'menu' | 'report' | 'block';
@@ -366,7 +368,21 @@ export default function ChatDetailScreen() {
           icon={ArrowLeft}
         />
 
-        <AppText variant="subtitle">{name}</AppText>
+        <Pressable
+          onPress={() => {
+            if (!netid) {
+              showToast({
+                icon: <User2 size={20} color={AppColors.backgroundDefault} />,
+                label: 'Unable to view profile. User information is missing.',
+              });
+              return;
+            }
+            setShowOptionsSheet(false);
+            router.push(`/view-profile?netid=${netid}` as any);
+          }}
+        >
+          <AppText variant="subtitle">{name}</AppText>
+        </Pressable>
 
         <IconButton
           onPress={() => setShowOptionsSheet(true)}
@@ -424,10 +440,13 @@ export default function ChatDetailScreen() {
               title="View profile"
               onPress={() => {
                 if (!netid) {
-                  Alert.alert(
-                    'Error',
-                    'Unable to view profile. User information is missing.'
-                  );
+                  showToast({
+                    icon: (
+                      <User2 size={20} color={AppColors.backgroundDefault} />
+                    ),
+                    label:
+                      'Unable to view profile. User information is missing.',
+                  });
                   return;
                 }
                 setShowOptionsSheet(false);
@@ -509,11 +528,12 @@ export default function ChatDetailScreen() {
                       description: reportText.trim(),
                     });
 
-                    Alert.alert(
-                      'Report Submitted',
-                      'Thank you for helping keep our community safe. We will review your report.',
-                      [{ text: 'OK' }]
-                    );
+                    showToast({
+                      icon: (
+                        <Check size={20} color={AppColors.backgroundDefault} />
+                      ),
+                      label: 'Report submitted',
+                    });
 
                     setShowOptionsSheet(false);
                     setTimeout(() => {
@@ -523,12 +543,17 @@ export default function ChatDetailScreen() {
                     }, 300);
                   } catch (err: any) {
                     console.error('Error submitting report:', err);
-                    Alert.alert(
-                      'Error',
-                      err.message ||
+                    showToast({
+                      icon: (
+                        <FlagIcon
+                          size={20}
+                          color={AppColors.backgroundDefault}
+                        />
+                      ),
+                      label:
+                        err.message ||
                         'Failed to submit report. Please try again.',
-                      [{ text: 'OK' }]
-                    );
+                    });
                   } finally {
                     setIsSubmittingReport(false);
                   }
@@ -583,29 +608,42 @@ export default function ChatDetailScreen() {
                     if (isBlocked) {
                       await unblockUser(netid as string);
                       setIsBlocked(false);
-                      Alert.alert('Success', `Unblocked ${name}`);
+                      showToast({
+                        icon: (
+                          <Check
+                            size={20}
+                            color={AppColors.backgroundDefault}
+                          />
+                        ),
+                        label: `Unblocked ${name}`,
+                      });
                     } else {
                       await blockUser(netid as string);
                       setIsBlocked(true);
-                      Alert.alert('Success', `Blocked ${name}`, [
-                        {
-                          text: 'OK',
-                          onPress: () => {
-                            // Navigate back to chat list after blocking
-                            router.back();
-                          },
-                        },
-                      ]);
+                      showToast({
+                        icon: (
+                          <Check
+                            size={20}
+                            color={AppColors.backgroundDefault}
+                          />
+                        ),
+                        label: `Blocked ${name}`,
+                      });
+                      // Navigate back to chat list after blocking
+                      router.back();
                     }
 
                     setShowOptionsSheet(false);
                     setTimeout(() => setSheetView('menu'), 300);
                   } catch (error: any) {
-                    Alert.alert(
-                      'Error',
-                      error.message ||
-                        `Failed to ${isBlocked ? 'unblock' : 'block'} user`
-                    );
+                    showToast({
+                      icon: (
+                        <Ban size={20} color={AppColors.backgroundDefault} />
+                      ),
+                      label:
+                        error.message ||
+                        `Failed to ${isBlocked ? 'unblock' : 'block'} user`,
+                    });
                   } finally {
                     setBlocking(false);
                   }

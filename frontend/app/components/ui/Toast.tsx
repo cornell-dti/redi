@@ -117,6 +117,7 @@ const Toast: React.FC<ToastProps> = ({
       style={[
         styles.container,
         {
+          backgroundColor: AppColors.accentDefault,
           opacity,
           transform: [{ translateY: combinedTranslateY }],
         },
@@ -133,7 +134,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 40,
     alignSelf: 'center',
-    backgroundColor: AppColors.accentDefault,
     borderRadius: 32,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -147,7 +147,6 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 8,
-    color: AppColors.backgroundDefault,
   },
 });
 

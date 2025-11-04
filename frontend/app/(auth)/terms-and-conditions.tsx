@@ -60,10 +60,6 @@ export default function TermsAndConditionsPage() {
               <AppText variant="subtitle">
                 4. Data Processing and Machine Learning
               </AppText>
-              {'\n'}• Redi does{' '}
-              <AppText style={styles.bold}>
-                not permanently store user profile data.
-              </AppText>
               {'\n'}• Profile inputs (e.g., preferences, prompts, responses,
               photos) are{' '}
               <AppText style={styles.bold}>temporarily processed</AppText>{' '}
@@ -110,7 +106,7 @@ export default function TermsAndConditionsPage() {
               <AppText variant="subtitle">11. Contact</AppText>
               {'\n'}
               For questions about these Terms, contact us at:{'\n'}
-              [EMAIL]
+              redicornell@gmail.com
             </AppText>
           </ListItemWrapper>
         </View>

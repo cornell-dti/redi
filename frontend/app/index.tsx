@@ -1,10 +1,32 @@
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { ArrowRight } from 'lucide-react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
 import { AppColors } from './components/AppColors';
 import AppText from './components/ui/AppText';
 import Button from './components/ui/Button';
 
 export default function Index() {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    // Animate in when component mounts
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 8,
+      }),
+    ]).start();
+  }, []);
+
   const handleGetStarted = () => {
     router.push('/home');
   };
@@ -14,21 +36,32 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <Animated.View
+        style={[
+          styles.content,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
         <View style={styles.centerContent}>
           <AppText variant="title">redi</AppText>
           <AppText variant="subtitle">cornell&apos;s first dating app</AppText>
         </View>
-        <AppText variant="body" style={styles.madeByText}>
-          Made by Incubator
-        </AppText>
+
         <Button
           title="Get Started"
           onPress={handleGetStarted}
           variant="primary"
           fullWidth
+          iconRight={ArrowRight}
         />
-      </View>
+
+        <AppText variant="body" style={styles.madeByText} color="dimmer">
+          Made by Incubator
+        </AppText>
+      </Animated.View>
     </View>
   );
 }
@@ -45,7 +78,8 @@ const styles = StyleSheet.create({
     paddingVertical: 80,
   },
   madeByText: {
-    textAlign: 'center' as const,
+    textAlign: 'center',
+    marginTop: 24,
   },
   centerContent: {
     flex: 1,

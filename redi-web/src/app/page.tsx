@@ -126,83 +126,101 @@ export default function Home() {
           </form>
         )}
       </main>
-      <div className="flex gap-6 justify-center md:[&>div]:w-[200px]">
-        <div className="flex flex-col gap-2 items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-8 h-8 text-white"
-          >
-            <path d="M14 21v-3a2 2 0 0 0-4 0v3" />
-            <path d="M18 5v16" />
-            <path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6" />
-            <path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11" />
-            <path d="M6 5v16" />
-            <circle cx="12" cy="9" r="2" />
-          </svg>
+      <div className="flex flex-col gap-4 items-center">
+        <div className="flex gap-6 justify-center md:[&>div]:w-[200px]">
+          <div className="flex flex-col gap-2 items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-8 h-8 text-white"
+            >
+              <path d="M14 21v-3a2 2 0 0 0-4 0v3" />
+              <path d="M18 5v16" />
+              <path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6" />
+              <path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11" />
+              <path d="M6 5v16" />
+              <circle cx="12" cy="9" r="2" />
+            </svg>
 
-          <p className="text-[16px] md:text-[20px] text-center text-white">
-            Campus-specific prompts
-          </p>
+            <p className="text-[16px] md:text-[20px] text-center text-white">
+              Campus-specific prompts
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2 items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-8 h-8 text-white"
+            >
+              <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+
+            <p className="text-[16px] md:text-[20px] text-center text-white">
+              No risk, private matches
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2 items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-8 h-8 text-white"
+            >
+              <path d="M8 2v4" />
+              <path d="M16 2v4" />
+              <rect width="18" height="18" x="3" y="4" rx="2" />
+              <path d="M3 10h18" />
+              <path d="M8 14h.01" />
+              <path d="M12 14h.01" />
+              <path d="M16 14h.01" />
+              <path d="M8 18h.01" />
+              <path d="M12 18h.01" />
+              <path d="M16 18h.01" />
+            </svg>
+
+            <p className="text-[16px] md:text-[20px] text-center text-white">
+              New matches every Friday
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-2 items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-8 h-8 text-white"
+        <div className="flex gap-4 text-white text-sm md:text-base">
+          <Link
+            href="/terms"
+            className="hover:underline opacity-80 hover:opacity-100 transition"
           >
-            <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
-            <path d="m9 12 2 2 4-4" />
-          </svg>
-
-          <p className="text-[16px] md:text-[20px] text-center text-white">
-            No risk, private matches
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-2 items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-8 h-8 text-white"
+            Terms & Conditions
+          </Link>
+          <span className="opacity-50">•</span>
+          <Link
+            href="/privacy"
+            className="hover:underline opacity-80 hover:opacity-100 transition"
           >
-            <path d="M8 2v4" />
-            <path d="M16 2v4" />
-            <rect width="18" height="18" x="3" y="4" rx="2" />
-            <path d="M3 10h18" />
-            <path d="M8 14h.01" />
-            <path d="M12 14h.01" />
-            <path d="M16 14h.01" />
-            <path d="M8 18h.01" />
-            <path d="M12 18h.01" />
-            <path d="M16 18h.01" />
-          </svg>
-
-          <p className="text-[16px] md:text-[20px] text-center text-white">
-            New matches every Friday
-          </p>
+            Privacy Policy
+          </Link>
         </div>
       </div>
     </div>

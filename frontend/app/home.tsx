@@ -1,9 +1,11 @@
 import { router } from 'expo-router';
-import { Info } from 'lucide-react-native';
-import React, { useState } from 'react';
+import { ArrowLeft, Info, LogIn, Plus } from 'lucide-react-native';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  Dimensions,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -29,12 +31,41 @@ import Sheet from './components/ui/Sheet';
 
 type AuthMode = 'welcome' | 'signup' | 'login';
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 export default function HomePage() {
   const [mode, setMode] = useState<AuthMode>('welcome');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showInfoSheet, setShowInfoSheet] = useState(false);
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+
+  // Animation refs
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Animate page transitions when mode changes
+  useEffect(() => {
+    // Reset position based on direction
+    slideAnim.setValue(direction === 'forward' ? SCREEN_WIDTH : -SCREEN_WIDTH);
+    fadeAnim.setValue(0);
+
+    // Animate in
+    Animated.parallel([
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 10,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [mode]);
 
   const handleCreateAccount = async () => {
     if (!email || !password) {
@@ -118,14 +149,27 @@ export default function HomePage() {
   };
 
   const handleBack = () => {
+    setDirection('backward');
     setMode('welcome');
     setEmail('');
     setPassword('');
   };
 
-  // ... rest of the component remains the same
+  const handleModeChange = (newMode: AuthMode) => {
+    setDirection('forward');
+    setMode(newMode);
+  };
+
   const renderWelcomeScreen = () => (
-    <>
+    <Animated.View
+      style={[
+        styles.animatedContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateX: slideAnim }],
+        },
+      ]}
+    >
       <View style={styles.centerContent}>
         <AppText variant="title" style={styles.logo}>
           redi
@@ -138,22 +182,32 @@ export default function HomePage() {
       <View style={styles.buttonContainer}>
         <Button
           title="Create account"
-          onPress={() => setMode('signup')}
+          onPress={() => handleModeChange('signup')}
           variant="primary"
           fullWidth
+          iconLeft={Plus}
         />
         <Button
           title="Log in"
-          onPress={() => setMode('login')}
+          onPress={() => handleModeChange('login')}
           variant="secondary"
           fullWidth
+          iconLeft={LogIn}
         />
       </View>
-    </>
+    </Animated.View>
   );
 
   const renderAuthForm = () => (
-    <>
+    <Animated.View
+      style={[
+        styles.animatedContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateX: slideAnim }],
+        },
+      ]}
+    >
       <ScrollView
         style={styles.formScrollView}
         showsVerticalScrollIndicator={false}
@@ -162,7 +216,7 @@ export default function HomePage() {
           <AppText variant="title" style={styles.formTitle}>
             {mode === 'signup' ? 'Create account' : 'Welcome back!'}
           </AppText>
-          <AppText variant="body" style={styles.formSubtitle}>
+          <AppText variant="subtitle" style={styles.formSubtitle}>
             {mode === 'signup'
               ? 'Enter your Cornell email to get started'
               : 'Log in to continue'}
@@ -213,16 +267,18 @@ export default function HomePage() {
             onPress={mode === 'signup' ? handleCreateAccount : handleLogin}
             variant="primary"
             fullWidth
+            iconLeft={mode === 'signup' ? Plus : LogIn}
           />
           <Button
             title="Back"
             onPress={handleBack}
             variant="secondary"
             fullWidth
+            iconLeft={ArrowLeft}
           />
         </View>
       )}
-    </>
+    </Animated.View>
   );
 
   return (
@@ -260,7 +316,6 @@ export default function HomePage() {
   );
 }
 
-// styles remain the same
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -274,6 +329,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     justifyContent: 'space-between',
     paddingVertical: 40,
+  },
+  animatedContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
   },
   centerContent: {
     flex: 1,

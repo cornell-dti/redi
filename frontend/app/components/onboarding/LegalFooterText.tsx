@@ -23,23 +23,13 @@ export default function LegalFooterText({ text }: LegalFooterTextProps) {
     return parts.map((part, index) => {
       if (part === '{terms}') {
         return (
-          <AppText
-            variant="bodySmall"
-            key={index}
-            style={styles.link}
-            onPress={handleTermsPress}
-          >
+          <AppText key={index} style={styles.link} onPress={handleTermsPress}>
             Terms
           </AppText>
         );
       } else if (part === '{privacy}') {
         return (
-          <AppText
-            variant="bodySmall"
-            key={index}
-            style={styles.link}
-            onPress={handlePrivacyPress}
-          >
+          <AppText key={index} style={styles.link} onPress={handlePrivacyPress}>
             Privacy Policy
           </AppText>
         );
@@ -60,7 +50,9 @@ export default function LegalFooterText({ text }: LegalFooterTextProps) {
 const styles = StyleSheet.create({
   container: {
     marginTop: 24,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
+    display: 'flex',
+    alignItems: 'center',
   },
   text: {
     textAlign: 'center',
