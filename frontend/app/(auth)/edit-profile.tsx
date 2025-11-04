@@ -426,7 +426,15 @@ export default function EditProfileScreen() {
 
             <ListItem
               title="Education"
-              description={`${profile?.year} in ${profile?.school} studying ${profile?.major?.join(', ')}`}
+              description={
+                <AppText color="dimmer">
+                  <AppText>{profile?.year}</AppText>
+                  {' in '}
+                  <AppText>{profile?.school}</AppText>
+                  {' studying '}
+                  <AppText>{profile?.major?.join(', ')}</AppText>
+                </AppText>
+              }
               right={<ChevronRight size={20} />}
               onPress={() => router.push('/edit-education' as any)}
             />

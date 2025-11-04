@@ -14,7 +14,7 @@ type ReactNode = React.ReactNode;
 
 interface ListItemProps {
   title: string;
-  description?: string;
+  description?: string | ReactNode;
   left?: ReactNode;
   right?: ReactNode;
   selected?: boolean;
@@ -86,7 +86,13 @@ export default function ListItem({
           >
             {title}
           </AppText>
-          {description ? <AppText color="dimmer">{description}</AppText> : null}
+          {description ? (
+            typeof description === 'string' ? (
+              <AppText color="dimmer">{description}</AppText>
+            ) : (
+              description
+            )
+          ) : null}
         </View>
 
         {right ? <View style={styles.right}>{right}</View> : null}
