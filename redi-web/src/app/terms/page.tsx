@@ -30,10 +30,10 @@ export default function TermsPage() {
         {/* Content */}
         <div className="prose prose-lg max-w-none">
           <p className="text-gray-700 leading-relaxed mb-6">
-            Welcome to <span className="font-semibold">Redi</span> ("Redi,"
-            "we," "us," or "our"). By downloading or using the Redi mobile
-            application and related services (collectively, the "Service"), you
-            agree to these Terms and Conditions ("Terms"). Please read them
+            Welcome to <span className="font-semibold">Redi</span> (&quot;Redi,&quot;
+            &quot;we,&quot; &quot;us,&quot; or &quot;our&quot;). By downloading or using the Redi mobile
+            application and related services (collectively, the &quot;Service&quot;), you
+            agree to these Terms and Conditions (&quot;Terms&quot;). Please read them
             carefully before use. If you do not agree, please do not use the
             Service.
           </p>
@@ -133,7 +133,7 @@ export default function TermsPage() {
               7. Disclaimers
             </h2>
             <p className="text-gray-700 leading-relaxed">
-              Redi is provided "as is," without warranties of any kind. We do
+              Redi is provided &quot;as is,&quot; without warranties of any kind. We do
               not guarantee the accuracy of match results or continuous
               availability of the Service.
             </p>

@@ -34,7 +34,7 @@ export default function PrivacyPage() {
             privacy and are committed to keeping your information safe and
             minimal. This Privacy Policy explains how we collect, use, and
             protect information when you use the Redi mobile application and
-            related services (collectively, the "Service"). By using Redi, you
+            related services (collectively, the &quot;Service&quot;). By using Redi, you
             agree to the practices described below.
           </p>
 
@@ -120,7 +120,7 @@ export default function PrivacyPage() {
             <p className="text-gray-700 leading-relaxed">
               We may retain de-identified, aggregated statistics (such as the
               number of matches made or overall engagement metrics) to improve
-              Redi's matching algorithm over time.
+              Redi&apos;s matching algorithm over time.
             </p>
           </section>
 
@@ -161,7 +161,7 @@ export default function PrivacyPage() {
               hosting and analytics providers — to operate the Service. These
               vendors are bound by confidentiality and data processing
               agreements. They are not allowed to access or use your data for
-              any reason other than to support Redi's core functionality.
+              any reason other than to support Redi&apos;s core functionality.
             </p>
           </section>
 
@@ -200,7 +200,7 @@ export default function PrivacyPage() {
 
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              8. Children's Privacy
+              8. Children&apos;s Privacy
             </h2>
             <p className="text-gray-700 leading-relaxed">
               Redi is not intended for individuals under 18 years of age. We do
