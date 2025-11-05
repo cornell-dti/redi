@@ -12,5 +12,7 @@ expo-env.d.ts
 .env
 
 # Firebase configuration files (contain sensitive API keys)
-GoogleService-Info.plist
-google-services.json
+# Note: These files contain client-side API keys which are safe to commit
+# Uncomment below to ignore them if needed
+# GoogleService-Info.plist
+# google-services.json
