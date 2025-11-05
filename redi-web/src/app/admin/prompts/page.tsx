@@ -2,6 +2,7 @@
 
 import { fetchAllPrompts } from '@/api/admin';
 import AdminProtectedRoute from '@/components/AdminProtectedRoute';
+import ManualMatchCreation from '@/components/ManualMatchCreation';
 import MatchesDashboard from '@/components/MatchesDashboard';
 import ProductionModeSection from '@/components/ProductionModeSection';
 import ReportsDashboard from '@/components/ReportsDashboard';
@@ -176,6 +177,9 @@ export default function AdminPromptsPage() {
 
               {/* Matches Dashboard */}
               <MatchesDashboard />
+
+              {/* Manual Match Creation */}
+              <ManualMatchCreation />
 
               {/* Reports Dashboard */}
               <ReportsDashboard />
