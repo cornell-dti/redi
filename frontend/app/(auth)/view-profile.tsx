@@ -148,6 +148,15 @@ export default function ViewProfileScreen() {
   const handleOpenChat = async () => {
     if (!netid || !profile || isOpeningChat) return;
 
+    // Only allow chat if both users have mutually nudged each other
+    if (!nudgeStatus?.mutual) {
+      showToast({
+        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        label: 'You can only chat after both of you have nudged each other.',
+      });
+      return;
+    }
+
     try {
       setIsOpeningChat(true);
       const conversation = await createOrGetConversationByNetid(netid);
