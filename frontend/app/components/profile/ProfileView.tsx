@@ -384,16 +384,12 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   promptCard: {
-    borderRadius: 8,
+    borderRadius: 24,
     padding: 16,
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
-    backgroundColor: AppColors.backgroundDefault,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 8,
+    backgroundColor: AppColors.backgroundDimmer,
     elevation: 4,
   },
   paginationContainer: {
