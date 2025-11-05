@@ -1,12 +1,12 @@
 import React from 'react';
 import {
-  ActivityIndicator,
   StyleSheet,
   Text,
   TouchableOpacity,
   TouchableOpacityProps,
   ViewStyle,
 } from 'react-native';
+import LoadingSpinner from './LoadingSpinner';
 
 interface CustomButtonProps extends Omit<TouchableOpacityProps, 'style'> {
   title: string;
@@ -46,10 +46,7 @@ const CustomButton: React.FC<CustomButtonProps> = ({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator
-          size="small"
-          color={variant === 'secondary' ? '#007AFF' : '#FFFFFF'}
-        />
+        <LoadingSpinner />
       ) : (
         <Text
           style={[styles.text, styles[`${variant}Text`], styles[`${size}Text`]]}

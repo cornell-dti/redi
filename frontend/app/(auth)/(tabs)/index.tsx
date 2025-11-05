@@ -13,6 +13,8 @@ import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import CountdownTimer from '@/app/components/ui/CountdownTimer';
 import EmptyState from '@/app/components/ui/EmptyState';
+import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
+import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
 import Sheet from '@/app/components/ui/Sheet';
 import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
@@ -35,7 +37,6 @@ import { useRouter } from 'expo-router';
 import { Check, Eye, Heart } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Dimensions,
   ScrollView,
   StatusBar,
@@ -281,8 +282,12 @@ export default function MatchesScreen() {
     <>
       <CountdownTimer targetDate={getNextFridayMidnight()} />
       {activePrompt && (
-        <View style={[styles.section, styles.promptSection]}>
-          <AppText> Weekly Prompt: {activePrompt.question}</AppText>
+        <ListItemWrapper style={styles.promptSection}>
+          <View style={styles.promptQuestion}>
+            <AppText color="dimmer"> Weekly Prompt: </AppText>
+
+            <AppText variant="subtitle">{activePrompt.question}</AppText>
+          </View>
           <Button
             title={userAnswer ? 'Edit answer' : 'Answer prompt'}
             onPress={() => {
@@ -291,8 +296,9 @@ export default function MatchesScreen() {
             }}
             variant="secondary"
             iconLeft={Eye}
+            noRound
           />
-        </View>
+        </ListItemWrapper>
       )}
     </>
   );
@@ -341,7 +347,6 @@ export default function MatchesScreen() {
           decelerationRate="fast"
           snapToInterval={width - 60}
           showsHorizontalScrollIndicator={false}
-          // contentContainerStyle={{ paddingHorizontal: 16 }}
           onMomentumScrollEnd={(event) => {
             const index = Math.round(
               event.nativeEvent.contentOffset.x / (width - 60)
@@ -350,20 +355,18 @@ export default function MatchesScreen() {
           }}
           style={{ paddingLeft: 16 }}
         >
-          {currentMatches.map((m, index) => {
+          {currentMatches.map((m, matchIndex) => {
             if (!m.profile) return null;
             const matchProfile = m.profile;
             const matchAge = getProfileAge(matchProfile);
 
             const handleNudge = async () => {
               await sendNudge(matchProfile.netid, m.promptId);
-              // Reload matches to update nudge status (debounced)
-              loadDataDebounced();
+              loadDataDebounced(); // refresh after nudge
             };
 
             return (
               <View
-                key={index}
                 style={{
                   width: width - 60,
                   marginRight: 12,
@@ -460,7 +463,7 @@ export default function MatchesScreen() {
           </AppText>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={AppColors.accentDefault} />
+          <LoadingSpinner />
           <AppText variant="body" color="dimmer" style={{ marginTop: 16 }}>
             Loading matches...
           </AppText>
@@ -560,7 +563,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   promptSection: {
-    gap: 12,
+    gap: 4,
     marginBottom: 24,
     padding: 16,
   },
@@ -577,7 +580,10 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   promptQuestion: {
-    lineHeight: 22,
+    padding: 16,
+    gap: 8,
+    borderRadius: 4,
+    backgroundColor: AppColors.backgroundDimmer,
   },
   answerCard: {
     backgroundColor: AppColors.backgroundDimmer,

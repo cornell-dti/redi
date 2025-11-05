@@ -1,15 +1,16 @@
 // _layout.tsx
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import auth from '@react-native-firebase/auth';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, View, Alert } from 'react-native';
+import { Alert, View } from 'react-native';
+import { APIError } from './api/apiClient';
 import { onAuthStateChanged } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
-import { APIError } from './api/apiClient';
+import LoadingSpinner from './components/ui/LoadingSpinner';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
  * Token Refresh Configuration
@@ -240,7 +241,7 @@ function RootNavigator() {
   if (initializing) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
+        <LoadingSpinner />
       </View>
     );
   }

@@ -2,7 +2,6 @@ import { router } from 'expo-router';
 import { ArrowLeft, Info, LogIn, Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Animated,
   Dimensions,
@@ -27,6 +26,7 @@ import LegalFooterText from './components/onboarding/LegalFooterText';
 import AppInput from './components/ui/AppInput';
 import AppText from './components/ui/AppText';
 import Button from './components/ui/Button';
+import LoadingSpinner from './components/ui/LoadingSpinner';
 import Sheet from './components/ui/Sheet';
 
 type AuthMode = 'welcome' | 'signup' | 'login';
@@ -255,11 +255,7 @@ export default function HomePage() {
       </ScrollView>
 
       {loading ? (
-        <ActivityIndicator
-          size="large"
-          color={AppColors.accentDefault}
-          style={styles.loader}
-        />
+        <LoadingSpinner style={styles.loader} />
       ) : (
         <View style={styles.buttonContainer}>
           <Button

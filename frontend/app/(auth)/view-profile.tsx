@@ -14,11 +14,13 @@ import auth from '@react-native-firebase/auth';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Ban, Check, Flag, MoreVertical } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { blockUser, getBlockedUsers, unblockUser } from '../api/blockingApi';
+import { createOrGetConversationByNetid } from '../api/chatApi';
 import IconButton from '../components/ui/IconButton';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 /**
  * View Profile Page
@@ -55,6 +57,7 @@ export default function ViewProfileScreen() {
     null
   );
   const [isNudging, setIsNudging] = useState(false);
+  const [isOpeningChat, setIsOpeningChat] = useState(false);
 
   const user = auth().currentUser;
   const currentNetid = user?.email?.split('@')[0] || '';
@@ -142,12 +145,34 @@ export default function ViewProfileScreen() {
     }
   };
 
+  const handleOpenChat = async () => {
+    if (!netid || !profile || isOpeningChat) return;
+
+    try {
+      setIsOpeningChat(true);
+      const conversation = await createOrGetConversationByNetid(netid);
+
+      // Navigate to chat detail screen
+      router.push(
+        `/chat-detail?conversationId=${conversation.id}&name=${profile.firstName}&netid=${netid}` as any
+      );
+    } catch (error: any) {
+      console.error('Error opening chat:', error);
+      showToast({
+        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        label: error.message || 'Failed to open chat. Please try again.',
+      });
+    } finally {
+      setIsOpeningChat(false);
+    }
+  };
+
   // Loading state
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
         <StatusBar barStyle="dark-content" />
-        <ActivityIndicator size="large" color={AppColors.accentDefault} />
+        <LoadingSpinner />
         <AppText style={styles.loadingText}>Loading profile...</AppText>
       </SafeAreaView>
     );
@@ -205,6 +230,8 @@ export default function ViewProfileScreen() {
         onNudge={handleNudge}
         nudgeSent={nudgeStatus?.sent || false}
         nudgeDisabled={nudgeStatus?.mutual || isNudging}
+        showOpenChatButton={nudgeStatus?.mutual || false}
+        onOpenChat={handleOpenChat}
       />
 
       {/* More Options Sheet */}

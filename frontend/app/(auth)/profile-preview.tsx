@@ -8,9 +8,10 @@ import { ProfileResponse } from '@/types';
 import { router } from 'expo-router';
 import { ArrowLeft, PencilIcon } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Banner from '../components/ui/Banner';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 /**
  * Profile Preview Page
@@ -57,7 +58,7 @@ export default function ProfilePreviewScreen() {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
         <StatusBar barStyle="dark-content" />
-        <ActivityIndicator size="large" color={AppColors.accentDefault} />
+        <LoadingSpinner />
         <AppText style={styles.loadingText}>Loading profile...</AppText>
       </SafeAreaView>
     );
