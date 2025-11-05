@@ -933,8 +933,6 @@ const styles = StyleSheet.create({
   stepContainer: {
     padding: 20,
     gap: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   majorContainer: {
     gap: 12,
