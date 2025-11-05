@@ -1,4 +1,5 @@
 import express from 'express';
+import admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { bucket, db } from '../../firebaseAdmin';
 import { FirestoreDoc, UserDoc, UserDocWrite, UserResponse } from '../../types';
@@ -7,7 +8,7 @@ import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import {
   authenticationRateLimit
 } from '../middleware/rateLimiting';
-import { validateUserCreation, validate } from '../middleware/validation';
+import { validate, validateUserCreation } from '../middleware/validation';
 
 const router = express.Router();
 
@@ -277,6 +278,15 @@ router.delete(
       }
 
       const firebaseUid = doc.data().firebaseUid;
+
+      try {
+        await admin.auth().deleteUser(firebaseUid);
+        console.log(`Deleted Firebase Auth user: ${firebaseUid}`);
+      } catch (error) {
+        console.error(`Error deleting Firebase Auth user ${firebaseUid}:`, error);
+        throw new Error('Failed to delete Firebase Authentication user');
+      }
+
       const conversationsSnapshot = await db
         .collection('conversations')
         .where('participantIds', 'array-contains', firebaseUid)
