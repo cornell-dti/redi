@@ -19,6 +19,7 @@
       }
     },
     "production": {
+      "autoIncrement": true,
       "node": "22.12.0",
       "env": {
         "REACT_APP_API_BASE_URL": "https://redi-app-8ea0a6e9c3d9.herokuapp.com"
