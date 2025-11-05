@@ -236,6 +236,10 @@ router.post('/api/admin/matches/manual', async (req: AdminRequest, res) => {
     const now = Timestamp.now();
     const expiresAtTimestamp = Timestamp.fromDate(expiresAtDate);
 
+    // Use consistent document IDs matching the algorithm-generated format: ${netid}_${promptId}
+    const match1DocId = `${matchData.user1NetId}_${matchData.promptId}`;
+    const match2DocId = `${matchData.user2NetId}_${matchData.promptId}`;
+
     // Create match for User 1
     const match1Data = {
       netid: matchData.user1NetId,
@@ -247,9 +251,9 @@ router.post('/api/admin/matches/manual', async (req: AdminRequest, res) => {
       revealed: [matchData.revealed || false],
     };
 
-    console.log('Creating match 1:', match1Data);
-    const match1Ref = await db.collection('weeklyMatches').add(match1Data);
-    console.log('Match 1 created with ID:', match1Ref.id);
+    console.log('Creating match 1 with ID:', match1DocId, match1Data);
+    await db.collection('weeklyMatches').doc(match1DocId).set(match1Data);
+    console.log('Match 1 created successfully');
 
     // Create match for User 2
     const match2Data = {
@@ -262,9 +266,9 @@ router.post('/api/admin/matches/manual', async (req: AdminRequest, res) => {
       revealed: [matchData.revealed || false],
     };
 
-    console.log('Creating match 2:', match2Data);
-    const match2Ref = await db.collection('weeklyMatches').add(match2Data);
-    console.log('Match 2 created with ID:', match2Ref.id);
+    console.log('Creating match 2 with ID:', match2DocId, match2Data);
+    await db.collection('weeklyMatches').doc(match2DocId).set(match2Data);
+    console.log('Match 2 created successfully');
 
     // Log successful action
     await logAdminAction(
@@ -285,8 +289,8 @@ router.post('/api/admin/matches/manual', async (req: AdminRequest, res) => {
 
     res.status(201).json({
       message: `Successfully created matches between ${matchData.user1NetId} and ${matchData.user2NetId}`,
-      match1Id: match1Ref.id,
-      match2Id: match2Ref.id,
+      match1Id: match1DocId,
+      match2Id: match2DocId,
       promptId: matchData.promptId,
     });
   } catch (error) {
