@@ -41,7 +41,6 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -412,46 +411,6 @@ export default function MatchesScreen() {
     );
   };
 
-  const renderPreviousMatches = () => {
-    if (previousMatches.length === 0) return null;
-
-    return (
-      <View style={styles.section}>
-        <View style={styles.divider} />
-        <AppText variant="subtitle" style={styles.sectionTitle}>
-          Previous Matches
-        </AppText>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.previousMatchesGrid}>
-            {previousMatches.slice(0, 6).map((match, index) => {
-              if (!match.profile) return null;
-              const profile = match.profile;
-
-              return (
-                <TouchableOpacity
-                  key={match.netid + index}
-                  style={styles.previousMatchCard}
-                  onPress={() =>
-                    router.push(
-                      `/view-profile?netid=${profile.netid}&promptId=${match.promptId}` as any
-                    )
-                  }
-                >
-                  <View style={styles.previousMatchImage}>
-                    <AppText variant="title">{profile.firstName[0]}</AppText>
-                  </View>
-                  <AppText variant="bodySmall" numberOfLines={1}>
-                    {profile.firstName}
-                  </AppText>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
-      </View>
-    );
-  };
-
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -490,7 +449,6 @@ export default function MatchesScreen() {
         <View style={styles.content}>
           {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()}
           {renderCurrentMatch()}
-          {renderPreviousMatches()}
         </View>
       </ScrollView>
 
