@@ -33,16 +33,18 @@ describe('ReportsService', () => {
     mockReportsCollection = createMockCollection();
     mockProfilesCollection = createMockCollection();
 
-    (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-      switch (collectionName) {
-        case 'reports':
-          return mockReportsCollection;
-        case 'profiles':
-          return mockProfilesCollection;
-        default:
-          return createMockCollection();
+    (db.collection as jest.Mock).mockImplementation(
+      (collectionName: string) => {
+        switch (collectionName) {
+          case 'reports':
+            return mockReportsCollection;
+          case 'profiles':
+            return mockProfilesCollection;
+          default:
+            return createMockCollection();
+        }
       }
-    });
+    );
   });
 
   // =============================================================================
@@ -59,9 +61,7 @@ describe('ReportsService', () => {
 
       // Mock spam prevention check - no recent reports
       mockReportsCollection.where.mockReturnThis();
-      mockReportsCollection.get.mockResolvedValue(
-        createMockQuerySnapshot([])
-      );
+      mockReportsCollection.get.mockResolvedValue(createMockQuerySnapshot([]));
 
       // Mock report creation
       const mockReportId = 'report-123';
@@ -74,9 +74,9 @@ describe('ReportsService', () => {
 
       mockReportsCollection.add.mockResolvedValue({
         id: mockReportId,
-        get: jest.fn().mockResolvedValue(
-          createMockDocSnapshot(mockReportId, mockReport)
-        ),
+        get: jest
+          .fn()
+          .mockResolvedValue(createMockDocSnapshot(mockReportId, mockReport)),
       });
 
       const result = await createReport('reporter123', reportInput);
@@ -96,18 +96,16 @@ describe('ReportsService', () => {
       };
 
       mockReportsCollection.where.mockReturnThis();
-      mockReportsCollection.get.mockResolvedValue(
-        createMockQuerySnapshot([])
-      );
+      mockReportsCollection.get.mockResolvedValue(createMockQuerySnapshot([]));
 
       const mockReportId = 'report-456';
       const mockReport = createMockReport();
 
       mockReportsCollection.add.mockResolvedValue({
         id: mockReportId,
-        get: jest.fn().mockResolvedValue(
-          createMockDocSnapshot(mockReportId, mockReport)
-        ),
+        get: jest
+          .fn()
+          .mockResolvedValue(createMockDocSnapshot(mockReportId, mockReport)),
       });
 
       const result = await createReport('reporter123', reportInput);
@@ -124,18 +122,18 @@ describe('ReportsService', () => {
       };
 
       mockReportsCollection.where.mockReturnThis();
-      mockReportsCollection.get.mockResolvedValue(
-        createMockQuerySnapshot([])
-      );
+      mockReportsCollection.get.mockResolvedValue(createMockQuerySnapshot([]));
 
       mockReportsCollection.add.mockResolvedValue({
         id: 'report-123',
-        get: jest.fn().mockResolvedValue(
-          createMockDocSnapshot(
-            'report-123',
-            createMockReport({ status: 'pending' })
-          )
-        ),
+        get: jest
+          .fn()
+          .mockResolvedValue(
+            createMockDocSnapshot(
+              'report-123',
+              createMockReport({ status: 'pending' })
+            )
+          ),
       });
 
       const result = await createReport('reporter123', reportInput);
@@ -151,9 +149,7 @@ describe('ReportsService', () => {
       };
 
       mockReportsCollection.where.mockReturnThis();
-      mockReportsCollection.get.mockResolvedValue(
-        createMockQuerySnapshot([])
-      );
+      mockReportsCollection.get.mockResolvedValue(createMockQuerySnapshot([]));
 
       const mockReport = createMockReport({
         createdAt: new Date('2024-01-01'),
@@ -161,9 +157,9 @@ describe('ReportsService', () => {
 
       mockReportsCollection.add.mockResolvedValue({
         id: 'report-123',
-        get: jest.fn().mockResolvedValue(
-          createMockDocSnapshot('report-123', mockReport)
-        ),
+        get: jest
+          .fn()
+          .mockResolvedValue(createMockDocSnapshot('report-123', mockReport)),
       });
 
       const result = await createReport('reporter123', reportInput);
@@ -289,7 +285,10 @@ describe('ReportsService', () => {
 
       expect(result).toHaveLength(5);
       expect(result[0]).toHaveProperty('id');
-      expect(mockReportsCollection.orderBy).toHaveBeenCalledWith('createdAt', 'desc');
+      expect(mockReportsCollection.orderBy).toHaveBeenCalledWith(
+        'createdAt',
+        'desc'
+      );
     });
 
     it('should filter by status', async () => {
@@ -313,7 +312,11 @@ describe('ReportsService', () => {
 
       expect(result).toHaveLength(2);
       expect(result.every((r) => r.status === 'pending')).toBe(true);
-      expect(mockReportsCollection.where).toHaveBeenCalledWith('status', '==', 'pending');
+      expect(mockReportsCollection.where).toHaveBeenCalledWith(
+        'status',
+        '==',
+        'pending'
+      );
     });
   });
 
@@ -324,12 +327,17 @@ describe('ReportsService', () => {
   describe('updateReportStatus', () => {
     it('should update status', async () => {
       const mockReport = createMockReport({ status: 'pending' });
-      const updatedReport = { ...mockReport, status: 'under_review' as ReportStatus };
+      const updatedReport = {
+        ...mockReport,
+        status: 'under_review' as ReportStatus,
+      };
 
       mockReportsCollection.doc.mockReturnThis();
       mockReportsCollection.get
         .mockResolvedValueOnce(createMockDocSnapshot('report-123', mockReport))
-        .mockResolvedValueOnce(createMockDocSnapshot('report-123', updatedReport));
+        .mockResolvedValueOnce(
+          createMockDocSnapshot('report-123', updatedReport)
+        );
       mockReportsCollection.update.mockResolvedValue(undefined);
 
       const result = await updateReportStatus('report-123', 'under_review');
@@ -361,7 +369,9 @@ describe('ReportsService', () => {
       mockReportsCollection.doc.mockReturnThis();
       mockReportsCollection.get
         .mockResolvedValueOnce(createMockDocSnapshot('report-123', mockReport))
-        .mockResolvedValueOnce(createMockDocSnapshot('report-123', updatedReport));
+        .mockResolvedValueOnce(
+          createMockDocSnapshot('report-123', updatedReport)
+        );
       mockReportsCollection.update.mockResolvedValue(undefined);
 
       const result = await updateReportStatus(
@@ -386,7 +396,9 @@ describe('ReportsService', () => {
       mockReportsCollection.doc.mockReturnThis();
       mockReportsCollection.get
         .mockResolvedValueOnce(createMockDocSnapshot('report-123', mockReport))
-        .mockResolvedValueOnce(createMockDocSnapshot('report-123', updatedReport));
+        .mockResolvedValueOnce(
+          createMockDocSnapshot('report-123', updatedReport)
+        );
       mockReportsCollection.update.mockResolvedValue(undefined);
 
       const result = await updateReportStatus(
@@ -415,9 +427,7 @@ describe('ReportsService', () => {
 
       mockReportsCollection.orderBy.mockReturnThis();
       mockReportsCollection.get.mockResolvedValue(
-        createMockQuerySnapshot([
-          { id: 'report-1', data: mockReports[0] },
-        ])
+        createMockQuerySnapshot([{ id: 'report-1', data: mockReports[0] }])
       );
 
       // Mock profile lookups
@@ -513,9 +523,15 @@ describe('ReportsService', () => {
       );
 
       expect(response).toHaveProperty('reporterName', 'Alice');
-      expect(response).toHaveProperty('reporterPicture', 'https://example.com/alice.jpg');
+      expect(response).toHaveProperty(
+        'reporterPicture',
+        'https://example.com/alice.jpg'
+      );
       expect(response).toHaveProperty('reportedName', 'Bob');
-      expect(response).toHaveProperty('reportedPicture', 'https://example.com/bob.jpg');
+      expect(response).toHaveProperty(
+        'reportedPicture',
+        'https://example.com/bob.jpg'
+      );
     });
   });
 });

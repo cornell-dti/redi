@@ -145,10 +145,10 @@ export default function PrivacyPage() {
             </h2>
             <p className="text-gray-700 leading-relaxed">
               We use encryption and secure infrastructure to protect your
-              information while it&apos;s being processed. All communications between
-              your device and our servers occur over HTTPS. Although no system
-              is completely secure, we follow industry-standard practices to
-              safeguard data against unauthorized access, loss, or misuse.
+              information while it&apos;s being processed. All communications
+              between your device and our servers occur over HTTPS. Although no
+              system is completely secure, we follow industry-standard practices
+              to safeguard data against unauthorized access, loss, or misuse.
             </p>
           </section>
 

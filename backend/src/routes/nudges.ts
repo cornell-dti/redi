@@ -91,7 +91,10 @@ router.post(
 
       if (matchData.expiresAt instanceof Date) {
         expiresAt = matchData.expiresAt;
-      } else if (matchData.expiresAt && typeof matchData.expiresAt.toDate === 'function') {
+      } else if (
+        matchData.expiresAt &&
+        typeof matchData.expiresAt.toDate === 'function'
+      ) {
         expiresAt = matchData.expiresAt.toDate();
       } else {
         expiresAt = new Date(matchData.expiresAt);

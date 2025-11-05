@@ -18,7 +18,11 @@ import {
   createMockQuerySnapshot,
   createMockCollection,
 } from '../../__tests__/helpers/mockFirestore';
-import { createMockUser, createMockProfile, createMockReport } from '../../__tests__/helpers/factories';
+import {
+  createMockUser,
+  createMockProfile,
+  createMockReport,
+} from '../../__tests__/helpers/factories';
 
 // Create test app
 const app = createTestApp(reportsRouter);
@@ -35,18 +39,20 @@ describe('POST /api/reports', () => {
     mockReportsCollection = createMockCollection();
 
     // Setup db.collection mock
-    (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-      switch (collectionName) {
-        case 'users':
-          return mockUsersCollection;
-        case 'profiles':
-          return mockProfilesCollection;
-        case 'reports':
-          return mockReportsCollection;
-        default:
-          return createMockCollection();
+    (db.collection as jest.Mock).mockImplementation(
+      (collectionName: string) => {
+        switch (collectionName) {
+          case 'users':
+            return mockUsersCollection;
+          case 'profiles':
+            return mockProfilesCollection;
+          case 'reports':
+            return mockReportsCollection;
+          default:
+            return createMockCollection();
+        }
       }
-    });
+    );
   });
 
   // =============================================================================
@@ -95,7 +101,10 @@ describe('POST /api/reports', () => {
         createMockQuerySnapshot([
           {
             id: 'reporter-doc-id',
-            data: createMockUser({ netid: 'reporter123', firebaseUid: 'reporter-uid' }),
+            data: createMockUser({
+              netid: 'reporter123',
+              firebaseUid: 'reporter-uid',
+            }),
           },
         ])
       );
@@ -192,7 +201,10 @@ describe('POST /api/reports', () => {
           createMockQuerySnapshot([
             {
               id: 'user-doc-id',
-              data: createMockUser({ netid: 'same123', firebaseUid: 'reporter-uid' }),
+              data: createMockUser({
+                netid: 'same123',
+                firebaseUid: 'reporter-uid',
+              }),
             },
           ])
         )
@@ -233,7 +245,10 @@ describe('POST /api/reports', () => {
         createMockQuerySnapshot([
           {
             id: 'reporter-doc-id',
-            data: createMockUser({ netid: 'reporter123', firebaseUid: 'reporter-uid' }),
+            data: createMockUser({
+              netid: 'reporter123',
+              firebaseUid: 'reporter-uid',
+            }),
           },
         ])
       );
@@ -252,9 +267,7 @@ describe('POST /api/reports', () => {
 
       // Mock spam prevention check - no recent reports
       mockReportsCollection.where.mockReturnThis();
-      mockReportsCollection.get.mockResolvedValue(
-        createMockQuerySnapshot([])
-      );
+      mockReportsCollection.get.mockResolvedValue(createMockQuerySnapshot([]));
 
       // Mock report creation
       const mockReportId = 'report-123';
@@ -267,7 +280,8 @@ describe('POST /api/reports', () => {
               reporterNetid: 'reporter123',
               reportedNetid: 'reported456',
               reason: 'harassment',
-              description: 'This is a detailed description of harassment behavior.',
+              description:
+                'This is a detailed description of harassment behavior.',
               status: 'pending',
             })
           )
@@ -309,7 +323,10 @@ describe('POST /api/reports', () => {
           createMockQuerySnapshot([
             {
               id: 'reporter-doc-id',
-              data: createMockUser({ netid: 'reporter123', firebaseUid: 'reporter-uid' }),
+              data: createMockUser({
+                netid: 'reporter123',
+                firebaseUid: 'reporter-uid',
+              }),
             },
           ])
         )
@@ -336,9 +353,9 @@ describe('POST /api/reports', () => {
 
       mockReportsCollection.add.mockResolvedValue({
         id: mockReportId,
-        get: jest.fn().mockResolvedValue(
-          createMockDocSnapshot(mockReportId, mockReport)
-        ),
+        get: jest
+          .fn()
+          .mockResolvedValue(createMockDocSnapshot(mockReportId, mockReport)),
       });
 
       const response = await authenticatedPost(app, '/api/reports', {
@@ -375,7 +392,10 @@ describe('POST /api/reports', () => {
           createMockQuerySnapshot([
             {
               id: 'reporter-doc-id',
-              data: createMockUser({ netid: 'reporter123', firebaseUid: 'reporter-uid' }),
+              data: createMockUser({
+                netid: 'reporter123',
+                firebaseUid: 'reporter-uid',
+              }),
             },
           ])
         )
@@ -405,9 +425,11 @@ describe('POST /api/reports', () => {
       const mockReportId = 'report-3';
       mockReportsCollection.add.mockResolvedValue({
         id: mockReportId,
-        get: jest.fn().mockResolvedValue(
-          createMockDocSnapshot(mockReportId, createMockReport())
-        ),
+        get: jest
+          .fn()
+          .mockResolvedValue(
+            createMockDocSnapshot(mockReportId, createMockReport())
+          ),
       });
 
       const response = await authenticatedPost(app, '/api/reports', {
@@ -457,7 +479,10 @@ describe('POST /api/reports', () => {
         createMockQuerySnapshot([
           {
             id: 'reporter-doc-id',
-            data: createMockUser({ netid: 'reporter123', firebaseUid: 'reporter-uid' }),
+            data: createMockUser({
+              netid: 'reporter123',
+              firebaseUid: 'reporter-uid',
+            }),
           },
         ])
       );

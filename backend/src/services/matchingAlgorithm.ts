@@ -127,7 +127,10 @@ export function checkCompatibility(
   }
 
   // Check year preference
-  if (preferences.years.length > 0 && !preferences.years.includes(profile.year)) {
+  if (
+    preferences.years.length > 0 &&
+    !preferences.years.includes(profile.year)
+  ) {
     return false;
   }
 

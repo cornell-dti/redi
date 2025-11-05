@@ -3,10 +3,7 @@ import { db } from '../../firebaseAdmin';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import { authenticatedRateLimit } from '../middleware/rateLimiting';
 import { body, validationResult } from 'express-validator';
-import {
-  createReport,
-  reportToResponse,
-} from '../services/reportsService';
+import { createReport, reportToResponse } from '../services/reportsService';
 import { CreateReportInput, ReportReason } from '../../types';
 
 const router = express.Router();

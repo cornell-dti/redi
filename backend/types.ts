@@ -379,7 +379,10 @@ export interface WeeklyMatchResponse {
 }
 
 // For creating new weekly matches
-export type CreateWeeklyMatchInput = Omit<WeeklyMatchDoc, 'createdAt' | 'expiresAt'>;
+export type CreateWeeklyMatchInput = Omit<
+  WeeklyMatchDoc,
+  'createdAt' | 'expiresAt'
+>;
 
 // For updating match revealed status
 export interface UpdateWeeklyMatchRevealedInput {
@@ -595,7 +598,11 @@ export type ReportReason =
   | 'fake_profile'
   | 'other';
 
-export type ReportStatus = 'pending' | 'under_review' | 'resolved' | 'dismissed';
+export type ReportStatus =
+  | 'pending'
+  | 'under_review'
+  | 'resolved'
+  | 'dismissed';
 
 // Report document in Firestore (reports collection)
 export interface ReportDoc {

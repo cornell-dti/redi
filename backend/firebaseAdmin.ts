@@ -7,9 +7,11 @@ dotenv.config();
 if (admin.apps.length === 0) {
   // Check if we have explicit credentials in env (backend server mode)
   // Otherwise use default credentials (Cloud Functions mode)
-  if (process.env.FIREBASE_PRIVATE_KEY &&
-      process.env.FIREBASE_PROJECT_ID &&
-      process.env.FIREBASE_CLIENT_EMAIL) {
+  if (
+    process.env.FIREBASE_PRIVATE_KEY &&
+    process.env.FIREBASE_PROJECT_ID &&
+    process.env.FIREBASE_CLIENT_EMAIL
+  ) {
     // In local/backend environment, use environment variables
     admin.initializeApp({
       credential: admin.credential.cert({

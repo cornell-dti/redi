@@ -1,13 +1,13 @@
-import { db } from "../firebaseAdmin";
+import { db } from '../firebaseAdmin';
 import {
   PreferencesDoc,
   PreferencesDocWrite,
   UpdatePreferencesInput,
   PreferencesResponse,
-} from "../types";
-import { FieldValue } from "firebase-admin/firestore";
+} from '../types';
+import { FieldValue } from 'firebase-admin/firestore';
 
-const PREFERENCES_COLLECTION = "preferences";
+const PREFERENCES_COLLECTION = 'preferences';
 
 /**
  * Create default preferences for a new user
@@ -20,7 +20,7 @@ export async function createDefaultPreferences(
   const preferencesData: PreferencesDocWrite = {
     netid,
     ageRange: { min: 18, max: 25 },
-    years: ["Freshman", "Sophomore", "Junior", "Senior", "Graduate"],
+    years: ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'],
     schools: [], // Empty = all schools
     majors: [], // Empty = all majors
     genders: [], // Will be set by user during onboarding or later in preferences

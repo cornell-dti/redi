@@ -26,12 +26,14 @@ describe('BlockingService', () => {
   beforeEach(() => {
     mockBlockedUsersCollection = createMockCollection();
 
-    (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-      if (collectionName === 'blockedUsers') {
-        return mockBlockedUsersCollection;
+    (db.collection as jest.Mock).mockImplementation(
+      (collectionName: string) => {
+        if (collectionName === 'blockedUsers') {
+          return mockBlockedUsersCollection;
+        }
+        return createMockCollection();
       }
-      return createMockCollection();
-    });
+    );
   });
 
   // =============================================================================
@@ -49,7 +51,10 @@ describe('BlockingService', () => {
         .mockResolvedValueOnce(
           createMockDocSnapshot(
             blockId,
-            createMockBlock({ blockerNetid: 'blocker123', blockedNetid: 'blocked456' })
+            createMockBlock({
+              blockerNetid: 'blocker123',
+              blockedNetid: 'blocked456',
+            })
           )
         );
 
@@ -142,9 +147,18 @@ describe('BlockingService', () => {
   describe('getBlockedUsers', () => {
     it('should return list of blocked users', async () => {
       const blockedUsers = [
-        createMockBlock({ blockerNetid: 'blocker123', blockedNetid: 'blocked1' }),
-        createMockBlock({ blockerNetid: 'blocker123', blockedNetid: 'blocked2' }),
-        createMockBlock({ blockerNetid: 'blocker123', blockedNetid: 'blocked3' }),
+        createMockBlock({
+          blockerNetid: 'blocker123',
+          blockedNetid: 'blocked1',
+        }),
+        createMockBlock({
+          blockerNetid: 'blocker123',
+          blockedNetid: 'blocked2',
+        }),
+        createMockBlock({
+          blockerNetid: 'blocker123',
+          blockedNetid: 'blocked3',
+        }),
       ];
 
       mockBlockedUsersCollection.where.mockReturnThis();
@@ -316,14 +330,10 @@ describe('BlockingService', () => {
       mockBlockedUsersCollection.where.mockReturnThis();
       mockBlockedUsersCollection.get
         .mockResolvedValueOnce(
-          createMockQuerySnapshot([
-            { id: 'block-1', data: blocks[0] },
-          ])
+          createMockQuerySnapshot([{ id: 'block-1', data: blocks[0] }])
         )
         .mockResolvedValueOnce(
-          createMockQuerySnapshot([
-            { id: 'block-2', data: blocks[1] },
-          ])
+          createMockQuerySnapshot([{ id: 'block-2', data: blocks[1] }])
         );
 
       const result = await getBlockedUsersMap(netids);

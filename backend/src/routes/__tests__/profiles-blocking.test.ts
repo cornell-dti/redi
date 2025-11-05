@@ -47,20 +47,22 @@ describe('Blocking API', () => {
     mockAuditLogsCollection = createMockCollection();
 
     // Setup db.collection mock
-    (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-      switch (collectionName) {
-        case 'users':
-          return mockUsersCollection;
-        case 'profiles':
-          return mockProfilesCollection;
-        case 'blockedUsers':
-          return mockBlockedUsersCollection;
-        case 'auditLogs':
-          return mockAuditLogsCollection;
-        default:
-          return createMockCollection();
+    (db.collection as jest.Mock).mockImplementation(
+      (collectionName: string) => {
+        switch (collectionName) {
+          case 'users':
+            return mockUsersCollection;
+          case 'profiles':
+            return mockProfilesCollection;
+          case 'blockedUsers':
+            return mockBlockedUsersCollection;
+          case 'auditLogs':
+            return mockAuditLogsCollection;
+          default:
+            return createMockCollection();
+        }
       }
-    });
+    );
   });
 
   // =============================================================================
@@ -91,7 +93,10 @@ describe('Blocking API', () => {
           createMockQuerySnapshot([
             {
               id: 'blocker-doc-id',
-              data: createMockUser({ netid: 'blocker123', firebaseUid: 'blocker-uid' }),
+              data: createMockUser({
+                netid: 'blocker123',
+                firebaseUid: 'blocker-uid',
+              }),
             },
           ])
         );
@@ -114,7 +119,10 @@ describe('Blocking API', () => {
           createMockQuerySnapshot([
             {
               id: 'user-doc-id',
-              data: createMockUser({ netid: 'blocker123', firebaseUid: 'blocker-uid' }),
+              data: createMockUser({
+                netid: 'blocker123',
+                firebaseUid: 'blocker-uid',
+              }),
             },
           ])
         );
@@ -168,7 +176,10 @@ describe('Blocking API', () => {
           createMockQuerySnapshot([
             {
               id: 'blocker-doc-id',
-              data: createMockUser({ netid: 'blocker123', firebaseUid: 'blocker-uid' }),
+              data: createMockUser({
+                netid: 'blocker123',
+                firebaseUid: 'blocker-uid',
+              }),
             },
           ])
         );
@@ -199,7 +210,10 @@ describe('Blocking API', () => {
         mockBlockedUsersCollection.get.mockResolvedValueOnce(
           createMockDocSnapshot(
             blockId,
-            createMockBlock({ blockerNetid: 'blocker123', blockedNetid: 'blocked456' })
+            createMockBlock({
+              blockerNetid: 'blocker123',
+              blockedNetid: 'blocked456',
+            })
           )
         );
 
@@ -255,7 +269,9 @@ describe('Blocking API', () => {
   describe('DELETE /api/profiles/:netid/block', () => {
     describe('Authentication', () => {
       it('should require authentication', async () => {
-        const response = await request(app).delete('/api/profiles/blocked456/block');
+        const response = await request(app).delete(
+          '/api/profiles/blocked456/block'
+        );
 
         expect(response.status).toBe(401);
       });
@@ -271,7 +287,10 @@ describe('Blocking API', () => {
           createMockQuerySnapshot([
             {
               id: 'blocker-doc-id',
-              data: createMockUser({ netid: 'blocker123', firebaseUid: 'blocker-uid' }),
+              data: createMockUser({
+                netid: 'blocker123',
+                firebaseUid: 'blocker-uid',
+              }),
             },
           ])
         );
@@ -330,7 +349,9 @@ describe('Blocking API', () => {
   describe('GET /api/profiles/:netid/blocked', () => {
     describe('Authentication & Authorization', () => {
       it('should require authentication', async () => {
-        const response = await request(app).get('/api/profiles/blocker123/blocked');
+        const response = await request(app).get(
+          '/api/profiles/blocker123/blocked'
+        );
 
         expect(response.status).toBe(401);
       });
@@ -344,7 +365,10 @@ describe('Blocking API', () => {
           createMockQuerySnapshot([
             {
               id: 'user-doc-id',
-              data: createMockUser({ netid: 'user123', firebaseUid: 'user-uid' }),
+              data: createMockUser({
+                netid: 'user123',
+                firebaseUid: 'user-uid',
+              }),
             },
           ])
         );
@@ -368,7 +392,10 @@ describe('Blocking API', () => {
           createMockQuerySnapshot([
             {
               id: 'admin-doc-id',
-              data: createMockUser({ netid: 'admin123', firebaseUid: 'admin-uid' }),
+              data: createMockUser({
+                netid: 'admin123',
+                firebaseUid: 'admin-uid',
+              }),
             },
           ])
         );
@@ -377,7 +404,10 @@ describe('Blocking API', () => {
         const mockAdminsCollection = createMockCollection();
         mockAdminsCollection.doc.mockReturnThis();
         mockAdminsCollection.get.mockResolvedValue(
-          createMockDocSnapshot('admin-uid', { uid: 'admin-uid', disabled: false })
+          createMockDocSnapshot('admin-uid', {
+            uid: 'admin-uid',
+            disabled: false,
+          })
         );
 
         (db.collection as jest.Mock).mockImplementation((name: string) => {
@@ -413,7 +443,10 @@ describe('Blocking API', () => {
           createMockQuerySnapshot([
             {
               id: 'blocker-doc-id',
-              data: createMockUser({ netid: 'blocker123', firebaseUid: 'blocker-uid' }),
+              data: createMockUser({
+                netid: 'blocker123',
+                firebaseUid: 'blocker-uid',
+              }),
             },
           ])
         );
@@ -421,9 +454,18 @@ describe('Blocking API', () => {
 
       it('should return list of blocked users', async () => {
         const blockedUsers = [
-          createMockBlock({ blockerNetid: 'blocker123', blockedNetid: 'blocked1' }),
-          createMockBlock({ blockerNetid: 'blocker123', blockedNetid: 'blocked2' }),
-          createMockBlock({ blockerNetid: 'blocker123', blockedNetid: 'blocked3' }),
+          createMockBlock({
+            blockerNetid: 'blocker123',
+            blockedNetid: 'blocked1',
+          }),
+          createMockBlock({
+            blockerNetid: 'blocker123',
+            blockedNetid: 'blocked2',
+          }),
+          createMockBlock({
+            blockerNetid: 'blocker123',
+            blockedNetid: 'blocked3',
+          }),
         ];
 
         mockBlockedUsersCollection.where.mockReturnThis();
@@ -443,7 +485,11 @@ describe('Blocking API', () => {
 
         expect(response.status).toBe(200);
         expect(response.body.blockerNetid).toBe('blocker123');
-        expect(response.body.blockedUsers).toEqual(['blocked1', 'blocked2', 'blocked3']);
+        expect(response.body.blockedUsers).toEqual([
+          'blocked1',
+          'blocked2',
+          'blocked3',
+        ]);
         expect(response.body.count).toBe(3);
       });
 

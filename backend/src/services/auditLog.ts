@@ -216,11 +216,13 @@ export async function getAuditLogs(options?: {
 
     const snapshot = await query.get();
 
-    return snapshot.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot) => ({
-      id: doc.id,
-      ...doc.data(),
-      timestamp: (doc.data().timestamp as Timestamp).toDate().toISOString(),
-    })) as AuditLogResponse[];
+    return snapshot.docs.map(
+      (doc: FirebaseFirestore.QueryDocumentSnapshot) => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: (doc.data().timestamp as Timestamp).toDate().toISOString(),
+      })
+    ) as AuditLogResponse[];
   } catch (error) {
     console.error('❌ [Audit Log] Error retrieving audit logs:', error);
     throw new Error('Failed to retrieve audit logs');

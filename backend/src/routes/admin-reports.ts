@@ -135,7 +135,6 @@ router.patch(
   '/api/admin/reports/:reportId/status',
   validateStatusUpdate,
   async (req: AdminRequest, res: express.Response) => {
-
     try {
       // Check validation results
       const errors = validationResult(req);

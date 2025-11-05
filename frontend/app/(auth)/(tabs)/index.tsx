@@ -280,6 +280,20 @@ export default function MatchesScreen() {
   const renderCountdownPeriod = () => (
     <>
       <CountdownTimer targetDate={getNextFridayMidnight()} />
+      {activePrompt && (
+        <View style={[styles.section, styles.promptSection]}>
+          <AppText> Weekly Prompt: {activePrompt.question}</AppText>
+          <Button
+            title={userAnswer ? 'Edit answer' : 'Answer prompt'}
+            onPress={() => {
+              setTempAnswer(userAnswer);
+              setShowPromptSheet(true);
+            }}
+            variant="secondary"
+            iconLeft={Eye}
+          />
+        </View>
+      )}
     </>
   );
 
