@@ -10,6 +10,7 @@ import { APIError } from './api/apiClient';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import OnboardingVideo, { hasShownOnboardingVideo, markOnboardingVideoAsShown } from './components/onboarding/OnboardingVideo';
 
 /**
  * Token Refresh Configuration
@@ -34,6 +35,7 @@ function RootNavigator() {
   useThemeAware(); // This makes all screens theme-aware
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const router = useRouter();
   const segments = useSegments();
 
@@ -46,6 +48,17 @@ function RootNavigator() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(handleAuthStateChanged);
     return unsubscribe;
+  }, []);
+
+  // Check if onboarding video should be shown on first launch
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      const hasShown = await hasShownOnboardingVideo();
+      if (!hasShown) {
+        setShowOnboarding(true);
+      }
+    };
+    checkOnboarding();
   }, []);
 
   // Automatic token refresh to maintain authentication
@@ -237,6 +250,11 @@ function RootNavigator() {
     checkAndRedirect();
   }, [user, initializing]);
 
+  const handleOnboardingFinish = async () => {
+    await markOnboardingVideoAsShown();
+    setShowOnboarding(false);
+  };
+
   if (initializing) {
     return (
       <View style={styles.loadingContainer}>
@@ -246,16 +264,19 @@ function RootNavigator() {
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ title: 'Login' }} />
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="home"
-        options={{
-          headerShown: false,
-        }}
-      />
-    </Stack>
+    <>
+      <Stack>
+        <Stack.Screen name="index" options={{ title: 'Login' }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="home"
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack>
+      <OnboardingVideo visible={showOnboarding} onFinish={handleOnboardingFinish} />
+    </>
   );
 }
 
