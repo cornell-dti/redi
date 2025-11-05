@@ -66,9 +66,6 @@ export default function MatchesScreen() {
   );
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [currentMatches, setCurrentMatches] = useState<MatchWithProfile[]>([]);
-  const [previousMatches, setPreviousMatches] = useState<MatchWithProfile[]>(
-    []
-  );
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [showPromptSheet, setShowPromptSheet] = useState(false);
   const [tempAnswer, setTempAnswer] = useState('');
@@ -135,115 +132,71 @@ export default function MatchesScreen() {
         const history: WeeklyMatchResponse[] = await getMatchHistory(10);
 
         if (history.length > 0) {
-          // First match in history is the most recent (current week's matches)
-          const currentWeekMatch = history[0];
+          // Collect all matches from all active match records
+          const allMatchesData: MatchWithProfile[] = [];
 
-          // Get current week's matches using batch endpoint with caching
-          if (currentWeekMatch.matches.length > 0) {
-            // Try to get cached data first
-            const cachedData = await getCachedMatchData(
-              currentWeekMatch.promptId
-            );
+          for (const matchRecord of history) {
+            if (matchRecord.matches.length === 0) continue;
 
+            // Try to get cached data first for the most recent match
             let batchData;
-            if (cachedData) {
-              // Use cached data
-              batchData = cachedData;
-              console.log('✅ Using cached match data');
+            if (matchRecord === history[0]) {
+              const cachedData = await getCachedMatchData(matchRecord.promptId);
+              if (cachedData) {
+                batchData = cachedData;
+                console.log('✅ Using cached match data');
+              } else {
+                batchData = await getBatchMatchData(
+                  matchRecord.promptId,
+                  matchRecord.matches
+                );
+                await cacheMatchData(matchRecord.promptId, batchData);
+                console.log('✅ Fetched and cached fresh match data');
+              }
             } else {
-              // Fetch fresh data and cache it
+              // For older matches, just fetch the data
               batchData = await getBatchMatchData(
-                currentWeekMatch.promptId,
-                currentWeekMatch.matches
+                matchRecord.promptId,
+                matchRecord.matches
               );
-              await cacheMatchData(currentWeekMatch.promptId, batchData);
-              console.log('✅ Fetched and cached fresh match data');
             }
 
-            // Map the batch data back to the expected format
+            // Map the batch data to matches with profiles
             const matchesWithProfiles: MatchWithProfile[] =
-              currentWeekMatch.matches.map((netid: string, index: number) => {
-                // Find matching profile from batch response
+              matchRecord.matches.map((netid: string, index: number) => {
                 const profile =
                   batchData.profiles.find((p) => p.netid === netid) || null;
 
-                // Get nudge status from batch response
-                const nudgeStatus = batchData.nudgeStatuses[index] || {
-                  sent: false,
-                  received: false,
-                  mutual: false,
-                };
+                // Only get nudge status for the most recent matches
+                const nudgeStatus =
+                  matchRecord === history[0]
+                    ? batchData.nudgeStatuses[index] || {
+                        sent: false,
+                        received: false,
+                        mutual: false,
+                      }
+                    : undefined;
 
                 return {
                   netid,
                   profile,
-                  revealed: currentWeekMatch.revealed[index],
+                  revealed: matchRecord.revealed[index],
                   nudgeStatus,
-                  promptId: currentWeekMatch.promptId, // Include promptId for nudging
+                  promptId: matchRecord.promptId,
                 };
               });
 
-            setCurrentMatches(matchesWithProfiles);
-          } else {
-            setCurrentMatches([]);
+            allMatchesData.push(...matchesWithProfiles);
           }
 
-          // Get previous matches (everything after the first/current match)
-          const oldMatches = history.slice(1);
-
-          if (oldMatches.length > 0) {
-            // Collect all netids and track their promptIds
-            const netidPromptMap: { netid: string; promptId: string }[] = [];
-
-            oldMatches.forEach((matchRecord: WeeklyMatchResponse) => {
-              matchRecord.matches.forEach((netid: string) => {
-                netidPromptMap.push({ netid, promptId: matchRecord.promptId });
-              });
-            });
-
-            // Fetch all profiles at once (we don't need nudge statuses for previous matches)
-            // We'll use the batch endpoint with the oldest promptId
-            if (netidPromptMap.length > 0) {
-              const allPreviousNetids = netidPromptMap.map(
-                (item) => item.netid
-              );
-              const oldestPromptId = oldMatches[0]?.promptId;
-              const batchData = await getBatchMatchData(
-                oldestPromptId,
-                allPreviousNetids
-              );
-
-              // Map profiles back with their associated promptIds
-              const previousMatchesWithProfiles: MatchWithProfile[] =
-                netidPromptMap.map((item) => {
-                  const profile =
-                    batchData.profiles.find((p) => p.netid === item.netid) ||
-                    null;
-
-                  return {
-                    netid: item.netid,
-                    profile,
-                    revealed: true, // Previous matches are always revealed
-                    promptId: item.promptId, // Include promptId for nudging
-                  };
-                });
-
-              setPreviousMatches(previousMatchesWithProfiles);
-            } else {
-              setPreviousMatches([]);
-            }
-          } else {
-            setPreviousMatches([]);
-          }
+          setCurrentMatches(allMatchesData);
         } else {
           // No match history at all
           setCurrentMatches([]);
-          setPreviousMatches([]);
         }
       } catch (error) {
         console.error('Error loading matches:', error);
         setCurrentMatches([]);
-        setPreviousMatches([]);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -307,7 +260,7 @@ export default function MatchesScreen() {
       {currentMatches.length > 0 && (
         <View style={[styles.section, styles.sectionPadding]}>
           <AppText variant="subtitle" style={styles.sectionTitle}>
-            This Week&apos;s Matches
+            Your Matches
           </AppText>
         </View>
       )}
@@ -574,34 +527,12 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.accentDefault,
     width: 24,
   },
-  divider: {
-    height: 1,
-    backgroundColor: AppColors.backgroundDimmest,
-    marginVertical: 24,
-  },
   emptyState: {
     backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 24,
     padding: 40,
     alignItems: 'center',
     margin: 16,
-  },
-  previousMatchesGrid: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  previousMatchCard: {
-    alignItems: 'center',
-    gap: 8,
-    width: 80,
-  },
-  previousMatchImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: AppColors.backgroundDimmer,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   headerContainer: {
     padding: 16,
