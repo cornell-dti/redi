@@ -1,9 +1,9 @@
-import express from 'express';
+import express, { Response } from 'express';
 import admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { bucket, db } from '../../firebaseAdmin';
 import { FirestoreDoc, UserDoc, UserDocWrite, UserResponse } from '../../types';
-import { requireAdmin } from '../middleware/adminAuth';
+import { AdminRequest, requireAdmin } from '../middleware/adminAuth';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import {
   authenticationRateLimit
@@ -34,7 +34,7 @@ const userDocToResponse = (doc: FirestoreDoc<UserDoc>): UserResponse => ({
 });
 
 // GET all users (admin-only endpoint)
-router.get('/api/users', requireAdmin, async (req, res) => {
+router.get('/api/users', requireAdmin, async (req: AdminRequest, res: Response) => {
   try {
     const snapshot = await db.collection('users').get();
     const users: UserResponse[] = snapshot.docs.map((doc) =>

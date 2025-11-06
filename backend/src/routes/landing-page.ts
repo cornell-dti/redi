@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import admin from 'firebase-admin';
 import { db } from '../../firebaseAdmin';
 import { requireAdmin } from '../middleware/adminAuth';
@@ -8,7 +8,7 @@ import { validateBulkEmailUpload, validate } from '../middleware/validation';
 const router = express.Router();
 
 // GET the number of users signed up on the wait list (public endpoint)
-router.get('/api/registered-count', publicRateLimit, async (req, res) => {
+router.get('/api/registered-count', publicRateLimit, async (req: Request, res: Response) => {
   try {
     const doc = db.collection('stats').doc('global');
     const snapshot = await doc.get();
@@ -33,7 +33,7 @@ router.post(
   requireAdmin,
   validateBulkEmailUpload,
   validate,
-  async (req, res) => {
+  async (req: Request, res: Response) => {
     try {
       const { emails } = req.body;
 
