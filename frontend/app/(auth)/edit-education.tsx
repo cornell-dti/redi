@@ -3,14 +3,7 @@ import { School } from '@/types';
 import { router } from 'expo-router';
 import { Check, ChevronDown, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CORNELL_MAJORS,
@@ -26,6 +19,7 @@ import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
@@ -166,7 +160,7 @@ export default function EditEducationPage() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color={AppColors.accentDefault} />
+        <LoadingSpinner />
         <AppText style={styles.loadingText}>Loading...</AppText>
       </SafeAreaView>
     );

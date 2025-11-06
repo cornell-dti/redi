@@ -3,11 +3,13 @@ import { ProfileResponse, getProfileAge } from '@/types';
 import {
   Bell,
   Cake,
+  Check,
   Globe,
   GraduationCap,
   Home,
   Instagram,
   Magnet,
+  MessageCircle,
 } from 'lucide-react-native';
 import React from 'react';
 import {
@@ -36,6 +38,8 @@ interface ProfileViewProps {
   onNudge?: () => void;
   nudgeSent?: boolean;
   nudgeDisabled?: boolean;
+  showOpenChatButton?: boolean;
+  onOpenChat?: () => void;
 }
 
 const ProfileView: React.FC<ProfileViewProps> = ({
@@ -44,6 +48,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   onNudge,
   nudgeSent = false,
   nudgeDisabled = false,
+  showOpenChatButton = false,
+  onOpenChat,
 }) => {
   const screenWidth = Dimensions.get('window').width;
   const age = getProfileAge(profile);
@@ -163,18 +169,29 @@ const ProfileView: React.FC<ProfileViewProps> = ({
       <View style={styles.contentContainer}>
         <AppText variant="title">{profile.firstName}</AppText>
 
-        {showNudgeButton && (
-          <Button
-            title={
-              nudgeDisabled ? "It's a match!" : nudgeSent ? 'Nudged' : 'Nudge'
-            }
-            onPress={onNudge || (() => console.log('Nudge pressed'))}
-            variant={nudgeSent ? 'secondary' : 'primary'}
-            iconLeft={Bell}
-            fullWidth
-            disabled={nudgeDisabled || nudgeSent}
-          />
-        )}
+        <View style={styles.buttonCont}>
+          {showNudgeButton && (
+            <Button
+              title={
+                nudgeDisabled ? "It's a match!" : nudgeSent ? 'Nudged' : 'Nudge'
+              }
+              onPress={onNudge || (() => console.log('Nudge pressed'))}
+              variant={nudgeSent ? 'secondary' : 'primary'}
+              iconLeft={nudgeDisabled ? Check : Bell}
+              disabled={nudgeDisabled || nudgeSent}
+              fullWidth
+            />
+          )}
+          {showOpenChatButton && (
+            <Button
+              title="Open Chat"
+              onPress={onOpenChat || (() => console.log('Open Chat pressed'))}
+              variant="primary"
+              iconLeft={MessageCircle}
+              fullWidth
+            />
+          )}
+        </View>
 
         <View style={styles.section}>
           <AppText variant="subtitle" indented>
@@ -323,6 +340,13 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 24,
+  },
+  buttonCont: {
+    display: 'flex',
+    flexDirection: 'row',
+    flex: 1,
+    width: '55%',
+    gap: 16,
   },
   section: {
     display: 'flex',

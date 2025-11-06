@@ -8,17 +8,12 @@ import { useToast } from '@/app/contexts/ToastContext';
 import auth from '@react-native-firebase/auth';
 import { Ban, Check } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { blockUser, getBlockedUsers, unblockUser } from '../api/blockingApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { useThemeAware } from '../contexts/ThemeContext';
 
 export default function SafetyPage() {
@@ -113,7 +108,7 @@ export default function SafetyPage() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" />
+          <LoadingSpinner />
           <AppText style={{ marginTop: 16 }}>Loading blocked users...</AppText>
         </View>
       ) : (

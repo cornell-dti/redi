@@ -398,10 +398,7 @@ export default function CreateProfileScreen() {
               title="What pronouns do you use?"
               subtitle="Select all that describe you to help us show your profile to the right people"
             />
-            <Button
-              onPress={() => router.replace('/home' as any)}
-              title="DEBUG SKIP"
-            ></Button>
+
             <ListItemWrapper>
               {PRONOUN_OPTIONS.map((pronoun) => (
                 <ListItem

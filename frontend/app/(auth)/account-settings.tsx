@@ -8,19 +8,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { LogOut, Pencil, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser, signOutUser } from '../api/authService';
 import { AppColors } from '../components/AppColors';
 import AppInput from '../components/ui/AppInput';
 import EditingHeader from '../components/ui/EditingHeader';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { useThemeAware } from '../contexts/ThemeContext';
 
 export default function AccountSettingsPage() {
@@ -92,7 +86,7 @@ export default function AccountSettingsPage() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color={AppColors.accentDefault} />
+        <LoadingSpinner />
         <AppText style={styles.loadingText}>Loading...</AppText>
       </SafeAreaView>
     );

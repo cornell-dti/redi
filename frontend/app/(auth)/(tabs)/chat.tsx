@@ -1,9 +1,10 @@
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
+import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { MessageCircle } from 'lucide-react-native';
 import React, { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, StatusBar, StyleSheet, View } from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../../api/authService';
 import { getBlockedUsers } from '../../api/blockingApi';
@@ -157,7 +158,7 @@ export default function ChatScreen() {
             { justifyContent: 'center', alignItems: 'center' },
           ]}
         >
-          <ActivityIndicator size="large" color={AppColors.accentDefault} />
+          <LoadingSpinner />
         </View>
       </SafeAreaView>
     );
