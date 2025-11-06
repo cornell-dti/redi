@@ -318,6 +318,7 @@ export default function MatchesScreen() {
 
             return (
               <View
+                key={`${matchProfile.netid}-${m.promptId ?? matchIndex}`}
                 style={{
                   width: width - 60,
                   marginRight: 12,
