@@ -248,6 +248,7 @@ export default function MatchesScreen() {
             }}
             variant="secondary"
             iconLeft={Pencil}
+            noRound
           />
         </ListItemWrapper>
       )}
