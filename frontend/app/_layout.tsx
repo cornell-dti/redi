@@ -8,11 +8,13 @@ import { Alert, View } from 'react-native';
 import { APIError } from './api/apiClient';
 import { onAuthStateChanged } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
+import OnboardingVideo, {
+  hasShownOnboardingVideo,
+  markOnboardingVideoAsShown,
+} from './components/onboarding/OnboardingVideo';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import OnboardingVideo, { hasShownOnboardingVideo, markOnboardingVideoAsShown } from './components/onboarding/OnboardingVideo';
 
 /**
  * Token Refresh Configuration
@@ -277,7 +279,10 @@ function RootNavigator() {
           }}
         />
       </Stack>
-      <OnboardingVideo visible={showOnboarding} onFinish={handleOnboardingFinish} />
+      <OnboardingVideo
+        visible={showOnboarding}
+        onFinish={handleOnboardingFinish}
+      />
     </>
   );
 }
