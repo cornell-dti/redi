@@ -1,3 +1,4 @@
+import OnboardingVideo from '@/app/components/onboarding/OnboardingVideo';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import EmptyState from '@/app/components/ui/EmptyState';
@@ -27,7 +28,6 @@ import {
   Star,
   StarIcon,
 } from 'lucide-react-native';
-import OnboardingVideo from '@/app/components/onboarding/OnboardingVideo';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
@@ -331,6 +331,8 @@ export default function ProfileScreen() {
         visible={showOnboardingVideo}
         onFinish={() => setShowOnboardingVideo(false)}
       />
+
+      <FooterSpacer height={64} />
     </View>
   );
 }
