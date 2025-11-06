@@ -331,8 +331,6 @@ export default function ProfileScreen() {
         visible={showOnboardingVideo}
         onFinish={() => setShowOnboardingVideo(false)}
       />
-
-      <FooterSpacer height={64} />
     </View>
   );
 }
