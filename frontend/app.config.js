@@ -1,3 +1,6 @@
+// Load environment variables from .env file
+import 'dotenv/config';
+
 export default {
   expo: {
     name: 'redi',
@@ -63,7 +66,13 @@ export default {
       typedRoutes: true,
     },
     extra: {
-      apiBaseUrl: process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001',
+      // Production URL is hardcoded as fallback to prevent localhost in production builds
+      // Development can override via REACT_APP_API_BASE_URL environment variable
+      apiBaseUrl:
+        process.env.REACT_APP_API_BASE_URL ||
+        (process.env.EAS_BUILD_PROFILE === 'development'
+          ? 'http://localhost:3001'
+          : 'https://redi-app-8ea0a6e9c3d9.herokuapp.com'),
       eas: {
         projectId: 'a8a89a20-069d-46de-9994-8e37117865b4',
       },
