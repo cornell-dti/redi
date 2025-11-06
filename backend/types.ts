@@ -354,6 +354,7 @@ export interface WeeklyMatchDoc {
   promptId: string; // Reference to the prompt used for matching
   matches: string[]; // Array of 3 matched user netids
   revealed: boolean[]; // Array of 3 booleans indicating if match was viewed
+  chatUnlocked?: boolean[]; // Array of booleans indicating if chat is unlocked (set when mutual nudge occurs)
   createdAt: FirestoreTimestampType; // When matches were generated (Friday)
   expiresAt: FirestoreTimestampType; // When matches expire (next Friday 12:00 AM ET)
 }
@@ -364,6 +365,7 @@ export interface WeeklyMatchDocWrite {
   promptId: string;
   matches: string[];
   revealed: boolean[];
+  chatUnlocked?: boolean[];
   createdAt: FirestoreTimestampType | FieldValue;
   expiresAt: FirestoreTimestampType | FieldValue;
 }
@@ -374,6 +376,7 @@ export interface WeeklyMatchResponse {
   promptId: string;
   matches: string[];
   revealed: boolean[];
+  chatUnlocked?: boolean[];
   createdAt: string; // ISO string format for JSON
   expiresAt: string; // ISO string format for JSON
 }

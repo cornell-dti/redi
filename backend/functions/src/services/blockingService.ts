@@ -1,12 +1,12 @@
-import { db } from '../firebaseAdmin';
+import { db } from "../firebaseAdmin";
 import {
   BlockedUserDoc,
   BlockedUserDocWrite,
   BlockedUserResponse,
-} from '../types';
-import { FieldValue } from 'firebase-admin/firestore';
+} from "../types";
+import { FieldValue } from "firebase-admin/firestore";
 
-const BLOCKED_USERS_COLLECTION = 'blockedUsers';
+const BLOCKED_USERS_COLLECTION = "blockedUsers";
 
 // =============================================================================
 // BLOCKING OPERATIONS
@@ -26,7 +26,7 @@ export async function blockUser(
 ): Promise<BlockedUserDoc> {
   // Validate: cannot block yourself
   if (blockerNetid === blockedNetid) {
-    throw new Error('You cannot block yourself');
+    throw new Error("You cannot block yourself");
   }
 
   const blockId = `${blockerNetid}_${blockedNetid}`;
@@ -38,7 +38,7 @@ export async function blockUser(
     .get();
 
   if (existingBlock.exists) {
-    throw new Error('You have already blocked this user');
+    throw new Error("You have already blocked this user");
   }
 
   // Create the block document
@@ -79,7 +79,7 @@ export async function unblockUser(
     .get();
 
   if (!blockDoc.exists) {
-    throw new Error('Block relationship does not exist');
+    throw new Error("Block relationship does not exist");
   }
 
   await db.collection(BLOCKED_USERS_COLLECTION).doc(blockId).delete();
@@ -93,7 +93,7 @@ export async function unblockUser(
 export async function getBlockedUsers(blockerNetid: string): Promise<string[]> {
   const blocksSnapshot = await db
     .collection(BLOCKED_USERS_COLLECTION)
-    .where('blockerNetid', '==', blockerNetid)
+    .where("blockerNetid", "==", blockerNetid)
     .get();
 
   return blocksSnapshot.docs.map((doc) => {
@@ -165,12 +165,12 @@ export async function getBlockedUsersMap(
     // Get blocks where user is the blocker
     db
       .collection(BLOCKED_USERS_COLLECTION)
-      .where('blockerNetid', 'in', netids.slice(0, 10)) // Firestore 'in' limit is 10
+      .where("blockerNetid", "in", netids.slice(0, 10)) // Firestore 'in' limit is 10
       .get(),
     // Get blocks where user is blocked
     db
       .collection(BLOCKED_USERS_COLLECTION)
-      .where('blockedNetid', 'in', netids.slice(0, 10)) // Firestore 'in' limit is 10
+      .where("blockedNetid", "in", netids.slice(0, 10)) // Firestore 'in' limit is 10
       .get(),
   ]);
 
@@ -200,11 +200,11 @@ export async function getBlockedUsersMap(
       const [batchBlockerDocs, batchBlockedDocs] = await Promise.all([
         db
           .collection(BLOCKED_USERS_COLLECTION)
-          .where('blockerNetid', 'in', batch)
+          .where("blockerNetid", "in", batch)
           .get(),
         db
           .collection(BLOCKED_USERS_COLLECTION)
-          .where('blockedNetid', 'in', batch)
+          .where("blockedNetid", "in", batch)
           .get(),
       ]);
 
