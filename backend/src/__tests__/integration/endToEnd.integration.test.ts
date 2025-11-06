@@ -1,0 +1,416 @@
+/**
+ * End-to-End Integration Tests
+ *
+ * These tests verify the complete workflow of the matching system from start to finish.
+ * Tests include:
+ * - Creating users and prompts
+ * - Generating matches
+ * - Nudging and mutual nudges
+ * - Chat unlocking
+ * - Revealing matches
+ * - Manual match creation
+ * - Full workflow scenarios
+ */
+
+import { generateMatchesForPrompt, revealMatch, createWeeklyMatch } from '../../services/matchingService';
+import { createNudge, getNudgeStatus } from '../../services/nudgesService';
+import {
+  createTestUsers,
+  createTestPrompt,
+  createTestPromptAnswers,
+  cleanupTestData,
+  getUserMatches,
+  getNudge,
+  TestUser,
+} from '../utils/testDataGenerator';
+import { db } from '../../../firebaseAdmin';
+
+jest.setTimeout(60000); // Extended timeout for end-to-end tests
+
+describe('End-to-End Integration Tests', () => {
+  let testUsers: TestUser[] = [];
+  let testPromptId: string;
+
+  beforeAll(async () => {
+    await cleanupTestData();
+  });
+
+  afterAll(async () => {
+    await cleanupTestData();
+  });
+
+  describe('Complete Matching Workflow', () => {
+    test('Full workflow: create users → match → nudge → reveal', async () => {
+      // Step 1: Create 6 test users
+      console.log('Step 1: Creating 6 test users...');
+      testUsers = await createTestUsers(6);
+      expect(testUsers).toHaveLength(6);
+
+      // Step 2: Create a test prompt
+      console.log('Step 2: Creating test prompt...');
+      const prompt = await createTestPrompt();
+      testPromptId = prompt.promptId;
+      expect(testPromptId).toBeTruthy();
+
+      // Step 3: Users answer the prompt
+      console.log('Step 3: Users answering prompt...');
+      await createTestPromptAnswers(testUsers, testPromptId);
+
+      // Verify answers were created
+      const answersSnapshot = await db
+        .collection('weeklyPromptAnswers')
+        .where('promptId', '==', testPromptId)
+        .get();
+      expect(answersSnapshot.size).toBe(6);
+
+      // Step 4: Run matching algorithm
+      console.log('Step 4: Running matching algorithm...');
+      const matchedCount = await generateMatchesForPrompt(testPromptId);
+      expect(matchedCount).toBe(6);
+
+      // Step 5: Verify all users have 3 matches
+      console.log('Step 5: Verifying matches...');
+      for (const user of testUsers) {
+        const matches = await getUserMatches(user.netid, testPromptId);
+        expect(matches).toBeTruthy();
+        expect(matches!.matches).toHaveLength(3);
+        expect(matches!.revealed).toEqual([false, false, false]);
+      }
+
+      // Step 6: User 1 nudges User 2
+      console.log('Step 6: User 1 nudging User 2...');
+      const user1Matches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const user2Netid = user1Matches!.matches[0];
+
+      await createNudge(testUsers[0].netid, user2Netid, testPromptId);
+
+      // Verify nudge was created
+      const nudge1to2 = await getNudge(testUsers[0].netid, user2Netid, testPromptId);
+      expect(nudge1to2).toBeTruthy();
+      expect(nudge1to2!.mutual).toBe(false);
+
+      // Step 7: User 2 accepts nudge (nudges back)
+      console.log('Step 7: User 2 accepting nudge...');
+      await createNudge(user2Netid, testUsers[0].netid, testPromptId);
+
+      // Verify mutual nudge
+      const nudge2to1 = await getNudge(user2Netid, testUsers[0].netid, testPromptId);
+      expect(nudge2to1!.mutual).toBe(true);
+      expect(nudge1to2!.mutual).toBe(true);
+
+      // Step 8: Verify chat is unlocked between them
+      console.log('Step 8: Verifying chat unlock...');
+      const user1MatchesAfter = await getUserMatches(testUsers[0].netid, testPromptId);
+      const user2MatchesAfter = await getUserMatches(user2Netid, testPromptId);
+
+      const indexOfUser2InUser1 = user1MatchesAfter!.matches.indexOf(user2Netid);
+      const indexOfUser1InUser2 = user2MatchesAfter!.matches.indexOf(testUsers[0].netid);
+
+      expect(user1MatchesAfter!.chatUnlocked![indexOfUser2InUser1]).toBe(true);
+      expect(user2MatchesAfter!.chatUnlocked![indexOfUser1InUser2]).toBe(true);
+
+      // Step 9: User 1 reveals User 3 (another match)
+      console.log('Step 9: User 1 revealing User 3...');
+      await revealMatch(testUsers[0].netid, testPromptId, 1);
+
+      const user1MatchesFinal = await getUserMatches(testUsers[0].netid, testPromptId);
+      expect(user1MatchesFinal!.revealed[1]).toBe(true);
+
+      // Step 10: Verify system integrity
+      console.log('Step 10: Verifying system integrity...');
+
+      // All users should still have their matches
+      for (const user of testUsers) {
+        const matches = await getUserMatches(user.netid, testPromptId);
+        expect(matches).toBeTruthy();
+        expect(matches!.matches.length).toBeGreaterThan(0);
+        expect(matches!.matches.length).toBeLessThanOrEqual(3);
+      }
+
+      console.log('✅ Full workflow completed successfully!');
+    });
+  });
+
+  describe('Manual Match Integration with Nudging', () => {
+    test('Manual match creation followed by nudging workflow', async () => {
+      console.log('Creating 6 test users for manual match test...');
+      testUsers = await createTestUsers(6);
+
+      const prompt = await createTestPrompt();
+      testPromptId = prompt.promptId;
+
+      // Run algorithm matching first
+      await createTestPromptAnswers(testUsers, testPromptId);
+      await generateMatchesForPrompt(testPromptId);
+
+      // Now manually add a 4th user to User 0's matches (using append mode)
+      console.log('Manually adding a 4th user to User 0...');
+      const user4Netid = testUsers[4].netid;
+
+      // This should fail because user already has 3 matches (at max)
+      await expect(
+        createWeeklyMatch(testUsers[0].netid, testPromptId, [user4Netid], true)
+      ).resolves.toBeDefined();
+
+      // But since user already has 3 matches, no new match should be added
+      const matchesAfterAttempt = await getUserMatches(testUsers[0].netid, testPromptId);
+      expect(matchesAfterAttempt!.matches.length).toBe(3);
+
+      console.log('✅ Manual match append correctly respects 3-match limit');
+    });
+
+    test('Manually create matches between 2 users then test nudging', async () => {
+      console.log('Testing manual match + nudging workflow...');
+      testUsers = await createTestUsers(2);
+
+      const prompt = await createTestPrompt();
+      testPromptId = prompt.promptId;
+
+      // Manually create bidirectional matches
+      await createWeeklyMatch(testUsers[0].netid, testPromptId, [testUsers[1].netid]);
+      await createWeeklyMatch(testUsers[1].netid, testPromptId, [testUsers[0].netid]);
+
+      // Verify matches were created
+      const user0Matches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const user1Matches = await getUserMatches(testUsers[1].netid, testPromptId);
+
+      expect(user0Matches!.matches).toContain(testUsers[1].netid);
+      expect(user1Matches!.matches).toContain(testUsers[0].netid);
+
+      // Now test nudging with manual matches
+      await createNudge(testUsers[0].netid, testUsers[1].netid, testPromptId);
+      await createNudge(testUsers[1].netid, testUsers[0].netid, testPromptId);
+
+      // Verify chat unlocked
+      const user0MatchesAfter = await getUserMatches(testUsers[0].netid, testPromptId);
+      const user1MatchesAfter = await getUserMatches(testUsers[1].netid, testPromptId);
+
+      expect(user0MatchesAfter!.chatUnlocked![0]).toBe(true);
+      expect(user1MatchesAfter!.chatUnlocked![0]).toBe(true);
+
+      console.log('✅ Manual matches work correctly with nudging!');
+    });
+  });
+
+  describe('Multiple Prompts Workflow', () => {
+    test('Users can have matches for multiple prompts simultaneously', async () => {
+      testUsers = await createTestUsers(6);
+
+      // Create two different prompts
+      const prompt1 = await createTestPrompt();
+      const prompt2 = await createTestPrompt();
+
+      // Create answers for both prompts
+      await createTestPromptAnswers(testUsers, prompt1.promptId);
+      await createTestPromptAnswers(testUsers, prompt2.promptId);
+
+      // Generate matches for both prompts
+      await generateMatchesForPrompt(prompt1.promptId);
+      await generateMatchesForPrompt(prompt2.promptId);
+
+      // Each user should have matches for both prompts
+      for (const user of testUsers) {
+        const matches1 = await getUserMatches(user.netid, prompt1.promptId);
+        const matches2 = await getUserMatches(user.netid, prompt2.promptId);
+
+        expect(matches1).toBeTruthy();
+        expect(matches2).toBeTruthy();
+
+        expect(matches1!.promptId).toBe(prompt1.promptId);
+        expect(matches2!.promptId).toBe(prompt2.promptId);
+      }
+
+      // Nudge in prompt 1 shouldn't affect prompt 2
+      const user0Prompt1Matches = await getUserMatches(testUsers[0].netid, prompt1.promptId);
+      const matchedUser = user0Prompt1Matches!.matches[0];
+
+      await createNudge(testUsers[0].netid, matchedUser, prompt1.promptId);
+      await createNudge(matchedUser, testUsers[0].netid, prompt1.promptId);
+
+      // Chat should be unlocked for prompt1 but not prompt2
+      const user0Prompt1After = await getUserMatches(testUsers[0].netid, prompt1.promptId);
+      const user0Prompt2After = await getUserMatches(testUsers[0].netid, prompt2.promptId);
+
+      expect(user0Prompt1After!.chatUnlocked).toBeDefined();
+      expect(user0Prompt1After!.chatUnlocked![0]).toBe(true);
+
+      // Prompt 2 chat should not be affected
+      if (user0Prompt2After!.chatUnlocked) {
+        expect(user0Prompt2After!.chatUnlocked.every((u: boolean) => u === false)).toBe(true);
+      }
+
+      console.log('✅ Multiple prompts work independently!');
+    });
+  });
+
+  describe('Complex Multi-User Scenarios', () => {
+    test('Scenario: 3 users in a triangle match pattern', async () => {
+      testUsers = await createTestUsers(6);
+      const prompt = await createTestPrompt();
+      testPromptId = prompt.promptId;
+
+      await createTestPromptAnswers(testUsers, testPromptId);
+      await generateMatchesForPrompt(testPromptId);
+
+      // Find three users who are all matched with each other
+      const userAMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userBNetid = userAMatches!.matches[0];
+      const userCNetid = userAMatches!.matches[1];
+
+      // Check if B and C are also matched
+      const userBMatches = await getUserMatches(userBNetid, testPromptId);
+      const userCMatches = await getUserMatches(userCNetid, testPromptId);
+
+      // A-B mutual nudge
+      if (userAMatches!.matches.includes(userBNetid)) {
+        await createNudge(testUsers[0].netid, userBNetid, testPromptId);
+        await createNudge(userBNetid, testUsers[0].netid, testPromptId);
+      }
+
+      // A-C mutual nudge
+      if (userAMatches!.matches.includes(userCNetid)) {
+        await createNudge(testUsers[0].netid, userCNetid, testPromptId);
+        await createNudge(userCNetid, testUsers[0].netid, testPromptId);
+      }
+
+      // B-C mutual nudge (if they're matched)
+      if (
+        userBMatches!.matches.includes(userCNetid) &&
+        userCMatches!.matches.includes(userBNetid)
+      ) {
+        await createNudge(userBNetid, userCNetid, testPromptId);
+        await createNudge(userCNetid, userBNetid, testPromptId);
+      }
+
+      // Verify User A has chat unlocked with both B and C
+      const userAFinal = await getUserMatches(testUsers[0].netid, testPromptId);
+      const indexOfB = userAFinal!.matches.indexOf(userBNetid);
+      const indexOfC = userAFinal!.matches.indexOf(userCNetid);
+
+      expect(userAFinal!.chatUnlocked![indexOfB]).toBe(true);
+      expect(userAFinal!.chatUnlocked![indexOfC]).toBe(true);
+
+      console.log('✅ Triangle match pattern works correctly!');
+    });
+
+    test('Scenario: One user reveals all matches before nudging', async () => {
+      testUsers = await createTestUsers(6);
+      const prompt = await createTestPrompt();
+      testPromptId = prompt.promptId;
+
+      await createTestPromptAnswers(testUsers, testPromptId);
+      await generateMatchesForPrompt(testPromptId);
+
+      // User 0 reveals all 3 matches
+      await revealMatch(testUsers[0].netid, testPromptId, 0);
+      await revealMatch(testUsers[0].netid, testPromptId, 1);
+      await revealMatch(testUsers[0].netid, testPromptId, 2);
+
+      const matchesAfterReveal = await getUserMatches(testUsers[0].netid, testPromptId);
+      expect(matchesAfterReveal!.revealed).toEqual([true, true, true]);
+
+      // Now nudge one of the revealed matches
+      const matchedUser = matchesAfterReveal!.matches[0];
+      await createNudge(testUsers[0].netid, matchedUser, testPromptId);
+      await createNudge(matchedUser, testUsers[0].netid, testPromptId);
+
+      // Both revealed and chatUnlocked should be maintained
+      const matchesFinal = await getUserMatches(testUsers[0].netid, testPromptId);
+      expect(matchesFinal!.revealed).toEqual([true, true, true]);
+      expect(matchesFinal!.chatUnlocked![0]).toBe(true);
+
+      console.log('✅ Revealing before nudging works correctly!');
+    });
+
+    test('Scenario: Asymmetric nudging (some users nudge, others don\'t)', async () => {
+      testUsers = await createTestUsers(6);
+      const prompt = await createTestPrompt();
+      testPromptId = prompt.promptId;
+
+      await createTestPromptAnswers(testUsers, testPromptId);
+      await generateMatchesForPrompt(testPromptId);
+
+      const user0Matches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const match1 = user0Matches!.matches[0];
+      const match2 = user0Matches!.matches[1];
+      const match3 = user0Matches!.matches[2];
+
+      // User 0 nudges all 3 matches
+      await createNudge(testUsers[0].netid, match1, testPromptId);
+      await createNudge(testUsers[0].netid, match2, testPromptId);
+      await createNudge(testUsers[0].netid, match3, testPromptId);
+
+      // Only match1 nudges back
+      await createNudge(match1, testUsers[0].netid, testPromptId);
+
+      // Check nudge statuses
+      const status1 = await getNudgeStatus(testUsers[0].netid, match1, testPromptId);
+      const status2 = await getNudgeStatus(testUsers[0].netid, match2, testPromptId);
+      const status3 = await getNudgeStatus(testUsers[0].netid, match3, testPromptId);
+
+      expect(status1.mutual).toBe(true);
+      expect(status2.mutual).toBe(false);
+      expect(status3.mutual).toBe(false);
+
+      // Only chat with match1 should be unlocked
+      const user0Final = await getUserMatches(testUsers[0].netid, testPromptId);
+      const idx1 = user0Final!.matches.indexOf(match1);
+      const idx2 = user0Final!.matches.indexOf(match2);
+      const idx3 = user0Final!.matches.indexOf(match3);
+
+      expect(user0Final!.chatUnlocked![idx1]).toBe(true);
+      expect(user0Final!.chatUnlocked![idx2]).toBe(false);
+      expect(user0Final!.chatUnlocked![idx3]).toBe(false);
+
+      console.log('✅ Asymmetric nudging handled correctly!');
+    });
+  });
+
+  describe('Data Integrity and Consistency', () => {
+    test('Match data remains consistent after multiple operations', async () => {
+      testUsers = await createTestUsers(6);
+      const prompt = await createTestPrompt();
+      testPromptId = prompt.promptId;
+
+      await createTestPromptAnswers(testUsers, testPromptId);
+      await generateMatchesForPrompt(testPromptId);
+
+      // Perform many operations on same user
+      const operations = async () => {
+        const matches = await getUserMatches(testUsers[0].netid, testPromptId);
+
+        // Reveal matches
+        await revealMatch(testUsers[0].netid, testPromptId, 0);
+        await revealMatch(testUsers[0].netid, testPromptId, 1);
+
+        // Nudge matches
+        await createNudge(testUsers[0].netid, matches!.matches[0], testPromptId);
+        await createNudge(matches!.matches[0], testUsers[0].netid, testPromptId);
+
+        // Reveal more
+        await revealMatch(testUsers[0].netid, testPromptId, 2);
+      };
+
+      await operations();
+
+      // Verify data integrity
+      const finalMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+
+      // Should have 3 matches
+      expect(finalMatches!.matches).toHaveLength(3);
+
+      // Revealed array should match matches array length
+      expect(finalMatches!.revealed).toHaveLength(3);
+
+      // chatUnlocked array should exist and match matches array length
+      expect(finalMatches!.chatUnlocked).toBeDefined();
+      expect(finalMatches!.chatUnlocked).toHaveLength(3);
+
+      // All matches should be unique
+      const uniqueMatches = new Set(finalMatches!.matches);
+      expect(uniqueMatches.size).toBe(3);
+
+      console.log('✅ Data integrity maintained after multiple operations!');
+    });
+  });
+});
