@@ -68,16 +68,19 @@ router.post(
       }
 
       // Verify the users are actually matched for this prompt
-      const matchDocId = `${fromNetid}_${promptId}`;
-      const matchDoc = await db
+      // Query by netid and promptId to support both algorithm-generated and manually created matches
+      const matchSnapshot = await db
         .collection('weeklyMatches')
-        .doc(matchDocId)
+        .where('netid', '==', fromNetid)
+        .where('promptId', '==', promptId)
+        .limit(1)
         .get();
 
-      if (!matchDoc.exists) {
+      if (matchSnapshot.empty) {
         return res.status(404).json({ error: 'Match document not found' });
       }
 
+      const matchDoc = matchSnapshot.docs[0];
       const matchData = matchDoc.data();
       if (!matchData || !matchData.matches.includes(toNetid)) {
         return res.status(403).json({

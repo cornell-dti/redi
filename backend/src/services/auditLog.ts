@@ -18,6 +18,7 @@ export type AuditResourceType =
   | 'match'
   | 'matches'
   | 'user'
+  | 'users'
   | 'admin'
   | 'report'
   | 'system';
@@ -40,11 +41,13 @@ export type AuditAction =
   | 'UPDATE_ADMIN'
   // User actions
   | 'VIEW_USER'
+  | 'VIEW_USERS'
   | 'UPDATE_USER'
   | 'DELETE_USER'
   // Match actions
   | 'VIEW_MATCH_STATS'
   | 'VIEW_PROMPT_MATCHES'
+  | 'CREATE_MANUAL_MATCH'
   // Report actions
   | 'UPDATE_REPORT_STATUS'
   | 'RESOLVE_REPORT'

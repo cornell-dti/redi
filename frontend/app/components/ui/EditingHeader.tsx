@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Check } from 'lucide-react-native';
 import React from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 import IconButton from './IconButton';
+import LoadingSpinner from './LoadingSpinner';
 
 interface EditingHeaderProps {
   onSave?: () => void | Promise<void>;
@@ -52,7 +53,7 @@ export default function EditingHeader({
         </AppText>
 
         {isSaving ? (
-          <ActivityIndicator color={AppColors.accentDefault} />
+          <LoadingSpinner />
         ) : showSave ? (
           <IconButton
             onPress={async () => onSave?.()}

@@ -8,19 +8,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { LogOut, Pencil, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getCurrentUser, signOutUser } from '../api/authService';
+import { extractNetidFromEmail, getCurrentUser, signOutUser } from '../api/authService';
+import { deleteProfile } from '../api/profileApi';
+import { deleteUser } from '../api/userApi';
 import { AppColors } from '../components/AppColors';
 import AppInput from '../components/ui/AppInput';
 import EditingHeader from '../components/ui/EditingHeader';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { useThemeAware } from '../contexts/ThemeContext';
 
 export default function AccountSettingsPage() {
@@ -29,6 +25,7 @@ export default function AccountSettingsPage() {
   const [email, setEmail] = useState<string | null>(null);
   const [showSignOutSheet, setShowSignOutSheet] = useState(false);
   const [showDeleteSheet, setShowDeleteSheet] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchUserData() {
@@ -69,22 +66,56 @@ export default function AccountSettingsPage() {
       Alert.alert(
         'Error',
         'Failed to sign out: ' +
-          (error instanceof Error ? error.message : 'Unknown error')
+        (error instanceof Error ? error.message : 'Unknown error')
       );
     }
   };
 
   const confirmDeleteAccount = async () => {
+    setIsDeleting(true);
     try {
-      // TODO: Implement delete account logic
-      Alert.alert('Coming Soon', 'Account deletion will be implemented soon');
+      const currentUser = getCurrentUser();
+      if (!currentUser || !currentUser.email) {
+        Alert.alert('Error', 'You cannot delete an account you are not logged into.');
+        setIsDeleting(false);
+        return;
+      }
+
+      const netid = extractNetidFromEmail(currentUser.email);
+      if (!netid) {
+        Alert.alert('Error', 'Could not determine your netid');
+        setIsDeleting(false);
+        return;
+      }
+
+      // Profiles and users are different; profiles contain information regarding preferences and such,
+      // and users are the account based on the netid.
+      try {
+        await deleteProfile();
+        console.log('Profile deleted successfully');
+      } catch (profileError) {
+        console.log('Profile deletion error (may not exist):', profileError);
+      }
+
+      await deleteUser(netid);
+      console.log('User deleted from backend successfully');
+
+      // Clear any stored data on the device.
+      await AsyncStorage.clear();
+
+      // Sign out from Firebase
+      await signOutUser();
       setShowDeleteSheet(false);
+      setIsDeleting(false);
+
+      router.replace('/home' as any);
     } catch (error) {
       console.error('Delete account error:', error);
+      setIsDeleting(false);
       Alert.alert(
         'Error',
         'Failed to delete account: ' +
-          (error instanceof Error ? error.message : 'Unknown error')
+        (error instanceof Error ? error.message : 'Unknown error')
       );
     }
   };
@@ -92,7 +123,7 @@ export default function AccountSettingsPage() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color={AppColors.accentDefault} />
+        <LoadingSpinner />
         <AppText style={styles.loadingText}>Loading...</AppText>
       </SafeAreaView>
     );
@@ -122,7 +153,7 @@ export default function AccountSettingsPage() {
               iconLeft={Pencil}
               variant="secondary"
               title="Cannot change email address"
-              onPress={() => {}}
+              onPress={() => { }}
             />
           </ListItemWrapper>
         </View>
@@ -174,8 +205,9 @@ export default function AccountSettingsPage() {
       {/* Delete Account Confirmation Sheet */}
       <DeleteAccountSheet
         visible={showDeleteSheet}
-        onDismiss={() => setShowDeleteSheet(false)}
+        onDismiss={() => !isDeleting && setShowDeleteSheet(false)}
         onConfirm={confirmDeleteAccount}
+        isDeleting={isDeleting}
       />
     </SafeAreaView>
   );

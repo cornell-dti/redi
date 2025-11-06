@@ -1,19 +1,13 @@
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import EmptyState from '@/app/components/ui/EmptyState';
+import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
 import { useNotifications } from '@/app/contexts/NotificationsContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { Bell, Heart, LucideIcon, MessageCircle, X } from 'lucide-react-native';
 import React, { useCallback, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
 import ListItemWrapper from '../../components/ui/ListItemWrapper';
@@ -156,10 +150,7 @@ export default function NotificationsScreen() {
 
               {loading && (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator
-                    size="large"
-                    color={AppColors.accentDefault}
-                  />
+                  <LoadingSpinner />
                   <AppText
                     variant="body"
                     color="dimmer"

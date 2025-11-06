@@ -97,14 +97,19 @@ export async function getWeeklyMatch(
   netid: string,
   promptId: string
 ): Promise<WeeklyMatchDoc | null> {
-  const docId = `${netid}_${promptId}`;
-  const doc = await db.collection(MATCHES_COLLECTION).doc(docId).get();
+  // Query by netid and promptId to support both algorithm-generated and manually created matches
+  const snapshot = await db
+    .collection(MATCHES_COLLECTION)
+    .where('netid', '==', netid)
+    .where('promptId', '==', promptId)
+    .limit(1)
+    .get();
 
-  if (!doc.exists) {
+  if (snapshot.empty) {
     return null;
   }
 
-  return doc.data() as WeeklyMatchDoc;
+  return snapshot.docs[0].data() as WeeklyMatchDoc;
 }
 
 /**
@@ -148,7 +153,6 @@ export async function revealMatch(
     throw new Error('Match index must be between 0 and 2');
   }
 
-  const docId = `${netid}_${promptId}`;
   const matchDoc = await getWeeklyMatch(netid, promptId);
 
   if (!matchDoc) {
@@ -162,7 +166,17 @@ export async function revealMatch(
   const revealed = [...matchDoc.revealed];
   revealed[matchIndex] = true;
 
-  await db.collection(MATCHES_COLLECTION).doc(docId).update({ revealed });
+  // Query to find the document and update it (supports both ID formats)
+  const snapshot = await db
+    .collection(MATCHES_COLLECTION)
+    .where('netid', '==', netid)
+    .where('promptId', '==', promptId)
+    .limit(1)
+    .get();
+
+  if (!snapshot.empty) {
+    await snapshot.docs[0].ref.update({ revealed });
+  }
 
   return getWeeklyMatch(netid, promptId) as Promise<WeeklyMatchDoc>;
 }

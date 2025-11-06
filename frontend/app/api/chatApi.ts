@@ -24,6 +24,7 @@ export interface Conversation {
       name: string;
       image: string | null;
       netid: string;
+      deleted?: boolean;
     };
   };
   lastMessage: {
@@ -62,6 +63,38 @@ export const createOrGetConversation = async (
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ otherUserId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to create conversation');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating conversation:', error);
+    throw error;
+  }
+};
+
+/**
+ * Create or get existing conversation with another user by their netid
+ * @param otherUserNetid - Cornell netid of the other user
+ * @returns Conversation object
+ */
+export const createOrGetConversationByNetid = async (
+  otherUserNetid: string
+): Promise<Conversation> => {
+  try {
+    const token = await getAuthToken();
+
+    const response = await fetch(`${API_BASE_URL}/api/chat/conversations`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ otherUserNetid }),
     });
 
     if (!response.ok) {

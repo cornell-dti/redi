@@ -66,14 +66,17 @@ service cloud.firestore {
     
     // Weekly Matches - users can only read their own, only update revealed array
     match /weeklyMatches/{matchId} {
-      allow read: if isAuthenticated() && resource.data.netid == getUserNetid();
+      allow read: if isAuthenticated() &&
+        (resource.data.netid == getUserNetid() || isAdmin());
       allow update: if isAuthenticated() &&
         resource.data.netid == getUserNetid() &&
         request.resource.data.netid == resource.data.netid &&
         request.resource.data.promptId == resource.data.promptId &&
         request.resource.data.matches == resource.data.matches &&
         request.resource.data.createdAt == resource.data.createdAt;
-      allow create, delete: if false;
+      // Only backend API (via Admin SDK) and admins can create matches
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     // Admins collection - only admins can read their own document

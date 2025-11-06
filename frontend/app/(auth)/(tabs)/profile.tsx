@@ -4,6 +4,7 @@ import EmptyState from '@/app/components/ui/EmptyState';
 import FooterSpacer from '@/app/components/ui/FooterSpacer';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
+import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
 import Sheet from '@/app/components/ui/Sheet';
 import SignOutSheet from '@/app/components/ui/SignOutSheet';
 import { ProfileResponse } from '@/types';
@@ -29,7 +30,6 @@ import {
 import OnboardingVideo from '@/app/components/onboarding/OnboardingVideo';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -161,7 +161,7 @@ export default function ProfileScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color={AppColors.accentDefault} />
+        <LoadingSpinner />
         <AppText style={styles.loadingText}>Loading profile...</AppText>
       </SafeAreaView>
     );

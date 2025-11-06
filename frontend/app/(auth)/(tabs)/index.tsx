@@ -13,6 +13,8 @@ import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import CountdownTimer from '@/app/components/ui/CountdownTimer';
 import EmptyState from '@/app/components/ui/EmptyState';
+import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
+import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
 import Sheet from '@/app/components/ui/Sheet';
 import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
@@ -35,12 +37,10 @@ import { useRouter } from 'expo-router';
 import { Check, Eye, Heart, Pencil } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Dimensions,
   ScrollView,
   StatusBar,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -66,9 +66,6 @@ export default function MatchesScreen() {
   );
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [currentMatches, setCurrentMatches] = useState<MatchWithProfile[]>([]);
-  const [previousMatches, setPreviousMatches] = useState<MatchWithProfile[]>(
-    []
-  );
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [showPromptSheet, setShowPromptSheet] = useState(false);
   const [tempAnswer, setTempAnswer] = useState('');
@@ -135,115 +132,71 @@ export default function MatchesScreen() {
         const history: WeeklyMatchResponse[] = await getMatchHistory(10);
 
         if (history.length > 0) {
-          // First match in history is the most recent (current week's matches)
-          const currentWeekMatch = history[0];
+          // Collect all matches from all active match records
+          const allMatchesData: MatchWithProfile[] = [];
 
-          // Get current week's matches using batch endpoint with caching
-          if (currentWeekMatch.matches.length > 0) {
-            // Try to get cached data first
-            const cachedData = await getCachedMatchData(
-              currentWeekMatch.promptId
-            );
+          for (const matchRecord of history) {
+            if (matchRecord.matches.length === 0) continue;
 
+            // Try to get cached data first for the most recent match
             let batchData;
-            if (cachedData) {
-              // Use cached data
-              batchData = cachedData;
-              console.log('✅ Using cached match data');
+            if (matchRecord === history[0]) {
+              const cachedData = await getCachedMatchData(matchRecord.promptId);
+              if (cachedData) {
+                batchData = cachedData;
+                console.log('✅ Using cached match data');
+              } else {
+                batchData = await getBatchMatchData(
+                  matchRecord.promptId,
+                  matchRecord.matches
+                );
+                await cacheMatchData(matchRecord.promptId, batchData);
+                console.log('✅ Fetched and cached fresh match data');
+              }
             } else {
-              // Fetch fresh data and cache it
+              // For older matches, just fetch the data
               batchData = await getBatchMatchData(
-                currentWeekMatch.promptId,
-                currentWeekMatch.matches
+                matchRecord.promptId,
+                matchRecord.matches
               );
-              await cacheMatchData(currentWeekMatch.promptId, batchData);
-              console.log('✅ Fetched and cached fresh match data');
             }
 
-            // Map the batch data back to the expected format
+            // Map the batch data to matches with profiles
             const matchesWithProfiles: MatchWithProfile[] =
-              currentWeekMatch.matches.map((netid: string, index: number) => {
-                // Find matching profile from batch response
+              matchRecord.matches.map((netid: string, index: number) => {
                 const profile =
                   batchData.profiles.find((p) => p.netid === netid) || null;
 
-                // Get nudge status from batch response
-                const nudgeStatus = batchData.nudgeStatuses[index] || {
-                  sent: false,
-                  received: false,
-                  mutual: false,
-                };
+                // Only get nudge status for the most recent matches
+                const nudgeStatus =
+                  matchRecord === history[0]
+                    ? batchData.nudgeStatuses[index] || {
+                        sent: false,
+                        received: false,
+                        mutual: false,
+                      }
+                    : undefined;
 
                 return {
                   netid,
                   profile,
-                  revealed: currentWeekMatch.revealed[index],
+                  revealed: matchRecord.revealed[index],
                   nudgeStatus,
-                  promptId: currentWeekMatch.promptId, // Include promptId for nudging
+                  promptId: matchRecord.promptId,
                 };
               });
 
-            setCurrentMatches(matchesWithProfiles);
-          } else {
-            setCurrentMatches([]);
+            allMatchesData.push(...matchesWithProfiles);
           }
 
-          // Get previous matches (everything after the first/current match)
-          const oldMatches = history.slice(1);
-
-          if (oldMatches.length > 0) {
-            // Collect all netids and track their promptIds
-            const netidPromptMap: { netid: string; promptId: string }[] = [];
-
-            oldMatches.forEach((matchRecord: WeeklyMatchResponse) => {
-              matchRecord.matches.forEach((netid: string) => {
-                netidPromptMap.push({ netid, promptId: matchRecord.promptId });
-              });
-            });
-
-            // Fetch all profiles at once (we don't need nudge statuses for previous matches)
-            // We'll use the batch endpoint with the oldest promptId
-            if (netidPromptMap.length > 0) {
-              const allPreviousNetids = netidPromptMap.map(
-                (item) => item.netid
-              );
-              const oldestPromptId = oldMatches[0]?.promptId;
-              const batchData = await getBatchMatchData(
-                oldestPromptId,
-                allPreviousNetids
-              );
-
-              // Map profiles back with their associated promptIds
-              const previousMatchesWithProfiles: MatchWithProfile[] =
-                netidPromptMap.map((item) => {
-                  const profile =
-                    batchData.profiles.find((p) => p.netid === item.netid) ||
-                    null;
-
-                  return {
-                    netid: item.netid,
-                    profile,
-                    revealed: true, // Previous matches are always revealed
-                    promptId: item.promptId, // Include promptId for nudging
-                  };
-                });
-
-              setPreviousMatches(previousMatchesWithProfiles);
-            } else {
-              setPreviousMatches([]);
-            }
-          } else {
-            setPreviousMatches([]);
-          }
+          setCurrentMatches(allMatchesData);
         } else {
           // No match history at all
           setCurrentMatches([]);
-          setPreviousMatches([]);
         }
       } catch (error) {
         console.error('Error loading matches:', error);
         setCurrentMatches([]);
-        setPreviousMatches([]);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -281,8 +234,12 @@ export default function MatchesScreen() {
     <>
       <CountdownTimer targetDate={getNextFridayMidnight()} />
       {activePrompt && (
-        <View style={[styles.section, styles.promptSection]}>
-          <AppText> Weekly Prompt: {activePrompt.question}</AppText>
+        <ListItemWrapper style={styles.promptSection}>
+          <View style={styles.promptQuestion}>
+            <AppText color="dimmer"> Weekly Prompt: </AppText>
+
+            <AppText variant="subtitle">{activePrompt.question}</AppText>
+          </View>
           <Button
             title={userAnswer ? 'Edit answer' : 'Answer prompt'}
             onPress={() => {
@@ -292,7 +249,7 @@ export default function MatchesScreen() {
             variant="secondary"
             iconLeft={Pencil}
           />
-        </View>
+        </ListItemWrapper>
       )}
     </>
   );
@@ -302,7 +259,7 @@ export default function MatchesScreen() {
       {currentMatches.length > 0 && (
         <View style={[styles.section, styles.sectionPadding]}>
           <AppText variant="subtitle" style={styles.sectionTitle}>
-            This Week&apos;s Matches
+            Your Matches
           </AppText>
         </View>
       )}
@@ -341,7 +298,6 @@ export default function MatchesScreen() {
           decelerationRate="fast"
           snapToInterval={width - 60}
           showsHorizontalScrollIndicator={false}
-          // contentContainerStyle={{ paddingHorizontal: 16 }}
           onMomentumScrollEnd={(event) => {
             const index = Math.round(
               event.nativeEvent.contentOffset.x / (width - 60)
@@ -350,20 +306,18 @@ export default function MatchesScreen() {
           }}
           style={{ paddingLeft: 16 }}
         >
-          {currentMatches.map((m, index) => {
+          {currentMatches.map((m, matchIndex) => {
             if (!m.profile) return null;
             const matchProfile = m.profile;
             const matchAge = getProfileAge(matchProfile);
 
             const handleNudge = async () => {
               await sendNudge(matchProfile.netid, m.promptId);
-              // Reload matches to update nudge status (debounced)
-              loadDataDebounced();
+              loadDataDebounced(); // refresh after nudge
             };
 
             return (
               <View
-                key={index}
                 style={{
                   width: width - 60,
                   marginRight: 12,
@@ -409,46 +363,6 @@ export default function MatchesScreen() {
     );
   };
 
-  const renderPreviousMatches = () => {
-    if (previousMatches.length === 0) return null;
-
-    return (
-      <View style={styles.section}>
-        <View style={styles.divider} />
-        <AppText variant="subtitle" style={styles.sectionTitle}>
-          Previous Matches
-        </AppText>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.previousMatchesGrid}>
-            {previousMatches.slice(0, 6).map((match, index) => {
-              if (!match.profile) return null;
-              const profile = match.profile;
-
-              return (
-                <TouchableOpacity
-                  key={match.netid + index}
-                  style={styles.previousMatchCard}
-                  onPress={() =>
-                    router.push(
-                      `/view-profile?netid=${profile.netid}&promptId=${match.promptId}` as any
-                    )
-                  }
-                >
-                  <View style={styles.previousMatchImage}>
-                    <AppText variant="title">{profile.firstName[0]}</AppText>
-                  </View>
-                  <AppText variant="bodySmall" numberOfLines={1}>
-                    {profile.firstName}
-                  </AppText>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
-      </View>
-    );
-  };
-
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -460,7 +374,7 @@ export default function MatchesScreen() {
           </AppText>
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={AppColors.accentDefault} />
+          <LoadingSpinner />
           <AppText variant="body" color="dimmer" style={{ marginTop: 16 }}>
             Loading matches...
           </AppText>
@@ -487,7 +401,6 @@ export default function MatchesScreen() {
         <View style={styles.content}>
           {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()}
           {renderCurrentMatch()}
-          {renderPreviousMatches()}
         </View>
       </ScrollView>
 
@@ -560,7 +473,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   promptSection: {
-    gap: 12,
+    gap: 4,
     marginBottom: 24,
     padding: 16,
   },
@@ -577,7 +490,10 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   promptQuestion: {
-    lineHeight: 22,
+    padding: 16,
+    gap: 8,
+    borderRadius: 4,
+    backgroundColor: AppColors.backgroundDimmer,
   },
   answerCard: {
     backgroundColor: AppColors.backgroundDimmer,
@@ -610,34 +526,12 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.accentDefault,
     width: 24,
   },
-  divider: {
-    height: 1,
-    backgroundColor: AppColors.backgroundDimmest,
-    marginVertical: 24,
-  },
   emptyState: {
     backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 24,
     padding: 40,
     alignItems: 'center',
     margin: 16,
-  },
-  previousMatchesGrid: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  previousMatchCard: {
-    alignItems: 'center',
-    gap: 8,
-    width: 80,
-  },
-  previousMatchImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: AppColors.backgroundDimmer,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   headerContainer: {
     padding: 16,

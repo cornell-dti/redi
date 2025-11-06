@@ -21,7 +21,6 @@ import {
 } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Animated,
   FlatList,
   KeyboardAvoidingView,
@@ -39,6 +38,7 @@ import {
 } from '../api/chatApi';
 import { createReport } from '../api/reportsApi';
 import { AppColors } from '../components/AppColors';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Pressable from '../components/ui/Pressable';
 import { useMessages } from '../hooks/useMessages';
 
@@ -398,7 +398,7 @@ export default function ChatDetailScreen() {
             { justifyContent: 'center', alignItems: 'center' },
           ]}
         >
-          <ActivityIndicator size="large" color={AppColors.accentDefault} />
+          <LoadingSpinner />
         </View>
       ) : (
         <FlatList

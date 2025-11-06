@@ -21,11 +21,28 @@ const getUserProfile = async (firebaseUid: string) => {
     }
 
     const userData = userSnapshot.docs[0].data();
+    const netid = userData.netid;
+
+    const profileSnapshot = await db
+      .collection('profiles')
+      .where('netid', '==', netid)
+      .get();
+
+    if (profileSnapshot.empty) {
+      return {
+        firebaseUid,
+        netid,
+        name: netid,
+        image: null,
+      };
+    }
+
+    const profileData = profileSnapshot.docs[0].data();
     return {
       firebaseUid,
-      netid: userData.netid,
-      name: userData.name || userData.netid,
-      image: userData.profileImages?.[0] || null,
+      netid,
+      name: profileData.firstName || netid,
+      image: profileData.pictures?.[0] || null,
     };
   } catch (error) {
     console.error('Error getting user profile:', error);
@@ -36,6 +53,7 @@ const getUserProfile = async (firebaseUid: string) => {
 /**
  * POST /api/chat/conversations
  * Create or get existing conversation between two users
+ * Accepts either otherUserId (Firebase UID) or otherUserNetid (Cornell netid)
  */
 router.post(
   '/api/chat/conversations',
@@ -47,10 +65,25 @@ router.post(
         return res.status(401).json({ error: 'User not authenticated' });
       }
 
-      const { otherUserId } = req.body;
+      let { otherUserId, otherUserNetid } = req.body;
 
-      if (!otherUserId) {
-        return res.status(400).json({ error: 'otherUserId is required' });
+      // Support both otherUserId and otherUserNetid
+      if (!otherUserId && !otherUserNetid) {
+        return res.status(400).json({
+          error: 'Either otherUserId or otherUserNetid is required'
+        });
+      }
+
+      // If otherUserNetid is provided, convert it to Firebase UID
+      if (otherUserNetid && !otherUserId) {
+        const { getFirebaseUidFromNetid } = await import('../middleware/authorization');
+        otherUserId = await getFirebaseUidFromNetid(otherUserNetid);
+
+        if (!otherUserId) {
+          return res.status(404).json({
+            error: 'User not found with provided netid'
+          });
+        }
       }
 
       const currentUserId = req.user.uid;
