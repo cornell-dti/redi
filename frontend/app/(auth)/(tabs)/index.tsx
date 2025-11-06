@@ -14,7 +14,6 @@ import Button from '@/app/components/ui/Button';
 import CountdownTimer from '@/app/components/ui/CountdownTimer';
 import EmptyState from '@/app/components/ui/EmptyState';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
-import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
 import Sheet from '@/app/components/ui/Sheet';
 import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
@@ -43,7 +42,6 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -270,13 +268,11 @@ export default function MatchesScreen() {
   const renderCurrentMatch = () => {
     if (currentMatches.length === 0) {
       return (
-        <View style={styles.emptyStateContainer}>
-          <EmptyState
-            icon={Heart}
-            label="No matches available yet. Check back after submitting your answer!"
-            triggerAnimation={animationTrigger}
-          />
-        </View>
+        <EmptyState
+          icon={Heart}
+          label="No matches available yet. Check back after submitting your answer!"
+          triggerAnimation={animationTrigger}
+        />
       );
     }
 
@@ -352,26 +348,6 @@ export default function MatchesScreen() {
       </View>
     );
   };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-        <View style={styles.headerContainer}>
-          <AppText variant="title">Matches</AppText>
-          <AppText variant="subtitle" color="dimmer">
-            Dropping Friday at 12:00 AM
-          </AppText>
-        </View>
-        <View style={styles.loadingContainer}>
-          <LoadingSpinner />
-          <AppText variant="body" color="dimmer" style={{ marginTop: 16 }}>
-            Loading matches...
-          </AppText>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -533,10 +509,10 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   emptyStateContainer: {
-    flex: 1,
-    minHeight: 400,
+    // flex: 1,
+    // minHeight: 400,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 175,
+    // paddingBottom: 175,
   },
 });
