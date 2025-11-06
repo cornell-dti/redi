@@ -21,11 +21,13 @@ import {
   MailIcon,
   Palette,
   Pencil,
+  Play,
   SettingsIcon,
   ShieldCheck,
   Star,
   StarIcon,
 } from 'lucide-react-native';
+import OnboardingVideo from '@/app/components/onboarding/OnboardingVideo';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
@@ -64,6 +66,7 @@ export default function ProfileScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showSignOutSheet, setShowSignOutSheet] = useState(false);
   const [showRatingSheet, setShowRatingSheet] = useState(false);
+  const [showOnboardingVideo, setShowOnboardingVideo] = useState(false);
 
   // Fetch profile data on mount
   useEffect(() => {
@@ -245,6 +248,13 @@ export default function ProfileScreen() {
 
           <ListItemWrapper>
             <ListItem
+              onPress={() => setShowOnboardingVideo(true)}
+              title="Show Onboarding Video"
+              right={<ChevronRight size={20} />}
+              left={<Play size={20} />}
+            />
+
+            <ListItem
               onPress={() => router.push('/terms-and-conditions' as any)}
               title="Terms & Conditions"
               right={<ChevronRight size={20} />}
@@ -315,6 +325,12 @@ export default function ProfileScreen() {
           />
         </View>
       </Sheet>
+
+      {/* Onboarding Video */}
+      <OnboardingVideo
+        visible={showOnboardingVideo}
+        onFinish={() => setShowOnboardingVideo(false)}
+      />
     </View>
   );
 }

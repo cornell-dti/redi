@@ -34,7 +34,7 @@ import {
 } from '@/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { Check, Eye, Heart } from 'lucide-react-native';
+import { Check, Eye, Heart, Pencil } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
@@ -247,8 +247,7 @@ export default function MatchesScreen() {
               setShowPromptSheet(true);
             }}
             variant="secondary"
-            iconLeft={Eye}
-            noRound
+            iconLeft={Pencil}
           />
         </ListItemWrapper>
       )}
