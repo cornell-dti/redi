@@ -31,6 +31,7 @@ export default function AccountSettingsPage() {
   const [email, setEmail] = useState<string | null>(null);
   const [showSignOutSheet, setShowSignOutSheet] = useState(false);
   const [showDeleteSheet, setShowDeleteSheet] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchUserData() {
@@ -77,21 +78,24 @@ export default function AccountSettingsPage() {
   };
 
   const confirmDeleteAccount = async () => {
+    setIsDeleting(true);
     try {
       const currentUser = getCurrentUser();
       if (!currentUser || !currentUser.email) {
         Alert.alert('Error', 'You cannot delete an account you are not logged into.');
+        setIsDeleting(false);
         return;
       }
 
       const netid = extractNetidFromEmail(currentUser.email);
       if (!netid) {
         Alert.alert('Error', 'Could not determine your netid');
+        setIsDeleting(false);
         return;
       }
 
       // Profiles and users are different; profiles contain information regarding preferences and such,
-      // and users are the account based on the netid. 
+      // and users are the account based on the netid.
       try {
         await deleteProfile();
         console.log('Profile deleted successfully');
@@ -108,11 +112,12 @@ export default function AccountSettingsPage() {
       // Sign out from Firebase
       await signOutUser();
       setShowDeleteSheet(false);
-
+      setIsDeleting(false);
 
       router.replace('/home' as any);
     } catch (error) {
       console.error('Delete account error:', error);
+      setIsDeleting(false);
       Alert.alert(
         'Error',
         'Failed to delete account: ' +
@@ -206,8 +211,9 @@ export default function AccountSettingsPage() {
       {/* Delete Account Confirmation Sheet */}
       <DeleteAccountSheet
         visible={showDeleteSheet}
-        onDismiss={() => setShowDeleteSheet(false)}
+        onDismiss={() => !isDeleting && setShowDeleteSheet(false)}
         onConfirm={confirmDeleteAccount}
+        isDeleting={isDeleting}
       />
     </SafeAreaView>
   );
