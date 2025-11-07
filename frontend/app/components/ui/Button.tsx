@@ -41,7 +41,7 @@ export default function Button({
   const [isPressed, setIsPressed] = React.useState(false);
 
   const handlePressIn = () => {
-    // Add strong haptic feedback for primary and destructive variants
+    // Add strong haptic feedback for primary and negative variants
     if (variant === 'primary' || variant === 'negative') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } else {
