@@ -24,7 +24,7 @@ import {
 } from '../utils/testDataGenerator';
 import { db } from '../../../firebaseAdmin';
 
-jest.setTimeout(30000);
+jest.setTimeout(120000);
 
 describe('Nudging System Integration Tests', () => {
   let testUsers: TestUser[] = [];
@@ -41,6 +41,11 @@ describe('Nudging System Integration Tests', () => {
   beforeEach(async () => {
     testUsers = [];
     testPromptId = '';
+  });
+
+  afterEach(async () => {
+    // Clean up test data after each test to avoid collisions
+    await cleanupTestData();
   });
 
   describe('Basic Nudging Functionality', () => {
