@@ -255,6 +255,25 @@ export default function MatchesScreen() {
 
   const renderWeekendPeriod = () => (
     <>
+      {activePrompt && (
+        <ListItemWrapper style={styles.promptSection}>
+          <View style={styles.promptQuestion}>
+            <AppText color="dimmer"> Weekly Prompt: </AppText>
+
+            <AppText variant="subtitle">{activePrompt.question}</AppText>
+          </View>
+          <Button
+            title={userAnswer ? 'Edit answer' : 'Answer prompt'}
+            onPress={() => {
+              setTempAnswer(userAnswer);
+              setShowPromptSheet(true);
+            }}
+            variant="secondary"
+            iconLeft={Pencil}
+            noRound
+          />
+        </ListItemWrapper>
+      )}
       {currentMatches.length > 0 && (
         <View style={[styles.section, styles.sectionPadding]}>
           <AppText variant="subtitle" style={styles.sectionTitle}>

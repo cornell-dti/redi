@@ -348,14 +348,22 @@ export async function submitPromptAnswer(
     answerData.promptId
   );
 
-  if (existingAnswer) {
-    throw new Error('Answer already submitted for this prompt');
-  }
+  let answerDoc: WeeklyPromptAnswerDocWrite;
 
-  const answerDoc: WeeklyPromptAnswerDocWrite = {
-    ...answerData,
-    createdAt: FieldValue.serverTimestamp(),
-  };
+  if (existingAnswer) {
+    // Update existing answer
+    answerDoc = {
+      ...answerData,
+      createdAt: existingAnswer.createdAt, // Preserve original creation time
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+  } else {
+    // Create new answer
+    answerDoc = {
+      ...answerData,
+      createdAt: FieldValue.serverTimestamp(),
+    };
+  }
 
   await db.collection(ANSWERS_COLLECTION).doc(docId).set(answerDoc);
 
