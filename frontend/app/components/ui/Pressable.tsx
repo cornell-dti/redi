@@ -1,8 +1,9 @@
+import * as Haptics from 'expo-haptics';
 import React, { useRef } from 'react';
 import {
   Animated,
-  Pressable as RNPressable,
   PressableProps,
+  Pressable as RNPressable,
 } from 'react-native';
 
 interface AnimatedPressableProps extends PressableProps {
@@ -20,6 +21,7 @@ export default function Pressable({
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = (event: any) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     Animated.spring(scaleAnim, {
       toValue: scaleTo,
       useNativeDriver: true,
