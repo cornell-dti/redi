@@ -30,7 +30,7 @@ export default function IconButton({
   const handlePressIn = () => {
     // Add strong haptic feedback for primary and negative variants
     if (variant === 'primary' || variant === 'negative') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     setIsPressed(true);
     Animated.spring(scaleAnim, {

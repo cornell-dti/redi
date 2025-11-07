@@ -1,4 +1,5 @@
 import { useThemeAware } from '@/app/contexts/ThemeContext';
+import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef } from 'react';
 import { Animated, PanResponder, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
@@ -79,6 +80,12 @@ const Toast: React.FC<ToastProps> = ({
     if (visible) {
       // Reset pan value when showing
       panY.setValue(0);
+
+      // Tic-tac haptic pattern: two light taps
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      setTimeout(() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }, 100);
 
       // Fade in
       Animated.parallel([

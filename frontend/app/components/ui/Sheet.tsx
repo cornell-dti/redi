@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef } from 'react';
 import {
   Animated,
@@ -63,6 +64,15 @@ export default function Sheet({
       translateY.setValue(SCREEN_HEIGHT);
       overlayOpacity.setValue(0);
       isAnimatingRef.current = false;
+
+      // Haptic pattern synced with sheet bounce animation
+      // Initial impact when sheet starts sliding in
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+      // Lighter tap to match the bounce settle (~200ms matches spring timing)
+      setTimeout(() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }, 200);
 
       // Use a spring for a subtle bounce on open
       Animated.parallel([
