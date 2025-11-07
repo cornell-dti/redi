@@ -53,13 +53,6 @@ const mockFallbackData = {
 export default function ProfileScreen() {
   const [animationTrigger, setAnimationTrigger] = useState(0);
 
-  // Trigger animation every time screen is focused
-  useFocusEffect(
-    useCallback(() => {
-      setAnimationTrigger((prev) => prev + 1);
-    }, [])
-  );
-
   useThemeAware(); // Force re-render when theme changes
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,12 +61,7 @@ export default function ProfileScreen() {
   const [showRatingSheet, setShowRatingSheet] = useState(false);
   const [showOnboardingVideo, setShowOnboardingVideo] = useState(false);
 
-  // Fetch profile data on mount
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     const user = getCurrentUser();
 
     if (!user?.uid) {
@@ -98,7 +86,15 @@ export default function ProfileScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Fetch profile data when screen is focused (including returning from edit screen)
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+      setAnimationTrigger((prev) => prev + 1);
+    }, [fetchProfile])
+  );
 
   const confirmSignOut = async () => {
     try {
