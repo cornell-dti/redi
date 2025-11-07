@@ -43,8 +43,11 @@ export default function Button({
   const handlePressIn = () => {
     // Add strong haptic feedback for primary and negative variants
     if (variant === 'primary' || variant === 'negative') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } else {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+
     setIsPressed(true);
     Animated.spring(scaleAnim, {
       toValue: 0.97,

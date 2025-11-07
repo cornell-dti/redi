@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics';
 import React, { useRef } from 'react';
 import {
   Animated,
@@ -37,6 +38,7 @@ export default function ListItem({
   const [isPressed, setIsPressed] = React.useState(false);
 
   const handlePressIn = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsPressed(true);
     Animated.spring(scaleAnim, {
       toValue: 0.97,
