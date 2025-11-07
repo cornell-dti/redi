@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics';
 import React, { useRef } from 'react';
 import {
   Animated,
@@ -82,6 +83,7 @@ const AppInput: React.FC<AppInputProps> = ({
   };
 
   const handleFocus = (e: any) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
     Animated.timing(borderColorAnim, {
       toValue: 1,
       duration: 120,

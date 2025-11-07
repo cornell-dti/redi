@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics';
 import { LucideIcon } from 'lucide-react-native';
 import React, { useRef } from 'react';
 import { Animated, TouchableOpacity, ViewStyle } from 'react-native';
@@ -27,6 +28,10 @@ export default function IconButton({
   const [isPressed, setIsPressed] = React.useState(false);
 
   const handlePressIn = () => {
+    // Add strong haptic feedback for primary and negative variants
+    if (variant === 'primary' || variant === 'negative') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    }
     setIsPressed(true);
     Animated.spring(scaleAnim, {
       toValue: 0.97,
