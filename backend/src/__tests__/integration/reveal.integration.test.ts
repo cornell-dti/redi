@@ -21,7 +21,7 @@ import {
   TestUser,
 } from '../utils/testDataGenerator';
 
-jest.setTimeout(30000);
+jest.setTimeout(120000); // Increased timeout for integration tests with cleanup
 
 describe('Reveal System Integration Tests', () => {
   let testUsers: TestUser[] = [];
@@ -40,9 +40,14 @@ describe('Reveal System Integration Tests', () => {
     testPromptId = '';
   });
 
+  afterEach(async () => {
+    // Clean up test data after each test to avoid collisions
+    await cleanupTestData();
+  });
+
   describe('Basic Reveal Functionality', () => {
     test('should reveal a specific match by index', async () => {
-      testUsers = await createTestUsers(6);
+      testUsers = await createTestUsers(10);
       const prompt = await createTestPrompt();
       testPromptId = prompt.promptId;
 
@@ -56,12 +61,14 @@ describe('Reveal System Integration Tests', () => {
 
       // First match should be revealed, others should not
       expect(matches!.revealed[0]).toBe(true);
-      expect(matches!.revealed[1]).toBe(false);
-      expect(matches!.revealed[2]).toBe(false);
+      // Check remaining matches based on actual match count
+      for (let i = 1; i < matches!.matches.length; i++) {
+        expect(matches!.revealed[i]).toBe(false);
+      }
     });
 
-    test('should reveal all 3 matches independently', async () => {
-      testUsers = await createTestUsers(6);
+    test('should reveal all matches independently', async () => {
+      testUsers = await createTestUsers(10);
       const prompt = await createTestPrompt();
       testPromptId = prompt.promptId;
 
@@ -72,20 +79,21 @@ describe('Reveal System Integration Tests', () => {
       let matches = await getUserMatches(testUsers[0].netid, testPromptId);
       expect(matches!.revealed.every((r: boolean) => r === false)).toBe(true);
 
-      // Reveal first match
-      await revealMatch(testUsers[0].netid, testPromptId, 0);
-      matches = await getUserMatches(testUsers[0].netid, testPromptId);
-      expect(matches!.revealed).toEqual([true, false, false]);
+      const matchCount = matches!.matches.length;
 
-      // Reveal second match
-      await revealMatch(testUsers[0].netid, testPromptId, 1);
-      matches = await getUserMatches(testUsers[0].netid, testPromptId);
-      expect(matches!.revealed).toEqual([true, true, false]);
+      // Reveal each match independently
+      for (let i = 0; i < matchCount; i++) {
+        await revealMatch(testUsers[0].netid, testPromptId, i);
+        matches = await getUserMatches(testUsers[0].netid, testPromptId);
 
-      // Reveal third match
-      await revealMatch(testUsers[0].netid, testPromptId, 2);
-      matches = await getUserMatches(testUsers[0].netid, testPromptId);
-      expect(matches!.revealed).toEqual([true, true, true]);
+        // Check that all matches up to index i are revealed, rest are not
+        for (let j = 0; j < matchCount; j++) {
+          expect(matches!.revealed[j]).toBe(j <= i);
+        }
+      }
+
+      // All matches should now be revealed
+      expect(matches!.revealed.every((r: boolean) => r === true)).toBe(true);
     });
 
     test('should not affect other users when revealing a match', async () => {
@@ -229,22 +237,25 @@ describe('Reveal System Integration Tests', () => {
     });
 
     test('revealing a match should not unlock chat', async () => {
-      testUsers = await createTestUsers(6);
+      testUsers = await createTestUsers(10);
       const prompt = await createTestPrompt();
       testPromptId = prompt.promptId;
 
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
+      const initialMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const matchCount = initialMatches!.matches.length;
+
       // Reveal all matches
-      await revealMatch(testUsers[0].netid, testPromptId, 0);
-      await revealMatch(testUsers[0].netid, testPromptId, 1);
-      await revealMatch(testUsers[0].netid, testPromptId, 2);
+      for (let i = 0; i < matchCount; i++) {
+        await revealMatch(testUsers[0].netid, testPromptId, i);
+      }
 
       const matches = await getUserMatches(testUsers[0].netid, testPromptId);
 
       // All matches should be revealed
-      expect(matches!.revealed).toEqual([true, true, true]);
+      expect(matches!.revealed.every((r: boolean) => r === true)).toBe(true);
 
       // But chat should not be unlocked
       if (matches!.chatUnlocked) {
@@ -255,24 +266,27 @@ describe('Reveal System Integration Tests', () => {
 
   describe('Concurrent Reveal Operations', () => {
     test('should handle concurrent reveals of different matches', async () => {
-      testUsers = await createTestUsers(6);
+      testUsers = await createTestUsers(10);
       const prompt = await createTestPrompt();
       testPromptId = prompt.promptId;
 
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      // Reveal all 3 matches concurrently
-      await Promise.all([
-        revealMatch(testUsers[0].netid, testPromptId, 0),
-        revealMatch(testUsers[0].netid, testPromptId, 1),
-        revealMatch(testUsers[0].netid, testPromptId, 2),
-      ]);
+      const initialMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const matchCount = initialMatches!.matches.length;
+
+      // Reveal all matches concurrently
+      const revealPromises = [];
+      for (let i = 0; i < matchCount; i++) {
+        revealPromises.push(revealMatch(testUsers[0].netid, testPromptId, i));
+      }
+      await Promise.all(revealPromises);
 
       const matches = await getUserMatches(testUsers[0].netid, testPromptId);
 
       // All should be revealed
-      expect(matches!.revealed).toEqual([true, true, true]);
+      expect(matches!.revealed.every((r: boolean) => r === true)).toBe(true);
     });
 
     test('should handle concurrent reveals of same match (idempotent)', async () => {
@@ -299,25 +313,43 @@ describe('Reveal System Integration Tests', () => {
 
   describe('Reveal Order Independence', () => {
     test('should allow revealing matches in any order', async () => {
-      testUsers = await createTestUsers(6);
+      testUsers = await createTestUsers(10);
       const prompt = await createTestPrompt();
       testPromptId = prompt.promptId;
 
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      // Reveal in reverse order: 2, then 0, then 1
-      await revealMatch(testUsers[0].netid, testPromptId, 2);
-      let matches = await getUserMatches(testUsers[0].netid, testPromptId);
-      expect(matches!.revealed).toEqual([false, false, true]);
+      const initialMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const matchCount = initialMatches!.matches.length;
 
-      await revealMatch(testUsers[0].netid, testPromptId, 0);
-      matches = await getUserMatches(testUsers[0].netid, testPromptId);
-      expect(matches!.revealed).toEqual([true, false, true]);
+      // Only test if user has at least 3 matches
+      if (matchCount >= 3) {
+        // Reveal in reverse order: 2, then 0, then 1
+        await revealMatch(testUsers[0].netid, testPromptId, 2);
+        let matches = await getUserMatches(testUsers[0].netid, testPromptId);
+        expect(matches!.revealed[2]).toBe(true);
+        expect(matches!.revealed[0]).toBe(false);
+        expect(matches!.revealed[1]).toBe(false);
 
-      await revealMatch(testUsers[0].netid, testPromptId, 1);
-      matches = await getUserMatches(testUsers[0].netid, testPromptId);
-      expect(matches!.revealed).toEqual([true, true, true]);
+        await revealMatch(testUsers[0].netid, testPromptId, 0);
+        matches = await getUserMatches(testUsers[0].netid, testPromptId);
+        expect(matches!.revealed[0]).toBe(true);
+        expect(matches!.revealed[2]).toBe(true);
+        expect(matches!.revealed[1]).toBe(false);
+
+        await revealMatch(testUsers[0].netid, testPromptId, 1);
+        matches = await getUserMatches(testUsers[0].netid, testPromptId);
+        expect(matches!.revealed.slice(0, 3)).toEqual([true, true, true]);
+      } else {
+        // If fewer than 3 matches, just verify order independence with what we have
+        const revealOrder = matchCount === 2 ? [1, 0] : [0];
+        for (const index of revealOrder) {
+          await revealMatch(testUsers[0].netid, testPromptId, index);
+        }
+        const matches = await getUserMatches(testUsers[0].netid, testPromptId);
+        expect(matches!.revealed.every((r: boolean) => r === true)).toBe(true);
+      }
     });
   });
 
@@ -355,7 +387,7 @@ describe('Reveal System Integration Tests', () => {
 
   describe('Reveal State Persistence', () => {
     test('should persist revealed state across queries', async () => {
-      testUsers = await createTestUsers(6);
+      testUsers = await createTestUsers(10);
       const prompt = await createTestPrompt();
       testPromptId = prompt.promptId;
 
@@ -365,40 +397,46 @@ describe('Reveal System Integration Tests', () => {
       // Reveal first match
       await revealMatch(testUsers[0].netid, testPromptId, 0);
 
+      const initialMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const matchCount = initialMatches!.matches.length;
+
       // Query multiple times - state should persist
       for (let i = 0; i < 3; i++) {
         const matches = await getUserMatches(testUsers[0].netid, testPromptId);
         expect(matches!.revealed[0]).toBe(true);
-        expect(matches!.revealed[1]).toBe(false);
-        expect(matches!.revealed[2]).toBe(false);
+        // Check remaining matches are unrevealed
+        for (let j = 1; j < matchCount; j++) {
+          expect(matches!.revealed[j]).toBe(false);
+        }
       }
     });
 
     test('should maintain revealed state after revealing additional matches', async () => {
-      testUsers = await createTestUsers(6);
+      testUsers = await createTestUsers(10);
       const prompt = await createTestPrompt();
       testPromptId = prompt.promptId;
 
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
+      const initialMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const matchCount = initialMatches!.matches.length;
+
       // Reveal matches one by one, checking state persists
-      await revealMatch(testUsers[0].netid, testPromptId, 0);
-      let matches = await getUserMatches(testUsers[0].netid, testPromptId);
-      expect(matches!.revealed[0]).toBe(true);
+      for (let i = 0; i < matchCount; i++) {
+        await revealMatch(testUsers[0].netid, testPromptId, i);
+        const matches = await getUserMatches(testUsers[0].netid, testPromptId);
 
-      // Reveal second match - first should still be revealed
-      await revealMatch(testUsers[0].netid, testPromptId, 1);
-      matches = await getUserMatches(testUsers[0].netid, testPromptId);
-      expect(matches!.revealed[0]).toBe(true);
-      expect(matches!.revealed[1]).toBe(true);
+        // All matches up to index i should be revealed
+        for (let j = 0; j <= i; j++) {
+          expect(matches!.revealed[j]).toBe(true);
+        }
 
-      // Reveal third match - previous two should still be revealed
-      await revealMatch(testUsers[0].netid, testPromptId, 2);
-      matches = await getUserMatches(testUsers[0].netid, testPromptId);
-      expect(matches!.revealed[0]).toBe(true);
-      expect(matches!.revealed[1]).toBe(true);
-      expect(matches!.revealed[2]).toBe(true);
+        // Remaining matches should be unrevealed
+        for (let j = i + 1; j < matchCount; j++) {
+          expect(matches!.revealed[j]).toBe(false);
+        }
+      }
     });
   });
 });

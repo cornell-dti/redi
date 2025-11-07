@@ -2,7 +2,9 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
-  testMatch: ['**/__tests__/integration/**/*.test.ts'],
+  testMatch: [
+    '**/__tests__/integration/**/*.test.ts',
+  ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
@@ -11,7 +13,7 @@ module.exports = {
   ],
   // DO NOT use setup file - integration tests need real Firebase
   // setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
-  testTimeout: 60000, // 60 seconds for integration tests
+  testTimeout: 120000, // 120 seconds for integration tests (cleanup can take time)
   clearMocks: false, // Don't clear mocks - we're using real services
   resetMocks: false,
   restoreMocks: false,

@@ -25,7 +25,7 @@ import {
 } from '../utils/testDataGenerator';
 import { db } from '../../../firebaseAdmin';
 
-jest.setTimeout(60000); // Extended timeout for end-to-end tests
+jest.setTimeout(120000); // Extended timeout for end-to-end tests with cleanup
 
 describe('End-to-End Integration Tests', () => {
   let testUsers: TestUser[] = [];
@@ -36,6 +36,16 @@ describe('End-to-End Integration Tests', () => {
   });
 
   afterAll(async () => {
+    await cleanupTestData();
+  });
+
+  beforeEach(async () => {
+    testUsers = [];
+    testPromptId = '';
+  });
+
+  afterEach(async () => {
+    // Clean up test data after each test to avoid collisions
     await cleanupTestData();
   });
 

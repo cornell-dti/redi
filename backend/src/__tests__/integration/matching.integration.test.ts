@@ -23,7 +23,7 @@ import {
 import { db } from '../../../firebaseAdmin';
 
 // Increase timeout for integration tests
-jest.setTimeout(30000);
+jest.setTimeout(120000);
 
 describe('Matching Algorithm Integration Tests', () => {
   let testUsers: TestUser[] = [];
@@ -43,6 +43,11 @@ describe('Matching Algorithm Integration Tests', () => {
     // Create fresh test data for each test
     testUsers = [];
     testPromptId = '';
+  });
+
+  afterEach(async () => {
+    // Clean up test data after each test to avoid collisions
+    await cleanupTestData();
   });
 
   describe('Basic Matching Functionality', () => {
@@ -369,6 +374,6 @@ describe('Matching Algorithm Integration Tests', () => {
         const matches = await getUserMatches(user.netid, testPromptId);
         expect(matches?.matches).toHaveLength(3);
       }
-    }, 30000); // 30 second timeout for this test
+    }, 120000); // 120 second timeout for this test
   });
 });
