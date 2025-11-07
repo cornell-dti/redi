@@ -52,3 +52,5 @@ npm-debug.*
 web-build/
 android/
 *SPECS.md
+*.tmp
+*.backup
