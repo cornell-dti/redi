@@ -148,3 +148,27 @@ export const getAllProfiles = async (
 
   return apiClient.get<ProfileResponse[]>(endpoint);
 };
+
+/**
+ * Batch fetch profiles by Firebase UIDs
+ * Used for fetching fresh profile data for chat participants
+ * SECURITY: Requires authentication
+ *
+ * @param uids - Array of Firebase UIDs to fetch profiles for
+ * @returns Promise resolving to map of UID -> profile data { firstName, pictures, netid }
+ * @throws APIError if fetch fails
+ */
+export const getBatchProfiles = async (
+  uids: string[]
+): Promise<Record<string, { firstName: string; pictures: string[]; netid: string }>> => {
+  if (uids.length === 0) {
+    return {};
+  }
+
+  // Join UIDs with commas for query parameter
+  const uidsParam = uids.join(',');
+
+  return apiClient.get<Record<string, { firstName: string; pictures: string[]; netid: string }>>(
+    `/api/profiles/batch?uids=${encodeURIComponent(uidsParam)}`
+  );
+};

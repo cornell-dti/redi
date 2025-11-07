@@ -3,11 +3,12 @@ import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import { MessageCircle } from 'lucide-react-native';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../../api/authService';
 import { getBlockedUsers } from '../../api/blockingApi';
+import { getBatchProfiles } from '../../api/profileApi';
 import { AppColors } from '../../components/AppColors';
 import ChatItem from '../../components/ui/ChatItem';
 import EmptyState from '../../components/ui/EmptyState';
@@ -73,6 +74,7 @@ export default function ChatScreen() {
   const currentUser = getCurrentUser();
   const [blockedUsers, setBlockedUsers] = useState<Set<string>>(new Set());
   const [animationTrigger, setAnimationTrigger] = useState(0);
+  const [freshProfiles, setFreshProfiles] = useState<Record<string, { firstName: string; pictures: string[]; netid: string }>>({});
 
   // Fetch blocked users list when screen is focused
   useFocusEffect(
@@ -95,6 +97,32 @@ export default function ChatScreen() {
     }, [currentUser])
   );
 
+  // Fetch fresh profile data for all conversation participants
+  useEffect(() => {
+    const fetchFreshProfiles = async () => {
+      if (!currentUser || conversations.length === 0) return;
+
+      try {
+        // Extract all participant UIDs (excluding current user)
+        const participantUids = conversations
+          .flatMap((conv) => conv.participantIds)
+          .filter((uid) => uid !== currentUser.uid)
+          .filter((uid, index, self) => self.indexOf(uid) === index); // Remove duplicates
+
+        if (participantUids.length === 0) return;
+
+        // Fetch fresh profile data
+        const profiles = await getBatchProfiles(participantUids);
+        setFreshProfiles(profiles);
+      } catch (error) {
+        console.error('Error fetching fresh profiles:', error);
+        // Don't set fresh profiles on error - will fall back to cached data
+      }
+    };
+
+    fetchFreshProfiles();
+  }, [conversations, currentUser]);
+
   // Transform Firestore conversations to UI format
   const chatData = useMemo(() => {
     if (!currentUser) {
@@ -109,6 +137,13 @@ export default function ChatScreen() {
           (id) => id !== currentUser.uid
         );
         const otherUser = otherUserId ? conv.participants[otherUserId] : null;
+
+        // Get fresh profile data if available, otherwise use cached data
+        const freshProfile = otherUserId ? freshProfiles[otherUserId] : null;
+
+        // Use fresh profile picture (pictures[0]) if available, otherwise fall back to cached image
+        // If no image available, use placeholder
+        const profileImage = freshProfile?.pictures?.[0] || otherUser?.image || 'https://via.placeholder.com/150';
 
         // Format timestamp
         let timestamp = 'Just now';
@@ -131,14 +166,14 @@ export default function ChatScreen() {
         return {
           id: conv.id,
           userId: otherUserId || '',
-          netid: otherUser?.netid || '',
-          name: otherUser?.deleted ? 'Deleted User' : (otherUser?.name || 'Unknown'),
+          netid: freshProfile?.netid || otherUser?.netid || '',
+          name: otherUser?.deleted ? 'Deleted User' : (freshProfile?.firstName || otherUser?.name || 'Unknown'),
           lastMessage: conv.lastMessage?.text || 'Start a conversation',
           timestamp,
-          image: otherUser?.image || 'https://via.placeholder.com/150',
+          image: profileImage,
         };
       });
-  }, [conversations, currentUser]);
+  }, [conversations, currentUser, freshProfiles]);
 
   const displayData = chatData;
 

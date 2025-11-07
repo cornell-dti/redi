@@ -1,5 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, X } from 'lucide-react-native';
+import { Camera, Star, X } from 'lucide-react-native';
 import React from 'react';
 import { Alert, Image, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
@@ -55,6 +55,16 @@ export default function PhotoUploadGrid({
     onPhotosChange(newPhotos);
   };
 
+  const setAsMainPhoto = (index: number) => {
+    if (index === 0) return; // Already main photo
+
+    // Move the selected photo to the front of the array
+    const newPhotos = [...photos];
+    const [selectedPhoto] = newPhotos.splice(index, 1);
+    newPhotos.unshift(selectedPhoto);
+    onPhotosChange(newPhotos);
+  };
+
   // Create 6 slots (2x3 grid)
   const GRID_SLOTS = 6;
   const slots = Array.from({ length: GRID_SLOTS }, (_, index) => {
@@ -78,6 +88,17 @@ export default function PhotoUploadGrid({
                 {slot.index === 0 && (
                   <View style={styles.mainBadgeContainer}>
                     <Tag label="Main" variant="accent" />
+                  </View>
+                )}
+
+                {slot.index !== 0 && (
+                  <View style={styles.setMainButtonContainer}>
+                    <IconButton
+                      icon={Star}
+                      onPress={() => setAsMainPhoto(slot.index)}
+                      variant="secondary"
+                      size="small"
+                    />
                   </View>
                 )}
 
@@ -148,6 +169,11 @@ const styles = StyleSheet.create({
   mainBadgeContainer: {
     position: 'absolute',
     top: 8,
+    left: 8,
+  },
+  setMainButtonContainer: {
+    position: 'absolute',
+    bottom: 8,
     left: 8,
   },
   removeButtonContainer: {

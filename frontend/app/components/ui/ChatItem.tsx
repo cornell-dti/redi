@@ -1,6 +1,7 @@
 import React from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
+import AppText from './AppText';
 import ListItem from './ListItem';
 
 interface ChatItemProps {
@@ -16,9 +17,22 @@ export default function ChatItem({
   image,
   onPress,
 }: ChatItemProps) {
+  // Check if image is a valid URL (not placeholder)
+  const hasValidImage = image && !image.includes('placeholder');
+
   return (
     <ListItem
-      left={<Image source={{ uri: image }} style={styles.avatar} />}
+      left={
+        hasValidImage ? (
+          <Image source={{ uri: image }} style={styles.avatar} />
+        ) : (
+          <View style={styles.avatarFallback}>
+            <AppText style={styles.avatarFallbackText}>
+              {name.charAt(0).toUpperCase()}
+            </AppText>
+          </View>
+        )
+      }
       title={name}
       description={lastMessage}
       onPress={onPress}
@@ -41,6 +55,19 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
+  },
+  avatarFallback: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: AppColors.backgroundDimmest,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarFallbackText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: AppColors.foregroundDefault,
   },
   onlineIndicator: {
     position: 'absolute',
