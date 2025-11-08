@@ -138,7 +138,7 @@ export default function OnboardingVideo({
       <View style={styles.container}>
         <Video
           ref={videoRef}
-          source={require('../../../assets/videos/onboarding.mp4')}
+          source={require('../../../assets/videos/onboarding.mov')}
           style={styles.video}
           resizeMode={ResizeMode.COVER}
           shouldPlay
