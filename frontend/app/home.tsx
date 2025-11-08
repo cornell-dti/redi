@@ -140,7 +140,7 @@ export default function HomePage() {
     } catch (error) {
       Alert.alert(
         'Login Failed',
-        error instanceof Error ? error.message : 'Unknown error occurred'
+        error instanceof Error ? error.message : 'Incorrect email or password. Please try again.'
       );
       setPassword('');
     } finally {

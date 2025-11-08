@@ -677,6 +677,7 @@ export default function ChatDetailScreen() {
             fullRound
             style={styles.messageInput}
             onSubmitEditing={sendMessage}
+            returnKeyType="send"
           />
 
           <Animated.View

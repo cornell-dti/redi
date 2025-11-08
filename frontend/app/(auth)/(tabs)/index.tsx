@@ -405,6 +405,7 @@ export default function MatchesScreen() {
               numberOfLines={3}
               maxLength={120}
               style={{ height: 84, borderRadius: 24 }}
+              returnKeyType="done"
             />
 
             <AppText variant="bodySmall" color="dimmer">
