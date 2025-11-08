@@ -135,6 +135,7 @@ const AppInput: React.FC<AppInputProps> = ({
             maxLength={dateFormat ? 10 : props.maxLength}
             onChangeText={dateFormat ? handleDateChange : props.onChangeText}
             multiline={props.multiline || false}
+            placeholderTextColor={AppColors.foregroundDimmer}
           />
         </Animated.View>
       </Animated.View>
