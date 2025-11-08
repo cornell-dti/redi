@@ -1,13 +1,17 @@
 import * as Haptics from 'expo-haptics';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
   PanResponder,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { AppColors } from '../AppColors';
@@ -33,6 +37,7 @@ export default function Sheet({
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const isAnimatingRef = useRef(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   // Helper function to handle dismiss with animation
   const handleDismiss = () => {
@@ -57,6 +62,28 @@ export default function Sheet({
       }
     });
   };
+
+  // Keyboard listeners
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (visible) {
@@ -89,6 +116,9 @@ export default function Sheet({
           useNativeDriver: true,
         }),
       ]).start();
+    } else {
+      // Reset keyboard height when sheet closes
+      setKeyboardHeight(0);
     }
   }, [visible, translateY, overlayOpacity]);
 
@@ -142,37 +172,43 @@ export default function Sheet({
           />
         </Pressable>
 
-        <Animated.View
-          style={
-            [
-              styles.sheet,
-              height && height !== 'auto' && { height },
-              { transform: [{ translateY: combinedTranslate }] },
-            ] as any
-          }
-        >
-          <View
-            {...panResponder.panHandlers}
-            style={styles.dragHandleContainer}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <Animated.View
+            style={
+              [
+                styles.sheet,
+                height && height !== 'auto' && { height },
+                {
+                  transform: [{ translateY: combinedTranslate }],
+                  marginBottom: keyboardHeight,
+                },
+              ] as any
+            }
           >
-            <View style={styles.dragHandle} />
-          </View>
-          <View style={styles.titleContainer}>
-            {title && <AppText variant="subtitle">{title}</AppText>}
-          </View>
-          <ScrollView
-            style={[
-              height && height !== 'auto'
-                ? styles.scrollContent
-                : styles.scrollContentAuto,
-            ]}
-            contentContainerStyle={styles.content}
-            showsVerticalScrollIndicator={false}
-            nestedScrollEnabled={true}
-          >
-            {children}
-          </ScrollView>
-        </Animated.View>
+            <View
+              {...panResponder.panHandlers}
+              style={styles.dragHandleContainer}
+            >
+              <View style={styles.dragHandle} />
+            </View>
+            <View style={styles.titleContainer}>
+              {title && <AppText variant="subtitle">{title}</AppText>}
+            </View>
+            <ScrollView
+              style={[
+                height && height !== 'auto'
+                  ? styles.scrollContent
+                  : styles.scrollContentAuto,
+              ]}
+              contentContainerStyle={styles.content}
+              showsVerticalScrollIndicator={false}
+              nestedScrollEnabled={true}
+              keyboardShouldPersistTaps="handled"
+            >
+              {children}
+            </ScrollView>
+          </Animated.View>
+        </TouchableWithoutFeedback>
       </View>
     </Modal>
   );
