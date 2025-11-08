@@ -713,6 +713,8 @@ export default function CreateProfileScreen() {
                   value={clubInput}
                   onChangeText={setClubInput}
                   autoCapitalize="words"
+                  returnKeyType="done"
+                  onSubmitEditing={addClub}
                 />
                 <Button
                   title="Add"
@@ -808,6 +810,8 @@ export default function CreateProfileScreen() {
                   placeholder="Enter an interest"
                   value={interestInput}
                   onChangeText={setInterestInput}
+                  returnKeyType="done"
+                  onSubmitEditing={addInterest}
                 />
                 <Button
                   title="Add"
