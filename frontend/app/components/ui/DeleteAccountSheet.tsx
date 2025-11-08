@@ -9,12 +9,14 @@ interface DeleteAccountSheetProps {
   visible: boolean;
   onDismiss: () => void;
   onConfirm: () => void;
+  isDeleting?: boolean;
 }
 
 export default function DeleteAccountSheet({
   visible,
   onDismiss,
   onConfirm,
+  isDeleting = false,
 }: DeleteAccountSheetProps) {
   return (
     <Sheet visible={visible} onDismiss={onDismiss} title="Delete Account">
@@ -26,17 +28,19 @@ export default function DeleteAccountSheet({
 
         <View style={styles.buttonRow}>
           <Button
-            title="Delete Account"
+            title={isDeleting ? "Deleting..." : "Delete Account"}
             onPress={onConfirm}
             variant="negative"
             fullWidth
             iconLeft={Trash2}
+            disabled={isDeleting}
           />
           <Button
             title="Keep my account"
             onPress={onDismiss}
             variant="secondary"
             fullWidth
+            disabled={isDeleting}
           />
         </View>
       </View>

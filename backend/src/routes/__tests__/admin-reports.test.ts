@@ -47,20 +47,22 @@ describe('Admin Reports API', () => {
     mockAuditLogsCollection = createMockCollection();
 
     // Setup db.collection mock
-    (db.collection as jest.Mock).mockImplementation((collectionName: string) => {
-      switch (collectionName) {
-        case 'reports':
-          return mockReportsCollection;
-        case 'profiles':
-          return mockProfilesCollection;
-        case 'admins':
-          return mockAdminsCollection;
-        case 'auditLogs':
-          return mockAuditLogsCollection;
-        default:
-          return createMockCollection();
+    (db.collection as jest.Mock).mockImplementation(
+      (collectionName: string) => {
+        switch (collectionName) {
+          case 'reports':
+            return mockReportsCollection;
+          case 'profiles':
+            return mockProfilesCollection;
+          case 'admins':
+            return mockAdminsCollection;
+          case 'auditLogs':
+            return mockAuditLogsCollection;
+          default:
+            return createMockCollection();
+        }
       }
-    });
+    );
   });
 
   // =============================================================================
@@ -86,7 +88,11 @@ describe('Admin Reports API', () => {
           createMockDocSnapshot('user-uid', null)
         );
 
-        const response = await authenticatedGet(app, '/api/admin/reports', 'admin');
+        const response = await authenticatedGet(
+          app,
+          '/api/admin/reports',
+          'admin'
+        );
 
         expect(response.status).toBe(403);
         expect(response.body.error).toMatch(/admin/i);
@@ -101,7 +107,10 @@ describe('Admin Reports API', () => {
         // Mock admin exists in admins collection
         mockAdminsCollection.doc.mockReturnThis();
         mockAdminsCollection.get.mockResolvedValue(
-          createMockDocSnapshot('admin-uid', createMockAdmin({ uid: 'admin-uid' }))
+          createMockDocSnapshot(
+            'admin-uid',
+            createMockAdmin({ uid: 'admin-uid' })
+          )
         );
       });
 
@@ -126,12 +135,19 @@ describe('Admin Reports API', () => {
           createMockQuerySnapshot([
             {
               id: 'profile-1',
-              data: createMockProfile({ netid: 'reporter0', firstName: 'Alice' }),
+              data: createMockProfile({
+                netid: 'reporter0',
+                firstName: 'Alice',
+              }),
             },
           ])
         );
 
-        const response = await authenticatedGet(app, '/api/admin/reports', 'admin');
+        const response = await authenticatedGet(
+          app,
+          '/api/admin/reports',
+          'admin'
+        );
 
         expect(response.status).toBe(200);
         expect(Array.isArray(response.body)).toBe(true);
@@ -157,9 +173,7 @@ describe('Admin Reports API', () => {
         mockReportsCollection.orderBy.mockReturnThis();
         mockReportsCollection.where.mockReturnThis();
         mockReportsCollection.get.mockResolvedValue(
-          createMockQuerySnapshot([
-            { id: 'report-1', data: mockReports[0] },
-          ])
+          createMockQuerySnapshot([{ id: 'report-1', data: mockReports[0] }])
         );
 
         // Mock profile lookups
@@ -182,7 +196,9 @@ describe('Admin Reports API', () => {
 
         expect(response.status).toBe(200);
         expect(Array.isArray(response.body)).toBe(true);
-        expect(response.body.every((r: any) => r.status === 'pending')).toBe(true);
+        expect(response.body.every((r: any) => r.status === 'pending')).toBe(
+          true
+        );
       });
 
       it('should sort reports by createdAt desc', async () => {
@@ -212,10 +228,17 @@ describe('Admin Reports API', () => {
           ])
         );
 
-        const response = await authenticatedGet(app, '/api/admin/reports', 'admin');
+        const response = await authenticatedGet(
+          app,
+          '/api/admin/reports',
+          'admin'
+        );
 
         expect(response.status).toBe(200);
-        expect(mockReportsCollection.orderBy).toHaveBeenCalledWith('createdAt', 'desc');
+        expect(mockReportsCollection.orderBy).toHaveBeenCalledWith(
+          'createdAt',
+          'desc'
+        );
       });
 
       it('should return 400 for invalid status filter', async () => {
@@ -241,7 +264,10 @@ describe('Admin Reports API', () => {
 
       mockAdminsCollection.doc.mockReturnThis();
       mockAdminsCollection.get.mockResolvedValue(
-        createMockDocSnapshot('admin-uid', createMockAdmin({ uid: 'admin-uid' }))
+        createMockDocSnapshot(
+          'admin-uid',
+          createMockAdmin({ uid: 'admin-uid' })
+        )
       );
     });
 
@@ -318,7 +344,10 @@ describe('Admin Reports API', () => {
 
       mockAdminsCollection.doc.mockReturnThis();
       mockAdminsCollection.get.mockResolvedValue(
-        createMockDocSnapshot('admin-uid', createMockAdmin({ uid: 'admin-uid' }))
+        createMockDocSnapshot(
+          'admin-uid',
+          createMockAdmin({ uid: 'admin-uid' })
+        )
       );
     });
 
@@ -367,7 +396,9 @@ describe('Admin Reports API', () => {
       mockReportsCollection.update.mockResolvedValue(undefined);
       mockReportsCollection.get
         .mockResolvedValueOnce(createMockDocSnapshot('report-123', mockReport))
-        .mockResolvedValueOnce(createMockDocSnapshot('report-123', updatedReport));
+        .mockResolvedValueOnce(
+          createMockDocSnapshot('report-123', updatedReport)
+        );
 
       // Mock audit log creation
       mockAuditLogsCollection.add.mockResolvedValue({ id: 'audit-123' });
@@ -392,7 +423,9 @@ describe('Admin Reports API', () => {
       mockReportsCollection.update.mockResolvedValue(undefined);
       mockReportsCollection.get
         .mockResolvedValueOnce(createMockDocSnapshot('report-123', mockReport))
-        .mockResolvedValueOnce(createMockDocSnapshot('report-123', updatedReport));
+        .mockResolvedValueOnce(
+          createMockDocSnapshot('report-123', updatedReport)
+        );
 
       mockAuditLogsCollection.add.mockResolvedValue({ id: 'audit-123' });
 
@@ -415,7 +448,9 @@ describe('Admin Reports API', () => {
       mockReportsCollection.update.mockResolvedValue(undefined);
       mockReportsCollection.get
         .mockResolvedValueOnce(createMockDocSnapshot('report-123', mockReport))
-        .mockResolvedValueOnce(createMockDocSnapshot('report-123', updatedReport));
+        .mockResolvedValueOnce(
+          createMockDocSnapshot('report-123', updatedReport)
+        );
 
       mockAuditLogsCollection.add.mockResolvedValue({ id: 'audit-123' });
 
@@ -457,7 +492,10 @@ describe('Admin Reports API', () => {
 
       mockAdminsCollection.doc.mockReturnThis();
       mockAdminsCollection.get.mockResolvedValue(
-        createMockDocSnapshot('admin-uid', createMockAdmin({ uid: 'admin-uid' }))
+        createMockDocSnapshot(
+          'admin-uid',
+          createMockAdmin({ uid: 'admin-uid' })
+        )
       );
     });
 
@@ -505,7 +543,9 @@ describe('Admin Reports API', () => {
       mockReportsCollection.update.mockResolvedValue(undefined);
       mockReportsCollection.get
         .mockResolvedValueOnce(createMockDocSnapshot('report-123', mockReport))
-        .mockResolvedValueOnce(createMockDocSnapshot('report-123', resolvedReport));
+        .mockResolvedValueOnce(
+          createMockDocSnapshot('report-123', resolvedReport)
+        );
 
       mockAuditLogsCollection.add.mockResolvedValue({ id: 'audit-123' });
 
@@ -518,7 +558,9 @@ describe('Admin Reports API', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('resolved');
-      expect(response.body.resolution).toBe('User has been warned and will be monitored');
+      expect(response.body.resolution).toBe(
+        'User has been warned and will be monitored'
+      );
     });
 
     it('should resolve report successfully', async () => {
@@ -533,7 +575,9 @@ describe('Admin Reports API', () => {
       mockReportsCollection.update.mockResolvedValue(undefined);
       mockReportsCollection.get
         .mockResolvedValueOnce(createMockDocSnapshot('report-123', mockReport))
-        .mockResolvedValueOnce(createMockDocSnapshot('report-123', resolvedReport));
+        .mockResolvedValueOnce(
+          createMockDocSnapshot('report-123', resolvedReport)
+        );
 
       mockAuditLogsCollection.add.mockResolvedValue({ id: 'audit-123' });
 

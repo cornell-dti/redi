@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics';
 import React, { useRef } from 'react';
 import {
   Animated,
@@ -14,7 +15,7 @@ type ReactNode = React.ReactNode;
 
 interface ListItemProps {
   title: string;
-  description?: string;
+  description?: string | ReactNode;
   left?: ReactNode;
   right?: ReactNode;
   selected?: boolean;
@@ -37,6 +38,7 @@ export default function ListItem({
   const [isPressed, setIsPressed] = React.useState(false);
 
   const handlePressIn = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsPressed(true);
     Animated.spring(scaleAnim, {
       toValue: 0.97,
@@ -62,11 +64,15 @@ export default function ListItem({
         style={({ pressed }) => [
           styles.container,
           selected && { backgroundColor: AppColors.accentAlpha },
-          // keep original pressed styling logic; rely on pressed OR local isPressed
+
+          // 🔹 pressed or isPressed logic
           (pressed || isPressed) &&
             (selected
               ? { backgroundColor: AppColors.accentAlpha }
-              : styles.pressed),
+              : destructive
+                ? { backgroundColor: AppColors.negativeDimmest } // 🔸 if destructive & pressed
+                : styles.pressed),
+
           description ? { height: 'auto' } : { height: 54 },
           style,
         ]}
@@ -82,7 +88,13 @@ export default function ListItem({
           >
             {title}
           </AppText>
-          {description ? <AppText color="dimmer">{description}</AppText> : null}
+          {description ? (
+            typeof description === 'string' ? (
+              <AppText color="dimmer">{description}</AppText>
+            ) : (
+              description
+            )
+          ) : null}
         </View>
 
         {right ? <View style={styles.right}>{right}</View> : null}

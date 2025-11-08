@@ -18,9 +18,7 @@ import {
 /**
  * Create a mock user document
  */
-export const createMockUser = (
-  overrides: Partial<UserDoc> = {}
-): UserDoc => ({
+export const createMockUser = (overrides: Partial<UserDoc> = {}): UserDoc => ({
   netid: 'jd123',
   email: 'jd123@cornell.edu',
   firebaseUid: 'firebase-uid-123',

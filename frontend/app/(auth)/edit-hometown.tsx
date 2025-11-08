@@ -1,6 +1,7 @@
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import { router } from 'expo-router';
+import { Check } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -16,14 +17,18 @@ import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
+import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EditHometownPage() {
   useThemeAware();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hometown, setHometown] = useState('');
   const [originalHometown, setOriginalHometown] = useState('');
+  const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -73,7 +78,12 @@ export default function EditHometownPage() {
       });
 
       setOriginalHometown(hometown);
-      Alert.alert('Success', 'Hometown updated successfully');
+
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Hometown updated',
+      });
+
       router.back();
     } catch (error) {
       console.error('Failed to update hometown:', error);
@@ -89,21 +99,19 @@ export default function EditHometownPage() {
 
   const handleBack = () => {
     if (hasUnsavedChanges()) {
-      Alert.alert(
-        'Unsaved Changes',
-        'You have unsaved changes. Do you want to discard them?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Discard',
-            style: 'destructive',
-            onPress: () => router.back(),
-          },
-        ]
-      );
+      setShowUnsavedChangesSheet(true);
     } else {
       router.back();
     }
+  };
+
+  const handleSaveAndExit = async () => {
+    await handleSave();
+  };
+
+  const handleDiscardChanges = () => {
+    setShowUnsavedChangesSheet(false);
+    router.back();
   };
 
   return (
@@ -126,7 +134,7 @@ export default function EditHometownPage() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.sentence}>
-            <AppText>I'm from </AppText>
+            <AppText>I&apos;m from </AppText>
             <AppInput
               placeholder="e.g., New York, NY"
               value={hometown}
@@ -137,6 +145,14 @@ export default function EditHometownPage() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Unsaved Changes Sheet */}
+      <UnsavedChangesSheet
+        visible={showUnsavedChangesSheet}
+        onSave={handleSaveAndExit}
+        onDiscard={handleDiscardChanges}
+        onDismiss={() => setShowUnsavedChangesSheet(false)}
+      />
     </SafeAreaView>
   );
 }

@@ -13,12 +13,12 @@ import {
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import { authenticatedRateLimit } from '../middleware/rateLimiting';
 import { validate, validateProfileCreation } from '../middleware/validation';
-import { createDefaultPreferences } from '../services/preferencesService';
 import {
   blockUser,
-  unblockUser,
   getBlockedUsers,
+  unblockUser,
 } from '../services/blockingService';
+import { createDefaultPreferences } from '../services/preferencesService';
 import {
   determineViewContext,
   getProfileWithAge,
@@ -257,6 +257,115 @@ router.get(
     } catch (error) {
       console.error("Error fetching current user's profile:", error);
       res.status(500).json({ error: 'Failed to fetch profile' });
+    }
+  }
+);
+
+/**
+ * GET /api/profiles/batch
+ * Batch fetch profiles by Firebase UIDs for chat participant display
+ * Returns fresh profile data including current pictures[0]
+ *
+ * @authenticated
+ * @query uids - Comma-separated list of Firebase UIDs
+ * @returns Object mapping Firebase UID to profile data { firstName, pictures, netid }
+ */
+router.get(
+  '/api/profiles/batch',
+  authenticatedRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { uids } = req.query;
+
+      if (!uids || typeof uids !== 'string') {
+        return res.status(400).json({
+          error: 'Missing or invalid uids query parameter',
+        });
+      }
+
+      // Parse comma-separated UIDs
+      const uidList = uids.split(',').map((uid) => uid.trim()).filter(Boolean);
+
+      if (uidList.length === 0) {
+        return res.status(400).json({
+          error: 'No valid UIDs provided',
+        });
+      }
+
+      if (uidList.length > 50) {
+        return res.status(400).json({
+          error: 'Maximum 50 UIDs allowed per request',
+        });
+      }
+
+      // Create result map
+      const profilesMap: Record<string, {
+        firstName: string;
+        pictures: string[];
+        netid: string;
+      }> = {};
+
+      // Fetch user documents to get netids from Firebase UIDs
+      const userPromises = uidList.map(async (firebaseUid) => {
+        try {
+          const userSnapshot = await db
+            .collection('users')
+            .where('firebaseUid', '==', firebaseUid)
+            .limit(1)
+            .get();
+
+          if (userSnapshot.empty) {
+            return null;
+          }
+
+          const userData = userSnapshot.docs[0].data();
+          const netid = userData.netid;
+
+          // Fetch profile for this netid
+          const profileSnapshot = await db
+            .collection('profiles')
+            .where('netid', '==', netid)
+            .limit(1)
+            .get();
+
+          if (profileSnapshot.empty) {
+            return null;
+          }
+
+          const profileData = profileSnapshot.docs[0].data() as ProfileDoc;
+
+          return {
+            firebaseUid,
+            netid,
+            firstName: profileData.firstName || 'Unknown',
+            pictures: profileData.pictures || [],
+          };
+        } catch (error) {
+          console.error(`Error fetching profile for UID ${firebaseUid}:`, error);
+          return null;
+        }
+      });
+
+      const results = await Promise.all(userPromises);
+
+      // Build response map
+      results.forEach((result) => {
+        if (result) {
+          profilesMap[result.firebaseUid] = {
+            firstName: result.firstName,
+            pictures: result.pictures,
+            netid: result.netid,
+          };
+        }
+      });
+
+      res.status(200).json(profilesMap);
+    } catch (error) {
+      console.error('Error in batch profile fetch:', error);
+      res.status(500).json({
+        error: 'Failed to fetch profiles',
+      });
     }
   }
 );

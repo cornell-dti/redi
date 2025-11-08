@@ -15,9 +15,9 @@ import { createMockDecodedToken, createMockAdminToken } from './factories';
  */
 export const mockFirebaseAuth = (userOverrides: any = {}) => {
   const mockAuth = {
-    verifyIdToken: jest.fn().mockResolvedValue(
-      createMockDecodedToken(userOverrides)
-    ),
+    verifyIdToken: jest
+      .fn()
+      .mockResolvedValue(createMockDecodedToken(userOverrides)),
     getUser: jest.fn().mockResolvedValue({
       uid: userOverrides.uid || 'firebase-uid-123',
       email: userOverrides.email || 'test@cornell.edu',
@@ -36,9 +36,9 @@ export const mockFirebaseAuth = (userOverrides: any = {}) => {
  */
 export const mockFirebaseAdminAuth = (adminOverrides: any = {}) => {
   const mockAuth = {
-    verifyIdToken: jest.fn().mockResolvedValue(
-      createMockAdminToken(adminOverrides)
-    ),
+    verifyIdToken: jest
+      .fn()
+      .mockResolvedValue(createMockAdminToken(adminOverrides)),
     getUser: jest.fn().mockResolvedValue({
       uid: adminOverrides.uid || 'admin-uid-123',
       email: adminOverrides.email || 'admin@cornell.edu',
@@ -54,7 +54,9 @@ export const mockFirebaseAdminAuth = (adminOverrides: any = {}) => {
 /**
  * Create a valid JWT token string for testing (not a real token)
  */
-export const createMockToken = (tokenType: 'user' | 'admin' = 'user'): string => {
+export const createMockToken = (
+  tokenType: 'user' | 'admin' = 'user'
+): string => {
   return `mock-${tokenType}-token-${Date.now()}`;
 };
 

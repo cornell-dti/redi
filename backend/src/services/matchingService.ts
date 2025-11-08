@@ -4,7 +4,6 @@ import {
   WeeklyMatchDocWrite,
   WeeklyMatchResponse,
   ProfileDoc,
-  PreferencesDoc,
 } from '../../types';
 import { FieldValue } from 'firebase-admin/firestore';
 import { getUsersWhoAnswered } from './promptsService';
@@ -14,6 +13,44 @@ import { getBlockedUsersMap } from './blockingService';
 
 const MATCHES_COLLECTION = 'weeklyMatches';
 const PROFILES_COLLECTION = 'profiles';
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+/**
+ * Calculate the next Friday at 12:00 AM ET from a given date
+ * @param fromDate - The date to calculate from (defaults to now)
+ * @returns Date object set to next Friday at 12:00 AM ET
+ */
+function getNextFridayMidnight(fromDate: Date = new Date()): Date {
+  const date = new Date(fromDate);
+
+  // Set to midnight
+  date.setHours(0, 0, 0, 0);
+
+  // Get day of week (0 = Sunday, 5 = Friday)
+  const dayOfWeek = date.getDay();
+
+  // Calculate days until next Friday
+  // If today is Friday (5), add 7 days to get next Friday
+  // Otherwise, calculate days until next Friday
+  let daysUntilFriday;
+  if (dayOfWeek === 5) {
+    // If it's Friday, expire next Friday (7 days)
+    daysUntilFriday = 7;
+  } else if (dayOfWeek < 5) {
+    // If before Friday this week, expire this coming Friday
+    daysUntilFriday = 5 - dayOfWeek;
+  } else {
+    // If after Friday (Saturday or Sunday), expire next Friday
+    daysUntilFriday = 5 + (7 - dayOfWeek);
+  }
+
+  date.setDate(date.getDate() + daysUntilFriday);
+
+  return date;
+}
 
 // =============================================================================
 // WEEKLY MATCHES OPERATIONS
@@ -33,12 +70,16 @@ export async function createWeeklyMatch(
 ): Promise<WeeklyMatchDoc> {
   const docId = `${netid}_${promptId}`;
 
+  // Calculate expiration date (next Friday at 12:00 AM ET)
+  const expiresAt = getNextFridayMidnight();
+
   const matchDoc: WeeklyMatchDocWrite = {
     netid,
     promptId,
     matches: matches.slice(0, 3), // Ensure max 3 matches
     revealed: matches.slice(0, 3).map(() => false), // All matches start unrevealed
     createdAt: FieldValue.serverTimestamp(),
+    expiresAt: expiresAt, // Matches expire next Friday at midnight
   };
 
   await db.collection(MATCHES_COLLECTION).doc(docId).set(matchDoc);
@@ -56,18 +97,24 @@ export async function getWeeklyMatch(
   netid: string,
   promptId: string
 ): Promise<WeeklyMatchDoc | null> {
-  const docId = `${netid}_${promptId}`;
-  const doc = await db.collection(MATCHES_COLLECTION).doc(docId).get();
+  // Query by netid and promptId to support both algorithm-generated and manually created matches
+  const snapshot = await db
+    .collection(MATCHES_COLLECTION)
+    .where('netid', '==', netid)
+    .where('promptId', '==', promptId)
+    .limit(1)
+    .get();
 
-  if (!doc.exists) {
+  if (snapshot.empty) {
     return null;
   }
 
-  return doc.data() as WeeklyMatchDoc;
+  return snapshot.docs[0].data() as WeeklyMatchDoc;
 }
 
 /**
  * Get all matches for a user across all prompts
+ * Only returns non-expired matches (where expiresAt > now)
  * @param netid - User's Cornell NetID
  * @param limit - Maximum number of matches to return (default: 10)
  * @returns Promise resolving to array of WeeklyMatchDoc
@@ -76,9 +123,13 @@ export async function getUserMatchHistory(
   netid: string,
   limit: number = 10
 ): Promise<WeeklyMatchDoc[]> {
+  const now = new Date();
+
   const snapshot = await db
     .collection(MATCHES_COLLECTION)
     .where('netid', '==', netid)
+    .where('expiresAt', '>', now)
+    .orderBy('expiresAt', 'desc')
     .orderBy('createdAt', 'desc')
     .limit(limit)
     .get();
@@ -102,7 +153,6 @@ export async function revealMatch(
     throw new Error('Match index must be between 0 and 2');
   }
 
-  const docId = `${netid}_${promptId}`;
   const matchDoc = await getWeeklyMatch(netid, promptId);
 
   if (!matchDoc) {
@@ -116,7 +166,17 @@ export async function revealMatch(
   const revealed = [...matchDoc.revealed];
   revealed[matchIndex] = true;
 
-  await db.collection(MATCHES_COLLECTION).doc(docId).update({ revealed });
+  // Query to find the document and update it (supports both ID formats)
+  const snapshot = await db
+    .collection(MATCHES_COLLECTION)
+    .where('netid', '==', netid)
+    .where('promptId', '==', promptId)
+    .limit(1)
+    .get();
+
+  if (!snapshot.empty) {
+    await snapshot.docs[0].ref.update({ revealed });
+  }
 
   return getWeeklyMatch(netid, promptId) as Promise<WeeklyMatchDoc>;
 }
@@ -136,6 +196,10 @@ export function matchToResponse(doc: WeeklyMatchDoc): WeeklyMatchResponse {
       doc.createdAt instanceof Date
         ? doc.createdAt.toISOString()
         : doc.createdAt.toDate().toISOString(),
+    expiresAt:
+      doc.expiresAt instanceof Date
+        ? doc.expiresAt.toISOString()
+        : doc.expiresAt.toDate().toISOString(),
   };
 }
 

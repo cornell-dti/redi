@@ -269,9 +269,14 @@ export async function activatePrompt(
   console.log(
     `🗓️  Setting matchDate (deadline) to: ${newMatchDate.toISOString()}`
   );
-  console.log(
-    `   └─ Day: ${newMatchDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/New_York' })}, Time: ${newMatchDate.toLocaleTimeString('en-US', { timeZone: 'America/New_York' })} ET`
-  );
+  const dayStr = newMatchDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    timeZone: 'America/New_York',
+  });
+  const timeStr = newMatchDate.toLocaleTimeString('en-US', {
+    timeZone: 'America/New_York',
+  });
+  console.log(`   └─ Day: ${dayStr}, Time: ${timeStr} ET`);
 
   // Activate the specified prompt with updated releaseDate and matchDate
   const promptRef = db.collection(PROMPTS_COLLECTION).doc(promptId);
@@ -343,14 +348,22 @@ export async function submitPromptAnswer(
     answerData.promptId
   );
 
-  if (existingAnswer) {
-    throw new Error('Answer already submitted for this prompt');
-  }
+  let answerDoc: WeeklyPromptAnswerDocWrite;
 
-  const answerDoc: WeeklyPromptAnswerDocWrite = {
-    ...answerData,
-    createdAt: FieldValue.serverTimestamp(),
-  };
+  if (existingAnswer) {
+    // Update existing answer
+    answerDoc = {
+      ...answerData,
+      createdAt: existingAnswer.createdAt, // Preserve original creation time
+      updatedAt: FieldValue.serverTimestamp(),
+    };
+  } else {
+    // Create new answer
+    answerDoc = {
+      ...answerData,
+      createdAt: FieldValue.serverTimestamp(),
+    };
+  }
 
   await db.collection(ANSWERS_COLLECTION).doc(docId).set(answerDoc);
 

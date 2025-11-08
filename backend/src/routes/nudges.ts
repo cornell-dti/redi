@@ -68,20 +68,44 @@ router.post(
       }
 
       // Verify the users are actually matched for this prompt
-      const matchDocId = `${fromNetid}_${promptId}`;
-      const matchDoc = await db
+      // Query by netid and promptId to support both algorithm-generated and manually created matches
+      const matchSnapshot = await db
         .collection('weeklyMatches')
-        .doc(matchDocId)
+        .where('netid', '==', fromNetid)
+        .where('promptId', '==', promptId)
+        .limit(1)
         .get();
 
-      if (!matchDoc.exists) {
+      if (matchSnapshot.empty) {
         return res.status(404).json({ error: 'Match document not found' });
       }
 
+      const matchDoc = matchSnapshot.docs[0];
       const matchData = matchDoc.data();
       if (!matchData || !matchData.matches.includes(toNetid)) {
         return res.status(403).json({
           error: 'Cannot nudge: users are not matched for this prompt',
+        });
+      }
+
+      // Check if the match has expired
+      const now = new Date();
+      let expiresAt: Date;
+
+      if (matchData.expiresAt instanceof Date) {
+        expiresAt = matchData.expiresAt;
+      } else if (
+        matchData.expiresAt &&
+        typeof matchData.expiresAt.toDate === 'function'
+      ) {
+        expiresAt = matchData.expiresAt.toDate();
+      } else {
+        expiresAt = new Date(matchData.expiresAt);
+      }
+
+      if (now > expiresAt) {
+        return res.status(400).json({
+          error: 'Cannot nudge: this match has expired',
         });
       }
 

@@ -69,15 +69,20 @@ describe('Nudges API', () => {
         docs: [{ data: () => ({ netid: mockUser1.netid }) }],
       };
 
-      // Mock match document (user1 matched with user2)
-      const mockMatchDoc = {
-        exists: true,
-        data: () => ({
-          netid: mockUser1.netid,
-          promptId,
-          matches: [mockUser2.netid, mockUser3.netid],
-          revealed: [true, false],
-        }),
+      // Mock match snapshot (user1 matched with user2) - now using where query
+      const mockMatchSnapshot = {
+        empty: false,
+        docs: [
+          {
+            data: () => ({
+              netid: mockUser1.netid,
+              promptId,
+              matches: [mockUser2.netid, mockUser3.netid],
+              revealed: [true, false],
+              expiresAt: new Date(Date.now() + 86400000), // Tomorrow
+            }),
+          },
+        ],
       };
 
       // Mock nudge doesn't exist yet
@@ -100,26 +105,37 @@ describe('Nudges API', () => {
       };
 
       const mockSet = jest.fn().mockResolvedValue({});
-      const mockGet = jest
+      const mockGetDoc = jest
         .fn()
-        .mockResolvedValueOnce(mockMatchDoc)
         .mockResolvedValueOnce(mockNudgeDoc)
         .mockResolvedValueOnce(mockReverseNudgeDoc)
         .mockResolvedValueOnce({ data: () => mockCreatedNudge });
 
       const mockDoc = jest.fn().mockReturnValue({
-        get: mockGet,
+        get: mockGetDoc,
         set: mockSet,
       });
 
-      const mockWhere = jest.fn().mockReturnValue({
+      // Mock for weeklyMatches where query
+      const mockMatchWhere = jest.fn().mockReturnThis();
+      const mockMatchLimit = jest.fn().mockReturnValue({
+        get: jest.fn().mockResolvedValue(mockMatchSnapshot),
+      });
+
+      const mockUserWhere = jest.fn().mockReturnValue({
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
       (db.collection as jest.Mock).mockImplementation(
         (collectionName: string) => {
           if (collectionName === 'users') {
-            return { where: mockWhere };
+            return { where: mockUserWhere };
+          }
+          if (collectionName === 'weeklyMatches') {
+            return {
+              where: mockMatchWhere,
+              limit: mockMatchLimit,
+            };
           }
           return { doc: mockDoc };
         }
@@ -147,32 +163,44 @@ describe('Nudges API', () => {
         docs: [{ data: () => ({ netid: mockUser1.netid }) }],
       };
 
-      // Mock match document where user3 is NOT in the matches
-      const mockMatchDoc = {
-        exists: true,
-        data: () => ({
-          netid: mockUser1.netid,
-          promptId,
-          matches: [mockUser2.netid],
-          revealed: [true],
-        }),
+      // Mock match snapshot where user3 is NOT in the matches
+      const mockMatchSnapshot = {
+        empty: false,
+        docs: [
+          {
+            data: () => ({
+              netid: mockUser1.netid,
+              promptId,
+              matches: [mockUser2.netid],
+              revealed: [true],
+              expiresAt: new Date(Date.now() + 86400000), // Tomorrow
+            }),
+          },
+        ],
       };
 
-      const mockGet = jest.fn().mockResolvedValue(mockMatchDoc);
-      const mockDoc = jest.fn().mockReturnValue({
-        get: mockGet,
+      // Mock for weeklyMatches where query
+      const mockMatchWhere = jest.fn().mockReturnThis();
+      const mockMatchLimit = jest.fn().mockReturnValue({
+        get: jest.fn().mockResolvedValue(mockMatchSnapshot),
       });
 
-      const mockWhere = jest.fn().mockReturnValue({
+      const mockUserWhere = jest.fn().mockReturnValue({
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
       (db.collection as jest.Mock).mockImplementation(
         (collectionName: string) => {
           if (collectionName === 'users') {
-            return { where: mockWhere };
+            return { where: mockUserWhere };
           }
-          return { doc: mockDoc };
+          if (collectionName === 'weeklyMatches') {
+            return {
+              where: mockMatchWhere,
+              limit: mockMatchLimit,
+            };
+          }
+          return {};
         }
       );
 
@@ -195,14 +223,19 @@ describe('Nudges API', () => {
         docs: [{ data: () => ({ netid: mockUser1.netid }) }],
       };
 
-      const mockMatchDoc = {
-        exists: true,
-        data: () => ({
-          netid: mockUser1.netid,
-          promptId,
-          matches: [mockUser2.netid],
-          revealed: [true],
-        }),
+      const mockMatchSnapshot = {
+        empty: false,
+        docs: [
+          {
+            data: () => ({
+              netid: mockUser1.netid,
+              promptId,
+              matches: [mockUser2.netid],
+              revealed: [true],
+              expiresAt: new Date(Date.now() + 86400000), // Tomorrow
+            }),
+          },
+        ],
       };
 
       // Nudge already exists
@@ -217,23 +250,32 @@ describe('Nudges API', () => {
         }),
       };
 
-      const mockGet = jest
-        .fn()
-        .mockResolvedValueOnce(mockMatchDoc)
-        .mockResolvedValueOnce(mockNudgeDoc);
+      const mockGetDoc = jest.fn().mockResolvedValue(mockNudgeDoc);
 
       const mockDoc = jest.fn().mockReturnValue({
-        get: mockGet,
+        get: mockGetDoc,
       });
 
-      const mockWhere = jest.fn().mockReturnValue({
+      // Mock for weeklyMatches where query
+      const mockMatchWhere = jest.fn().mockReturnThis();
+      const mockMatchLimit = jest.fn().mockReturnValue({
+        get: jest.fn().mockResolvedValue(mockMatchSnapshot),
+      });
+
+      const mockUserWhere = jest.fn().mockReturnValue({
         get: jest.fn().mockResolvedValue(mockUserSnapshot),
       });
 
       (db.collection as jest.Mock).mockImplementation(
         (collectionName: string) => {
           if (collectionName === 'users') {
-            return { where: mockWhere };
+            return { where: mockUserWhere };
+          }
+          if (collectionName === 'weeklyMatches') {
+            return {
+              where: mockMatchWhere,
+              limit: mockMatchLimit,
+            };
           }
           return { doc: mockDoc };
         }

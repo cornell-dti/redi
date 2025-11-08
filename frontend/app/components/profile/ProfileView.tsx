@@ -1,17 +1,15 @@
 import AppText from '@/app/components/ui/AppText';
-import { getYearString } from '@/app/utils/profileUtils';
 import { ProfileResponse, getProfileAge } from '@/types';
 import {
   Bell,
   Cake,
-  Ghost,
-  Github,
+  Check,
   Globe,
   GraduationCap,
   Home,
   Instagram,
-  Linkedin,
   Magnet,
+  MessageCircle,
 } from 'lucide-react-native';
 import React from 'react';
 import {
@@ -24,6 +22,9 @@ import {
 } from 'react-native';
 import { AppColors } from '../AppColors';
 import GenderIcon from '../icons/GenderIcon';
+import GithubIcon from '../icons/GithubIcon';
+import LinkedinIcon from '../icons/LinkedinIcon';
+import SnapchatIcon from '../icons/SnapchatIcon';
 import Button from '../ui/Button';
 import FooterSpacer from '../ui/FooterSpacer';
 import ListItemWrapper from '../ui/ListItemWrapper';
@@ -35,15 +36,24 @@ interface ProfileViewProps {
   isLoading?: boolean;
   showNudgeButton?: boolean;
   onNudge?: () => void;
+  nudgeSent?: boolean;
+  nudgeDisabled?: boolean;
+  showOpenChatButton?: boolean;
+  onOpenChat?: () => void;
 }
 
 const ProfileView: React.FC<ProfileViewProps> = ({
   profile,
   showNudgeButton = false,
   onNudge,
+  nudgeSent = false,
+  nudgeDisabled = false,
+  showOpenChatButton = false,
+  onOpenChat,
 }) => {
   const screenWidth = Dimensions.get('window').width;
   const age = getProfileAge(profile);
+  const [activeImageIndex, setActiveImageIndex] = React.useState(0);
 
   type SocialItem = {
     icon: React.ReactNode;
@@ -54,69 +64,134 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   // Check if profile has these fields before accessing them
   const hasSocials = 'instagram' in profile || 'snapchat' in profile;
 
+  // Helper function to ensure URL has protocol
+  const ensureProtocol = (url: string): string => {
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return `https://${url}`;
+    }
+    return url;
+  };
+
+  // Helper function to open URL with error handling
+  const openSocialLink = async (url: string) => {
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        console.error('Cannot open URL:', url);
+      }
+    } catch (error) {
+      console.error('Error opening URL:', error);
+    }
+  };
+
   const socialItems: SocialItem[] = hasSocials
     ? ([
         'instagram' in profile &&
           profile.instagram && {
             icon: <Instagram size={24} />,
-            url: `https://instagram.com/${profile.instagram}`,
+            url: `https://instagram.com/${profile.instagram.replace(/^@/, '')}`,
           },
         'snapchat' in profile &&
           profile.snapchat && {
-            icon: <Ghost size={24} />,
-            url: `https://snapchat.com/add/${profile.snapchat}`,
+            icon: (
+              <SnapchatIcon size={24} color={AppColors.foregroundDefault} />
+            ),
+            url: `https://snapchat.com/add/${profile.snapchat.replace(/^@/, '')}`,
           },
         'linkedIn' in profile &&
           profile.linkedIn && {
-            icon: <Linkedin size={24} />,
-            url: profile.linkedIn,
+            icon: (
+              <LinkedinIcon size={24} color={AppColors.foregroundDefault} />
+            ),
+            url: ensureProtocol(profile.linkedIn),
           },
         'github' in profile &&
           profile.github && {
-            icon: <Github size={24} />,
-            url: profile.github,
+            icon: <GithubIcon size={24} color={AppColors.foregroundDefault} />,
+            url: ensureProtocol(profile.github),
           },
         'website' in profile &&
           profile.website && {
             icon: <Globe size={24} color={AppColors.foregroundDefault} />,
-            url: profile.website,
+            url: ensureProtocol(profile.website),
           },
       ].filter(Boolean) as SocialItem[])
     : [];
+
+  const handleScroll = (event: any) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollPosition / screenWidth);
+    setActiveImageIndex(index);
+  };
 
   return (
     <ScrollView style={styles.container}>
       {/* Image carousel */}
       {profile.pictures && profile.pictures.length > 0 && (
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          style={styles.imageCarousel}
-        >
-          {profile.pictures.map((picture, index) => (
-            <Image
-              key={index}
-              source={{ uri: picture }}
-              style={[styles.profileImage, { width: screenWidth }]}
-              resizeMode="cover"
-            />
-          ))}
-        </ScrollView>
+        <View>
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            style={styles.imageCarousel}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+          >
+            {profile.pictures.map((picture, index) => (
+              <Image
+                key={index}
+                source={{ uri: picture }}
+                style={[styles.profileImage, { width: screenWidth }]}
+                resizeMode="cover"
+              />
+            ))}
+          </ScrollView>
+
+          {/* Pagination dots */}
+          {profile.pictures.length > 1 && (
+            <View style={styles.paginationContainer}>
+              {profile.pictures.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.paginationDot,
+                    index === activeImageIndex && styles.paginationDotActive,
+                  ]}
+                />
+              ))}
+            </View>
+          )}
+        </View>
       )}
 
       <View style={styles.contentContainer}>
         <AppText variant="title">{profile.firstName}</AppText>
 
-        {showNudgeButton && (
-          <Button
-            title="Nudge"
-            onPress={onNudge || (() => console.log('Nudge pressed'))}
-            variant="primary"
-            iconLeft={Bell}
-            fullWidth
-          />
-        )}
+        <View style={styles.buttonCont}>
+          {showNudgeButton && (
+            <Button
+              title={
+                nudgeDisabled ? "It's a match!" : nudgeSent ? 'Nudged' : 'Nudge'
+              }
+              onPress={onNudge || (() => console.log('Nudge pressed'))}
+              variant={nudgeSent ? 'secondary' : 'primary'}
+              iconLeft={nudgeDisabled ? Check : Bell}
+              disabled={nudgeDisabled || nudgeSent}
+              fullWidth
+            />
+          )}
+          {showOpenChatButton && (
+            <Button
+              title="Open Chat"
+              onPress={onOpenChat || (() => console.log('Open Chat pressed'))}
+              variant="primary"
+              iconLeft={MessageCircle}
+              fullWidth
+            />
+          )}
+        </View>
 
         <View style={styles.section}>
           <AppText variant="subtitle" indented>
@@ -126,7 +201,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
           <ListItemWrapper>
             <View style={styles.detailRow}>
               <View style={styles.subSection}>
-                <Cake size={20} />
+                <Cake size={20} color={AppColors.foregroundDefault} />
                 <AppText>{age} y/o</AppText>
               </View>
 
@@ -186,7 +261,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                       isFirst && styles.firstItem,
                       isLast && styles.lastItem,
                     ]}
-                    onPress={() => Linking.openURL(item.url!)}
+                    onPress={() => openSocialLink(item.url)}
                   >
                     {item.icon}
                   </Pressable>
@@ -266,10 +341,18 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 24,
   },
+  buttonCont: {
+    display: 'flex',
+    flexDirection: 'row',
+    flex: 1,
+    width: '55%',
+    gap: 16,
+  },
   section: {
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
+    flex: 1,
   },
   subSection: {
     display: 'flex',
@@ -293,10 +376,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     borderRadius: 24,
-    overflow: 'hidden',
     gap: 4,
-    flex: 1,
-    width: '100%',
   },
   socialItem: {
     display: 'flex',
@@ -304,7 +384,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    borderRadius: 4,
     flex: 1,
   },
   firstItem: {
@@ -329,17 +408,35 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   promptCard: {
-    borderRadius: 8,
+    borderRadius: 24,
     padding: 16,
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
-    backgroundColor: AppColors.backgroundDefault,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 8,
+    backgroundColor: AppColors.backgroundDimmer,
     elevation: 4,
+  },
+  paginationContainer: {
+    position: 'absolute',
+    bottom: 16,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  paginationDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+  paginationDotActive: {
+    backgroundColor: 'rgba(255, 255, 255, 1)',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
 });
 

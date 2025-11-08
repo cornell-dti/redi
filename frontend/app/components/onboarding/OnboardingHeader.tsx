@@ -1,4 +1,5 @@
-import { ChevronLeft } from 'lucide-react-native';
+import { useThemeAware } from '@/app/contexts/ThemeContext';
+import { ArrowLeft } from 'lucide-react-native';
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
@@ -8,15 +9,19 @@ interface OnboardingHeaderProps {
   currentStep: number;
   totalSteps: number;
   onBack: () => void;
+  showBackButton?: boolean;
 }
 
 export default function OnboardingHeader({
   currentStep,
   totalSteps,
   onBack,
+  showBackButton = false,
 }: OnboardingHeaderProps) {
+  useThemeAware();
+
   const progress = currentStep / totalSteps;
-  const isFirstStep = currentStep === 1;
+  const isFirstStep = currentStep === 1 && !showBackButton;
   const animatedWidth = useRef(new Animated.Value(progress * 100)).current;
 
   useEffect(() => {
@@ -46,7 +51,7 @@ export default function OnboardingHeader({
       </View>
 
       {!isFirstStep && (
-        <IconButton icon={ChevronLeft} onPress={onBack} variant="secondary" />
+        <IconButton icon={ArrowLeft} onPress={onBack} variant="secondary" />
       )}
     </View>
   );

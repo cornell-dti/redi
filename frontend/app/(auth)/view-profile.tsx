@@ -1,3 +1,4 @@
+import { getNudgeStatus, sendNudge } from '@/app/api/nudgesApi';
 import { getProfileByNetid } from '@/app/api/profileApi';
 import { createReport } from '@/app/api/reportsApi';
 import { AppColors } from '@/app/components/AppColors';
@@ -7,28 +8,19 @@ import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import ListItem from '@/app/components/ui/ListItem';
 import Sheet from '@/app/components/ui/Sheet';
-import { ProfileResponse, ReportReason } from '@/types';
+import { useToast } from '@/app/contexts/ToastContext';
+import { NudgeStatusResponse, ProfileResponse, ReportReason } from '@/types';
 import auth from '@react-native-firebase/auth';
 import { router, useLocalSearchParams } from 'expo-router';
-import {
-  Ban,
-  Check,
-  ChevronLeft,
-  Flag,
-  MoreVertical,
-} from 'lucide-react-native';
+import { ArrowLeft, Ban, Check, Flag, MoreVertical } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { blockUser, getBlockedUsers, unblockUser } from '../api/blockingApi';
+import { createOrGetConversationByNetid } from '../api/chatApi';
 import IconButton from '../components/ui/IconButton';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 /**
  * View Profile Page
@@ -45,7 +37,11 @@ const REPORT_REASONS: { value: ReportReason; label: string }[] = [
 ];
 
 export default function ViewProfileScreen() {
-  const { netid } = useLocalSearchParams<{ netid: string }>();
+  const { showToast } = useToast();
+  const { netid, promptId } = useLocalSearchParams<{
+    netid: string;
+    promptId?: string;
+  }>();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +53,11 @@ export default function ViewProfileScreen() {
   const [reportText, setReportText] = useState('');
   const [isBlocked, setIsBlocked] = useState(false);
   const [blocking, setBlocking] = useState(false);
+  const [nudgeStatus, setNudgeStatus] = useState<NudgeStatusResponse | null>(
+    null
+  );
+  const [isNudging, setIsNudging] = useState(false);
+  const [isOpeningChat, setIsOpeningChat] = useState(false);
 
   const user = auth().currentUser;
   const currentNetid = user?.email?.split('@')[0] || '';
@@ -66,11 +67,14 @@ export default function ViewProfileScreen() {
     if (netid) {
       fetchProfile();
       checkIfBlocked();
+      if (promptId) {
+        fetchNudgeStatus();
+      }
     } else {
       setError('No user specified');
       setLoading(false);
     }
-  }, [netid]);
+  }, [netid, promptId]);
 
   const checkIfBlocked = async () => {
     if (!netid || !currentNetid) return;
@@ -104,12 +108,80 @@ export default function ViewProfileScreen() {
     }
   };
 
+  const fetchNudgeStatus = async () => {
+    if (!netid || !promptId) return;
+
+    try {
+      const status = await getNudgeStatus(promptId, netid);
+      setNudgeStatus(status);
+    } catch (error) {
+      console.error('Error fetching nudge status:', error);
+      // Don't set nudgeStatus on error - just leave it null
+    }
+  };
+
+  const handleNudge = async () => {
+    if (!netid || !promptId || isNudging) return;
+
+    try {
+      setIsNudging(true);
+      await sendNudge(netid, promptId);
+
+      // Refresh nudge status after sending
+      await fetchNudgeStatus();
+
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: `Nudged ${profile?.firstName}!`,
+      });
+    } catch (error: any) {
+      console.error('Error sending nudge:', error);
+      showToast({
+        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        label: error.message || 'Failed to send nudge. Please try again.',
+      });
+    } finally {
+      setIsNudging(false);
+    }
+  };
+
+  const handleOpenChat = async () => {
+    if (!netid || !profile || isOpeningChat) return;
+
+    // Only allow chat if both users have mutually nudged each other
+    if (!nudgeStatus?.mutual) {
+      showToast({
+        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        label: 'You can only chat after both of you have nudged each other.',
+      });
+      return;
+    }
+
+    try {
+      setIsOpeningChat(true);
+      const conversation = await createOrGetConversationByNetid(netid);
+
+      // Navigate to chat detail screen
+      router.push(
+        `/chat-detail?conversationId=${conversation.id}&name=${profile.firstName}&netid=${netid}` as any
+      );
+    } catch (error: any) {
+      console.error('Error opening chat:', error);
+      showToast({
+        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        label: error.message || 'Failed to open chat. Please try again.',
+      });
+    } finally {
+      setIsOpeningChat(false);
+    }
+  };
+
   // Loading state
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
         <StatusBar barStyle="dark-content" />
-        <ActivityIndicator size="large" color={AppColors.accentDefault} />
+        <LoadingSpinner />
         <AppText style={styles.loadingText}>Loading profile...</AppText>
       </SafeAreaView>
     );
@@ -147,7 +219,7 @@ export default function ViewProfileScreen() {
       <View style={styles.content}>
         <View style={styles.header}>
           <IconButton
-            icon={ChevronLeft}
+            icon={ArrowLeft}
             onPress={() => router.back()}
             variant="secondary"
           />
@@ -163,8 +235,12 @@ export default function ViewProfileScreen() {
       {/* Profile view */}
       <ProfileView
         profile={profile}
-        showNudgeButton={true}
-        onNudge={() => console.log('Nudge user:', netid)}
+        showNudgeButton={!!promptId}
+        onNudge={handleNudge}
+        nudgeSent={nudgeStatus?.sent || false}
+        nudgeDisabled={nudgeStatus?.mutual || isNudging}
+        showOpenChatButton={nudgeStatus?.mutual || false}
+        onOpenChat={handleOpenChat}
       />
 
       {/* More Options Sheet */}
@@ -238,7 +314,7 @@ export default function ViewProfileScreen() {
               onChangeText={setReportText}
               multiline
               numberOfLines={4}
-              style={{ minHeight: 128 }}
+              style={{ height: 128 }}
             />
             <View style={styles.buttonRow}>
               <Button
@@ -254,11 +330,12 @@ export default function ViewProfileScreen() {
                       description: reportText.trim(),
                     });
 
-                    Alert.alert(
-                      'Report Submitted',
-                      'Thank you for helping keep our community safe. We will review your report.',
-                      [{ text: 'OK' }]
-                    );
+                    showToast({
+                      icon: (
+                        <Check size={20} color={AppColors.backgroundDefault} />
+                      ),
+                      label: 'Report submitted',
+                    });
 
                     setShowOptionsSheet(false);
                     setTimeout(() => {
@@ -268,12 +345,14 @@ export default function ViewProfileScreen() {
                     }, 300);
                   } catch (err: any) {
                     console.error('Error submitting report:', err);
-                    Alert.alert(
-                      'Error',
-                      err.message ||
+                    showToast({
+                      icon: (
+                        <Flag size={20} color={AppColors.backgroundDefault} />
+                      ),
+                      label:
+                        err.message ||
                         'Failed to submit report. Please try again.',
-                      [{ text: 'OK' }]
-                    );
+                    });
                   } finally {
                     setIsSubmittingReport(false);
                   }
@@ -328,21 +407,40 @@ export default function ViewProfileScreen() {
                     if (isBlocked) {
                       await unblockUser(netid);
                       setIsBlocked(false);
-                      Alert.alert('Success', `Unblocked ${profile?.firstName}`);
+                      showToast({
+                        icon: (
+                          <Check
+                            size={20}
+                            color={AppColors.backgroundDefault}
+                          />
+                        ),
+                        label: `Unblocked ${profile?.firstName}`,
+                      });
                     } else {
                       await blockUser(netid);
                       setIsBlocked(true);
-                      Alert.alert('Success', `Blocked ${profile?.firstName}`);
+                      showToast({
+                        icon: (
+                          <Check
+                            size={20}
+                            color={AppColors.backgroundDefault}
+                          />
+                        ),
+                        label: `Blocked ${profile?.firstName}`,
+                      });
                     }
 
                     setShowOptionsSheet(false);
                     setTimeout(() => setSheetView('menu'), 300);
                   } catch (error: any) {
-                    Alert.alert(
-                      'Error',
-                      error.message ||
-                        `Failed to ${isBlocked ? 'unblock' : 'block'} user`
-                    );
+                    showToast({
+                      icon: (
+                        <Ban size={20} color={AppColors.backgroundDefault} />
+                      ),
+                      label:
+                        error.message ||
+                        `Failed to ${isBlocked ? 'unblock' : 'block'} user`,
+                    });
                   } finally {
                     setBlocking(false);
                   }

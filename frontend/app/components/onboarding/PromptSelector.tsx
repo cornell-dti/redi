@@ -1,10 +1,8 @@
 import { PromptData } from '@/types';
-import { Quote, X } from 'lucide-react-native';
+import { ChevronDown, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { AppColors } from '../AppColors';
 import AppInput from '../ui/AppInput';
-import AppText from '../ui/AppText';
 import AvailablePromptsSheet from '../ui/AvailablePromptsSheet';
 import Button from '../ui/Button';
 import IconButton from '../ui/IconButton';
@@ -22,7 +20,7 @@ export default function PromptSelector({
   onRemove,
   canRemove,
 }: PromptSelectorProps) {
-  const [showPromptSheet, setShowPromptSheet] = useState(false);
+  const [showPromptSheet, setShowPromptSheet] = useState(!prompt.question);
 
   const handlePromptSelect = (selectedPrompt: string) => {
     onUpdate({
@@ -41,45 +39,53 @@ export default function PromptSelector({
 
   return (
     <View style={styles.container}>
-      <View style={styles.promptHeader}>
-        <View style={styles.promptTop}>
-          <AppText variant="subtitle" style={styles.promptQuestion}>
-            {prompt.question || 'No prompt selected'}
-          </AppText>
-          {canRemove && (
-            <IconButton
-              icon={X}
-              onPress={onRemove}
+      {prompt.question ? (
+        <>
+          <View style={styles.promptHeader}>
+            <Button
+              title={prompt.question}
+              onPress={() => setShowPromptSheet(true)}
               variant="secondary"
-              size="small"
-              style={styles.promptRemoveBtn}
+              fullWidth
+              style={styles.promptButton}
+              noRound
+              dropdown
+              textStyle={{ fontWeight: '600' }}
+              iconRight={ChevronDown}
             />
-          )}
-        </View>
+            {canRemove && (
+              <IconButton
+                icon={X}
+                onPress={onRemove}
+                variant="negative"
+                // size="small"
+                noRound
+              />
+            )}
+          </View>
 
-        <AppInput
-          placeholder="Your answer..."
-          value={prompt.answer}
-          onChangeText={handleAnswerChange}
-          multiline
-          numberOfLines={3}
-          maxLength={150}
-          noRound
-        />
-      </View>
-
-      <Button
-        title={prompt.question ? 'Change prompt' : 'Select a prompt'}
-        onPress={() => setShowPromptSheet(true)}
-        variant="secondary"
-        fullWidth
-        noRound
-        iconLeft={Quote}
-      />
+          <AppInput
+            placeholder="Your answer..."
+            value={prompt.answer}
+            onChangeText={handleAnswerChange}
+            multiline
+            numberOfLines={3}
+            maxLength={120}
+            noRound
+            style={styles.answerInput}
+          />
+        </>
+      ) : null}
 
       <AvailablePromptsSheet
         visible={showPromptSheet}
-        onDismiss={() => setShowPromptSheet(false)}
+        onDismiss={() => {
+          setShowPromptSheet(false);
+          // If no prompt selected, remove this prompt card
+          if (!prompt.question) {
+            onRemove();
+          }
+        }}
         onSelectPrompt={handlePromptSelect}
         selectedPrompt={prompt.question}
       />
@@ -89,32 +95,26 @@ export default function PromptSelector({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 24,
     display: 'flex',
     flexDirection: 'column',
     gap: 4,
     overflow: 'hidden',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
   },
   promptHeader: {
     display: 'flex',
-    flexDirection: 'column',
-    gap: 4,
-    borderRadius: 4,
-  },
-  promptTop: {
-    display: 'flex',
     flexDirection: 'row',
     gap: 4,
+    alignItems: 'flex-start',
+    overflow: 'hidden',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
-  promptRemoveBtn: {
-    borderRadius: 4,
-    minWidth: 56,
-    flex: 1,
+  promptButton: {
+    width: 340,
   },
-  promptQuestion: {
-    flex: 1,
-    borderRadius: 4,
-    padding: 16,
-    backgroundColor: AppColors.backgroundDimmer,
+  answerInput: {
+    height: 60,
   },
 });

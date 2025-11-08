@@ -675,3 +675,112 @@ export const resolveReport = async (
 
   return res.json();
 };
+
+// =============================================================================
+// MANUAL MATCHES API
+// =============================================================================
+
+/**
+ * User with profile information for admin use
+ */
+export interface UserWithProfile {
+  netId: string;
+  firstName: string;
+  profilePicture?: string;
+}
+
+/**
+ * Manual match creation input
+ */
+export interface CreateManualMatchInput {
+  user1NetId: string;
+  user2NetId: string;
+  promptId: string;
+  expiresAt: string; // ISO date string
+  chatUnlocked?: boolean;
+  revealed?: boolean;
+}
+
+/**
+ * Manual match response
+ */
+export interface ManualMatchResponse {
+  netId: string;
+  matches: string[];
+  promptId: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+/**
+ * Fetch all users with profile information for admin use
+ */
+export const fetchUsersWithProfiles = async (): Promise<UserWithProfile[]> => {
+  console.log('Fetching users with profiles');
+
+  const token = await getAuthToken();
+
+  const res = await fetch(`${API_BASE_URL}/api/admin/users`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to fetch users');
+  }
+
+  return res.json();
+};
+
+/**
+ * Create manual matches between two users for testing
+ */
+export const createManualMatch = async (
+  matchData: CreateManualMatchInput
+): Promise<{ message: string; match1Id: string; match2Id: string }> => {
+  console.log('Creating manual match:', matchData);
+
+  const token = await getAuthToken();
+
+  const res = await fetch(`${API_BASE_URL}/api/admin/matches/manual`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(matchData),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to create manual match');
+  }
+
+  return res.json();
+};
+
+/**
+ * Fetch recent matches (last 10) for admin view
+ */
+export const fetchRecentMatches = async (): Promise<ManualMatchResponse[]> => {
+  console.log('Fetching recent matches');
+
+  const token = await getAuthToken();
+
+  const res = await fetch(`${API_BASE_URL}/api/admin/matches/recent`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to fetch recent matches');
+  }
+
+  return res.json();
+};

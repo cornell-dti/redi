@@ -1,8 +1,8 @@
 import { Gender, School, UpdatePreferencesInput } from '@/types';
 import { router } from 'expo-router';
 import { Check, Square } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   ALL_MAJORS,
@@ -24,12 +24,15 @@ import ListItemWrapper from '../components/ui/ListItemWrapper';
 import SearchableMultiSelect from '../components/ui/SearchableMultiSelect';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function DatingPreferencesPage() {
   useThemeAware(); // Force re-render when theme changes
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showUnsavedSheet, setShowUnsavedSheet] = useState(false);
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   // Form state
   const [ageMin, setAgeMin] = useState(18);
@@ -141,7 +144,10 @@ export default function DatingPreferencesPage() {
         genders: selectedGenders,
       });
 
-      Alert.alert('Success', 'Preferences saved!');
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Dating preferences updated',
+      });
       router.back();
     } catch (error) {
       console.error('Failed to save preferences:', error);
@@ -222,11 +228,16 @@ export default function DatingPreferencesPage() {
         title="Dating preferences"
       />
 
-      <ScrollView
+      <Animated.ScrollView
         contentContainerStyle={{
           rowGap: 24,
         }}
         style={styles.scrollView}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
       >
         {/* Age Range */}
         <View style={styles.section}>
@@ -349,7 +360,7 @@ export default function DatingPreferencesPage() {
         </View>
 
         {/* Interested In (Gender) */}
-        <View style={styles.section}>
+        <View style={[styles.section, { paddingBottom: 128 }]}>
           <AppText variant="subtitle" style={styles.sectionTitle}>
             Interested in
           </AppText>
@@ -392,7 +403,7 @@ export default function DatingPreferencesPage() {
             />
           </ListItemWrapper>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* Unsaved Changes Confirmation Sheet */}
       <UnsavedChangesSheet

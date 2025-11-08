@@ -55,6 +55,21 @@ export function useOnboardingState() {
     field: K,
     value: OnboardingData[K]
   ) => {
+    // Remove spaces from social media fields
+    const socialMediaFields = [
+      'linkedIn',
+      'instagram',
+      'snapchat',
+      'github',
+      'website',
+    ];
+    if (
+      socialMediaFields.includes(field as string) &&
+      typeof value === 'string'
+    ) {
+      value = value.replace(/\s/g, '') as OnboardingData[K];
+    }
+
     setData((prev) => ({ ...prev, [field]: value }));
   };
 

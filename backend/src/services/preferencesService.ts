@@ -2,7 +2,6 @@ import { db } from '../../firebaseAdmin';
 import {
   PreferencesDoc,
   PreferencesDocWrite,
-  CreatePreferencesInput,
   UpdatePreferencesInput,
   PreferencesResponse,
 } from '../../types';

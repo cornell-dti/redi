@@ -1,8 +1,9 @@
 import express, { Response } from 'express';
+import admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
-import { db } from '../../firebaseAdmin';
+import { bucket, db } from '../../firebaseAdmin';
 import { FirestoreDoc, UserDoc, UserDocWrite, UserResponse } from '../../types';
-import { requireAdmin } from '../middleware/adminAuth';
+import { AdminRequest, requireAdmin } from '../middleware/adminAuth';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import {
   authenticationRateLimit
@@ -33,7 +34,7 @@ const userDocToResponse = (doc: FirestoreDoc<UserDoc>): UserResponse => ({
 });
 
 // GET all users (admin-only endpoint)
-router.get('/api/users', requireAdmin, async (_req, res) => {
+router.get('/api/users', requireAdmin, async (req: AdminRequest, res: Response) => {
   try {
     const snapshot = await db.collection('users').get();
     const users: UserResponse[] = snapshot.docs.map((doc) =>
@@ -106,7 +107,7 @@ router.post(
   authenticateUser,
   validateUserCreation,
   validate,
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: express.Response) => {
     try {
       console.log('Creating user from auth:', req.body);
 
@@ -264,11 +265,9 @@ router.delete(
         return res.status(404).json({ error: 'User not found' });
       }
 
-      // Delete user document
       const doc = snapshot.docs[0];
       await doc.ref.delete();
 
-      // Also delete associated profile if it exists
       const profileSnapshot = await db
         .collection('profiles')
         .where('netid', '==', netid)
@@ -278,11 +277,167 @@ router.delete(
         await profileDoc.ref.delete();
       }
 
-      // TODO: Delete associated data (preferences, answers, matches, images)
+      const firebaseUid = doc.data().firebaseUid;
+
+      try {
+        await admin.auth().deleteUser(firebaseUid);
+        console.log(`Deleted Firebase Auth user: ${firebaseUid}`);
+      } catch (error) {
+        console.error(`Error deleting Firebase Auth user ${firebaseUid}:`, error);
+        throw new Error('Failed to delete Firebase Authentication user');
+      }
+
+      const conversationsSnapshot = await db
+        .collection('conversations')
+        .where('participantIds', 'array-contains', firebaseUid)
+        .get();
+
+      let batch = db.batch();
+      conversationsSnapshot.docs.forEach((conversationDoc) => {
+        const updatePath = `participants.${firebaseUid}.deleted`;
+        batch.update(conversationDoc.ref, {
+          [updatePath]: true,
+        });
+      });
+      await batch.commit();
+
+      console.log(`Deleting all data for user: ${netid}`);
+
+      const preferencesSnapshot = await db
+        .collection('preferences')
+        .where('netid', '==', netid)
+        .get();
+      batch = db.batch();
+      preferencesSnapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      console.log(`Deleted ${preferencesSnapshot.size} preference documents`);
+
+      const answersSnapshot = await db
+        .collection('weeklyPromptAnswers')
+        .where('netid', '==', netid)
+        .get();
+      batch = db.batch();
+      answersSnapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      console.log(`Deleted ${answersSnapshot.size} prompt answer documents`);
+
+      const matchesSnapshot = await db
+        .collection('weeklyMatches')
+        .where('netid', '==', netid)
+        .get();
+      batch = db.batch();
+      matchesSnapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      console.log(`Deleted ${matchesSnapshot.size} match documents`);
+
+      const allMatchesSnapshot = await db.collection('weeklyMatches').get();
+      batch = db.batch();
+      let updatedMatchCount = 0;
+      allMatchesSnapshot.docs.forEach((matchDoc) => {
+        const matchData = matchDoc.data();
+        if (
+          matchData.matches &&
+          Array.isArray(matchData.matches) &&
+          matchData.matches.includes(netid)
+        ) {
+          const indices = matchData.matches
+            .map((m: string, i: number) => (m === netid ? i : -1))
+            .filter((i: number) => i !== -1);
+
+          if (indices.length > 0) {
+            const updatedMatches = [...matchData.matches];
+            indices.forEach((index: number) => {
+              updatedMatches[index] = null;
+            });
+            batch.update(matchDoc.ref, { matches: updatedMatches });
+            updatedMatchCount++;
+          }
+        }
+      });
+      await batch.commit();
+      console.log(
+        `Updated ${updatedMatchCount} match documents to remove user references`
+      );
+
+      const sentNudgesSnapshot = await db
+        .collection('nudges')
+        .where('fromNetid', '==', netid)
+        .get();
+      const receivedNudgesSnapshot = await db
+        .collection('nudges')
+        .where('toNetid', '==', netid)
+        .get();
+      batch = db.batch();
+      sentNudgesSnapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      receivedNudgesSnapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      console.log(
+        `Deleted ${sentNudgesSnapshot.size + receivedNudgesSnapshot.size} nudge documents`
+      );
+
+      const notificationsSnapshot = await db
+        .collection('notifications')
+        .where('netid', '==', netid)
+        .get();
+      batch = db.batch();
+      notificationsSnapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      console.log(`Deleted ${notificationsSnapshot.size} notification documents`);
+
+      const blockedByUserSnapshot = await db
+        .collection('blockedUsers')
+        .where('blockerNetid', '==', netid)
+        .get();
+      batch = db.batch();
+      blockedByUserSnapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+      console.log(
+        `Deleted ${blockedByUserSnapshot.size} blocked user documents (users blocked by deleted account)`
+      );
+
+      if (!profileSnapshot.empty) {
+        const profileData = profileSnapshot.docs[0].data();
+        if (profileData.pictures && Array.isArray(profileData.pictures)) {
+          const deletePromises = profileData.pictures.map(
+            async (pictureUrl: string) => {
+              try {
+                // URL format: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{path}?...
+                const urlPattern = /\/o\/(.+?)(\?|$)/;
+                const match = pictureUrl.match(urlPattern);
+                if (match) {
+                  const filePath = decodeURIComponent(match[1]);
+                  await bucket.file(filePath).delete();
+                  console.log(`Deleted image: ${filePath}`);
+                }
+              } catch (error) {
+                console.error(`Error deleting image ${pictureUrl}:`, error);
+              }
+            }
+          );
+          await Promise.all(deletePromises);
+          console.log(`Deleted ${profileData.pictures.length} profile images`);
+        }
+      }
+
+      console.log(`Successfully deleted all data for user: ${netid}`);
 
       res
         .status(200)
-        .json({ message: 'User and associated profile deleted successfully' });
+        .json({ message: 'User and all associated data deleted successfully' });
     } catch (error) {
       console.error('Error deleting user:', error);
       res.status(500).json({ error: 'Failed to delete user' });

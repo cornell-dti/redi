@@ -5,12 +5,18 @@ import auth from '@react-native-firebase/auth';
 import * as Linking from 'expo-linking';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, View } from 'react-native';
+import { Alert, View } from 'react-native';
 import { APIError } from './api/apiClient';
 import { onAuthStateChanged, signInWithEmailLink } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
 import { WEB_APP_URL } from './config';
+import OnboardingVideo, {
+  hasShownOnboardingVideo,
+  markOnboardingVideoAsShown,
+} from './components/onboarding/OnboardingVideo';
+import LoadingSpinner from './components/ui/LoadingSpinner';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
+import { ToastProvider } from './contexts/ToastContext';
 
 /**
  * Token Refresh Configuration
@@ -35,6 +41,7 @@ function RootNavigator() {
   useThemeAware(); // This makes all screens theme-aware
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const router = useRouter();
   const segments = useSegments();
 
@@ -103,6 +110,17 @@ function RootNavigator() {
     return () => {
       subscription.remove();
     };
+  }, []);
+
+  // Check if onboarding video should be shown on first launch
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      const hasShown = await hasShownOnboardingVideo();
+      if (!hasShown) {
+        setShowOnboarding(true);
+      }
+    };
+    checkOnboarding();
   }, []);
 
   // Automatic token refresh to maintain authentication
@@ -294,32 +312,45 @@ function RootNavigator() {
     checkAndRedirect();
   }, [user, initializing]);
 
+  const handleOnboardingFinish = async () => {
+    await markOnboardingVideoAsShown();
+    setShowOnboarding(false);
+  };
+
   if (initializing) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
+        <LoadingSpinner />
       </View>
     );
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ title: 'Login' }} />
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="home"
-        options={{
-          headerShown: false,
-        }}
+    <>
+      <Stack>
+        <Stack.Screen name="index" options={{ title: 'Login' }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="home"
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack>
+      <OnboardingVideo
+        visible={showOnboarding}
+        onFinish={handleOnboardingFinish}
       />
-    </Stack>
+    </>
   );
 }
 
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <RootNavigator />
+      <ToastProvider>
+        <RootNavigator />
+      </ToastProvider>
     </ThemeProvider>
   );
 }

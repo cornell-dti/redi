@@ -46,6 +46,9 @@ class APIClient {
     this.baseURL = config.baseURL || API_BASE_URL;
     this.timeout = config.timeout || 30000; // 30 seconds
     this.retryAttempts = config.retryAttempts || 1;
+
+    // Log API client initialization for debugging production issues
+    console.log('API Client initialized with baseURL:', this.baseURL);
   }
 
   /**
@@ -57,6 +60,7 @@ class APIClient {
     const currentUser = auth().currentUser;
 
     if (!currentUser) {
+      console.error('[API] No current user - authentication required');
       throw new APIError(
         'Not authenticated. Please sign in.',
         401,
@@ -64,11 +68,15 @@ class APIClient {
       );
     }
 
+    console.log('[API] Getting token for user:', currentUser.email);
+
     try {
       const token = await currentUser.getIdToken(forceRefresh);
+      console.log('[API] Token obtained, length:', token?.length);
+      console.log('[API] Token preview:', token?.substring(0, 50) + '...');
       return token;
     } catch (error) {
-      console.error('Error getting auth token:', error);
+      console.error('[API] Error getting auth token:', error);
       throw new APIError(
         'Failed to get authentication token',
         401,
@@ -95,6 +103,9 @@ class APIClient {
 
       // Build full URL
       const url = `${this.baseURL}${endpoint}`;
+
+      // Log API request for debugging (only log URL, never log token)
+      console.log(`[API] ${options.method || 'GET'} ${url}`);
 
       // Build headers
       const headers: HeadersInit = {
@@ -130,6 +141,7 @@ class APIClient {
 
       // Handle network errors
       if (error.message === 'Network request failed') {
+        console.error('[API] Network error - Check connection and API URL');
         throw new APIError(
           'Network error. Please check your connection.',
           0,
@@ -138,6 +150,7 @@ class APIClient {
       }
 
       // Unknown error
+      console.error('[API] Unexpected error:', error);
       throw new APIError('An unexpected error occurred', 500, 'UNKNOWN_ERROR');
     }
   }
@@ -171,6 +184,8 @@ class APIClient {
 
     const errorMessage =
       errorData.error || errorData.message || 'Request failed';
+
+    console.error(`[API] Error ${response.status} response:`, errorData);
 
     // Handle specific status codes
     switch (response.status) {

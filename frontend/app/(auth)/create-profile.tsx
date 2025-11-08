@@ -9,9 +9,11 @@ import {
 } from '@/types';
 import { router } from 'expo-router';
 import { Check, ChevronDown, Plus } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  Animated,
+  Dimensions,
   Image,
   ScrollView,
   StatusBar,
@@ -47,10 +49,15 @@ import {
 } from '../utils/onboardingTransform';
 
 const TOTAL_STEPS = 15; // Steps 2-16 (Step 1 is in home.tsx)
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function CreateProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
   const [currentStep, setCurrentStep] = useState(2); // Start at step 2
+  const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
   const {
     data,
     updateField,
@@ -68,6 +75,28 @@ export default function CreateProfileScreen() {
   const [interestInput, setInterestInput] = useState('');
   const [showMajorSheet, setShowMajorSheet] = useState(false);
 
+  // Animate page transitions
+  useEffect(() => {
+    // Reset position based on direction
+    slideAnim.setValue(direction === 'forward' ? SCREEN_WIDTH : -SCREEN_WIDTH);
+    fadeAnim.setValue(0);
+
+    // Animate in
+    Animated.parallel([
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 10,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [currentStep]);
+
   if (!isLoaded) {
     return null; // Wait for AsyncStorage to load
   }
@@ -83,6 +112,7 @@ export default function CreateProfileScreen() {
     }
 
     if (currentStep < 16) {
+      setDirection('forward');
       setCurrentStep(currentStep + 1);
     } else {
       handleSubmit();
@@ -91,7 +121,11 @@ export default function CreateProfileScreen() {
 
   const handleBack = () => {
     if (currentStep > 2) {
+      setDirection('backward');
       setCurrentStep(currentStep - 1);
+    } else if (currentStep === 2) {
+      // Go back to home/signup screen
+      router.replace('/home' as any);
     }
   };
 
@@ -233,12 +267,7 @@ export default function CreateProfileScreen() {
 
       // Clear storage and navigate to main app
       await clearStorage();
-      Alert.alert('Welcome!', 'Your profile has been created successfully!', [
-        {
-          text: 'Get Started',
-          onPress: () => router.replace('/(auth)/(tabs)' as any),
-        },
-      ]);
+      router.replace('/(auth)/(tabs)' as any);
     } catch (error) {
       Alert.alert(
         'Error',
@@ -318,10 +347,10 @@ export default function CreateProfileScreen() {
       case 2:
         return (
           <View style={styles.stepContainer}>
-            <OnboardingTitle title="To start, let's learn more about you" />
+            <OnboardingTitle title="To start, let's learn more about you!" />
             <AppInput
               label="Your first name"
-              placeholder="First name"
+              placeholder="Ezra"
               value={data.firstName}
               onChangeText={(text) => updateField('firstName', text)}
               required
@@ -331,6 +360,7 @@ export default function CreateProfileScreen() {
               placeholder="MM/DD/YYYY"
               value={data.birthdate}
               onChangeText={(text) => updateField('birthdate', text)}
+              dateFormat
               required
             />
           </View>
@@ -368,10 +398,7 @@ export default function CreateProfileScreen() {
               title="What pronouns do you use?"
               subtitle="Select all that describe you to help us show your profile to the right people"
             />
-            <Button
-              onPress={() => router.replace('/home' as any)}
-              title="DEBUG SKIP"
-            ></Button>
+
             <ListItemWrapper>
               {PRONOUN_OPTIONS.map((pronoun) => (
                 <ListItem
@@ -443,7 +470,6 @@ export default function CreateProfileScreen() {
               visible={showSchoolSheet}
               onDismiss={() => setShowSchoolSheet(false)}
               title="Select your college"
-              height={500}
             >
               <ListItemWrapper>
                 {CORNELL_SCHOOLS.map((school) => (
@@ -587,7 +613,6 @@ export default function CreateProfileScreen() {
         return (
           <View style={styles.stepContainer}>
             <OnboardingTitle title="Choose 3-6 photos for your profile" />
-            {/* TODO: this is currently crashing every time I try to test on the app */}
             <PhotoUploadGrid
               photos={data.pictures}
               onPhotosChange={(photos) => updateField('pictures', photos)}
@@ -627,12 +652,14 @@ export default function CreateProfileScreen() {
                   prompt={prompt}
                   onUpdate={(updated) => updatePrompt(prompt.id, updated)}
                   onRemove={() => removePrompt(prompt.id)}
-                  canRemove={data.prompts.length > 1}
+                  canRemove={true}
                 />
               ))}
               {data.prompts.length < 3 && (
                 <Button
-                  title="Add another prompt"
+                  title={
+                    data.prompts.length === 0 ? 'Select prompt' : 'Add prompt'
+                  }
                   onPress={addPrompt}
                   variant="secondary"
                   fullWidth
@@ -685,12 +712,14 @@ export default function CreateProfileScreen() {
                   placeholder="Enter club name"
                   value={clubInput}
                   onChangeText={setClubInput}
+                  autoCapitalize="words"
                 />
                 <Button
                   title="Add"
                   onPress={addClub}
                   variant="primary"
                   fullWidth
+                  iconLeft={Plus}
                 />
               </View>
             </Sheet>
@@ -785,6 +814,7 @@ export default function CreateProfileScreen() {
                   onPress={addInterest}
                   variant="primary"
                   fullWidth
+                  iconLeft={Plus}
                 />
               </View>
             </Sheet>
@@ -794,7 +824,7 @@ export default function CreateProfileScreen() {
       case 16:
         return (
           <View style={styles.stepContainer}>
-            <OnboardingTitle title={`Welcome ${data.firstName}!`} />
+            <AppText variant="title">Welcome, {data.firstName}!</AppText>
             <View style={styles.welcomeContainer}>
               {data.pictures[0] && (
                 <Image
@@ -803,8 +833,8 @@ export default function CreateProfileScreen() {
                 />
               )}
               <AppText variant="body" style={styles.welcomeText}>
-                Matches drop every Friday at 9am. Send a nudge to show interest,
-                and if they nudge back, you&apos;ll unlock chat!
+                Matches drop every Friday at 9:00 AM. Send a nudge to show
+                interest, and if they nudge back, you&apos;ll unlock chat!
               </AppText>
             </View>
           </View>
@@ -818,7 +848,7 @@ export default function CreateProfileScreen() {
   const getNextLabel = () => {
     if (uploadingImages) return 'Uploading images...';
     if (isSubmitting) return 'Creating profile...';
-    if (currentStep === 16) return 'Get Started';
+    if (currentStep === 16) return 'Get started';
     return 'Next';
   };
 
@@ -861,11 +891,20 @@ export default function CreateProfileScreen() {
         currentStep={currentStep - 1}
         totalSteps={TOTAL_STEPS}
         onBack={handleBack}
+        showBackButton={true}
       />
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {renderStep()}
-      </ScrollView>
+      <Animated.View
+        style={{
+          flex: 1,
+          transform: [{ translateX: slideAnim }],
+          opacity: fadeAnim,
+        }}
+      >
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {renderStep()}
+        </ScrollView>
+      </Animated.View>
 
       <OnboardingFooter
         onNext={handleNext}
@@ -934,5 +973,6 @@ const styles = StyleSheet.create({
   welcomeText: {
     textAlign: 'center',
     lineHeight: 24,
+    maxWidth: 360,
   },
 });

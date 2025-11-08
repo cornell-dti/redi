@@ -2,18 +2,19 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
+import adminMatchesRouter from './routes/admin-matches';
 import adminPromptsRouter from './routes/admin-prompts';
+import adminReportsRouter from './routes/admin-reports';
+import chatRouter from './routes/chat';
 import imagesRouter from './routes/images';
 import landingPageRouter from './routes/landing-page';
+import notificationsRouter from './routes/notifications';
+import nudgesRouter from './routes/nudges';
 import preferencesRouter from './routes/preferences';
 import profilesRouter from './routes/profiles';
 import promptsRouter from './routes/prompts';
-import usersRouter from './routes/users';
-import nudgesRouter from './routes/nudges';
-import notificationsRouter from './routes/notifications';
-import chatRouter from './routes/chat';
 import reportsRouter from './routes/reports';
-import adminReportsRouter from './routes/admin-reports';
+import usersRouter from './routes/users';
 import authRouter from './routes/auth';
 
 dotenv.config();
@@ -107,6 +108,7 @@ app.use(nudgesRouter); // /api/nudges
 app.use(notificationsRouter); // /api/notifications
 app.use(chatRouter); // /api/chat
 app.use(reportsRouter); // /api/reports
+app.use(adminMatchesRouter); // /api/admin/matches, /api/admin/users
 app.use(adminPromptsRouter); // /api/admin/prompts
 app.use(adminReportsRouter); // /api/admin/reports
 

@@ -1,18 +1,13 @@
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
+import EmptyState from '@/app/components/ui/EmptyState';
+import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
 import { useNotifications } from '@/app/contexts/NotificationsContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { Bell, Heart, LucideIcon, MessageCircle, X } from 'lucide-react-native';
-import React, { useCallback } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
 import ListItemWrapper from '../../components/ui/ListItemWrapper';
@@ -59,6 +54,7 @@ export default function NotificationsScreen() {
     markAllAsRead,
     setActive,
   } = useNotifications();
+  const [animationTrigger, setAnimationTrigger] = useState(0);
 
   // Activate/deactivate real-time listener based on screen focus
   // This saves resources when the user isn't viewing notifications
@@ -66,6 +62,8 @@ export default function NotificationsScreen() {
     useCallback(() => {
       console.log('🔔 Notifications screen focused - activating listener');
       setActive?.(true); // Activate listener
+      // Trigger animation every time screen is focused
+      setAnimationTrigger((prev) => prev + 1);
 
       return () => {
         console.log('📭 Notifications screen unfocused - pausing listener');
@@ -129,73 +127,84 @@ export default function NotificationsScreen() {
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.top}>
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={{
-            rowGap: 24,
-          }}
-        >
-          <AppText variant="title">Notifications</AppText>
-
-          {loading && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={AppColors.accentDefault} />
-              <AppText variant="body" color="dimmer" style={{ marginTop: 8 }}>
-                Loading notifications...
-              </AppText>
-            </View>
-          )}
-
-          {error && (
-            <View style={styles.emptyState}>
-              <AppText variant="body" color="dimmer">
-                {error}
-              </AppText>
-            </View>
-          )}
-
-          {!loading && !error && notifications.length === 0 && (
-            <View style={styles.emptyState}>
-              <AppText variant="body" color="dimmer">
-                No notifications yet
-              </AppText>
-            </View>
-          )}
-
-          {!loading && !error && notifications.length > 0 && (
-            <ListItemWrapper style={styles.list}>
-              {notifications.map((notification) => (
-                <NotificationItem
-                  key={notification.id}
-                  type={notification.type}
-                  title={notification.title}
-                  message={notification.message}
-                  timestamp={formatRelativeTime(notification.createdAt)}
-                  read={notification.read}
-                  image={null}
-                  icon={getNotificationIcon(notification.type)}
-                  onPress={() =>
-                    handleNotificationPress(
-                      notification.id,
-                      notification.type,
-                      notification.metadata
-                    )
-                  }
-                />
-              ))}
-            </ListItemWrapper>
-          )}
-        </ScrollView>
-
-        {!loading && notifications.length > 0 && (
-          <View style={styles.footer}>
-            <Button
-              iconLeft={X}
-              variant="secondary"
-              title="Mark all as read"
-              onPress={handleMarkAllAsRead}
+        {!loading && !error && notifications.length === 0 ? (
+          <View style={styles.emptyStateContainer}>
+            <AppText variant="title" style={styles.title}>
+              Notifications
+            </AppText>
+            <EmptyState
+              icon={Bell}
+              label="No notifications yet"
+              triggerAnimation={animationTrigger}
             />
           </View>
+        ) : (
+          <>
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={{
+                rowGap: 24,
+              }}
+            >
+              <AppText variant="title">Notifications</AppText>
+
+              {loading && (
+                <View style={styles.loadingContainer}>
+                  <LoadingSpinner />
+                  <AppText
+                    variant="body"
+                    color="dimmer"
+                    style={{ marginTop: 8 }}
+                  >
+                    Loading notifications...
+                  </AppText>
+                </View>
+              )}
+
+              {error && (
+                <View style={styles.emptyState}>
+                  <AppText variant="body" color="dimmer">
+                    {error}
+                  </AppText>
+                </View>
+              )}
+
+              {!loading && !error && notifications.length > 0 && (
+                <ListItemWrapper style={styles.list}>
+                  {notifications.map((notification) => (
+                    <NotificationItem
+                      key={notification.id}
+                      type={notification.type}
+                      title={notification.title}
+                      message={notification.message}
+                      timestamp={formatRelativeTime(notification.createdAt)}
+                      read={notification.read}
+                      image={null}
+                      icon={getNotificationIcon(notification.type)}
+                      onPress={() =>
+                        handleNotificationPress(
+                          notification.id,
+                          notification.type,
+                          notification.metadata
+                        )
+                      }
+                    />
+                  ))}
+                </ListItemWrapper>
+              )}
+            </ScrollView>
+
+            {!loading && notifications.length > 0 && (
+              <View style={styles.footer}>
+                <Button
+                  iconLeft={X}
+                  variant="secondary"
+                  title="Mark all as read"
+                  onPress={handleMarkAllAsRead}
+                />
+              </View>
+            )}
+          </>
         )}
       </View>
     </SafeAreaView>
@@ -224,7 +233,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   top: {
+    flex: 1,
     gap: 24,
+  },
+  title: {
+    padding: 16,
+  },
+  emptyStateContainer: {
+    flex: 1,
   },
   loadingContainer: {
     padding: 40,

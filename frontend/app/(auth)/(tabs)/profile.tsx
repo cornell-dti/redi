@@ -1,11 +1,16 @@
+import OnboardingVideo from '@/app/components/onboarding/OnboardingVideo';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
+import EmptyState from '@/app/components/ui/EmptyState';
+import FooterSpacer from '@/app/components/ui/FooterSpacer';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
+import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
+import Sheet from '@/app/components/ui/Sheet';
 import SignOutSheet from '@/app/components/ui/SignOutSheet';
 import { ProfileResponse } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import {
   ChevronRight,
   ClipboardList,
@@ -17,13 +22,14 @@ import {
   MailIcon,
   Palette,
   Pencil,
+  Play,
   SettingsIcon,
   ShieldCheck,
+  Star,
   StarIcon,
 } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Image,
   ScrollView,
@@ -45,18 +51,17 @@ const mockFallbackData = {
 };
 
 export default function ProfileScreen() {
+  const [animationTrigger, setAnimationTrigger] = useState(0);
+
   useThemeAware(); // Force re-render when theme changes
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSignOutSheet, setShowSignOutSheet] = useState(false);
+  const [showRatingSheet, setShowRatingSheet] = useState(false);
+  const [showOnboardingVideo, setShowOnboardingVideo] = useState(false);
 
-  // Fetch profile data on mount
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     const user = getCurrentUser();
 
     if (!user?.uid) {
@@ -81,7 +86,15 @@ export default function ProfileScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Fetch profile data when screen is focused (including returning from edit screen)
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+      setAnimationTrigger((prev) => prev + 1);
+    }, [fetchProfile])
+  );
 
   const confirmSignOut = async () => {
     try {
@@ -113,11 +126,38 @@ export default function ProfileScreen() {
       ? profile.pictures
       : mockFallbackData.images;
 
+  // Format member since date
+  const getMemberSinceText = (): string => {
+    const user = getCurrentUser();
+
+    // Try to use createdAt from profile first
+    if (profile && 'createdAt' in profile && profile.createdAt) {
+      const date = new Date(profile.createdAt);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    }
+
+    // Fall back to Firebase user creation time
+    if (user?.metadata?.creationTime) {
+      const date = new Date(user.metadata.creationTime);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    }
+
+    return 'Recently';
+  };
+
   // Show loading spinner while fetching
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color={AppColors.accentDefault} />
+        <LoadingSpinner />
         <AppText style={styles.loadingText}>Loading profile...</AppText>
       </SafeAreaView>
     );
@@ -139,7 +179,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
       <ScrollView style={styles.scrollView}>
@@ -149,7 +189,7 @@ export default function ProfileScreen() {
           <View style={styles.nameContainer}>
             <AppText variant="title">{displayName}</AppText>
             <AppText variant="body" color="dimmer">
-              Member since XXX
+              Member since {getMemberSinceText()}
             </AppText>
           </View>
         </View>
@@ -175,7 +215,7 @@ export default function ProfileScreen() {
           <ListItemWrapper>
             <ListItem
               onPress={() => router.push('/preferences' as any)}
-              title="Dating preferences"
+              title="Dating Preferences"
               right={<ChevronRight size={20} />}
               left={<Heart size={20} />}
             />
@@ -189,7 +229,7 @@ export default function ProfileScreen() {
 
             <ListItem
               onPress={() => router.push('/account-settings' as any)}
-              title="Account settings"
+              title="Account Settings"
               right={<ChevronRight size={20} />}
               left={<SettingsIcon size={20} />}
             />
@@ -203,6 +243,13 @@ export default function ProfileScreen() {
           </ListItemWrapper>
 
           <ListItemWrapper>
+            <ListItem
+              onPress={() => setShowOnboardingVideo(true)}
+              title="Show Onboarding Video"
+              right={<ChevronRight size={20} />}
+              left={<Play size={20} />}
+            />
+
             <ListItem
               onPress={() => router.push('/terms-and-conditions' as any)}
               title="Terms & Conditions"
@@ -218,15 +265,15 @@ export default function ProfileScreen() {
             />
 
             <ListItem
-              onPress={() => {}}
-              title="Leave a rating"
+              onPress={() => setShowRatingSheet(true)}
+              title="Leave a Rating"
               right={<ExternalLink size={20} />}
               left={<StarIcon size={20} />}
             />
 
             <ListItem
               onPress={() => router.push('/contact' as any)}
-              title="Contact the team"
+              title="Contact the Team"
               right={<ChevronRight size={20} />}
               left={<MailIcon size={20} />}
             />
@@ -244,6 +291,8 @@ export default function ProfileScreen() {
             />
           </ListItemWrapper>
         </View>
+
+        <FooterSpacer height={32} />
       </ScrollView>
 
       <SignOutSheet
@@ -251,7 +300,34 @@ export default function ProfileScreen() {
         onDismiss={() => setShowSignOutSheet(false)}
         onConfirm={confirmSignOut}
       />
-    </SafeAreaView>
+
+      {/* Leave a Rating Sheet */}
+      <Sheet
+        visible={showRatingSheet}
+        onDismiss={() => setShowRatingSheet(false)}
+        title="Leave a Rating"
+      >
+        <View style={styles.sheetContent}>
+          <EmptyState
+            icon={Star}
+            label="Coming soon..."
+            triggerAnimation={animationTrigger}
+          />
+          <Button
+            title="Dismiss"
+            onPress={() => setShowRatingSheet(false)}
+            variant="secondary"
+            fullWidth
+          />
+        </View>
+      </Sheet>
+
+      {/* Onboarding Video */}
+      <OnboardingVideo
+        visible={showOnboardingVideo}
+        onFinish={() => setShowOnboardingVideo(false)}
+      />
+    </View>
   );
 }
 
@@ -262,6 +338,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 24,
     backgroundColor: AppColors.backgroundDefault,
+    paddingTop: 64,
   },
   centerContent: {
     justifyContent: 'center',
@@ -287,6 +364,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 24,
+    paddingBottom: 64,
   },
   profileTop: {
     display: 'flex',
@@ -319,6 +397,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     color: AppColors.foregroundDefault,
+    paddingVertical: 48,
+    borderRadius: 24,
+    backgroundColor: AppColors.backgroundDimmer,
   },
   sheetButtons: {
     display: 'flex',

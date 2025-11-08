@@ -1,49 +1,68 @@
 import AppText from '@/app/components/ui/AppText';
-import {
-  ProfileResponse,
-  PromptData,
-  OwnProfileResponse,
-  getProfileAge,
-} from '@/types';
+import { ProfileResponse, PromptData, getProfileAge } from '@/types';
 import { router, useFocusEffect } from 'expo-router';
-import { Camera, ChevronRight, Pencil, Plus } from 'lucide-react-native';
-import React, { useCallback, useState } from 'react';
+import { Check, ChevronRight, Pencil, Plus } from 'lucide-react-native';
+import React, { useCallback, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
-  Image,
   Linking,
   ScrollView,
   StatusBar,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile } from '../api/profileApi';
+import { deleteImage, uploadImages } from '../api/imageApi';
+import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
+import PhotoUploadGrid from '../components/onboarding/PhotoUploadGrid';
 import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
+import FooterSpacer from '../components/ui/FooterSpacer';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EditProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
+  const { showToast } = useToast();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [prompts, setPrompts] = useState<PromptData[]>([]);
   const [showUnsavedSheet, setShowUnsavedSheet] = useState(false);
   const [originalPrompts, setOriginalPrompts] = useState<PromptData[]>([]);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [originalPhotos, setOriginalPhotos] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
+
+  // Scroll position preservation
+  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollPositionRef = useRef(0);
+  const hasInitiallyLoaded = useRef(false);
 
   // Fetch profile data on mount and when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      fetchProfile();
+      // Only fetch on initial load, not on subsequent focus events
+      if (!hasInitiallyLoaded.current) {
+        fetchProfile();
+        hasInitiallyLoaded.current = true;
+      } else {
+        // Restore scroll position when returning to this screen
+        setTimeout(() => {
+          scrollViewRef.current?.scrollTo({
+            y: scrollPositionRef.current,
+            animated: false,
+          });
+        }, 100);
+      }
     }, [])
   );
 
@@ -83,6 +102,10 @@ export default function EditProfileScreen() {
           setPrompts(emptyPrompt);
           setOriginalPrompts(emptyPrompt);
         }
+        // Initialize photos from profile data
+        const photosData = profileData.pictures || [];
+        setPhotos(photosData);
+        setOriginalPhotos(photosData);
         setError(null);
       } else {
         setError('Profile not found. Please complete your profile.');
@@ -110,7 +133,101 @@ export default function EditProfileScreen() {
   };
 
   const hasUnsavedChanges = () => {
-    return JSON.stringify(prompts) !== JSON.stringify(originalPrompts);
+    const promptsChanged =
+      JSON.stringify(prompts) !== JSON.stringify(originalPrompts);
+    const photosChanged =
+      JSON.stringify(photos) !== JSON.stringify(originalPhotos);
+    return promptsChanged || photosChanged;
+  };
+
+  const handleSave = async () => {
+    const user = getCurrentUser();
+    if (!user?.uid) {
+      Alert.alert('Error', 'User not authenticated');
+      return;
+    }
+
+    // Validate minimum photos requirement
+    if (photos.length < 3) {
+      Alert.alert('Error', 'Please add at least 3 photos');
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      // Step 1: Determine which images are new (local URIs) vs existing (remote URLs)
+      const newImages = photos.filter((uri) => uri.startsWith('file://'));
+
+      // Step 2: Upload new images to Firebase Storage
+      let uploadedImageUrls: string[] = [];
+      if (newImages.length > 0) {
+        try {
+          setUploadingImages(true);
+          uploadedImageUrls = await uploadImages(newImages);
+          setUploadingImages(false);
+        } catch (uploadError) {
+          setUploadingImages(false);
+          setSaving(false);
+          Alert.alert(
+            'Upload Error',
+            'Failed to upload images. Please try again.'
+          );
+          console.error('Image upload failed:', uploadError);
+          return;
+        }
+      }
+
+      // Step 3: Combine existing URLs with newly uploaded URLs (maintain order)
+      const finalImageUrls: string[] = [];
+      let newImageIndex = 0;
+
+      for (const photo of photos) {
+        if (photo.startsWith('file://')) {
+          // Replace local URI with uploaded URL
+          finalImageUrls.push(uploadedImageUrls[newImageIndex]);
+          newImageIndex++;
+        } else {
+          // Keep existing remote URL
+          finalImageUrls.push(photo);
+        }
+      }
+
+      // Step 4: Delete removed images from Firebase Storage
+      const removedImages = originalPhotos.filter(
+        (oldUrl) =>
+          !finalImageUrls.includes(oldUrl) && !oldUrl.startsWith('file://')
+      );
+
+      if (removedImages.length > 0) {
+        try {
+          await Promise.all(removedImages.map((url) => deleteImage(url)));
+        } catch (deleteError) {
+          console.error('Failed to delete some images:', deleteError);
+          // Don't fail the whole operation if deletion fails
+        }
+      }
+
+      // Step 5: Update profile with final image URLs
+      await updateProfile({
+        pictures: finalImageUrls,
+      });
+
+      setOriginalPrompts(prompts);
+      setOriginalPhotos(finalImageUrls);
+      setPhotos(finalImageUrls); // Update local state with remote URLs
+
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Photos updated',
+      });
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      Alert.alert('Error', 'Failed to update profile');
+    } finally {
+      setSaving(false);
+      setUploadingImages(false);
+    }
   };
 
   const handleBack = () => {
@@ -127,11 +244,12 @@ export default function EditProfileScreen() {
   };
 
   const handleSaveAndExit = async () => {
-    // TODO: Implement save functionality
-    // await saveProfile();
-    setOriginalPrompts(prompts);
-    setShowUnsavedSheet(false);
-    router.back();
+    await handleSave();
+    if (!saving) {
+      // Only exit if save was successful
+      setShowUnsavedSheet(false);
+      router.back();
+    }
   };
 
   const addPrompt = () => {
@@ -155,7 +273,6 @@ export default function EditProfileScreen() {
 
   // Get display data - use profile data if available, otherwise fallback
   const displayName = profile?.firstName || 'User';
-  const displayImages = profile?.pictures || [];
   const displayAge = profile ? getProfileAge(profile) : null;
   const displayBio = profile?.bio || 'No bio yet';
   const displaySchool = profile?.school || 'School not set';
@@ -195,7 +312,7 @@ export default function EditProfileScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color={AppColors.accentDefault} />
+        <LoadingSpinner />
         <AppText style={styles.loadingText}>Loading profile...</AppText>
       </SafeAreaView>
     );
@@ -214,35 +331,36 @@ export default function EditProfileScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <EditingHeader showSave={false} title="Edit profile" />
+      <EditingHeader
+        showSave={true}
+        title="Edit profile"
+        onSave={handleSave}
+        onBack={handleBack}
+        isSaving={saving || uploadingImages}
+        saveDisabled={!hasUnsavedChanges()}
+      />
 
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={{
           rowGap: 24,
         }}
+        onScroll={(event) => {
+          scrollPositionRef.current = event.nativeEvent.contentOffset.y;
+        }}
+        scrollEventThrottle={16}
       >
         <View style={styles.section}>
           <AppText variant="subtitle" style={styles.subtitle}>
             My photos
           </AppText>
-          <View style={styles.imageGrid}>
-            {displayImages.map((image: string, index: number) => (
-              <TouchableOpacity key={index} style={styles.imageContainer}>
-                <Image source={{ uri: image }} style={styles.image} />
-                {index === 0 && (
-                  <View style={styles.badge}>
-                    <AppText style={styles.badgeText}>Main</AppText>
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
-            {displayImages.length < 5 && (
-              <TouchableOpacity style={styles.addImage}>
-                <Camera size={32} color={AppColors.foregroundDimmer} />
-              </TouchableOpacity>
-            )}
-          </View>
+          <PhotoUploadGrid
+            photos={photos}
+            onPhotosChange={setPhotos}
+            minPhotos={3}
+            maxPhotos={6}
+          />
         </View>
 
         <View style={styles.section}>
@@ -330,7 +448,15 @@ export default function EditProfileScreen() {
 
             <ListItem
               title="Education"
-              description={`${profile?.year} in ${profile?.school} studying ${profile?.major?.join(', ')}`}
+              description={
+                <AppText color="dimmer">
+                  <AppText>{profile?.year}</AppText>
+                  {' in '}
+                  <AppText>{profile?.school}</AppText>
+                  {' studying '}
+                  <AppText>{profile?.major?.join(', ')}</AppText>
+                </AppText>
+              }
               right={<ChevronRight size={20} />}
               onPress={() => router.push('/edit-education' as any)}
             />
@@ -427,6 +553,8 @@ export default function EditProfileScreen() {
             />
           </ListItemWrapper>
         </View>
+
+        <FooterSpacer height={128} />
       </ScrollView>
 
       {/* Unsaved Changes Confirmation Sheet */}
@@ -497,45 +625,6 @@ const styles = StyleSheet.create({
   },
   promptAnswer: {
     color: AppColors.foregroundDimmer,
-  },
-  imageGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
-  imageContainer: {
-    position: 'relative',
-    width: '31%',
-    aspectRatio: 0.75,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 4,
-  },
-  badge: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: AppColors.accentDefault,
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  badgeText: {
-    color: AppColors.backgroundDefault,
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  addImage: {
-    width: '31%',
-    aspectRatio: 0.75,
-    borderRadius: 12,
-    backgroundColor: AppColors.backgroundDimmer,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   tagsContainer: {
     display: 'flex',

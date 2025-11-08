@@ -420,7 +420,7 @@ router.post(
 
       if (netids.length > 50) {
         return res.status(400).json({
-          error: 'Maximum 50 netids allowed per batch request'
+          error: 'Maximum 50 netids allowed per batch request',
         });
       }
 
@@ -435,7 +435,7 @@ router.post(
       const {
         determineViewContext,
         getProfileWithAge,
-        isUserBlocked
+        isUserBlocked,
       } = require('../utils/profilePrivacy');
 
       // Helper function from profiles.ts

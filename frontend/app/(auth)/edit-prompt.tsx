@@ -4,7 +4,7 @@ import AvailablePromptsSheet from '@/app/components/ui/AvailablePromptsSheet';
 import Button from '@/app/components/ui/Button';
 import Sheet from '@/app/components/ui/Sheet';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Quote, Trash2 } from 'lucide-react-native';
+import { Check, Quote, RotateCcw, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -21,10 +21,13 @@ import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
+import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EditPromptPage() {
   useThemeAware(); // Force re-render when theme changes
+  const { showToast } = useToast();
   const params = useLocalSearchParams();
   const promptId = params.promptId as string;
   const initialQuestion = params.question as string | undefined;
@@ -34,6 +37,7 @@ export default function EditPromptPage() {
   const [answer, setAnswer] = useState(initialAnswer || '');
   const [showPromptsSheet, setShowPromptsSheet] = useState(false);
   const [showDeleteSheet, setShowDeleteSheet] = useState(false);
+  const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [currentPrompts, setCurrentPrompts] = useState<
@@ -107,7 +111,11 @@ export default function EditPromptPage() {
         prompts: updatedPrompts,
       });
 
-      Alert.alert('Success', 'Prompt saved successfully');
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Prompt saved',
+      });
+
       router.back();
     } catch (error) {
       console.error('Failed to save prompt:', error);
@@ -120,6 +128,30 @@ export default function EditPromptPage() {
   const handleSelectPrompt = (selectedPrompt: string) => {
     setQuestion(selectedPrompt);
     setShowPromptsSheet(false);
+  };
+
+  const hasUnsavedChanges = () => {
+    return (
+      question.trim() !== (initialQuestion || '').trim() ||
+      answer.trim() !== (initialAnswer || '').trim()
+    );
+  };
+
+  const handleBack = () => {
+    if (hasUnsavedChanges()) {
+      setShowUnsavedChangesSheet(true);
+    } else {
+      router.back();
+    }
+  };
+
+  const handleSaveAndExit = async () => {
+    await handleSave();
+  };
+
+  const handleDiscardChanges = () => {
+    setShowUnsavedChangesSheet(false);
+    router.back();
   };
 
   const handleConfirmDelete = async () => {
@@ -140,7 +172,11 @@ export default function EditPromptPage() {
         prompts: updatedPrompts,
       });
 
-      Alert.alert('Success', 'Prompt deleted successfully');
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Prompt deleted',
+      });
+
       setShowDeleteSheet(false);
       router.back();
     } catch (error) {
@@ -156,7 +192,7 @@ export default function EditPromptPage() {
       <StatusBar barStyle="dark-content" />
 
       <EditingHeader
-        onBack={() => router.back()}
+        onBack={handleBack}
         onSave={handleSave}
         title={isNewPrompt ? 'Add prompt' : 'Edit prompt'}
         isSaving={saving}
@@ -186,7 +222,7 @@ export default function EditPromptPage() {
                   onPress={() => setShowPromptsSheet(true)}
                   variant="secondary"
                   fullWidth
-                  iconLeft={Quote}
+                  iconLeft={RotateCcw}
                   noRound
                 />
               </ListItemWrapper>
@@ -212,7 +248,7 @@ export default function EditPromptPage() {
               onChangeText={setAnswer}
               multiline
               numberOfLines={4}
-              maxLength={150}
+              maxLength={120}
               style={{ height: 100 }}
             />
           </View>
@@ -238,7 +274,7 @@ export default function EditPromptPage() {
       >
         <View style={styles.sheetContent}>
           <AppText>
-            Are you sure you want to delete this prompt? You'll lose your
+            Are you sure you want to delete this prompt? You&apos;ll lose your
             answer.
           </AppText>
 
@@ -265,6 +301,14 @@ export default function EditPromptPage() {
         onDismiss={() => setShowPromptsSheet(false)}
         onSelectPrompt={handleSelectPrompt}
         selectedPrompt={question}
+      />
+
+      {/* Unsaved Changes Sheet */}
+      <UnsavedChangesSheet
+        visible={showUnsavedChangesSheet}
+        onSave={handleSaveAndExit}
+        onDiscard={handleDiscardChanges}
+        onDismiss={() => setShowUnsavedChangesSheet(false)}
       />
     </SafeAreaView>
   );

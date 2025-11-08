@@ -127,8 +127,10 @@ export function checkCompatibility(
   }
 
   // Check year preference
-  const yearStr = getYearString(profile.year);
-  if (preferences.years.length > 0 && !preferences.years.includes(yearStr)) {
+  if (
+    preferences.years.length > 0 &&
+    !preferences.years.includes(profile.year)
+  ) {
     return false;
   }
 
@@ -181,7 +183,9 @@ export function calculateCompatibilityScore(
   }
 
   // Year proximity (15 points)
-  const yearDiff = Math.abs(profileA.year - profileB.year);
+  const yearDiff = Math.abs(
+    getYearNumericValue(profileA.year) - getYearNumericValue(profileB.year)
+  );
   score += Math.max(0, 15 - yearDiff * 3);
 
   // Age proximity within preferences (15 points)
@@ -244,4 +248,20 @@ export function getYearString(year: number): Year {
   if (yearsUntilGrad < 0) return 'Graduate';
 
   return 'Graduate';
+}
+
+/**
+ * Convert Year string to numeric value for comparison
+ */
+function getYearNumericValue(year: Year): number {
+  const yearMap: Record<Year, number> = {
+    Freshman: 1,
+    Sophomore: 2,
+    Junior: 3,
+    Senior: 4,
+    Graduate: 5,
+    PhD: 6,
+    'Post-Doc': 7,
+  };
+  return yearMap[year] || 0;
 }

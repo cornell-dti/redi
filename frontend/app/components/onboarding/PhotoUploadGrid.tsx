@@ -1,5 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, X } from 'lucide-react-native';
+import { Camera, Star, X } from 'lucide-react-native';
 import React from 'react';
 import { Alert, Image, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
@@ -40,7 +40,7 @@ export default function PhotoUploadGrid({
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [3, 4],
+      aspect: [1, 1],
       quality: 0.8,
     });
 
@@ -52,6 +52,16 @@ export default function PhotoUploadGrid({
 
   const removePhoto = (index: number) => {
     const newPhotos = photos.filter((_, i) => i !== index);
+    onPhotosChange(newPhotos);
+  };
+
+  const setAsMainPhoto = (index: number) => {
+    if (index === 0) return; // Already main photo
+
+    // Move the selected photo to the front of the array
+    const newPhotos = [...photos];
+    const [selectedPhoto] = newPhotos.splice(index, 1);
+    newPhotos.unshift(selectedPhoto);
     onPhotosChange(newPhotos);
   };
 
@@ -78,6 +88,17 @@ export default function PhotoUploadGrid({
                 {slot.index === 0 && (
                   <View style={styles.mainBadgeContainer}>
                     <Tag label="Main" variant="accent" />
+                  </View>
+                )}
+
+                {slot.index !== 0 && (
+                  <View style={styles.setMainButtonContainer}>
+                    <IconButton
+                      icon={Star}
+                      onPress={() => setAsMainPhoto(slot.index)}
+                      variant="secondary"
+                      size="small"
+                    />
                   </View>
                 )}
 
@@ -128,16 +149,16 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 4,
     borderRadius: 24,
     overflow: 'hidden',
   },
   gridSlot: {
-    width: '48.5%',
+    width: '32.5%',
+    height: 120,
     aspectRatio: 1,
     borderRadius: 4,
     overflow: 'hidden',
-    display: 'flex',
     position: 'relative',
   },
   photo: {
@@ -148,6 +169,11 @@ const styles = StyleSheet.create({
   mainBadgeContainer: {
     position: 'absolute',
     top: 8,
+    left: 8,
+  },
+  setMainButtonContainer: {
+    position: 'absolute',
+    bottom: 8,
     left: 8,
   },
   removeButtonContainer: {

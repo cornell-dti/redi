@@ -1,4 +1,4 @@
-import { Bell, User } from 'lucide-react-native';
+import { Bell, Check, User } from 'lucide-react-native';
 import React from 'react';
 import { Alert, Image, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
@@ -71,9 +71,8 @@ export default function WeeklyMatchCard({
             title={nudgeSent ? 'Nudged' : 'Nudge'}
             onPress={() => setSheetVisible(true)}
             variant="primary"
-            iconLeft={Bell}
+            iconLeft={nudgeSent ? Check : Bell}
             fullWidth
-            disabled={nudgeSent || nudgeDisabled}
           />
           <Button
             title="View Profile"
@@ -87,13 +86,16 @@ export default function WeeklyMatchCard({
       <Sheet
         visible={isSheetVisible}
         onDismiss={() => !isSending && setSheetVisible(false)}
-        title="Send nudge"
+        title="Send Nudge"
       >
         <View style={styles.sheetContent}>
-          <AppText>Are you sure you want to nudge {name}?</AppText>
-          <AppText variant="bodySmall" color="dimmer">
+          {!nudgeSent && (
+            <AppText>Are you sure you want to nudge {name}?</AppText>
+          )}
+
+          <AppText>
             {nudgeSent
-              ? "You've already nudged this person."
+              ? `You've already nudged ${name}.`
               : "They won't know you nudged them unless they nudge you back. If both of you nudge each other, you'll both get a notification!"}
           </AppText>
 
@@ -126,7 +128,7 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDefault,
     borderRadius: 24,
     overflow: 'hidden',
-    width: '96%',
+    width: '100%',
     position: 'relative',
   },
   image: {
@@ -150,7 +152,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     gap: 16,
-    width: '49%',
+    width: '50%',
   },
   text: {
     gap: 4,

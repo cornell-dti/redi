@@ -2,9 +2,7 @@ import * as admin from 'firebase-admin';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { generateMatchesForPrompt } from './services/matchingService';
 
-// Initialize Firebase Admin
-admin.initializeApp();
-
+// Firebase Admin is initialized in firebaseAdmin.ts (imported by services)
 const db = admin.firestore();
 
 /**
@@ -51,6 +49,9 @@ export const activateWeeklyPrompt = onSchedule(
       }
 
       // Deactivate all other prompts
+      // NOTE: Old matches remain visible until Friday when they expire.
+      // This is intentional - matches have an expiresAt field set to next Friday,
+      // so they automatically disappear when new matches are generated.
       const activePrompts = await db
         .collection('weeklyPrompts')
         .where('active', '==', true)
@@ -128,7 +129,10 @@ export const generateWeeklyMatches = onSchedule(
       }
 
       // Generate matches using shared service
-      const matchedCount = await generateMatchesForPrompt(promptId, db);
+      // NOTE: New matches are created with expiresAt set to next Friday (7 days).
+      // Old matches from previous prompts automatically expire now since their
+      // expiresAt date has passed, ensuring only current matches are visible.
+      const matchedCount = await generateMatchesForPrompt(promptId);
 
       console.log(
         `Match generation complete. Created matches for ${matchedCount} users.`

@@ -18,6 +18,7 @@ export type AuditResourceType =
   | 'match'
   | 'matches'
   | 'user'
+  | 'users'
   | 'admin'
   | 'report'
   | 'system';
@@ -40,11 +41,13 @@ export type AuditAction =
   | 'UPDATE_ADMIN'
   // User actions
   | 'VIEW_USER'
+  | 'VIEW_USERS'
   | 'UPDATE_USER'
   | 'DELETE_USER'
   // Match actions
   | 'VIEW_MATCH_STATS'
   | 'VIEW_PROMPT_MATCHES'
+  | 'CREATE_MANUAL_MATCH'
   // Report actions
   | 'UPDATE_REPORT_STATUS'
   | 'RESOLVE_REPORT'
@@ -216,11 +219,13 @@ export async function getAuditLogs(options?: {
 
     const snapshot = await query.get();
 
-    return snapshot.docs.map((doc: FirebaseFirestore.QueryDocumentSnapshot) => ({
-      id: doc.id,
-      ...doc.data(),
-      timestamp: (doc.data().timestamp as Timestamp).toDate().toISOString(),
-    })) as AuditLogResponse[];
+    return snapshot.docs.map(
+      (doc: FirebaseFirestore.QueryDocumentSnapshot) => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: (doc.data().timestamp as Timestamp).toDate().toISOString(),
+      })
+    ) as AuditLogResponse[];
   } catch (error) {
     console.error('❌ [Audit Log] Error retrieving audit logs:', error);
     throw new Error('Failed to retrieve audit logs');

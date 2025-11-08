@@ -81,7 +81,9 @@ async function seedConversations() {
       process.exit(1);
     }
 
-    const users: UserData[] = usersSnapshot.docs.map((doc) => doc.data() as UserData);
+    const users: UserData[] = usersSnapshot.docs.map(
+      (doc) => doc.data() as UserData
+    );
     console.log(`✅ Found ${users.length} users\n`);
 
     if (users.length < 2) {
@@ -102,7 +104,9 @@ async function seedConversations() {
 
       // Skip if we've already created this pair
       if (usedPairs.has(pairId)) {
-        console.log(`⏭️  Skipping duplicate pair: ${user1.netid} <-> ${user2.netid}`);
+        console.log(
+          `⏭️  Skipping duplicate pair: ${user1.netid} <-> ${user2.netid}`
+        );
         skippedCount++;
         return false;
       }
@@ -117,7 +121,9 @@ async function seedConversations() {
         .get();
 
       if (!existingConv.empty) {
-        console.log(`⏭️  Conversation already exists: ${user1.netid} <-> ${user2.netid}`);
+        console.log(
+          `⏭️  Conversation already exists: ${user1.netid} <-> ${user2.netid}`
+        );
         // Mark these users as having conversations
         usersWithConversations.add(user1.firebaseUid);
         usersWithConversations.add(user2.firebaseUid);
@@ -145,12 +151,20 @@ async function seedConversations() {
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       };
 
-      const conversationRef = await db.collection('conversations').add(conversationData);
-      console.log(`✅ Created conversation: ${user1.netid} <-> ${user2.netid} (${conversationRef.id})`);
+      const conversationRef = await db
+        .collection('conversations')
+        .add(conversationData);
+      console.log(
+        `✅ Created conversation: ${user1.netid} <-> ${user2.netid} (${conversationRef.id})`
+      );
 
       // Add messages to the conversation
-      const messageSet = messageTemplates[Math.floor(Math.random() * messageTemplates.length)];
-      const numMessages = Math.min(messageSet.length, 3 + Math.floor(Math.random() * 5)); // 3-7 messages
+      const messageSet =
+        messageTemplates[Math.floor(Math.random() * messageTemplates.length)];
+      const numMessages = Math.min(
+        messageSet.length,
+        3 + Math.floor(Math.random() * 5)
+      ); // 3-7 messages
 
       console.log(`   💬 Adding ${numMessages} messages...`);
 
@@ -161,7 +175,8 @@ async function seedConversations() {
         const messageText = messageSet[j];
 
         // Create timestamp with some spacing (older messages first)
-        const minutesAgo = (numMessages - j) * 15 + Math.floor(Math.random() * 10);
+        const minutesAgo =
+          (numMessages - j) * 15 + Math.floor(Math.random() * 10);
         const timestamp = new Date(Date.now() - minutesAgo * 60 * 1000);
 
         const messageData = {
@@ -204,7 +219,9 @@ async function seedConversations() {
     };
 
     // Phase 1: Ensure every user has at least one conversation
-    console.log('📋 Phase 1: Ensuring all users have at least one conversation...\n');
+    console.log(
+      '📋 Phase 1: Ensuring all users have at least one conversation...\n'
+    );
 
     // Shuffle users array to randomize pairings
     const shuffledUsers = [...users].sort(() => Math.random() - 0.5);
@@ -223,7 +240,10 @@ async function seedConversations() {
 
       // First, try to find a user without a conversation
       for (let j = 0; j < shuffledUsers.length; j++) {
-        if (i !== j && !usersWithConversations.has(shuffledUsers[j].firebaseUid)) {
+        if (
+          i !== j &&
+          !usersWithConversations.has(shuffledUsers[j].firebaseUid)
+        ) {
           partnerIndex = j;
           break;
         }
@@ -233,7 +253,9 @@ async function seedConversations() {
       if (partnerIndex === -1) {
         for (let j = 0; j < shuffledUsers.length; j++) {
           if (i !== j) {
-            const pairId = [user.firebaseUid, shuffledUsers[j].firebaseUid].sort().join('_');
+            const pairId = [user.firebaseUid, shuffledUsers[j].firebaseUid]
+              .sort()
+              .join('_');
             if (!usedPairs.has(pairId)) {
               partnerIndex = j;
               break;
@@ -259,7 +281,10 @@ async function seedConversations() {
     let attempts = 0;
     const maxAttempts = additionalConversations * 3; // Try up to 3x the target to account for duplicates
 
-    while (additionalCreated < additionalConversations && attempts < maxAttempts) {
+    while (
+      additionalCreated < additionalConversations &&
+      attempts < maxAttempts
+    ) {
       attempts++;
 
       // Select two random different users
@@ -271,7 +296,10 @@ async function seedConversations() {
         user2Index = Math.floor(Math.random() * users.length);
       }
 
-      const success = await createConversation(users[user1Index], users[user2Index]);
+      const success = await createConversation(
+        users[user1Index],
+        users[user2Index]
+      );
       if (success) {
         additionalCreated++;
       }
@@ -280,20 +308,26 @@ async function seedConversations() {
     console.log('\n✅ Conversation seeding complete!');
     console.log(`📊 Summary:`);
     console.log(`   - Total users: ${users.length}`);
-    console.log(`   - Users with conversations: ${usersWithConversations.size}`);
+    console.log(
+      `   - Users with conversations: ${usersWithConversations.size}`
+    );
     console.log(`   - Total conversations created: ${createdCount}`);
     console.log(`   - Skipped (duplicates/existing): ${skippedCount}`);
 
     // Verify
     const finalCount = await db.collection('conversations').get();
-    console.log(`\n🔍 Verification: Total conversations in database: ${finalCount.size}`);
+    console.log(
+      `\n🔍 Verification: Total conversations in database: ${finalCount.size}`
+    );
 
     // Check for users without conversations
     const usersWithoutConversations = users.filter(
       (user) => !usersWithConversations.has(user.firebaseUid)
     );
     if (usersWithoutConversations.length > 0) {
-      console.log(`\n⚠️  Warning: ${usersWithoutConversations.length} users still without conversations:`);
+      console.log(
+        `\n⚠️  Warning: ${usersWithoutConversations.length} users still without conversations:`
+      );
       usersWithoutConversations.forEach((user) => {
         console.log(`   - ${user.netid}`);
       });
@@ -304,7 +338,10 @@ async function seedConversations() {
     process.exit(0);
   } catch (error) {
     console.error('\n❌ Error seeding conversations:', error);
-    console.error('Stack trace:', error instanceof Error ? error.stack : String(error));
+    console.error(
+      'Stack trace:',
+      error instanceof Error ? error.stack : String(error)
+    );
     process.exit(1);
   }
 }

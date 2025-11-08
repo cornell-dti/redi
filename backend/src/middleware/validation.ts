@@ -182,8 +182,8 @@ export const validateProfileCreation: ValidationChain[] = [
 export const validatePromptAnswer: ValidationChain[] = [
   body('promptId')
     .trim()
-    .matches(/^\d{4}-W?\d{1,2}$/)
-    .withMessage('Invalid prompt ID format (expected: YYYY-WW or YYYY-W-WW)'),
+    .matches(/^(TEST-W\d{2}|\d{4}-W?\d{1,2})$/)
+    .withMessage('Invalid prompt ID format (expected: YYYY-WW, YYYY-W-WW, or TEST-W##)'),
 
   body('answer')
     .trim()

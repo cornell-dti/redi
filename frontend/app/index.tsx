@@ -1,74 +1,67 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { getCurrentUser } from './api/authService';
-import { getCurrentUserProfile } from './api/profileApi';
+import { ArrowRight } from 'lucide-react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
 import { AppColors } from './components/AppColors';
 import AppText from './components/ui/AppText';
 import Button from './components/ui/Button';
 
 export default function Index() {
-  const [isChecking, setIsChecking] = useState(true);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
 
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const user = getCurrentUser();
-
-        if (user) {
-          // User is authenticated, check if they have a profile
-          const profile = await getCurrentUserProfile();
-
-          if (profile) {
-            // User has a complete profile, go to main app
-            router.replace('/(auth)/(tabs)');
-          } else {
-            // User doesn't have a profile yet, go to create profile
-            router.replace('/(auth)/create-profile');
-          }
-        } else {
-          // User is not authenticated, show the landing page
-          setIsChecking(false);
-        }
-      } catch (error) {
-        console.error('Error checking auth status:', error);
-        setIsChecking(false);
-      }
-    };
-
-    checkAuthStatus();
+    // Animate in when component mounts
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 8,
+      }),
+    ]).start();
   }, []);
 
   const handleGetStarted = () => {
     router.push('/home');
   };
 
-  // Show loading while checking authentication
-  if (isChecking) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={AppColors.accentDefault} />
-      </View>
-    );
-  }
+  // Note: Auth routing is handled by _layout.tsx
+  // This page is only shown when user is not authenticated
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <Animated.View
+        style={[
+          styles.content,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
         <View style={styles.centerContent}>
           <AppText variant="title">redi</AppText>
           <AppText variant="subtitle">cornell&apos;s first dating app</AppText>
         </View>
-        <AppText variant="body" style={styles.madeByText}>
-          Made by Incubator
-        </AppText>
+
         <Button
           title="Get Started"
           onPress={handleGetStarted}
           variant="primary"
           fullWidth
+          iconRight={ArrowRight}
         />
-      </View>
+
+        <AppText variant="body" style={styles.madeByText} color="dimmer">
+          Made by Incubator
+        </AppText>
+      </Animated.View>
     </View>
   );
 }
@@ -85,17 +78,12 @@ const styles = StyleSheet.create({
     paddingVertical: 80,
   },
   madeByText: {
-    textAlign: 'center' as const,
+    textAlign: 'center',
+    marginTop: 24,
   },
   centerContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: AppColors.backgroundDefault,
   },
 });

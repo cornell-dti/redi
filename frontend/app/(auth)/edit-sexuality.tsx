@@ -10,10 +10,13 @@ import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
+import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EditSexualityPage() {
   useThemeAware();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [selectedOrientation, setSelectedOrientation] = useState<string | null>(
@@ -22,6 +25,7 @@ export default function EditSexualityPage() {
   const [originalOrientation, setOriginalOrientation] = useState<string | null>(
     null
   );
+  const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -72,7 +76,12 @@ export default function EditSexualityPage() {
       });
 
       setOriginalOrientation(selectedOrientation);
-      Alert.alert('Success', 'Sexual orientation updated successfully');
+
+      showToast({
+        icon: <Check size={20} color={AppColors.backgroundDefault} />,
+        label: 'Sexual orientation updated',
+      });
+
       router.back();
     } catch (error) {
       console.error('Failed to update sexual orientation:', error);
@@ -88,21 +97,19 @@ export default function EditSexualityPage() {
 
   const handleBack = () => {
     if (hasUnsavedChanges()) {
-      Alert.alert(
-        'Unsaved Changes',
-        'You have unsaved changes. Do you want to discard them?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Discard',
-            style: 'destructive',
-            onPress: () => router.back(),
-          },
-        ]
-      );
+      setShowUnsavedChangesSheet(true);
     } else {
       router.back();
     }
+  };
+
+  const handleSaveAndExit = async () => {
+    await handleSave();
+  };
+
+  const handleDiscardChanges = () => {
+    setShowUnsavedChangesSheet(false);
+    router.back();
   };
 
   return (
@@ -136,6 +143,14 @@ export default function EditSexualityPage() {
           ))}
         </ListItemWrapper>
       </ScrollView>
+
+      {/* Unsaved Changes Sheet */}
+      <UnsavedChangesSheet
+        visible={showUnsavedChangesSheet}
+        onSave={handleSaveAndExit}
+        onDiscard={handleDiscardChanges}
+        onDismiss={() => setShowUnsavedChangesSheet(false)}
+      />
     </SafeAreaView>
   );
 }

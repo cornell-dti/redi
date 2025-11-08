@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics';
 import React, { useRef } from 'react';
 import {
   Animated,
@@ -16,6 +17,7 @@ interface AppInputProps extends TextInputProps {
   noRound?: boolean;
   variant?: 'gray' | 'white';
   fullRound?: boolean;
+  dateFormat?: boolean; // Automatically format as MM/DD/YYYY
 }
 
 const AppInput: React.FC<AppInputProps> = ({
@@ -26,16 +28,62 @@ const AppInput: React.FC<AppInputProps> = ({
   style,
   variant,
   fullRound,
+  dateFormat,
   ...props
 }) => {
   const borderColorAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  // Format date input as MM/DD/YYYY
+  const formatDateInput = (text: string): string => {
+    // Remove all non-numeric characters
+    const cleaned = text.replace(/\D/g, '');
+
+    // Add slashes at appropriate positions
+    let formatted = cleaned;
+    if (cleaned.length >= 2) {
+      formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+    }
+    if (cleaned.length >= 4) {
+      formatted =
+        cleaned.slice(0, 2) +
+        '/' +
+        cleaned.slice(2, 4) +
+        '/' +
+        cleaned.slice(4, 8);
+    }
+
+    return formatted;
+  };
+
+  const handleDateChange = (text: string) => {
+    if (dateFormat && props.onChangeText) {
+      const formatted = formatDateInput(text);
+      props.onChangeText(formatted);
+    }
+  };
 
   const borderColor = borderColorAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [AppColors.backgroundDimmer, AppColors.accentDefault],
   });
 
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const handleFocus = (e: any) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
     Animated.timing(borderColorAnim, {
       toValue: 1,
       duration: 120,
@@ -61,26 +109,34 @@ const AppInput: React.FC<AppInputProps> = ({
           {required && <AppText color="negative"> *</AppText>}
         </AppText>
       )}
-      <Animated.View
-        style={[
-          styles.inputWrapper,
-          {
-            borderColor: error ? AppColors.negativeDefault : borderColor,
-            backgroundColor:
-              variant === 'white'
-                ? AppColors.backgroundDefault
-                : AppColors.backgroundDimmer,
-          },
-          noRound && { borderRadius: 6 },
-          fullRound && { borderRadius: 32 },
-        ]}
-      >
-        <TextInput
-          style={[styles.input, style]}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          {...props}
-        />
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        <Animated.View
+          style={[
+            styles.inputWrapper,
+            {
+              borderColor: error ? AppColors.negativeDefault : borderColor,
+              backgroundColor:
+                variant === 'white'
+                  ? AppColors.backgroundDefault
+                  : AppColors.backgroundDimmer,
+            },
+            noRound && { borderRadius: 6 },
+            fullRound && { borderRadius: 32 },
+          ]}
+        >
+          <TextInput
+            style={[styles.input, style]}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            {...props}
+            keyboardType={dateFormat ? 'number-pad' : props.keyboardType}
+            maxLength={dateFormat ? 10 : props.maxLength}
+            onChangeText={dateFormat ? handleDateChange : props.onChangeText}
+            multiline={props.multiline || false}
+          />
+        </Animated.View>
       </Animated.View>
       {error && (
         <AppText color="negative" style={styles.errorMessage}>
@@ -98,7 +154,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   label: {
-    marginLeft: 12,
+    marginLeft: 6,
   },
   inputWrapper: {
     borderWidth: 2,

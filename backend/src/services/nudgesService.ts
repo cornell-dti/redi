@@ -139,16 +139,19 @@ async function unlockChatForMatch(
   matchNetid: string,
   promptId: string
 ): Promise<void> {
-  const matchDocId = `${userNetid}_${promptId}`;
-  const matchDoc = await db
+  // Query by netid and promptId to support both algorithm-generated and manually created matches
+  const matchSnapshot = await db
     .collection(MATCHES_COLLECTION)
-    .doc(matchDocId)
+    .where('netid', '==', userNetid)
+    .where('promptId', '==', promptId)
+    .limit(1)
     .get();
 
-  if (!matchDoc.exists) {
+  if (matchSnapshot.empty) {
     return;
   }
 
+  const matchDoc = matchSnapshot.docs[0];
   const matchData = matchDoc.data();
   if (!matchData) {
     return;
@@ -168,7 +171,7 @@ async function unlockChatForMatch(
   // Set chatUnlocked to true for this specific match
   matchData.chatUnlocked[matchIndex] = true;
 
-  await db.collection(MATCHES_COLLECTION).doc(matchDocId).update({
+  await matchDoc.ref.update({
     chatUnlocked: matchData.chatUnlocked,
   });
 }

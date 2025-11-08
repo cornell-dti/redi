@@ -1,9 +1,9 @@
-import { db } from '../../firebaseAdmin';
+import { db } from '../firebaseAdmin';
 import {
   BlockedUserDoc,
   BlockedUserDocWrite,
   BlockedUserResponse,
-} from '../../types';
+} from '../types';
 import { FieldValue } from 'firebase-admin/firestore';
 
 const BLOCKED_USERS_COLLECTION = 'blockedUsers';
@@ -90,9 +90,7 @@ export async function unblockUser(
  * @param blockerNetid - User whose blocked list to retrieve
  * @returns Promise resolving to array of blocked user netids
  */
-export async function getBlockedUsers(
-  blockerNetid: string
-): Promise<string[]> {
+export async function getBlockedUsers(blockerNetid: string): Promise<string[]> {
   const blocksSnapshot = await db
     .collection(BLOCKED_USERS_COLLECTION)
     .where('blockerNetid', '==', blockerNetid)
