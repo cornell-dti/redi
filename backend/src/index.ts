@@ -14,6 +14,7 @@ import notificationsRouter from './routes/notifications';
 import chatRouter from './routes/chat';
 import reportsRouter from './routes/reports';
 import adminReportsRouter from './routes/admin-reports';
+import authRouter from './routes/auth';
 
 dotenv.config();
 
@@ -95,6 +96,7 @@ app.use((req, _res, next) => {
 
 app.get('/ping', (_req, res) => res.send('pong'));
 
+app.use(authRouter); // /api/auth
 app.use(landingPageRouter); // /api/landing-emails
 app.use(usersRouter); // User authentication
 app.use(profilesRouter);
