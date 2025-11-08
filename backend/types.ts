@@ -327,6 +327,7 @@ export interface WeeklyPromptAnswerDocWrite {
   promptId: string;
   answer: string;
   createdAt: FirestoreTimestampType | FieldValue;
+  updatedAt?: FirestoreTimestampType | FieldValue;
 }
 
 // Weekly prompt answer data for API responses
