@@ -12,7 +12,7 @@ import rateLimit from 'express-rate-limit';
  */
 export const publicRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // Limit each IP to 20 requests per windowMs
+  max: 1000, // Limit each IP to 20 requests per windowMs
   message: {
     error: 'Too many requests from this IP, please try again later.',
     retryAfter: '15 minutes',
@@ -38,7 +38,7 @@ export const publicRateLimit = rateLimit({
  */
 export const authenticatedRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // Limit each IP to 200 requests per windowMs
+  max: 1000, // Limit each IP to 200 requests per windowMs
   message: {
     error: 'Too many requests, please try again later.',
     retryAfter: '15 minutes',
@@ -70,7 +70,7 @@ export const adminRateLimit = rateLimit({
  */
 export const authenticationRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
+  max: 1000, // Limit each IP to 1000 requests per windowMs
   message: {
     error: 'Too many authentication attempts, please try again later.',
     retryAfter: '15 minutes',
@@ -91,7 +91,7 @@ export const authenticationRateLimit = rateLimit({
  */
 export const notificationRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 200, // Limit each IP to 200 requests per windowMs
+  max: 1000, // Limit each IP to 1000 requests per windowMs
   message: {
     error: 'Too many notification requests, please try again later.',
     retryAfter: '15 minutes',
@@ -107,7 +107,7 @@ export const notificationRateLimit = rateLimit({
  */
 export const uploadRateLimit = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // Limit each IP to 10 uploads per hour
+  max: 100, // Limit each IP to 100 uploads per hour
   message: {
     error: 'Too many file uploads, please try again later.',
     retryAfter: '1 hour',
@@ -123,7 +123,7 @@ export const uploadRateLimit = rateLimit({
  */
 export const chatRateLimit = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 60, // Limit each IP to 60 messages per minute
+  max: 100, // Limit each IP to 100 messages per minute
   message: {
     error: 'You are sending messages too quickly. Please slow down.',
     retryAfter: '1 minute',
