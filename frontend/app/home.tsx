@@ -147,8 +147,8 @@ export default function HomePage() {
       // Navigation handled by auth state listener
     } catch (error) {
       Alert.alert(
-        'Log In Failed',
-        error instanceof Error ? error.message : 'Unknown error occurred'
+        'Login Failed',
+        error instanceof Error ? error.message : 'Incorrect email or password. Please try again.'
       );
     } finally {
       setLoading(false);

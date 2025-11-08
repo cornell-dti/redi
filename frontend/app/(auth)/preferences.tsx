@@ -111,8 +111,8 @@ export default function DatingPreferencesPage() {
       return;
     }
 
-    if (ageMin >= ageMax) {
-      Alert.alert('Invalid Range', 'Minimum age must be less than maximum age');
+    if (ageMin > ageMax) {
+      Alert.alert('Invalid Range', 'Minimum age must be less than or equal to maximum age');
       return;
     }
 

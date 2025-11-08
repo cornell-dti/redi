@@ -63,7 +63,7 @@ export const validateProfileCreation: ValidationChain[] = [
       const age =
         (Date.now() - birthdate.getTime()) / (1000 * 60 * 60 * 24 * 365);
       if (age < 18) {
-        throw new Error('Must be at least 18 years old');
+        throw new Error('You must be 18 or older to use REDI');
       }
       if (age > 100) {
         throw new Error('Invalid birthdate');
@@ -206,8 +206,8 @@ export const validatePreferences: ValidationChain[] = [
     .isInt({ min: 18, max: 100 })
     .withMessage('Maximum age must be between 18 and 100')
     .custom((max, { req }) => {
-      if (req.body.ageRange?.min && max <= req.body.ageRange.min) {
-        throw new Error('Maximum age must be greater than minimum age');
+      if (req.body.ageRange?.min && max < req.body.ageRange.min) {
+        throw new Error('Maximum age must be greater than or equal to minimum age');
       }
       return true;
     }),
