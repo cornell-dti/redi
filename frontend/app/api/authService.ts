@@ -3,7 +3,7 @@ import * as AuthSession from 'expo-auth-session';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { createUserInBackend, loginUserInBackend } from './userApi';
-import { WEB_APP_URL } from '../config';
+import { API_BASE_URL } from '../../constants/constants';
 
 // Type for Firebase errors (compatible with both Web and RN Firebase)
 interface FirebaseError extends Error {
@@ -241,38 +241,27 @@ export const sendPasswordlessSignInLink = async (
   }
 
   try {
-    // Configure the email link action settings
-    const actionCodeSettings = {
-      // URL must be a valid HTTPS URL (or localhost for dev)
-      url: `${WEB_APP_URL}/auth-redirect?email=${encodeURIComponent(email)}`,
-      handleCodeInApp: true,
-      iOS: {
-        bundleId: 'com.incubator.redi',
+    // Call our backend to generate Firebase link and send email
+    const response = await fetch(`${API_BASE_URL}/api/auth/send-signin-link`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      android: {
-        packageName: 'com.incubator.redi',
-        installApp: false,
-      },
-    };
+      body: JSON.stringify({ email }),
+    });
 
-    // Send the sign-in link using React Native Firebase
-    await auth().sendSignInLinkToEmail(email, actionCodeSettings);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to send sign-in link');
+    }
 
     // Save the email locally to complete sign-in later
     await AsyncStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, email);
   } catch (error) {
-    const err = error as FirebaseError;
-
-    // Handle specific Firebase errors
-    if (err.code === 'auth/invalid-email') {
-      throw new Error('Please enter a valid email address.');
-    } else if (err.code === 'auth/missing-android-pkg-name') {
-      throw new Error('Configuration error. Please contact support.');
-    } else if (err.code === 'auth/missing-continue-uri') {
-      throw new Error('Configuration error. Please contact support.');
-    } else {
-      throw new Error(err.message || 'Failed to send sign-in link. Please try again.');
+    if (error instanceof Error) {
+      throw error;
     }
+    throw new Error('Failed to send sign-in link. Please try again.');
   }
 };
 
