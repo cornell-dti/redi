@@ -204,11 +204,10 @@ export const signOutUser = async (): Promise<void> => {
 
   // Attempt to sign out from Google (don't fail if this errors)
   try {
-    const isSignedIn = await GoogleSignin.isSignedIn();
-    if (isSignedIn) {
-      await GoogleSignin.signOut();
-      console.log('Google sign-out successful');
-    }
+    // Some versions of the GoogleSignin typings don't expose isSignedIn(),
+    // so attempt to sign out directly and ignore failures.
+    await GoogleSignin.signOut();
+    console.log('Google sign-out successful');
   } catch (error) {
     // Log the error but don't throw - Firebase sign-out already succeeded
     console.warn('Google sign-out error (non-critical):', error);
