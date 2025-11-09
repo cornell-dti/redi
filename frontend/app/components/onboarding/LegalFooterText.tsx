@@ -49,9 +49,8 @@ export default function LegalFooterText({ text }: LegalFooterTextProps) {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 24,
-    paddingHorizontal: 16,
     display: 'flex',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   text: {

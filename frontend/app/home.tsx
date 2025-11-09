@@ -1,19 +1,25 @@
 import { router } from 'expo-router';
-import { ArrowLeft, Info, LogIn, Mail, Plus } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bug,
+  Info,
+  LogIn,
+  Play,
+  Plus,
+} from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
   Dimensions,
-  KeyboardAvoidingView,
-  Platform,
+  Image,
+  Linking,
   ScrollView,
-  StatusBar,
   StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   getCurrentUser,
   signInUser,
@@ -23,23 +29,24 @@ import {
 } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
 import { AppColors } from './components/AppColors';
-import LegalFooterText from './components/onboarding/LegalFooterText';
+import OnboardingVideo from './components/onboarding/OnboardingVideo';
 import AppInput from './components/ui/AppInput';
 import AppText from './components/ui/AppText';
 import Button from './components/ui/Button';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import Sheet from './components/ui/Sheet';
 
-type AuthMode = 'welcome' | 'signup' | 'login';
+type AuthMode = 'splash' | 'welcome' | 'signup' | 'login';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function HomePage() {
-  const [mode, setMode] = useState<AuthMode>('welcome');
+  const [mode, setMode] = useState<AuthMode>('splash');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showInfoSheet, setShowInfoSheet] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
 
   // Animation refs
@@ -141,7 +148,9 @@ export default function HomePage() {
     } catch (error) {
       Alert.alert(
         'Login Failed',
-        error instanceof Error ? error.message : 'Incorrect email or password. Please try again.'
+        error instanceof Error
+          ? error.message
+          : 'Incorrect email or password. Please try again.'
       );
       setPassword('');
     } finally {
@@ -151,7 +160,11 @@ export default function HomePage() {
 
   const handleBack = () => {
     setDirection('backward');
-    setMode('welcome');
+    if (mode === 'welcome') {
+      setMode('splash');
+    } else {
+      setMode('welcome');
+    }
     setEmail('');
     setPassword('');
   };
@@ -159,6 +172,19 @@ export default function HomePage() {
   const handleModeChange = (newMode: AuthMode) => {
     setDirection('forward');
     setMode(newMode);
+  };
+
+  const handleGetStarted = () => {
+    setDirection('forward');
+    setMode('welcome');
+  };
+
+  const handleReplayVideo = () => {
+    setShowVideo(true);
+  };
+
+  const handleVideoFinish = () => {
+    setShowVideo(false);
   };
 
   const handleGoogleSignIn = async () => {
@@ -185,34 +211,84 @@ export default function HomePage() {
     } catch (error) {
       Alert.alert(
         'Google Sign-In Failed',
-        error instanceof Error ? error.message : 'Unable to sign in with Google. Please try again.'
+        error instanceof Error
+          ? error.message
+          : 'Unable to sign in with Google. Please try again.'
       );
     } finally {
       setLoading(false);
     }
   };
 
-  const renderWelcomeScreen = () => (
-    <Animated.View
-      style={[
-        styles.animatedContainer,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateX: slideAnim }],
-        },
-      ]}
-    >
-      <View style={styles.centerContent}>
-        <AppText variant="title" style={styles.logo}>
+  const renderSplashScreen = () => (
+    <View style={{ flex: 1, gap: 24 }}>
+      <View style={styles.logoContainerAlt}>
+        <Image
+          source={require('../assets/images/icon.png')}
+          resizeMode="contain"
+          style={styles.logoImage}
+        />
+
+        <AppText variant="title" style={styles.logoWordmark}>
           redi
         </AppText>
-        <AppText variant="subtitle" style={styles.subtitle}>
-          cornell&apos;s first dating app
+        <AppText variant="subtitle" color="dimmer">
+          Cornell&apos;s first dating app
         </AppText>
       </View>
 
-      <View style={styles.buttonContainer}>
-        {/* Google Sign-In - Primary Method */}
+      {/* Fixed bottom area - buttons and footer stack vertically */}
+
+      <View style={{ gap: 12, justifyContent: 'flex-end' }}>
+        <Button
+          title="Get Started"
+          onPress={handleGetStarted}
+          variant="primary"
+          iconRight={ArrowRight}
+        />
+
+        <Button
+          title="Replay Video"
+          onPress={handleReplayVideo}
+          variant="secondary"
+          iconLeft={Play}
+        />
+      </View>
+
+      <AppText style={{ textAlign: 'center', height: 60 }} color="dimmer">
+        Made by Incubator, part of DTI
+      </AppText>
+    </View>
+  );
+
+  const renderWelcomeScreen = () => (
+    <View style={{ flex: 1, gap: 24, position: 'relative' }}>
+      <View style={{ position: 'absolute', top: 48, right: 0, width: 200 }}>
+        <Button
+          title="DEBUG LOGIN"
+          onPress={() => handleModeChange('login')}
+          variant="negative"
+          fullWidth
+          iconLeft={Bug}
+        />
+      </View>
+
+      <View style={styles.logoContainer}>
+        <Image
+          source={require('../assets/images/icon.png')}
+          resizeMode="contain"
+          style={styles.logoImage}
+        />
+
+        <AppText variant="title" style={styles.logoWordmark}>
+          redi
+        </AppText>
+        <AppText variant="subtitle" color="dimmer">
+          Cornell&apos;s first dating app
+        </AppText>
+      </View>
+
+      <View style={{ gap: 12, justifyContent: 'flex-end' }}>
         <Button
           title="Continue with Google"
           onPress={handleGoogleSignIn}
@@ -221,160 +297,152 @@ export default function HomePage() {
           disabled={loading}
         />
 
-        {/* Divider */}
-        <View style={styles.dividerContainer}>
-          <View style={styles.divider} />
-          <AppText variant="body" style={styles.dividerText} color="dimmer">
-            or
-          </AppText>
-          <View style={styles.divider} />
-        </View>
-
-        {/* Email/Password - Secondary Method for Testing */}
         <Button
-          title="Email/Password (Testing)"
-          onPress={() => handleModeChange('login')}
+          title="Back"
+          onPress={handleBack}
           variant="secondary"
           fullWidth
-          iconLeft={Mail}
+          iconLeft={ArrowLeft}
         />
       </View>
-    </Animated.View>
+
+      <AppText style={{ textAlign: 'center', height: 60 }} color="dimmer">
+        By signing up, you agree to our{' '}
+        <AppText
+          color="accent"
+          style={{ textDecorationLine: 'underline' }}
+          onPress={() => Linking.openURL('https://redi.love/terms')}
+        >
+          Terms
+        </AppText>
+        . Learn how we process your data in our{' '}
+        <AppText
+          color="accent"
+          style={{ textDecorationLine: 'underline' }}
+          onPress={() => Linking.openURL('https://redi.love/privacy')}
+        >
+          Privacy
+        </AppText>
+        .
+      </AppText>
+    </View>
   );
 
   const renderAuthForm = () => (
     <Animated.View
       style={[
-        styles.animatedContainer,
+        styles.screenContainer,
         {
           opacity: fadeAnim,
           transform: [{ translateX: slideAnim }],
         },
       ]}
     >
-      <ScrollView
-        style={styles.formScrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.formContainer}>
-          <AppText variant="title" style={styles.formTitle}>
-            {mode === 'signup' ? 'Create account' : 'Welcome back!'}
-          </AppText>
-          <AppText variant="subtitle" style={styles.formSubtitle}>
-            {mode === 'signup'
-              ? 'Enter your Cornell email to get started'
-              : 'Log in to continue'}
-          </AppText>
+      {/* Flexible top area - scrollable form */}
+      <View style={styles.topSection}>
+        <ScrollView
+          style={styles.formScrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.formScrollContent}
+        >
+          <View style={styles.formContainer}>
+            <AppText variant="title" style={styles.formTitle}>
+              {mode === 'signup'
+                ? 'Create account [DEBUG]'
+                : 'Welcome back! [DEBUG]'}
+            </AppText>
+            <AppText variant="subtitle" style={styles.formSubtitle}>
+              {mode === 'signup'
+                ? 'Enter your Cornell email to get started'
+                : 'Log in to continue'}
+            </AppText>
 
-          <View style={styles.inputContainer}>
-            <AppInput
-              label="Cornell email"
-              placeholder="netid@cornell.edu"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              editable={!loading}
-              required
+            <View style={styles.inputContainer}>
+              <AppInput
+                label="Cornell email"
+                placeholder="netid@cornell.edu"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                editable={!loading}
+                required
+              />
+
+              <TouchableOpacity
+                onPress={() => setShowInfoSheet(true)}
+                style={styles.infoIcon}
+              >
+                <Info size={16} color={AppColors.foregroundDimmer} />
+              </TouchableOpacity>
+
+              <AppInput
+                label="Password"
+                placeholder="Enter your password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                editable={!loading}
+                required
+              />
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+
+      {/* Fixed bottom area - buttons and footer stack vertically */}
+      <View style={styles.bottomFixedSection}>
+        {loading ? (
+          <LoadingSpinner style={styles.loader} />
+        ) : (
+          <View style={styles.buttonContainer}>
+            <Button
+              title={mode === 'signup' ? 'Create account' : 'Log in'}
+              onPress={mode === 'signup' ? handleCreateAccount : handleLogin}
+              variant="primary"
+              iconLeft={mode === 'signup' ? Plus : LogIn}
             />
 
+            {/* Toggle between signup and login */}
             <TouchableOpacity
-              onPress={() => setShowInfoSheet(true)}
-              style={styles.infoIcon}
+              onPress={() => {
+                setDirection('forward');
+                setMode(mode === 'signup' ? 'login' : 'signup');
+              }}
+              style={styles.toggleAuthMode}
             >
-              <Info size={16} color={AppColors.foregroundDimmer} />
+              <AppText variant="body" style={styles.toggleAuthModeText}>
+                {mode === 'signup'
+                  ? 'Already have an account? '
+                  : "Don't have an account? "}
+                <AppText variant="body" style={styles.toggleAuthModeTextBold}>
+                  {mode === 'signup' ? 'Log in' : 'Create account'}
+                </AppText>
+              </AppText>
             </TouchableOpacity>
 
-            <AppInput
-              label="Password"
-              placeholder="Enter your password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              editable={!loading}
-              required
+            <Button
+              title="Back"
+              onPress={handleBack}
+              variant="secondary"
+              iconLeft={ArrowLeft}
             />
           </View>
-
-          {/* Divider */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.divider} />
-            <AppText variant="body" style={styles.dividerText} color="dimmer">
-              or
-            </AppText>
-            <View style={styles.divider} />
-          </View>
-
-          {/* Google Sign-In option in form */}
-          <Button
-            title="Continue with Google"
-            onPress={handleGoogleSignIn}
-            variant="secondary"
-            fullWidth
-            disabled={loading}
-          />
-        </View>
-      </ScrollView>
-
-      {loading ? (
-        <LoadingSpinner style={styles.loader} />
-      ) : (
-        <View style={styles.buttonContainer}>
-          <Button
-            title={mode === 'signup' ? 'Create account' : 'Log in'}
-            onPress={mode === 'signup' ? handleCreateAccount : handleLogin}
-            variant="primary"
-            fullWidth
-            iconLeft={mode === 'signup' ? Plus : LogIn}
-          />
-
-          {/* Toggle between signup and login */}
-          <TouchableOpacity
-            onPress={() => {
-              setDirection('forward');
-              setMode(mode === 'signup' ? 'login' : 'signup');
-            }}
-            style={styles.toggleAuthMode}
-          >
-            <AppText variant="body" style={styles.toggleAuthModeText}>
-              {mode === 'signup'
-                ? 'Already have an account? '
-                : "Don't have an account? "}
-              <AppText
-                variant="body"
-                style={styles.toggleAuthModeTextBold}
-              >
-                {mode === 'signup' ? 'Log in' : 'Create account'}
-              </AppText>
-            </AppText>
-          </TouchableOpacity>
-
-          <Button
-            title="Back"
-            onPress={handleBack}
-            variant="secondary"
-            fullWidth
-            iconLeft={ArrowLeft}
-          />
-        </View>
-      )}
+        )}
+      </View>
     </Animated.View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <View style={styles.container}>
+      {/* <StatusBar barStyle="dark-content" /> */}
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoid}
-      >
-        <View style={styles.content}>
-          {mode === 'welcome' ? renderWelcomeScreen() : renderAuthForm()}
-        </View>
-      </KeyboardAvoidingView>
+      {mode === 'splash' && renderSplashScreen()}
+      {mode === 'welcome' && renderWelcomeScreen()}
+      {(mode === 'signup' || mode === 'login') && renderAuthForm()}
 
-      <LegalFooterText text="By signing up, you agree to our {terms}. Learn how we process your data in our {privacy}." />
+      {/* Onboarding Video Modal */}
+      <OnboardingVideo visible={showVideo} onFinish={handleVideoFinish} />
 
       <Sheet
         visible={showInfoSheet}
@@ -392,58 +460,83 @@ export default function HomePage() {
           and authentication purposes.
         </AppText>
       </Sheet>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 16,
+    justifyContent: 'center',
+    // alignItems: 'center',
     backgroundColor: AppColors.backgroundDefault,
   },
-  keyboardAvoid: {
-    flex: 1,
-  },
-  content: {
+  // Main screen container - holds top and bottom sections
+  screenContainer: {
     flex: 1,
     paddingHorizontal: 20,
-    justifyContent: 'space-between',
-    paddingVertical: 40,
+    paddingTop: 60,
+    paddingBottom: 40,
   },
-  animatedContainer: {
+  // Top section - flexible, takes available space
+  topSection: {
     flex: 1,
-    justifyContent: 'space-between',
   },
+  // Center content - "redi" title area
   centerContent: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logo: {
+  logoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoContainerAlt: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 96,
+  },
+  logoImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
+  logoWordmark: {
     fontSize: 48,
-    fontWeight: '700',
-    marginBottom: 8,
-    paddingTop: 24,
+    lineHeight: 48,
   },
   subtitle: {
     color: AppColors.foregroundDimmer,
   },
+  // Bottom fixed section - NOT flex, stacks children naturally
+  bottomFixedSection: {
+    // No flex - this is key to prevent overlap
+  },
+  // Button container - stacks buttons with gap
   buttonContainer: {
-    gap: 12,
+    // gap: 12,
+    // marginBottom: 20,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  // Footer container - separate, below buttons
+  footerContainer: {
+    paddingVertical: 8,
     alignItems: 'center',
-    backgroundColor: AppColors.backgroundDefault,
   },
+  // Form-specific styles
   formScrollView: {
     flex: 1,
   },
+  formScrollContent: {
+    flexGrow: 1,
+  },
   formContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingTop: 40,
+    paddingTop: 20,
+    paddingBottom: 20,
   },
   formTitle: {
     fontSize: 32,
@@ -459,7 +552,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     position: 'relative',
   },
-  infoIcon: { position: 'absolute', top: 0, right: 8 },
+  infoIcon: {
+    position: 'absolute',
+    top: 0,
+    right: 8,
+  },
   loader: {
     marginVertical: 20,
   },
@@ -474,7 +571,8 @@ const styles = StyleSheet.create({
   },
   divider: {
     flex: 1,
-    height: 1
+    height: 1,
+    backgroundColor: AppColors.backgroundDimmest,
   },
   dividerText: {
     marginHorizontal: 12,
