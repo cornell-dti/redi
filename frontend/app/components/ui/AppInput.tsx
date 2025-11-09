@@ -18,6 +18,7 @@ interface AppInputProps extends TextInputProps {
   variant?: 'gray' | 'white';
   fullRound?: boolean;
   dateFormat?: boolean; // Automatically format as MM/DD/YYYY
+  bottomBorderRound?: boolean;
 }
 
 const AppInput: React.FC<AppInputProps> = ({
@@ -29,6 +30,7 @@ const AppInput: React.FC<AppInputProps> = ({
   variant,
   fullRound,
   dateFormat,
+  bottomBorderRound,
   ...props
 }) => {
   const borderColorAnim = useRef(new Animated.Value(0)).current;
@@ -122,6 +124,12 @@ const AppInput: React.FC<AppInputProps> = ({
             },
             noRound && { borderRadius: 6 },
             fullRound && { borderRadius: 32 },
+            bottomBorderRound && {
+              borderTopLeftRadius: 6,
+              borderTopRightRadius: 6,
+              borderBottomLeftRadius: 24,
+              borderBottomRightRadius: 24,
+            },
           ]}
         >
           <TextInput
