@@ -50,30 +50,75 @@ export default function HomePage() {
   const [showVideo, setShowVideo] = useState(false);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
 
-  // Animation refs
+  // Animation refs for splash/welcome elements
+  const buttonsSlideAnim = useRef(new Animated.Value(0)).current;
+  const buttonsFadeAnim = useRef(new Animated.Value(1)).current;
+  const footerSlideAnim = useRef(new Animated.Value(0)).current;
+  const footerFadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Animation refs for auth form (signup/login screens)
   const slideAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // Animate page transitions when mode changes
+  // Animate transitions between splash and welcome
   useEffect(() => {
-    // Reset position based on direction
-    slideAnim.setValue(direction === 'forward' ? SCREEN_WIDTH : -SCREEN_WIDTH);
-    fadeAnim.setValue(0);
+    if (mode === 'splash' || mode === 'welcome') {
+      // Reset position based on direction
+      buttonsSlideAnim.setValue(
+        direction === 'forward' ? SCREEN_WIDTH : -SCREEN_WIDTH
+      );
+      buttonsFadeAnim.setValue(0);
+      footerSlideAnim.setValue(
+        direction === 'forward' ? SCREEN_WIDTH : -SCREEN_WIDTH
+      );
+      footerFadeAnim.setValue(0);
 
-    // Animate in
-    Animated.parallel([
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 65,
-        friction: 10,
-      }),
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-    ]).start();
+      // Animate in
+      Animated.parallel([
+        Animated.spring(buttonsSlideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 65,
+          friction: 10,
+        }),
+        Animated.timing(buttonsFadeAnim, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.spring(footerSlideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 65,
+          friction: 10,
+        }),
+        Animated.timing(footerFadeAnim, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (mode === 'signup' || mode === 'login') {
+      // Animate auth form screens
+      slideAnim.setValue(
+        direction === 'forward' ? SCREEN_WIDTH : -SCREEN_WIDTH
+      );
+      fadeAnim.setValue(0);
+
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 40,
+          friction: 0,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
   }, [mode]);
 
   const handleCreateAccount = async () => {
@@ -235,7 +280,14 @@ export default function HomePage() {
 
       {/* Fixed bottom area - buttons and footer stack vertically */}
 
-      <View style={{ gap: 12, justifyContent: 'flex-end' }}>
+      <Animated.View
+        style={{
+          gap: 12,
+          justifyContent: 'flex-end',
+          opacity: buttonsFadeAnim,
+          transform: [{ translateX: buttonsSlideAnim }],
+        }}
+      >
         <Button
           title="Get Started"
           onPress={handleGetStarted}
@@ -249,11 +301,18 @@ export default function HomePage() {
           variant="secondary"
           iconLeft={Play}
         />
-      </View>
+      </Animated.View>
 
-      <AppText style={{ textAlign: 'center', height: 60 }} color="dimmer">
-        Made by Incubator, part of DTI
-      </AppText>
+      <Animated.View
+        style={{
+          opacity: footerFadeAnim,
+          transform: [{ translateX: footerSlideAnim }],
+        }}
+      >
+        <AppText style={{ textAlign: 'center', height: 60 }} color="dimmer">
+          Made by Incubator, part of DTI
+        </AppText>
+      </Animated.View>
     </View>
   );
 
@@ -284,7 +343,14 @@ export default function HomePage() {
         </AppText>
       </View>
 
-      <View style={{ gap: 12, justifyContent: 'flex-end' }}>
+      <Animated.View
+        style={{
+          gap: 12,
+          justifyContent: 'flex-end',
+          opacity: buttonsFadeAnim,
+          transform: [{ translateX: buttonsSlideAnim }],
+        }}
+      >
         <Button
           title="Continue with Google"
           onPress={handleGoogleSignIn}
@@ -300,27 +366,34 @@ export default function HomePage() {
           fullWidth
           iconLeft={ArrowLeft}
         />
-      </View>
+      </Animated.View>
 
-      <AppText style={{ textAlign: 'center', height: 60 }} color="dimmer">
-        By signing up, you agree to our{' '}
-        <AppText
-          color="accent"
-          style={{ textDecorationLine: 'underline' }}
-          onPress={() => Linking.openURL('https://redi.love/terms')}
-        >
-          Terms
+      <Animated.View
+        style={{
+          opacity: footerFadeAnim,
+          transform: [{ translateX: footerSlideAnim }],
+        }}
+      >
+        <AppText style={{ textAlign: 'center', height: 60 }} color="dimmer">
+          By signing up, you agree to our{' '}
+          <AppText
+            color="accent"
+            style={{ textDecorationLine: 'underline' }}
+            onPress={() => Linking.openURL('https://redi.love/terms')}
+          >
+            Terms
+          </AppText>
+          . Learn how we process your data in our{' '}
+          <AppText
+            color="accent"
+            style={{ textDecorationLine: 'underline' }}
+            onPress={() => Linking.openURL('https://redi.love/privacy')}
+          >
+            Privacy
+          </AppText>
+          .
         </AppText>
-        . Learn how we process your data in our{' '}
-        <AppText
-          color="accent"
-          style={{ textDecorationLine: 'underline' }}
-          onPress={() => Linking.openURL('https://redi.love/privacy')}
-        >
-          Privacy
-        </AppText>
-        .
-      </AppText>
+      </Animated.View>
     </View>
   );
 
