@@ -6,6 +6,7 @@ import FooterSpacer from '@/app/components/ui/FooterSpacer';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
+import Pressable from '@/app/components/ui/Pressable';
 import Sheet from '@/app/components/ui/Sheet';
 import SignOutSheet from '@/app/components/ui/SignOutSheet';
 import { ProfileResponse } from '@/types';
@@ -184,7 +185,12 @@ export default function ProfileScreen() {
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.profileTop}>
-          <Image source={{ uri: displayImages[0] }} style={styles.profilePic} />
+          <Pressable onPress={() => router.push('/edit-profile' as any)}>
+            <Image
+              source={{ uri: displayImages[0] }}
+              style={styles.profilePic}
+            />
+          </Pressable>
 
           <View style={styles.nameContainer}>
             <AppText variant="title">{displayName}</AppText>
