@@ -52,6 +52,12 @@ export default {
       '@react-native-firebase/app',
       '@react-native-firebase/auth',
       [
+        '@react-native-google-signin/google-signin',
+        {
+          iosUrlScheme: 'com.googleusercontent.apps.272234540869-6okghrkn79ub3kf6urj9h2jed3nmopel',
+        },
+      ],
+      [
         'expo-image-picker',
         {
           photosPermission:
