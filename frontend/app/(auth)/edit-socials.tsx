@@ -269,6 +269,7 @@ export default function EditSocialsPage() {
             ? `Edit ${socialButtons.find((s) => s.type === selectedSocial)?.label}`
             : ''
         }
+        bottomRound={false}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
