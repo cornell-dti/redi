@@ -46,6 +46,7 @@ export default function HomePage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showInfoSheet, setShowInfoSheet] = useState(false);
+  const [showGoogleErrorSheet, setShowGoogleErrorSheet] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
 
@@ -209,12 +210,7 @@ export default function HomePage() {
         router.replace('/(auth)/create-profile');
       }
     } catch (error) {
-      Alert.alert(
-        'Google Sign-In Failed',
-        error instanceof Error
-          ? error.message
-          : 'Unable to sign in with Google. Please try again.'
-      );
+      setShowGoogleErrorSheet(true);
     } finally {
       setLoading(false);
     }
@@ -459,6 +455,23 @@ export default function HomePage() {
           Your email is kept private and is only used for account verification
           and authentication purposes.
         </AppText>
+      </Sheet>
+
+      <Sheet
+        visible={showGoogleErrorSheet}
+        onDismiss={() => setShowGoogleErrorSheet(false)}
+        title="Could not continue with Google"
+        height="auto"
+      >
+        <AppText variant="body" style={styles.sheetText}>
+          Please try again with your Cornell .edu email address.
+        </AppText>
+
+        <Button
+          onPress={() => setShowGoogleErrorSheet(false)}
+          title="Close"
+          variant="secondary"
+        />
       </Sheet>
     </View>
   );
