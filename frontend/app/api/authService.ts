@@ -128,11 +128,26 @@ export const signInWithGoogle = async (): Promise<void> => {
     // Sign in with Google
     const userInfo = await GoogleSignin.signIn();
 
-    // Get the ID token
+    // Get the ID token and email
     const idToken = userInfo.data?.idToken;
+    const email = userInfo.data?.user?.email;
 
     if (!idToken) {
       throw new Error('Failed to get Google ID token');
+    }
+
+    if (!email) {
+      await GoogleSignin.signOut();
+      throw new Error('Failed to get email from Google account');
+    }
+
+    // Validate Cornell email BEFORE signing in to Firebase
+    // This prevents the auth state listener from being triggered with an invalid user
+    if (!validateCornellEmail(email)) {
+      await GoogleSignin.signOut();
+      throw new Error(
+        'Please use your Cornell email address (@cornell.edu)'
+      );
     }
 
     // Create a Google credential with the token
@@ -143,16 +158,6 @@ export const signInWithGoogle = async (): Promise<void> => {
     const firebaseUser = userCredential.user;
 
     if (firebaseUser && firebaseUser.email) {
-      // Validate Cornell email
-      if (!validateCornellEmail(firebaseUser.email)) {
-        // Sign out the user if they don't have a Cornell email
-        await auth().signOut();
-        await GoogleSignin.signOut();
-        throw new Error(
-          'Please use your Cornell email address (@cornell.edu)'
-        );
-      }
-
       // Try to login first, if user doesn't exist, create them
       try {
         await loginUserInBackend(firebaseUser.email);
