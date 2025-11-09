@@ -343,7 +343,6 @@ export default function HomePage() {
               <AppText
                 variant="body"
                 style={styles.toggleAuthModeTextBold}
-                color="brand"
               >
                 {mode === 'signup' ? 'Log in' : 'Create account'}
               </AppText>
@@ -475,8 +474,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     flex: 1,
-    height: 1,
-    backgroundColor: AppColors.borderDefault,
+    height: 1
   },
   dividerText: {
     marginHorizontal: 12,
