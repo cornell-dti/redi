@@ -58,6 +58,7 @@ export default function OnboardingFooter({
 const styles = StyleSheet.create({
   container: {
     padding: 20,
+    paddingBottom: 48,
     backgroundColor: AppColors.backgroundDefault,
     gap: 16,
   },
