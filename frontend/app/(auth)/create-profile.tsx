@@ -567,19 +567,53 @@ export default function CreateProfileScreen() {
               subtitle="Optional - this helps you connect with people who share similar cultural backgrounds."
             />
             <ListItemWrapper>
-              {ETHNICITY_OPTIONS.map((ethnicity) => (
-                <ListItem
-                  key={ethnicity}
-                  title={ethnicity}
-                  selected={data.ethnicity?.includes(ethnicity)}
-                  onPress={() => toggleArrayItem('ethnicity', ethnicity)}
-                  right={
-                    data.ethnicity?.includes(ethnicity) ? (
-                      <Check size={20} color={AppColors.accentDefault} />
-                    ) : null
-                  }
-                />
-              ))}
+              {ETHNICITY_OPTIONS.map((ethnicity) => {
+                const isPreferNotToSay = ethnicity === 'Prefer not to say';
+                const hasPreferNotToSay =
+                  data.ethnicity?.includes('Prefer not to say');
+                const hasOtherEthnicity =
+                  data.ethnicity &&
+                  data.ethnicity.some((e) => e !== 'Prefer not to say');
+
+                // Disable "Prefer not to say" if other ethnicities are selected
+                // Disable other ethnicities if "Prefer not to say" is selected
+                const isDisabled = isPreferNotToSay
+                  ? hasOtherEthnicity
+                  : hasPreferNotToSay;
+
+                return (
+                  <ListItem
+                    key={ethnicity}
+                    title={ethnicity}
+                    selected={data.ethnicity?.includes(ethnicity)}
+                    disabled={isDisabled}
+                    onPress={() => {
+                      if (isPreferNotToSay) {
+                        // If clicking "Prefer not to say", toggle it exclusively
+                        if (hasPreferNotToSay) {
+                          // Already selected, unselect it
+                          updateField('ethnicity', []);
+                        } else {
+                          // Not selected, set it exclusively
+                          updateField('ethnicity', ['Prefer not to say']);
+                        }
+                      } else {
+                        // If clicking other ethnicity and "Prefer not to say" is selected, remove it first
+                        if (hasPreferNotToSay) {
+                          updateField('ethnicity', [ethnicity]);
+                        } else {
+                          toggleArrayItem('ethnicity', ethnicity);
+                        }
+                      }
+                    }}
+                    right={
+                      data.ethnicity?.includes(ethnicity) ? (
+                        <Check size={20} color={AppColors.accentDefault} />
+                      ) : null
+                    }
+                  />
+                );
+              })}
             </ListItemWrapper>
           </View>
         );
