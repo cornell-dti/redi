@@ -686,6 +686,7 @@ export default function CreateProfileScreen() {
                 setClubInput('');
               }}
               title="Add club"
+              bottomRound={false}
             >
               <View style={styles.majorSheetContent}>
                 <AppInput
@@ -784,6 +785,7 @@ export default function CreateProfileScreen() {
                 setInterestInput('');
               }}
               title="Add interest"
+              bottomRound={false}
             >
               <View style={styles.majorSheetContent}>
                 <AppInput
