@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ArrowLeft, Info, LogIn, Plus } from 'lucide-react-native';
+import { ArrowLeft, Info, LogIn, Mail, Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   getCurrentUser,
   signInUser,
+  signInWithGoogle,
   signUpUser,
   validateCornellEmail,
 } from './api/authService';
@@ -160,6 +161,37 @@ export default function HomePage() {
     setMode(newMode);
   };
 
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      await signInWithGoogle();
+
+      // Get the current user's Firebase UID
+      const user = getCurrentUser();
+      if (!user?.uid) {
+        throw new Error('Authentication failed. Please try again.');
+      }
+
+      // Check if user has a profile in the database
+      const profile = await getCurrentUserProfile();
+
+      if (profile) {
+        // User has a complete profile, go to main app
+        router.replace('/(auth)/(tabs)');
+      } else {
+        // User doesn't have a profile yet, go to create profile
+        router.replace('/(auth)/create-profile');
+      }
+    } catch (error) {
+      Alert.alert(
+        'Google Sign-In Failed',
+        error instanceof Error ? error.message : 'Unable to sign in with Google. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderWelcomeScreen = () => (
     <Animated.View
       style={[
@@ -180,19 +212,31 @@ export default function HomePage() {
       </View>
 
       <View style={styles.buttonContainer}>
+        {/* Google Sign-In - Primary Method */}
         <Button
-          title="Create account"
-          onPress={() => handleModeChange('signup')}
+          title="Continue with Google"
+          onPress={handleGoogleSignIn}
           variant="primary"
           fullWidth
-          iconLeft={Plus}
+          disabled={loading}
         />
+
+        {/* Divider */}
+        <View style={styles.dividerContainer}>
+          <View style={styles.divider} />
+          <AppText variant="body" style={styles.dividerText} color="dimmer">
+            or
+          </AppText>
+          <View style={styles.divider} />
+        </View>
+
+        {/* Email/Password - Secondary Method for Testing */}
         <Button
-          title="Log in"
-          onPress={() => handleModeChange('login')}
+          title="Email/Password (Testing)"
+          onPress={() => handleModeChange('signup')}
           variant="secondary"
           fullWidth
-          iconLeft={LogIn}
+          iconLeft={Mail}
         />
       </View>
     </Animated.View>
@@ -251,6 +295,24 @@ export default function HomePage() {
               required
             />
           </View>
+
+          {/* Divider */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.divider} />
+            <AppText variant="body" style={styles.dividerText} color="dimmer">
+              or
+            </AppText>
+            <View style={styles.divider} />
+          </View>
+
+          {/* Google Sign-In option in form */}
+          <Button
+            title="Continue with Google"
+            onPress={handleGoogleSignIn}
+            variant="secondary"
+            fullWidth
+            disabled={loading}
+          />
         </View>
       </ScrollView>
 
@@ -382,5 +444,19 @@ const styles = StyleSheet.create({
   sheetText: {
     marginBottom: 16,
     lineHeight: 22,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: AppColors.borderDefault,
+  },
+  dividerText: {
+    marginHorizontal: 12,
+    fontSize: 14,
   },
 });
