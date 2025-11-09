@@ -278,6 +278,7 @@ export default function EditEducationPage() {
           setMajorSearchQuery('');
         }}
         title="Select your major"
+        bottomRound
       >
         <View style={styles.majorSheetContent}>
           <AppInput

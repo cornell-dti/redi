@@ -45,24 +45,11 @@ export default function EditProfileScreen() {
   // Scroll position preservation
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollPositionRef = useRef(0);
-  const hasInitiallyLoaded = useRef(false);
 
-  // Fetch profile data on mount and when screen comes into focus
+  // Fetch profile data whenever screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      // Only fetch on initial load, not on subsequent focus events
-      if (!hasInitiallyLoaded.current) {
-        fetchProfile();
-        hasInitiallyLoaded.current = true;
-      } else {
-        // Restore scroll position when returning to this screen
-        setTimeout(() => {
-          scrollViewRef.current?.scrollTo({
-            y: scrollPositionRef.current,
-            animated: false,
-          });
-        }, 100);
-      }
+      fetchProfile();
     }, [])
   );
 
