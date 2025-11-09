@@ -169,7 +169,7 @@ router.post(
       res.status(500).json({ error: 'Failed to create user' });
     }
   }
-) as any;
+);
 
 // POST login with Firebase verification
 router.post(

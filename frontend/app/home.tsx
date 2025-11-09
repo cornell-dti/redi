@@ -15,12 +15,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  getCurrentUser,
+  sendPasswordlessSignInLink,
   signInUser,
   signUpUser,
   validateCornellEmail,
 } from './api/authService';
-import { getCurrentUserProfile } from './api/profileApi';
 import { AppColors } from './components/AppColors';
 import LegalFooterText from './components/onboarding/LegalFooterText';
 import AppInput from './components/ui/AppInput';
@@ -29,7 +28,7 @@ import Button from './components/ui/Button';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import Sheet from './components/ui/Sheet';
 
-type AuthMode = 'welcome' | 'signup' | 'login';
+type AuthMode = 'welcome' | 'signup' | 'login' | 'passwordless';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -67,12 +66,42 @@ export default function HomePage() {
     ]).start();
   }, [mode]);
 
+  const handleSendLink = async () => {
+    if (!email) {
+      Alert.alert('Missing Information', 'Please enter your email address');
+      return;
+    }
+
+    if (!validateCornellEmail(email)) {
+      Alert.alert(
+        'Invalid Email',
+        'Please use your Cornell email address (@cornell.edu)'
+      );
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sendPasswordlessSignInLink(email);
+      Alert.alert(
+        'Check Your Email',
+        'We sent you a sign-in link. Click the link in your email to continue.',
+        [{ text: 'OK' }]
+      );
+      // Keep the email in case user needs to resend
+    } catch (error) {
+      Alert.alert(
+        'Failed to Send Link',
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCreateAccount = async () => {
     if (!email || !password) {
-      Alert.alert(
-        'Missing Information',
-        'Please enter both email and password'
-      );
+      Alert.alert('Missing Information', 'Please enter both email and password');
       return;
     }
 
@@ -87,14 +116,12 @@ export default function HomePage() {
     setLoading(true);
     try {
       await signUpUser(email, password);
-      // After successful signup, navigate to create profile
-      router.replace('/(auth)/create-profile');
+      // Navigation handled by auth state listener
     } catch (error) {
       Alert.alert(
         'Sign Up Failed',
         error instanceof Error ? error.message : 'Unknown error occurred'
       );
-      setPassword('');
     } finally {
       setLoading(false);
     }
@@ -102,10 +129,7 @@ export default function HomePage() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert(
-        'Missing Information',
-        'Please enter both email and password'
-      );
+      Alert.alert('Missing Information', 'Please enter both email and password');
       return;
     }
 
@@ -120,29 +144,12 @@ export default function HomePage() {
     setLoading(true);
     try {
       await signInUser(email, password);
-
-      // Get the current user's Firebase UID
-      const user = getCurrentUser();
-      if (!user?.uid) {
-        throw new Error('Authentication failed. Please try again.');
-      }
-
-      // Check if user has a profile in the database
-      const profile = await getCurrentUserProfile();
-
-      if (profile) {
-        // User has a complete profile, go to main app
-        router.replace('/(auth)/(tabs)');
-      } else {
-        // User doesn't have a profile yet, go to create profile
-        router.replace('/(auth)/create-profile');
-      }
+      // Navigation handled by auth state listener
     } catch (error) {
       Alert.alert(
         'Login Failed',
         error instanceof Error ? error.message : 'Incorrect email or password. Please try again.'
       );
-      setPassword('');
     } finally {
       setLoading(false);
     }
@@ -194,6 +201,12 @@ export default function HomePage() {
           fullWidth
           iconLeft={LogIn}
         />
+        <Button
+          title="Sign in with email link"
+          onPress={() => handleModeChange('passwordless')}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </Animated.View>
   );
@@ -214,12 +227,18 @@ export default function HomePage() {
       >
         <View style={styles.formContainer}>
           <AppText variant="title" style={styles.formTitle}>
-            {mode === 'signup' ? 'Create account' : 'Welcome back!'}
+            {mode === 'signup'
+              ? 'Create account'
+              : mode === 'login'
+                ? 'Welcome back!'
+                : 'Sign In'}
           </AppText>
-          <AppText variant="subtitle" style={styles.formSubtitle}>
+          <AppText variant="body" style={styles.formSubtitle}>
             {mode === 'signup'
               ? 'Enter your Cornell email to get started'
-              : 'Log in to continue'}
+              : mode === 'login'
+                ? 'Log in to continue'
+                : "Enter your Cornell email and we'll send you a sign-in link"}
           </AppText>
 
           <View style={styles.inputContainer}>
@@ -241,15 +260,17 @@ export default function HomePage() {
               <Info size={16} color={AppColors.foregroundDimmer} />
             </TouchableOpacity>
 
-            <AppInput
-              label="Password"
-              placeholder="Enter your password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              editable={!loading}
-              required
-            />
+            {(mode === 'signup' || mode === 'login') && (
+              <AppInput
+                label="Password"
+                placeholder="Enter your password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                editable={!loading}
+                required
+              />
+            )}
           </View>
         </View>
       </ScrollView>
@@ -259,11 +280,23 @@ export default function HomePage() {
       ) : (
         <View style={styles.buttonContainer}>
           <Button
-            title={mode === 'signup' ? 'Create account' : 'Log in'}
-            onPress={mode === 'signup' ? handleCreateAccount : handleLogin}
+            title={
+              mode === 'signup'
+                ? 'Create account'
+                : mode === 'login'
+                  ? 'Log in'
+                  : 'Send Sign-In Link'
+            }
+            onPress={
+              mode === 'signup'
+                ? handleCreateAccount
+                : mode === 'login'
+                  ? handleLogin
+                  : handleSendLink
+            }
             variant="primary"
             fullWidth
-            iconLeft={mode === 'signup' ? Plus : LogIn}
+            iconLeft={mode === 'signup' ? Plus : mode === 'login' ? LogIn : undefined}
           />
           <Button
             title="Back"
