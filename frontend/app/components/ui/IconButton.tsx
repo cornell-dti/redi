@@ -54,7 +54,7 @@ export default function IconButton({
     const baseStyle: ViewStyle = {
       alignItems: 'center',
       justifyContent: 'center',
-      borderRadius: noRound ? 0 : 128,
+      borderRadius: noRound ? 4 : 128,
       height: resolvedSize,
       width: resolvedSize,
     };
