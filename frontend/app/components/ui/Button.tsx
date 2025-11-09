@@ -151,7 +151,12 @@ export default function Button({
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View
+      style={[
+        { transform: [{ scale: scaleAnim }] },
+        fullWidth && { flex: 1, minHeight: 48 },
+      ]}
+    >
       <TouchableOpacity
         style={[getButtonStyle(), style]}
         onPress={onPress}

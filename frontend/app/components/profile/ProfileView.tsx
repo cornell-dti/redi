@@ -345,7 +345,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     flex: 1,
-    width: '55%',
     gap: 16,
   },
   section: {

@@ -28,7 +28,7 @@ import {
   Star,
   StarIcon,
 } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Alert,
   Image,
@@ -386,7 +386,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     gap: 16,
-    maxWidth: '53%',
   },
   sheetContent: {
     display: 'flex',
