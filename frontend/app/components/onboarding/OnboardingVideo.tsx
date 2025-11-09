@@ -13,38 +13,32 @@ const ONBOARDING_VIDEO_SHOWN_KEY = '@onboarding_video_shown';
 type HapticStyle = 'light' | 'medium' | 'heavy' | 'soft' | 'rigid';
 
 const HAPTIC_TIMELINE: { time: number; style: HapticStyle }[] = [
-  { time: 0.0, style: 'rigid' },
-  { time: 1.0, style: 'rigid' },
-  { time: 2.0, style: 'rigid' },
+  { time: 0.01, style: 'rigid' }, // Very start
+  { time: 0.99, style: 'rigid' }, // First major beat
+  { time: 1.99, style: 'rigid' }, // Second major beat
+
+  // MIDDLE (3-13s): 17 NEW soft background beats 🆕
   { time: 3.0, style: 'soft' },
-  { time: 4.0, style: 'soft' },
-  { time: 5.0, style: 'soft' },
-  { time: 6.0, style: 'soft' },
-  { time: 7.0, style: 'soft' },
-  { time: 8.0, style: 'soft' },
-  { time: 9.0, style: 'soft' },
-  { time: 10.0, style: 'soft' },
-  { time: 11.0, style: 'soft' },
-  { time: 12.0, style: 'soft' },
-  { time: 13.0, style: 'soft' },
-  { time: 14.0, style: 'soft' },
-  { time: 15.0, style: 'soft' },
-  { time: 16.0, style: 'soft' },
-  { time: 17.0, style: 'soft' },
-  { time: 18.0, style: 'soft' },
-  { time: 19.0, style: 'soft' },
-  { time: 20.0, style: 'soft' },
+  { time: 3.608, style: 'soft' },
+  { time: 4.216, style: 'soft' },
+  // ... continues every 0.608 seconds (99 BPM)
+  { time: 12.728, style: 'soft' },
 
-  { time: 5.4, style: 'heavy' }, // intro...REDI
-
-  { time: 10.25, style: 'heavy' }, // 3
-  // --
-  { time: 13.15, style: 'heavy' }, // nudge
-
-  // --
-  { time: 16.15, style: 'medium' }, // are
-  { time: 16.22, style: 'medium' }, // you
-  { time: 16.29, style: 'heavy' }, // redi
+  // Finale section (14-20s) - Intense beats
+  { time: 13.15, style: 'rigid' }, // NUDGE
+  { time: 13.77, style: 'medium' }, // Build-up
+  { time: 14.12, style: 'heavy' }, // STRONGEST beat in entire audio
+  { time: 14.66, style: 'medium' },
+  { time: 15.58, style: 'medium' },
+  { time: 16.11, style: 'heavy' }, // Major beat
+  { time: 16.47, style: 'medium' },
+  { time: 17.01, style: 'heavy' }, // Major beat
+  { time: 17.56, style: 'medium' },
+  { time: 18.46, style: 'heavy' }, // Major beat
+  { time: 18.73, style: 'medium' },
+  { time: 19.01, style: 'medium' },
+  { time: 19.37, style: 'medium' },
+  { time: 19.9, style: 'medium' }, // Final beat
 ];
 
 interface OnboardingVideoProps {
