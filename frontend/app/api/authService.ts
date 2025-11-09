@@ -194,15 +194,24 @@ export const signInWithGoogle = async (): Promise<void> => {
  */
 export const signOutUser = async (): Promise<void> => {
   try {
+    // Sign out from Firebase first
     await auth().signOut();
-    // Also sign out from Google if user was signed in with Google
+    console.log('Firebase sign-out successful');
+  } catch (error) {
+    console.error('Firebase sign out error:', error);
+    throw new Error('Failed to sign out from Firebase. Please try again.');
+  }
+
+  // Attempt to sign out from Google (don't fail if this errors)
+  try {
     const isSignedIn = await GoogleSignin.isSignedIn();
     if (isSignedIn) {
       await GoogleSignin.signOut();
+      console.log('Google sign-out successful');
     }
   } catch (error) {
-    console.error('Sign out error:', error);
-    throw new Error('Failed to sign out. Please try again.');
+    // Log the error but don't throw - Firebase sign-out already succeeded
+    console.warn('Google sign-out error (non-critical):', error);
   }
 };
 

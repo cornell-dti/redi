@@ -233,7 +233,7 @@ export default function HomePage() {
         {/* Email/Password - Secondary Method for Testing */}
         <Button
           title="Email/Password (Testing)"
-          onPress={() => handleModeChange('signup')}
+          onPress={() => handleModeChange('login')}
           variant="secondary"
           fullWidth
           iconLeft={Mail}
@@ -327,6 +327,29 @@ export default function HomePage() {
             fullWidth
             iconLeft={mode === 'signup' ? Plus : LogIn}
           />
+
+          {/* Toggle between signup and login */}
+          <TouchableOpacity
+            onPress={() => {
+              setDirection('forward');
+              setMode(mode === 'signup' ? 'login' : 'signup');
+            }}
+            style={styles.toggleAuthMode}
+          >
+            <AppText variant="body" style={styles.toggleAuthModeText}>
+              {mode === 'signup'
+                ? 'Already have an account? '
+                : "Don't have an account? "}
+              <AppText
+                variant="body"
+                style={styles.toggleAuthModeTextBold}
+                color="brand"
+              >
+                {mode === 'signup' ? 'Log in' : 'Create account'}
+              </AppText>
+            </AppText>
+          </TouchableOpacity>
+
           <Button
             title="Back"
             onPress={handleBack}
@@ -458,5 +481,16 @@ const styles = StyleSheet.create({
   dividerText: {
     marginHorizontal: 12,
     fontSize: 14,
+  },
+  toggleAuthMode: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  toggleAuthModeText: {
+    color: AppColors.foregroundDimmer,
+    fontSize: 14,
+  },
+  toggleAuthModeTextBold: {
+    fontWeight: '600',
   },
 });
