@@ -1,7 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Star, X } from 'lucide-react-native';
 import React from 'react';
-import { Alert, Image, StyleSheet, View } from 'react-native';
+import { Alert, Dimensions, Image, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppText from '../ui/AppText';
 import IconButton from '../ui/IconButton';
@@ -14,6 +14,12 @@ interface PhotoUploadGridProps {
   minPhotos?: number;
   maxPhotos?: number;
 }
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const GRID_GAP = 4;
+const GRID_PADDING = 0; // Adjust if you want padding around the grid
+const GRID_SLOT_SIZE =
+  (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * 2) / 3 - 14;
 
 export default function PhotoUploadGrid({
   photos,
@@ -149,14 +155,13 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
+    gap: GRID_GAP,
     borderRadius: 24,
     overflow: 'hidden',
   },
   gridSlot: {
-    width: '32.5%',
-    height: 120,
-    aspectRatio: 1,
+    width: GRID_SLOT_SIZE,
+    height: GRID_SLOT_SIZE,
     borderRadius: 4,
     overflow: 'hidden',
     position: 'relative',

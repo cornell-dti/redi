@@ -106,15 +106,20 @@ export function useOnboardingState() {
       case 2:
         // Basic info: firstName and valid birthdate
         if (!data.firstName || !data.birthdate) return false;
-        // Validate MM/DD/YYYY format
-        const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+        // Validate MM/DD/YYYY or MM/DD/YY format
+        const dateRegex = /^\d{2}\/\d{2}\/(\d{4}|\d{2})$/;
         if (!dateRegex.test(data.birthdate)) return false;
         // Validate it's a valid date
-        const [month, day, year] = data.birthdate.split('/').map(Number);
-        const date = new Date(year, month - 1, day);
+        const [month, day, yearStr] = data.birthdate.split('/');
+        let year = parseInt(yearStr, 10);
+        // Convert 2-digit year to 4-digit (00-29 -> 2000-2029, 30-99 -> 1930-1999)
+        if (yearStr.length === 2) {
+          year = year < 30 ? 2000 + year : 1900 + year;
+        }
+        const date = new Date(year, parseInt(month, 10) - 1, parseInt(day, 10));
         return (
-          date.getMonth() === month - 1 &&
-          date.getDate() === day &&
+          date.getMonth() === parseInt(month, 10) - 1 &&
+          date.getDate() === parseInt(day, 10) &&
           date.getFullYear() === year
         );
 

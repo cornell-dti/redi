@@ -22,6 +22,7 @@ interface ListItemProps {
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
   destructive?: boolean;
+  disabled?: boolean;
 }
 
 export default function ListItem({
@@ -33,11 +34,13 @@ export default function ListItem({
   onPress,
   style,
   destructive,
+  disabled = false,
 }: ListItemProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isPressed, setIsPressed] = React.useState(false);
 
   const handlePressIn = () => {
+    if (disabled) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsPressed(true);
     Animated.spring(scaleAnim, {
@@ -47,6 +50,7 @@ export default function ListItem({
   };
 
   const handlePressOut = () => {
+    if (disabled) return;
     setIsPressed(false);
     Animated.spring(scaleAnim, {
       toValue: 1,
@@ -57,7 +61,7 @@ export default function ListItem({
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <Pressable
-        onPress={onPress}
+        onPress={disabled ? undefined : onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         android_ripple={{ color: AppColors.backgroundDimmest }}
@@ -74,9 +78,11 @@ export default function ListItem({
                 : styles.pressed),
 
           description ? { height: 'auto' } : { height: 54 },
+          disabled && { opacity: 0.4 },
           style,
         ]}
         accessibilityRole="button"
+        disabled={disabled}
       >
         {left ? <View style={styles.left}>{left}</View> : null}
 

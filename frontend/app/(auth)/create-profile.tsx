@@ -567,19 +567,53 @@ export default function CreateProfileScreen() {
               subtitle="Optional - this helps you connect with people who share similar cultural backgrounds."
             />
             <ListItemWrapper>
-              {ETHNICITY_OPTIONS.map((ethnicity) => (
-                <ListItem
-                  key={ethnicity}
-                  title={ethnicity}
-                  selected={data.ethnicity?.includes(ethnicity)}
-                  onPress={() => toggleArrayItem('ethnicity', ethnicity)}
-                  right={
-                    data.ethnicity?.includes(ethnicity) ? (
-                      <Check size={20} color={AppColors.accentDefault} />
-                    ) : null
-                  }
-                />
-              ))}
+              {ETHNICITY_OPTIONS.map((ethnicity) => {
+                const isPreferNotToSay = ethnicity === 'Prefer not to say';
+                const hasPreferNotToSay =
+                  data.ethnicity?.includes('Prefer not to say');
+                const hasOtherEthnicity =
+                  data.ethnicity &&
+                  data.ethnicity.some((e) => e !== 'Prefer not to say');
+
+                // Disable "Prefer not to say" if other ethnicities are selected
+                // Disable other ethnicities if "Prefer not to say" is selected
+                const isDisabled = isPreferNotToSay
+                  ? hasOtherEthnicity
+                  : hasPreferNotToSay;
+
+                return (
+                  <ListItem
+                    key={ethnicity}
+                    title={ethnicity}
+                    selected={data.ethnicity?.includes(ethnicity)}
+                    disabled={isDisabled}
+                    onPress={() => {
+                      if (isPreferNotToSay) {
+                        // If clicking "Prefer not to say", toggle it exclusively
+                        if (hasPreferNotToSay) {
+                          // Already selected, unselect it
+                          updateField('ethnicity', []);
+                        } else {
+                          // Not selected, set it exclusively
+                          updateField('ethnicity', ['Prefer not to say']);
+                        }
+                      } else {
+                        // If clicking other ethnicity and "Prefer not to say" is selected, remove it first
+                        if (hasPreferNotToSay) {
+                          updateField('ethnicity', [ethnicity]);
+                        } else {
+                          toggleArrayItem('ethnicity', ethnicity);
+                        }
+                      }
+                    }}
+                    right={
+                      data.ethnicity?.includes(ethnicity) ? (
+                        <Check size={20} color={AppColors.accentDefault} />
+                      ) : null
+                    }
+                  />
+                );
+              })}
             </ListItemWrapper>
           </View>
         );
@@ -618,25 +652,6 @@ export default function CreateProfileScreen() {
               onPhotosChange={(photos) => updateField('pictures', photos)}
               minPhotos={3}
               maxPhotos={6}
-            />
-            {/* Temporary skip button for testing */}
-            <Button
-              title="Skip Photos (Testing Only)"
-              onPress={() => {
-                // Add placeholder photos for testing
-                const placeholderPhotos = [
-                  'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
-                  'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
-                  'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
-                ];
-                updateField('pictures', placeholderPhotos);
-                Alert.alert(
-                  'Photos Skipped',
-                  'Placeholder photos added for testing',
-                  [{ text: 'OK', onPress: () => setCurrentStep(12) }]
-                );
-              }}
-              variant="secondary"
             />
           </View>
         );
@@ -705,6 +720,7 @@ export default function CreateProfileScreen() {
                 setClubInput('');
               }}
               title="Add club"
+              bottomRound={false}
             >
               <View style={styles.majorSheetContent}>
                 <AppInput
@@ -803,6 +819,7 @@ export default function CreateProfileScreen() {
                 setInterestInput('');
               }}
               title="Add interest"
+              bottomRound={false}
             >
               <View style={styles.majorSheetContent}>
                 <AppInput

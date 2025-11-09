@@ -172,6 +172,7 @@ export default function EditClubsPage() {
           setNewClub('');
         }}
         title="Add Club"
+        bottomRound={false}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

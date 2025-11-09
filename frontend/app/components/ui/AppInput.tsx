@@ -17,7 +17,8 @@ interface AppInputProps extends TextInputProps {
   noRound?: boolean;
   variant?: 'gray' | 'white';
   fullRound?: boolean;
-  dateFormat?: boolean; // Automatically format as MM/DD/YYYY
+  dateFormat?: boolean; // Automatically format as MM/DD/YYYY or MM/DD/YY
+  bottomBorderRound?: boolean;
 }
 
 const AppInput: React.FC<AppInputProps> = ({
@@ -29,17 +30,36 @@ const AppInput: React.FC<AppInputProps> = ({
   variant,
   fullRound,
   dateFormat,
+  bottomBorderRound,
   ...props
 }) => {
   const borderColorAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const previousValueRef = useRef('');
 
-  // Format date input as MM/DD/YYYY
-  const formatDateInput = (text: string): string => {
+  // Format date input as MM/DD/YYYY or MM/DD/YY (supports both 2 and 4 digit years)
+  const formatDateInput = (text: string, isDeleting: boolean): string => {
     // Remove all non-numeric characters
     const cleaned = text.replace(/\D/g, '');
 
-    // Add slashes at appropriate positions
+    // If deleting, don't auto-add slashes - just format what's there
+    if (isDeleting) {
+      let formatted = cleaned;
+      if (cleaned.length > 2) {
+        formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+      }
+      if (cleaned.length > 4) {
+        formatted =
+          cleaned.slice(0, 2) +
+          '/' +
+          cleaned.slice(2, 4) +
+          '/' +
+          cleaned.slice(4, 8);
+      }
+      return formatted;
+    }
+
+    // When adding, auto-add slashes at appropriate positions
     let formatted = cleaned;
     if (cleaned.length >= 2) {
       formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
@@ -58,7 +78,12 @@ const AppInput: React.FC<AppInputProps> = ({
 
   const handleDateChange = (text: string) => {
     if (dateFormat && props.onChangeText) {
-      const formatted = formatDateInput(text);
+      const previousCleaned = previousValueRef.current.replace(/\D/g, '');
+      const currentCleaned = text.replace(/\D/g, '');
+      const isDeleting = currentCleaned.length < previousCleaned.length;
+
+      const formatted = formatDateInput(text, isDeleting);
+      previousValueRef.current = formatted;
       props.onChangeText(formatted);
     }
   };
@@ -122,6 +147,12 @@ const AppInput: React.FC<AppInputProps> = ({
             },
             noRound && { borderRadius: 6 },
             fullRound && { borderRadius: 32 },
+            bottomBorderRound && {
+              borderTopLeftRadius: 6,
+              borderTopRightRadius: 6,
+              borderBottomLeftRadius: 24,
+              borderBottomRightRadius: 24,
+            },
           ]}
         >
           <TextInput

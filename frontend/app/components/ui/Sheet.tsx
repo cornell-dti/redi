@@ -4,7 +4,6 @@ import {
   Animated,
   Dimensions,
   Keyboard,
-  KeyboardAvoidingView,
   Modal,
   PanResponder,
   Platform,
@@ -23,6 +22,7 @@ type SheetProps = {
   height?: number | string;
   children?: React.ReactNode;
   title?: string;
+  bottomRound?: boolean;
 };
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -33,6 +33,7 @@ export default function Sheet({
   height,
   children,
   title,
+  bottomRound = true,
 }: SheetProps) {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
@@ -179,8 +180,10 @@ export default function Sheet({
                 styles.sheet,
                 height && height !== 'auto' && { height },
                 {
+                  borderBottomLeftRadius: bottomRound ? 48 : 24,
+                  borderBottomRightRadius: bottomRound ? 48 : 24,
                   transform: [{ translateY: combinedTranslate }],
-                  marginBottom: keyboardHeight,
+                  marginBottom: keyboardHeight + 16,
                 },
               ] as any
             }
@@ -227,8 +230,6 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDefault,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    borderBottomLeftRadius: 48,
-    borderBottomRightRadius: 48,
     padding: 16,
     paddingTop: 8,
     overflow: 'scroll',

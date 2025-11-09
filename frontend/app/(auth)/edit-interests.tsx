@@ -172,6 +172,7 @@ export default function EditInterestsPage() {
           setNewInterest('');
         }}
         title="Add interest"
+        bottomRound={false}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
