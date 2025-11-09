@@ -230,8 +230,6 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDefault,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    // borderBottomLeftRadius: 48,
-    // borderBottomRightRadius: 48,
     padding: 16,
     paddingTop: 8,
     overflow: 'scroll',
