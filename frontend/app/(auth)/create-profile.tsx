@@ -619,25 +619,6 @@ export default function CreateProfileScreen() {
               minPhotos={3}
               maxPhotos={6}
             />
-            {/* Temporary skip button for testing */}
-            <Button
-              title="Skip Photos (Testing Only)"
-              onPress={() => {
-                // Add placeholder photos for testing
-                const placeholderPhotos = [
-                  'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
-                  'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
-                  'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
-                ];
-                updateField('pictures', placeholderPhotos);
-                Alert.alert(
-                  'Photos Skipped',
-                  'Placeholder photos added for testing',
-                  [{ text: 'OK', onPress: () => setCurrentStep(12) }]
-                );
-              }}
-              variant="secondary"
-            />
           </View>
         );
 
