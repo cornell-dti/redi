@@ -10,7 +10,11 @@ import { LogOut, Pencil, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { extractNetidFromEmail, getCurrentUser, signOutUser } from '../api/authService';
+import {
+  extractNetidFromEmail,
+  getCurrentUser,
+  signOutUser,
+} from '../api/authService';
 import { deleteProfile } from '../api/profileApi';
 import { deleteUser } from '../api/userApi';
 import { AppColors } from '../components/AppColors';
@@ -66,7 +70,7 @@ export default function AccountSettingsPage() {
       Alert.alert(
         'Error',
         'Failed to sign out: ' +
-        (error instanceof Error ? error.message : 'Unknown error')
+          (error instanceof Error ? error.message : 'Unknown error')
       );
     }
   };
@@ -76,7 +80,10 @@ export default function AccountSettingsPage() {
     try {
       const currentUser = getCurrentUser();
       if (!currentUser || !currentUser.email) {
-        Alert.alert('Error', 'You cannot delete an account you are not logged into.');
+        Alert.alert(
+          'Error',
+          'You cannot delete an account you are not logged into.'
+        );
         setIsDeleting(false);
         return;
       }
@@ -115,7 +122,7 @@ export default function AccountSettingsPage() {
       Alert.alert(
         'Error',
         'Failed to delete account: ' +
-        (error instanceof Error ? error.message : 'Unknown error')
+          (error instanceof Error ? error.message : 'Unknown error')
       );
     }
   };
@@ -146,14 +153,14 @@ export default function AccountSettingsPage() {
             Email
           </AppText>
           <ListItemWrapper>
-            <AppInput value={`${email}`} noRound />
+            <AppInput value={`${email}`} noRound disabled />
             <Button
               noRound
               disabled
               iconLeft={Pencil}
               variant="secondary"
               title="Cannot change email address"
-              onPress={() => { }}
+              onPress={() => {}}
             />
           </ListItemWrapper>
         </View>

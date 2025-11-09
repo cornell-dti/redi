@@ -19,6 +19,7 @@ interface AppInputProps extends TextInputProps {
   fullRound?: boolean;
   dateFormat?: boolean; // Automatically format as MM/DD/YYYY or MM/DD/YY
   bottomBorderRound?: boolean;
+  disabled?: boolean;
 }
 
 const AppInput: React.FC<AppInputProps> = ({
@@ -31,6 +32,7 @@ const AppInput: React.FC<AppInputProps> = ({
   fullRound,
   dateFormat,
   bottomBorderRound,
+  disabled = false,
   ...props
 }) => {
   const borderColorAnim = useRef(new Animated.Value(0)).current;
@@ -94,6 +96,7 @@ const AppInput: React.FC<AppInputProps> = ({
   });
 
   const handlePressIn = () => {
+    if (disabled) return;
     Animated.spring(scaleAnim, {
       toValue: 0.97,
       useNativeDriver: true,
@@ -101,6 +104,7 @@ const AppInput: React.FC<AppInputProps> = ({
   };
 
   const handlePressOut = () => {
+    if (disabled) return;
     Animated.spring(scaleAnim, {
       toValue: 1,
       useNativeDriver: true,
@@ -108,6 +112,7 @@ const AppInput: React.FC<AppInputProps> = ({
   };
 
   const handleFocus = (e: any) => {
+    if (disabled) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
     Animated.timing(borderColorAnim, {
       toValue: 1,
@@ -118,6 +123,7 @@ const AppInput: React.FC<AppInputProps> = ({
   };
 
   const handleBlur = (e: any) => {
+    if (disabled) return;
     Animated.timing(borderColorAnim, {
       toValue: 0,
       duration: 120,
@@ -153,6 +159,7 @@ const AppInput: React.FC<AppInputProps> = ({
               borderBottomLeftRadius: 24,
               borderBottomRightRadius: 24,
             },
+            disabled && { opacity: 0.5 },
           ]}
         >
           <TextInput
@@ -162,6 +169,7 @@ const AppInput: React.FC<AppInputProps> = ({
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
             {...props}
+            editable={!disabled}
             keyboardType={dateFormat ? 'number-pad' : props.keyboardType}
             maxLength={dateFormat ? 10 : props.maxLength}
             onChangeText={dateFormat ? handleDateChange : props.onChangeText}
