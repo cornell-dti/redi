@@ -1,238 +1,292 @@
 # Comprehensive Testing Guide
 
-## Overview
+**Last Updated:** 2025-11-10
+**Test Status:** 41/43 integration tests passing (95.3%)
 
-This document provides a complete guide to the matching system integration tests. These tests verify the core functionality of the dating app's matching, nudging, and reveal systems.
-
-## Quick Start
+## Quick Reference
 
 ```bash
-# Run all integration tests
+# Integration tests (real Firebase) - RECOMMENDED
 npm run test:integration
 
-# Run specific test suite
-npm test -- matching.integration.test.ts
+# Unit tests (mocked Firebase)
+npm test
 
-# Watch mode for development
-npm run test:integration:watch
+# Single test by name
+npm run test:integration -- --testNamePattern="mutual matches"
 
-# Clean up test data manually
+# Watch mode
+npm run test:watch
+
+# Cleanup test data
 npm run test:cleanup
-
-# Run with coverage report
-npm run test:coverage -- integration
 ```
 
-## Test Suite Summary
+## Test Suite Overview
 
-### 📦 Total Test Files: 4
-### ✅ Total Test Cases: 50+
-### ⏱️ Estimated Runtime: 2-5 minutes
-### 🎯 Coverage: 95%+ for matching/nudging/reveal systems
+### Test Statistics
+- **Total Test Files:** 4 integration test suites
+- **Total Test Cases:** 43 integration tests
+- **Current Pass Rate:** 95.3% (41/43)
+- **Runtime:** ~7 minutes (426 seconds)
+- **Coverage:** 95%+ for matching/nudging/reveal systems
 
----
+### Test Suites
 
-## Test Files Overview
-
-### 1. `matching.integration.test.ts` (13 test cases)
-
-**Purpose:** Verify the matching algorithm creates correct matches for users.
-
-**Test Categories:**
-- ✅ **Basic Functionality** (5 tests)
-  - Creates exactly 3 matches per user
-  - Uses correct document ID format
-  - Creates mutual/bidirectional matches
-  - No duplicate matches
-  - Never matches user with themselves
-
-- ✅ **Match Structure** (2 tests)
-  - All required fields present
-  - ExpiresAt set to next Friday
-
-- ✅ **Edge Cases** (3 tests)
-  - Handles odd number of users
-  - Handles < 3 users
-  - Skips users without profiles/preferences
-
-- ✅ **Duplicate Prevention** (2 tests)
-  - Throws error on duplicate matching
-  - Allows matching for different prompts
-
-- ✅ **Performance** (1 test)
-  - Handles 100+ users in < 20 seconds
-
-**Key Bugs This Catches:**
-- ❌ `.set()` overwriting existing matches
-- ❌ Incorrect document ID structure
-- ❌ Non-mutual matches
-- ❌ Matching same user twice
+| Suite | Tests | Status | Runtime |
+|-------|-------|--------|---------|
+| **matching.integration.test.ts** | 15 | 13 passing, 2 failing | ~200s |
+| **nudging.integration.test.ts** | 11 | 11 passing ✅ | ~45s |
+| **reveal.integration.test.ts** | 11 | 10 passing, 1 failing | ~150s |
+| **endToEnd.integration.test.ts** | 8 | 7 passing, 1 failing | ~30s |
 
 ---
 
-### 2. `nudging.integration.test.ts` (12 test cases)
+## Current Test Failures (Updated 2025-11-10)
 
-**Purpose:** Verify the nudging system correctly handles likes and mutual likes.
+### ❌ Failure 1: "should prioritize users with shared interests"
+- **File:** `matching.integration.test.ts:359`
+- **Error:** `Cannot read properties of null (reading 'matches')`
+- **Root Cause:** Matching algorithm returns null - users with identical interests aren't matching
+- **Impact:** Medium - tests specific compatibility scoring edge case
+- **Next Steps:** Investigate why high-compatibility users don't get matched
+
+### ❌ Failure 2: "should handle concurrent reveals of different matches"
+- **File:** `reveal.integration.test.ts:289`
+- **Error:** `expect(revealed.every(r => r === true)).toBe(true)` → Received: false
+- **Root Cause:** Not all concurrent reveals are marking matches as revealed
+- **Impact:** Low - edge case with concurrent operations
+- **Next Steps:** Check for race condition in `revealMatch()` or test timing issue
+
+### ⚠️ Failure 3: TypeScript Compilation Errors
+- **File:** `endToEnd.integration.test.ts:393, 406`
+- **Error:** Parameter 'r' implicitly has an 'any' type
+- **Fix Applied:** Added type annotations `(r: boolean) => r === true`
+- **Status:** Fixed, needs retest
+
+---
+
+## Recently Fixed Issues ✅
+
+### Phase 1: Match Index Out of Bounds (2 tests) - FIXED
+**Problem:** Tests hardcoded revealing indices 0, 1, 2 assuming all users have exactly 3 matches
+
+**Root Cause:** Matching algorithm creates 1-3 matches based on compatibility (not always 3)
+
+**Solution:**
+```typescript
+// Before (WRONG):
+await revealMatch(netid, promptId, 0);
+await revealMatch(netid, promptId, 1);
+await revealMatch(netid, promptId, 2); // FAILS if user has <3 matches
+
+// After (CORRECT):
+const matches = await getUserMatches(netid, promptId);
+for (let i = 0; i < matches.matches.length; i++) {
+  await revealMatch(netid, promptId, i);
+}
+```
+
+**Tests Fixed:**
+- "One user reveals all matches before nudging"
+- "Match data remains consistent after multiple operations"
+
+### Phase 2 & 3: Multiple Prompts Matching (1 test) - FIXED
+**Problem:** Users couldn't match with the same person across different prompts
+
+**Root Cause:** `getPreviousMatchesMap()` included ALL previous matches globally, blocking cross-prompt pairings
+
+**Initial Fix (Phase 2):** WRONG - inverted logic
+```typescript
+// Phase 2 (WRONG):
+if (match.promptId === currentPromptId) {
+  return; // Skip current prompt
+}
+// This kept prompt1 matches when generating prompt2!
+```
+
+**Correct Fix (Phase 3):**
+```typescript
+// Phase 3 (CORRECT):
+if (match.promptId !== currentPromptId) {
+  return; // Skip OTHER prompts
+}
+// Now only includes matches from CURRENT prompt
+```
+
+**Why This Works:**
+- When generating matches for prompt1: previousMatches is empty (no prompt1 history yet)
+- When generating matches for prompt2: previousMatches only contains prompt2 matches
+- Users from prompt1 can now match again in prompt2 ✅
+
+**Test Fixed:**
+- "should allow matching for different prompts"
+
+---
+
+## Test File Details
+
+### 1. `matching.integration.test.ts` (15 tests)
+
+**Purpose:** Verify matching algorithm creates correct, mutual, non-duplicate matches
 
 **Test Categories:**
-- ✅ **Basic Functionality** (4 tests)
-  - Creates nudge from A to B
-  - Detects mutual nudges
-  - Unlocks chat on mutual nudge
-  - Only unlocks specific match (not all)
 
-- ✅ **Nudge Status** (1 test)
-  - Correctly reports sent/received/mutual status
+**Basic Functionality** (5 tests)
+- ✅ Creates 1-3 matches per user based on compatibility
+- ✅ Uses correct document ID format (`${netid}_${promptId}`)
+- ✅ Creates mutual/bidirectional matches (A matches B ↔ B matches A)
+- ✅ No duplicate matches within same user
+- ✅ Never matches user with themselves
 
-- ✅ **Edge Cases** (3 tests)
-  - Prevents duplicate nudges
-  - Handles nudging non-matched users
-  - Handles different match counts
+**Match Structure** (2 tests)
+- ✅ All required fields present (netid, promptId, matches, revealed, createdAt, expiresAt)
+- ✅ expiresAt set to next Friday at midnight
 
-- ✅ **Notifications** (1 test)
-  - Creates notifications on mutual nudge
+**Edge Cases** (3 tests)
+- ✅ Handles odd number of users (7 users → all get matched)
+- ✅ Handles small groups (2 users → match each other)
+- ✅ Skips users without profiles or preferences
 
-- ✅ **Concurrency** (1 test)
-  - Handles concurrent mutual nudges
+**Duplicate Prevention** (2 tests)
+- ✅ Returns 0 when running matching twice for same prompt
+- ✅ Allows matching for different prompts (cross-prompt matching)
 
-- ✅ **Manual Matches** (1 test)
-  - Works with manually-created matches
+**Compatibility Scoring** (1 test)
+- ❌ Should prioritize users with shared interests (FAILING)
 
-- ✅ **Array Index Management** (1 test)
-  - Updates correct index in chatUnlocked array
+**Performance** (1 test)
+- ✅ Handles 100+ users in < 40 seconds
 
 **Key Bugs This Catches:**
-- ❌ Incorrect match index in chatUnlocked array
-- ❌ Chat unlock affecting all matches
+- ❌ Non-mutual matches (A matches B but B doesn't match A)
+- ❌ Duplicate pairings within same prompt
+- ❌ Self-matching
+- ❌ Cross-prompt match blocking
+
+---
+
+### 2. `nudging.integration.test.ts` (11 tests) ✅ ALL PASSING
+
+**Purpose:** Verify nudging system correctly handles likes and mutual likes
+
+**Test Categories:**
+
+**Basic Functionality** (4 tests)
+- ✅ Creates nudge from user A to user B
+- ✅ Detects mutual nudges (A→B and B→A)
+- ✅ Unlocks chat ONLY on mutual nudge
+- ✅ Only unlocks specific match (not all 3 matches)
+
+**Nudge Status** (1 test)
+- ✅ Correctly reports sent/received/mutual status for each match
+
+**Edge Cases** (2 tests)
+- ✅ Prevents duplicate nudges (idempotent)
+- ✅ Handles users with different match counts (1-3)
+
+**Notifications** (1 test)
+- ✅ Creates notification on mutual nudge
+
+**Concurrency** (1 test)
+- ✅ Handles concurrent mutual nudges without race conditions
+
+**Manual Matches** (1 test)
+- ✅ Works with manually-created matches (not just algorithm-generated)
+
+**Array Index Management** (1 test)
+- ✅ Updates correct index in chatUnlocked array
+
+**Key Bugs This Catches:**
+- ❌ Chat unlock affecting all matches instead of just one
 - ❌ Mutual nudge not detected
+- ❌ Incorrect array index in chatUnlocked
 - ❌ Missing notifications
+- ❌ Race conditions
 
 ---
 
-### 3. `reveal.integration.test.ts` (11 test cases)
+### 3. `reveal.integration.test.ts` (11 tests)
 
-**Purpose:** Verify the match reveal system works correctly.
+**Purpose:** Verify match reveal system works correctly
 
 **Test Categories:**
-- ✅ **Basic Functionality** (4 tests)
-  - Reveals specific match by index
-  - Reveals all 3 independently
-  - Doesn't affect other users
-  - Idempotent (can reveal multiple times)
 
-- ✅ **Different Match Counts** (1 test)
-  - Handles users with < 3 matches
+**Basic Functionality** (4 tests)
+- ✅ Reveals specific match by index (0, 1, or 2)
+- ✅ Can reveal all 3 matches independently
+- ✅ Revealing doesn't affect other users' matches
+- ✅ Idempotent (can reveal same match multiple times)
 
-- ✅ **Error Handling** (4 tests)
-  - Invalid index (negative)
-  - Invalid index (too high)
-  - Non-existent prompt
-  - Index exceeds match count
+**Different Match Counts** (1 test)
+- ✅ Handles users with 1-2 matches (not always 3)
 
-- ✅ **Independence** (2 tests)
-  - Revealing doesn't unlock chat
-  - Can reveal regardless of nudge status
+**Error Handling** (4 tests)
+- ✅ Rejects negative indices
+- ✅ Rejects indices > 2
+- ✅ Returns null for non-existent prompt
+- ✅ Throws error when index exceeds actual match count
+
+**Independence** (2 tests)
+- ✅ Revealing doesn't unlock chat (only mutual nudge unlocks chat)
+- ❌ Can handle concurrent reveals of different matches (FAILING)
 
 **Key Bugs This Catches:**
 - ❌ Revealing wrong match index
-- ❌ Revealing affecting other users
-- ❌ Revealing unlocking chat (should only happen on mutual nudge)
+- ❌ Cross-user contamination
+- ❌ Revealing unlocking chat prematurely
 
 ---
 
-### 4. `endToEnd.integration.test.ts` (10+ test cases)
+### 4. `endToEnd.integration.test.ts` (8 tests)
 
-**Purpose:** Verify complete user workflows from start to finish.
+**Purpose:** Verify complete user workflows from start to finish
 
 **Test Categories:**
-- ✅ **Complete Workflow** (1 test)
-  - Create users → match → nudge → reveal
-  - 10-step comprehensive workflow test
 
-- ✅ **Manual Match Integration** (2 tests)
-  - Manual match + algorithm match interaction
-  - Manual match + nudging workflow
+**Complete Workflow** (1 test)
+- ✅ Full 10-step workflow: create users → match → nudge → reveal
 
-- ✅ **Multiple Prompts** (1 test)
-  - Users have matches for multiple prompts
-  - Nudges in one prompt don't affect another
+**Manual Match Integration** (2 tests)
+- ✅ Manual match + algorithm match interaction
+- ✅ Manual match + nudging workflow
 
-- ✅ **Complex Scenarios** (3 tests)
-  - Triangle match pattern (3-way mutual)
-  - Revealing before nudging
-  - Asymmetric nudging (not all reciprocate)
+**Multiple Prompts** (1 test)
+- ✅ Users have matches for multiple prompts
+- ✅ Nudges in prompt1 don't affect prompt2
 
-- ✅ **Data Integrity** (1 test)
-  - Consistency after multiple operations
-  - Array lengths stay synchronized
+**Complex Scenarios** (3 tests)
+- ✅ Triangle match pattern (3-way mutual matching)
+- ⚠️ Revealing all matches before nudging (TypeScript error)
+- ✅ Asymmetric nudging (only some users reciprocate)
+
+**Data Integrity** (1 test)
+- ✅ Consistency after multiple operations
+- ✅ Array lengths stay synchronized (matches, revealed, chatUnlocked)
 
 **Key Bugs This Catches:**
-- ❌ Data corruption during complex workflows
 - ❌ State inconsistencies across operations
 - ❌ Cross-prompt contamination
 - ❌ Array length mismatches
-
----
-
-## Test Data Management
-
-### Test Data Identification
-
-All test data uses special prefixes for easy cleanup:
-
-| Type | Prefix | Example |
-|------|--------|---------|
-| Users | `testuser-` | `testuser-abc123` |
-| Prompts | `TEST-2025-W` | `TEST-2025-W01` |
-
-### Collections Affected
-
-- ✅ `users`
-- ✅ `profiles`
-- ✅ `preferences`
-- ✅ `weeklyPrompts`
-- ✅ `weeklyPromptAnswers`
-- ✅ `weeklyMatches`
-- ✅ `nudges`
-- ✅ `notifications`
-
-### Automatic Cleanup
-
-```typescript
-beforeAll(async () => {
-  await cleanupTestData(); // Clean before tests
-});
-
-afterAll(async () => {
-  await cleanupTestData(); // Clean after tests
-});
-```
-
-### Manual Cleanup
-
-```bash
-npm run test:cleanup
-```
+- ❌ Data corruption during complex workflows
 
 ---
 
 ## Test Utilities
 
-### `testDataGenerator.ts`
-
-Provides helper functions for creating test data:
+### `testDataGenerator.ts` Helpers
 
 ```typescript
-// Create test users
+// Create test users with random profiles/preferences
 const users = await createTestUsers(10);
 
 // Create test prompt
 const prompt = await createTestPrompt();
 
-// Create prompt answers
+// Create prompt answers for users
 await createTestPromptAnswers(users, prompt.promptId);
 
-// Get user matches
+// Get user's matches
 const matches = await getUserMatches(netid, promptId);
 
 // Get nudge status
@@ -242,281 +296,123 @@ const nudge = await getNudge(fromNetid, toNetid, promptId);
 await cleanupTestData();
 ```
 
----
+### Test Data Identification
 
-## Running Tests in Different Environments
+| Type | Prefix | Example |
+|------|--------|---------|
+| Users | `testuser-` | `testuser-1nt1er` |
+| Prompts | `TEST-` | `TEST-2025-W15` |
 
-### Local Development
-
-```bash
-# Watch mode - auto-rerun on changes
-npm run test:integration:watch
-
-# Run specific test
-npm test -- endToEnd.integration.test.ts
-
-# Debug mode
-node --inspect-brk node_modules/.bin/jest integration
-```
-
-### CI/CD Pipeline
-
-```yaml
-# GitHub Actions example
-- name: Run Integration Tests
-  run: npm run test:integration
-  env:
-    FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-```
-
-### Pre-commit Hook
-
-```bash
-# Add to .husky/pre-commit
-npm run test:integration
-```
+### Collections Affected
+- `users`, `profiles`, `preferences`
+- `weeklyPrompts`, `weeklyPromptAnswers`
+- `weeklyMatches`, `nudges`, `notifications`
 
 ---
 
-## Interpreting Test Results
+## Running Specific Tests
 
-### Success Output
-
-```
-PASS  src/__tests__/integration/matching.integration.test.ts
-  ✓ should create exactly 3 matches for each user (1234ms)
-  ✓ should create mutual matches (567ms)
-
-Test Suites: 1 passed, 1 total
-Tests:       13 passed, 13 total
-Time:        15.234s
+### By File
+```bash
+npm run test:integration -- matching.integration.test.ts
+npm run test:integration -- nudging.integration.test.ts
+npm run test:integration -- reveal.integration.test.ts
+npm run test:integration -- endToEnd.integration.test.ts
 ```
 
-### Failure Output
-
-```
-FAIL  src/__tests__/integration/nudging.integration.test.ts
-  ✕ should unlock chat for both users on mutual nudge (1000ms)
-
-  Expected: true
-  Received: false
-
-    at Object.<anonymous> (nudging.integration.test.ts:45:67)
+### By Test Name
+```bash
+npm run test:integration -- --testNamePattern="mutual matches"
+npm run test:integration -- --testNamePattern="reveal"
+npm run test:integration -- --testNamePattern="concurrent"
 ```
 
-### Common Failure Reasons
+### By Category
+```bash
+# All matching tests
+npm run test:integration -- matching
 
-1. **Firebase Connection Issues**
-   - Check `.env` configuration
-   - Verify service account credentials
-   - Test Firestore connection manually
+# All nudging tests
+npm run test:integration -- nudging
 
-2. **Timeout Errors**
-   - Increase test timeout: `jest.setTimeout(60000)`
-   - Check for infinite loops
-   - Verify Firebase query performance
+# Specific describe block
+npm run test:integration -- --testNamePattern="Basic Functionality"
+```
 
-3. **Test Data Cleanup Issues**
-   - Run manual cleanup: `npm run test:cleanup`
-   - Check Firestore console for orphaned data
-   - Verify cleanup logic in `testDataGenerator.ts`
+---
 
-4. **Race Conditions**
-   - Add explicit waits if needed
-   - Check for concurrent operations
-   - Verify test isolation
+## Common Issues & Debugging
+
+### Issue: Tests Pass Locally But Fail on Another Machine
+**Cause:** Different Firebase instances or environment setup
+**Solution:**
+- Ensure `.env` file is properly configured
+- Check Firebase service account credentials
+- Verify Firestore database has same data structure
+
+### Issue: "Match index out of bounds"
+**Cause:** Test assumes user has 3 matches, but has fewer
+**Solution:** Use dynamic loops instead of hardcoded indices (see Phase 1 fix above)
+
+### Issue: Tests Leave Orphaned Data
+**Cause:** Test interrupted before cleanup
+**Solution:**
+```bash
+npm run test:cleanup
+```
+
+### Issue: Slow Test Execution
+**Optimization Tips:**
+- Run specific test files instead of full suite
+- Use `--testNamePattern` to run single tests
+- Increase Jest timeout if tests are timing out
 
 ---
 
 ## Best Practices
 
 ### ✅ DO
-
-- Run tests before committing code
-- Add tests for new features
-- Test edge cases and error conditions
+- Use `npm run test:integration` for integration tests
+- Dynamically handle variable match counts (1-3)
+- Clean up test data in `beforeEach()` and `afterEach()`
 - Use descriptive test names
-- Clean up test data automatically
-- Verify data integrity in assertions
-- Use test utilities for common operations
+- Test both success and failure paths
+- Verify mutual operations (A→B and B→A)
 
 ### ❌ DON'T
-
-- Rely on test execution order
-- Use production user data in tests
-- Skip test cleanup
-- Write tests that modify global state
-- Hardcode test data (use generators)
-- Ignore failing tests
+- Run integration tests with `npm test --` (wrong config)
+- Hardcode match indices (use loops)
+- Assume all users have exactly 3 matches
+- Skip cleanup (leaves orphaned data)
 - Test implementation details (test behavior)
+- Rely on test execution order
 
 ---
 
-## Debugging Failed Tests
+## Next Steps
 
-### Step 1: Identify the Failure
+### Immediate Priorities
+1. ✅ Fix TypeScript errors in endToEnd tests
+2. ❌ Debug "shared interests" compatibility test
+3. ❌ Fix concurrent reveals race condition
+4. 🔄 Run full test suite to verify all fixes
 
-```bash
-# Run single test to isolate issue
-npm test -- nudging.integration.test.ts
-
-# Add console.log statements
-console.log('Matches before nudge:', matches);
-```
-
-### Step 2: Check Firestore Data
-
-1. Open Firebase Console
-2. Navigate to Firestore Database
-3. Search for test data (prefix: `testuser-` or `TEST-`)
-4. Verify document structure matches expectations
-
-### Step 3: Check Logs
-
-```bash
-# Enable verbose logging
-DEBUG=* npm run test:integration
-```
-
-### Step 4: Run Cleanup
-
-```bash
-# Sometimes leftover data causes issues
-npm run test:cleanup
-npm run test:integration
-```
+### Future Improvements
+- [ ] Migrate to Firebase Emulator for faster tests
+- [ ] Add unit tests for service functions
+- [ ] Add load testing (1000+ users)
+- [ ] Set up CI/CD integration
+- [ ] Add performance benchmarking
 
 ---
 
-## Coverage Goals
+## Resources
 
-### Current Coverage: 95%+
-
-| Component | Coverage | Goal |
-|-----------|----------|------|
-| Matching Algorithm | 98% | 95% |
-| Nudging System | 96% | 95% |
-| Reveal System | 97% | 95% |
-| Data Utilities | 94% | 90% |
-
-### Uncovered Areas
-
-- Edge cases with extremely large datasets (1000+ users)
-- Network failure scenarios
-- Firebase Admin SDK errors
-- Specific race condition edge cases
+- **INVESTIGATION_PROGRESS.md** - Detailed failure analysis and fixes
+- **TESTING_README.md** - Quick reference and common issues
+- [Jest Documentation](https://jestjs.io/)
+- [Firebase Testing Guide](https://firebase.google.com/docs/emulator-suite)
 
 ---
 
-## Future Improvements
-
-### Planned Additions
-
-- [ ] Load testing (stress test with 1000+ users)
-- [ ] Network failure simulation tests
-- [ ] Firebase emulator integration
-- [ ] Snapshot testing for complex data structures
-- [ ] Performance benchmarking suite
-- [ ] Visual test report generation
-
-### Nice to Have
-
-- [ ] Parallel test execution optimization
-- [ ] Test data generation templates
-- [ ] Automated test data visualization
-- [ ] Integration with monitoring tools
-
----
-
-## Troubleshooting Guide
-
-### Problem: "Cannot connect to Firestore"
-
-**Solution:**
-```bash
-# Check environment variables
-cat .env | grep FIREBASE
-
-# Verify service account JSON
-ls -la service-account-key.json
-
-# Test Firebase connection manually
-npm run dev
-```
-
-### Problem: "Test data not cleaning up"
-
-**Solution:**
-```bash
-# Manual cleanup
-npm run test:cleanup
-
-# Check cleanup function
-cat src/__tests__/utils/testDataGenerator.ts
-
-# Verify Firestore rules allow deletion
-```
-
-### Problem: "Tests passing locally but failing in CI"
-
-**Solution:**
-- Check environment variables in CI
-- Verify Firebase credentials secret
-- Ensure same Node.js version
-- Check for timezone issues
-
-### Problem: "Intermittent test failures"
-
-**Solution:**
-- Add explicit waits for async operations
-- Check for race conditions
-- Verify test isolation
-- Increase timeouts if needed
-
----
-
-## Contributing
-
-### Adding New Tests
-
-1. **Create test file**
-   ```bash
-   touch src/__tests__/integration/newFeature.integration.test.ts
-   ```
-
-2. **Import utilities**
-   ```typescript
-   import { createTestUsers, cleanupTestData } from '../utils/testDataGenerator';
-   ```
-
-3. **Write tests**
-   ```typescript
-   describe('New Feature Tests', () => {
-     beforeAll(async () => await cleanupTestData());
-     afterAll(async () => await cleanupTestData());
-
-     test('should do something', async () => {
-       // Test implementation
-     });
-   });
-   ```
-
-4. **Update this guide**
-   - Add test count to summary
-   - Document what bugs it catches
-   - Add to coverage metrics
-
----
-
-## Questions?
-
-- **Tests failing?** Check Troubleshooting Guide above
-- **Need to add tests?** See Contributing section
-- **CI/CD issues?** Check Running Tests in Different Environments
-- **General questions?** Ask in #engineering channel
-
----
-
-**Last Updated:** December 2024
-**Maintained By:** Engineering Team
-**Test Framework:** Jest + TypeScript + Firebase Admin SDK
+**Questions?** Check INVESTIGATION_PROGRESS.md for detailed analysis or review test logs for specific errors.

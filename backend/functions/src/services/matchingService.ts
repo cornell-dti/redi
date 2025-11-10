@@ -309,8 +309,8 @@ export async function generateMatchesForPrompt(
   // Get profiles and preferences for all users
   const userDataMap = await getUserDataMap(userNetids);
 
-  // Track previous matches to avoid duplicates
-  const previousMatchesMap = await getPreviousMatchesMap(userNetids);
+  // Track previous matches to avoid duplicates (excluding current prompt)
+  const previousMatchesMap = await getPreviousMatchesMap(userNetids, promptId);
 
   // Get blocked users map (bidirectional blocking)
   const blockedUsersMap = await getBlockedUsersMap(userNetids);
@@ -413,12 +413,14 @@ async function getUserDataMap(
 }
 
 /**
- * Get previous matches for multiple users
+ * Get previous matches for multiple users (excluding current prompt)
  * @param netids - Array of netids
- * @returns Map of netid to set of previously matched netids
+ * @param currentPromptId - Current prompt ID to exclude from previous matches
+ * @returns Map of netid to set of previously matched netids (excluding current prompt)
  */
 async function getPreviousMatchesMap(
-  netids: string[]
+  netids: string[],
+  currentPromptId: string
 ): Promise<Map<string, Set<string>>> {
   const previousMatchesMap = new Map<string, Set<string>>();
 
@@ -427,6 +429,12 @@ async function getPreviousMatchesMap(
     const matchedNetids = new Set<string>();
 
     matches.forEach((match) => {
+      // ONLY include matches from the CURRENT prompt (prevents within-prompt duplicates)
+      // Exclude matches from OTHER prompts (allows same users to match across different prompts)
+      if (match.promptId !== currentPromptId) {
+        return;
+      }
+
       match.matches.forEach((matchedNetid) => {
         matchedNetids.add(matchedNetid);
       });

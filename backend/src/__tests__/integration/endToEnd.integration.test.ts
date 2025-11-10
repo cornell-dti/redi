@@ -390,7 +390,7 @@ describe('End-to-End Integration Tests', () => {
         throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
       }
       // All matches should be revealed
-      expect(matchesAfterReveal.revealed.every(r => r === true)).toBe(true);
+      expect(matchesAfterReveal.revealed.every((r: boolean) => r === true)).toBe(true);
 
       // Now nudge one of the revealed matches
       const matchedUser = matchesAfterReveal.matches[0];
@@ -403,7 +403,7 @@ describe('End-to-End Integration Tests', () => {
         throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
       }
       // All matches should still be revealed
-      expect(matchesFinal.revealed.every(r => r === true)).toBe(true);
+      expect(matchesFinal.revealed.every((r: boolean) => r === true)).toBe(true);
       // The first match should have chat unlocked (mutual nudge)
       expect(matchesFinal.chatUnlocked![0]).toBe(true);
 
