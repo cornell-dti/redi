@@ -355,6 +355,7 @@ export async function submitPromptAnswer(
     answerDoc = {
       ...answerData,
       createdAt: existingAnswer.createdAt, // Preserve original creation time
+      updatedAt: FieldValue.serverTimestamp(),
     };
   } else {
     // Create new answer

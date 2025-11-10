@@ -350,12 +350,20 @@ export async function generateMatchesForPrompt(
 
   console.log(`Match generation complete. Matched ${matchedCount} users.`);
 
-  // Update prompt status to completed
-  await db.collection("weeklyPrompts").doc(promptId).update({
-    status: "completed",
-    matchesGeneratedAt: FieldValue.serverTimestamp(),
-    active: false,
-  });
+  // Update prompt status to completed (if the prompt document exists)
+  try {
+    const promptRef = db.collection("weeklyPrompts").doc(promptId);
+    const promptDoc = await promptRef.get();
+    if (promptDoc.exists) {
+      await promptRef.update({
+        status: "completed",
+        matchesGeneratedAt: FieldValue.serverTimestamp(),
+        active: false,
+      });
+    }
+  } catch (error) {
+    console.warn(`Could not update prompt ${promptId} status:`, error);
+  }
 
   return matchedCount;
 }
