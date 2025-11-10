@@ -15,6 +15,7 @@ import {
   getUserAgent,
   logAdminAction,
 } from '../services/auditLog';
+import { createWeeklyMatch } from '../services/matchingService';
 
 const router = express.Router();
 
@@ -40,6 +41,7 @@ interface CreateManualMatchInput {
   expiresAt: string; // ISO date string
   chatUnlocked?: boolean;
   revealed?: boolean;
+  appendToExisting?: boolean; // If true, appends to existing matches instead of erroring
 }
 
 /**
@@ -200,31 +202,6 @@ router.post('/api/admin/matches/manual', async (req: AdminRequest, res) => {
       });
     }
 
-    // Check if matches already exist for this prompt
-    const user1MatchesSnapshot = await db
-      .collection('weeklyMatches')
-      .where('netid', '==', matchData.user1NetId)
-      .where('promptId', '==', matchData.promptId)
-      .get();
-
-    if (!user1MatchesSnapshot.empty) {
-      return res.status(409).json({
-        error: `User 1 (${matchData.user1NetId}) already has a match for prompt ${matchData.promptId}`,
-      });
-    }
-
-    const user2MatchesSnapshot = await db
-      .collection('weeklyMatches')
-      .where('netid', '==', matchData.user2NetId)
-      .where('promptId', '==', matchData.promptId)
-      .get();
-
-    if (!user2MatchesSnapshot.empty) {
-      return res.status(409).json({
-        error: `User 2 (${matchData.user2NetId}) already has a match for prompt ${matchData.promptId}`,
-      });
-    }
-
     // Parse expiresAt date
     const expiresAtDate = new Date(matchData.expiresAt);
     if (isNaN(expiresAtDate.getTime())) {
@@ -233,42 +210,48 @@ router.post('/api/admin/matches/manual', async (req: AdminRequest, res) => {
       });
     }
 
-    const now = Timestamp.now();
-    const expiresAtTimestamp = Timestamp.fromDate(expiresAtDate);
+    // Use createWeeklyMatch function with append support
+    // This handles checking for existing matches and appending if requested
+    const appendMode = matchData.appendToExisting || false;
 
-    // Use consistent document IDs matching the algorithm-generated format: ${netid}_${promptId}
-    const match1DocId = `${matchData.user1NetId}_${matchData.promptId}`;
-    const match2DocId = `${matchData.user2NetId}_${matchData.promptId}`;
+    try {
+      // Create/append match for User 1
+      console.log(
+        `Creating match for ${matchData.user1NetId} → ${matchData.user2NetId} (append: ${appendMode})`
+      );
+      await createWeeklyMatch(
+        matchData.user1NetId,
+        matchData.promptId,
+        [matchData.user2NetId],
+        appendMode
+      );
 
-    // Create match for User 1
-    const match1Data = {
-      netid: matchData.user1NetId,
-      matches: [matchData.user2NetId],
-      promptId: matchData.promptId,
-      createdAt: now,
-      expiresAt: expiresAtTimestamp,
-      chatUnlocked: matchData.chatUnlocked || false,
-      revealed: [matchData.revealed || false],
-    };
+      // Create/append match for User 2
+      console.log(
+        `Creating match for ${matchData.user2NetId} → ${matchData.user1NetId} (append: ${appendMode})`
+      );
+      await createWeeklyMatch(
+        matchData.user2NetId,
+        matchData.promptId,
+        [matchData.user1NetId],
+        appendMode
+      );
 
-    console.log('Creating match 1 with ID:', match1DocId, match1Data);
-    await db.collection('weeklyMatches').doc(match1DocId).set(match1Data);
-    console.log('Match 1 created successfully');
+      console.log('Both matches created/updated successfully');
+    } catch (createError) {
+      // Handle match creation errors (e.g., matches already exist and append not enabled)
+      const errorMsg =
+        createError instanceof Error ? createError.message : String(createError);
 
-    // Create match for User 2
-    const match2Data = {
-      netid: matchData.user2NetId,
-      matches: [matchData.user1NetId],
-      promptId: matchData.promptId,
-      createdAt: now,
-      expiresAt: expiresAtTimestamp,
-      chatUnlocked: matchData.chatUnlocked || false,
-      revealed: [matchData.revealed || false],
-    };
+      if (errorMsg.includes('already exist')) {
+        return res.status(409).json({
+          error: `${errorMsg} Set appendToExisting=true to add more matches.`,
+        });
+      }
 
-    console.log('Creating match 2 with ID:', match2DocId, match2Data);
-    await db.collection('weeklyMatches').doc(match2DocId).set(match2Data);
-    console.log('Match 2 created successfully');
+      // Re-throw other errors
+      throw createError;
+    }
 
     // Log successful action
     await logAdminAction(
@@ -282,16 +265,22 @@ router.post('/api/admin/matches/manual', async (req: AdminRequest, res) => {
         user2NetId: matchData.user2NetId,
         promptId: matchData.promptId,
         expiresAt: matchData.expiresAt,
+        appendMode,
       },
       getIpAddress(req),
       getUserAgent(req)
     );
 
+    const statusMessage = appendMode
+      ? `Successfully added matches between ${matchData.user1NetId} and ${matchData.user2NetId} (appended to existing)`
+      : `Successfully created matches between ${matchData.user1NetId} and ${matchData.user2NetId}`;
+
     res.status(201).json({
-      message: `Successfully created matches between ${matchData.user1NetId} and ${matchData.user2NetId}`,
-      match1Id: match1DocId,
-      match2Id: match2DocId,
+      message: statusMessage,
+      match1Id: `${matchData.user1NetId}_${matchData.promptId}`,
+      match2Id: `${matchData.user2NetId}_${matchData.promptId}`,
       promptId: matchData.promptId,
+      appended: appendMode,
     });
   } catch (error) {
     console.error('Error creating manual matches:', error);
