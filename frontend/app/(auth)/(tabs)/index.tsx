@@ -22,7 +22,11 @@ import {
   getNextFridayMidnight,
   isCountdownPeriod,
 } from '@/app/utils/dateUtils';
-import { cacheMatchData, getCachedMatchData } from '@/app/utils/matchCache';
+import {
+  cacheMatchData,
+  clearMatchCache,
+  getCachedMatchData,
+} from '@/app/utils/matchCache';
 import {
   getProfileAge,
   NudgeStatusResponse,
@@ -68,6 +72,8 @@ export default function MatchesScreen() {
   const [showPromptSheet, setShowPromptSheet] = useState(false);
   const [tempAnswer, setTempAnswer] = useState('');
   const lastLoadTime = useRef<number>(0);
+  // Track local nudges for immediate UI feedback
+  const [localNudges, setLocalNudges] = useState<Set<string>>(new Set());
 
   // Debounced data loading to prevent excessive API calls
   const loadDataDebounced = useDebouncedCallback(() => {
@@ -203,6 +209,8 @@ export default function MatchesScreen() {
       }
     } finally {
       setLoading(false);
+      // Clear local nudges after data reload since server state is now current
+      setLocalNudges(new Set());
     }
   }, []); // Empty dependency array since we use refs for state that shouldn't trigger re-renders
 
@@ -316,9 +324,34 @@ export default function MatchesScreen() {
             const matchAge = getProfileAge(matchProfile);
 
             const handleNudge = async () => {
-              await sendNudge(matchProfile.netid, m.promptId);
-              loadDataDebounced(); // refresh after nudge
+              // Create a unique key for this match
+              const matchKey = `${matchProfile.netid}-${m.promptId}`;
+
+              // Update local state immediately for instant UI feedback
+              setLocalNudges((prev) => new Set(prev).add(matchKey));
+
+              try {
+                await sendNudge(matchProfile.netid, m.promptId);
+
+                // Clear cache to force fresh data fetch with updated nudge status
+                await clearMatchCache(m.promptId);
+
+                // Reload immediately (no debounce) to ensure cache is updated before user closes app
+                await loadData();
+              } catch (error) {
+                // Remove from local nudges if there was an error
+                setLocalNudges((prev) => {
+                  const newSet = new Set(prev);
+                  newSet.delete(matchKey);
+                  return newSet;
+                });
+                throw error; // Re-throw so WeeklyMatchCard can show error alert
+              }
             };
+
+            // Check if this match has been nudged locally
+            const matchKey = `${matchProfile.netid}-${m.promptId}`;
+            const hasLocalNudge = localNudges.has(matchKey);
 
             return (
               <View
@@ -343,7 +376,7 @@ export default function MatchesScreen() {
                       `/view-profile?netid=${matchProfile.netid}&promptId=${m.promptId}` as any
                     )
                   }
-                  nudgeSent={m.nudgeStatus?.sent || false}
+                  nudgeSent={m.nudgeStatus?.sent || hasLocalNudge}
                   nudgeDisabled={m.nudgeStatus?.mutual || false}
                 />
               </View>

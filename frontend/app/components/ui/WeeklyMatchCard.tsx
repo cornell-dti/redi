@@ -73,6 +73,7 @@ export default function WeeklyMatchCard({
             variant="primary"
             iconLeft={nudgeSent ? Check : Bell}
             fullWidth
+            disabled={nudgeSent || nudgeDisabled}
           />
           <Button
             title="View Profile"
