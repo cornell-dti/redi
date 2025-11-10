@@ -1,5 +1,7 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { db } from "../firebaseAdmin";
+import { FieldValue } from "firebase-admin/firestore";
+import { db } from "../firebaseAdmin";
 import {
   CreateWeeklyPromptAnswerInput,
   CreateWeeklyPromptInput,
@@ -11,7 +13,10 @@ import {
   WeeklyPromptDocWrite,
   WeeklyPromptResponse,
 } from "../types";
+} from "../types";
 
+const PROMPTS_COLLECTION = "weeklyPrompts";
+const ANSWERS_COLLECTION = "weeklyPromptAnswers";
 const PROMPTS_COLLECTION = "weeklyPrompts";
 const ANSWERS_COLLECTION = "weeklyPromptAnswers";
 
@@ -31,15 +36,18 @@ function toDate(dateValue: any): Date {
 
   // If it's a Firestore Timestamp with a toDate() method
   if (dateValue && typeof dateValue.toDate === "function") {
+  if (dateValue && typeof dateValue.toDate === "function") {
     return dateValue.toDate();
   }
 
   // If it's a string or number, try to convert it
   if (typeof dateValue === "string" || typeof dateValue === "number") {
+  if (typeof dateValue === "string" || typeof dateValue === "number") {
     return new Date(dateValue);
   }
 
   // If it's an object with seconds (Firestore Timestamp-like structure)
+  if (dateValue && typeof dateValue.seconds === "number") {
   if (dateValue && typeof dateValue.seconds === "number") {
     return new Date(dateValue.seconds * 1000);
   }
@@ -66,6 +74,7 @@ export async function createWeeklyPrompt(
   const promptDoc: WeeklyPromptDocWrite = {
     ...promptData,
     active: false, // New prompts start as inactive
+    status: "scheduled", // Initial status is scheduled
     status: "scheduled", // Initial status is scheduled
     createdAt: FieldValue.serverTimestamp(),
   };
@@ -104,6 +113,7 @@ export async function getActivePrompt(): Promise<WeeklyPromptDoc | null> {
   const snapshot = await db
     .collection(PROMPTS_COLLECTION)
     .where("active", "==", true)
+    .where("active", "==", true)
     .limit(1)
     .get();
 
@@ -126,16 +136,20 @@ export async function getAllPrompts(options?: {
   limit?: number;
 }): Promise<WeeklyPromptDoc[]> {
   let query = db.collection(PROMPTS_COLLECTION).orderBy("releaseDate", "desc");
+  let query = db.collection(PROMPTS_COLLECTION).orderBy("releaseDate", "desc");
 
   if (options?.active !== undefined) {
+    query = query.where("active", "==", options.active) as any;
     query = query.where("active", "==", options.active) as any;
   }
 
   if (options?.startDate) {
     query = query.where("releaseDate", ">=", options.startDate) as any;
+    query = query.where("releaseDate", ">=", options.startDate) as any;
   }
 
   if (options?.endDate) {
+    query = query.where("releaseDate", "<=", options.endDate) as any;
     query = query.where("releaseDate", "<=", options.endDate) as any;
   }
 
@@ -161,6 +175,7 @@ export async function updatePrompt(
   if (updates.releaseDate || updates.matchDate) {
     const existingPrompt = await getPromptById(promptId);
     if (!existingPrompt) {
+      throw new Error("Prompt not found");
       throw new Error("Prompt not found");
     }
 
@@ -219,6 +234,7 @@ function getFridayOfCurrentWeek(): Date {
     friday.setDate(friday.getDate() + 7);
     console.log(
       "⏭️  Calculated Friday is past, extending deadline to next Friday"
+      "⏭️  Calculated Friday is past, extending deadline to next Friday"
     );
   }
 
@@ -250,6 +266,7 @@ export async function activatePrompt(
       batch.update(ref, {
         active: false,
         status: "completed",
+        status: "completed",
       });
       console.log(`   └─ Deactivating prompt: ${prompt.promptId}`);
     } else {
@@ -272,7 +289,12 @@ export async function activatePrompt(
   const dayStr = newMatchDate.toLocaleDateString("en-US", {
     weekday: "long",
     timeZone: "America/New_York",
+  const dayStr = newMatchDate.toLocaleDateString("en-US", {
+    weekday: "long",
+    timeZone: "America/New_York",
   });
+  const timeStr = newMatchDate.toLocaleTimeString("en-US", {
+    timeZone: "America/New_York",
   const timeStr = newMatchDate.toLocaleTimeString("en-US", {
     timeZone: "America/New_York",
   });
@@ -283,6 +305,7 @@ export async function activatePrompt(
   batch.update(promptRef, {
     active: true,
     status: "active",
+    status: "active",
     activatedAt: FieldValue.serverTimestamp(),
     releaseDate: now, // Set to current time for immediate access
     matchDate: newMatchDate,
@@ -291,6 +314,7 @@ export async function activatePrompt(
   await batch.commit();
 
   console.log(`✅ Successfully activated prompt ${promptId}`);
+  console.log("   └─ Users can now access and answer this prompt immediately");
   console.log("   └─ Users can now access and answer this prompt immediately");
   console.log(`   └─ Deadline: ${newMatchDate.toISOString()}`);
 
@@ -335,9 +359,11 @@ export async function submitPromptAnswer(
   // Validate answer length
   if (answerData.answer.length > 500) {
     throw new Error("Answer must be 500 characters or less");
+    throw new Error("Answer must be 500 characters or less");
   }
 
   if (answerData.answer.trim().length === 0) {
+    throw new Error("Answer cannot be empty");
     throw new Error("Answer cannot be empty");
   }
 
@@ -404,6 +430,7 @@ export async function getAnswersForPrompt(
   const snapshot = await db
     .collection(ANSWERS_COLLECTION)
     .where("promptId", "==", promptId)
+    .where("promptId", "==", promptId)
     .get();
 
   return snapshot.docs.map((doc) => doc.data() as WeeklyPromptAnswerDoc);
@@ -455,6 +482,7 @@ function validatePromptDates(
   // Validate that match date is after release date
   if (match.getTime() <= release.getTime()) {
     throw new Error("Match date must be after release date");
+    throw new Error("Match date must be after release date");
   }
 }
 
@@ -472,5 +500,6 @@ export function generatePromptId(date: Date): string {
     (daysSinceStartOfYear + startOfYear.getDay()) / 7
   );
 
+  return `${year}-W${weekNumber.toString().padStart(2, "0")}`;
   return `${year}-W${weekNumber.toString().padStart(2, "0")}`;
 }
