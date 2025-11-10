@@ -110,10 +110,11 @@ describe('End-to-End Integration Tests', () => {
       console.log('Step 7: User 2 accepting nudge...');
       await createNudge(user2Netid, testUsers[0].netid, testPromptId);
 
-      // Verify mutual nudge
+      // Verify mutual nudge (refetch both nudges after mutual nudge is created)
       const nudge2to1 = await getNudge(user2Netid, testUsers[0].netid, testPromptId);
+      const nudge1to2Updated = await getNudge(testUsers[0].netid, user2Netid, testPromptId);
       expect(nudge2to1!.mutual).toBe(true);
-      expect(nudge1to2!.mutual).toBe(true);
+      expect(nudge1to2Updated!.mutual).toBe(true);
 
       // Step 8: Verify chat is unlocked between them
       console.log('Step 8: Verifying chat unlock...');
@@ -422,39 +423,43 @@ describe('End-to-End Integration Tests', () => {
       if (!user0Matches) {
         throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
       }
-      const match1 = user0Matches.matches[0];
-      const match2 = user0Matches.matches[1];
-      const match3 = user0Matches.matches[2];
 
-      // User 0 nudges all 3 matches
-      await createNudge(testUsers[0].netid, match1, testPromptId);
-      await createNudge(testUsers[0].netid, match2, testPromptId);
-      await createNudge(testUsers[0].netid, match3, testPromptId);
+      // Ensure user has at least 2 matches for asymmetric nudging test
+      expect(user0Matches.matches.length).toBeGreaterThanOrEqual(2);
 
-      // Only match1 nudges back
-      await createNudge(match1, testUsers[0].netid, testPromptId);
+      const matches = user0Matches.matches;
+      const matchCount = matches.length;
+
+      // User 0 nudges all their matches
+      for (let i = 0; i < matchCount; i++) {
+        await createNudge(testUsers[0].netid, matches[i], testPromptId);
+      }
+
+      // Only first match nudges back
+      await createNudge(matches[0], testUsers[0].netid, testPromptId);
 
       // Check nudge statuses
-      const status1 = await getNudgeStatus(testUsers[0].netid, match1, testPromptId);
-      const status2 = await getNudgeStatus(testUsers[0].netid, match2, testPromptId);
-      const status3 = await getNudgeStatus(testUsers[0].netid, match3, testPromptId);
+      const statuses = [];
+      for (let i = 0; i < matchCount; i++) {
+        statuses.push(await getNudgeStatus(testUsers[0].netid, matches[i], testPromptId));
+      }
 
-      expect(status1.mutual).toBe(true);
-      expect(status2.mutual).toBe(false);
-      expect(status3.mutual).toBe(false);
+      // First match should be mutual, others should not
+      expect(statuses[0].mutual).toBe(true);
+      for (let i = 1; i < matchCount; i++) {
+        expect(statuses[i].mutual).toBe(false);
+      }
 
-      // Only chat with match1 should be unlocked
+      // Only chat with first match should be unlocked
       const user0Final = await getUserMatches(testUsers[0].netid, testPromptId);
       if (!user0Final) {
         throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
       }
-      const idx1 = user0Final.matches.indexOf(match1);
-      const idx2 = user0Final.matches.indexOf(match2);
-      const idx3 = user0Final.matches.indexOf(match3);
 
-      expect(user0Final.chatUnlocked![idx1]).toBe(true);
-      expect(user0Final.chatUnlocked![idx2]).toBe(false);
-      expect(user0Final.chatUnlocked![idx3]).toBe(false);
+      expect(user0Final.chatUnlocked![0]).toBe(true);
+      for (let i = 1; i < matchCount; i++) {
+        expect(user0Final.chatUnlocked![i]).toBe(false);
+      }
 
       console.log('✅ Asymmetric nudging handled correctly!');
     });

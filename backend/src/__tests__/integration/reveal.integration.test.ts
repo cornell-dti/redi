@@ -274,6 +274,8 @@ describe('Reveal System Integration Tests', () => {
       await generateMatchesForPrompt(testPromptId);
 
       const initialMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      expect(initialMatches).toBeTruthy();
+
       const matchCount = initialMatches!.matches.length;
 
       // Reveal all matches concurrently

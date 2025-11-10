@@ -233,30 +233,32 @@ export async function revealMatch(
     throw new Error("Match index must be between 0 and 2");
   }
 
-  const matchDoc = await getWeeklyMatch(netid, promptId);
+  // Calculate document ID (same format as createWeeklyMatch)
+  const docId = `${netid}_${promptId}`;
+  const docRef = db.collection(MATCHES_COLLECTION).doc(docId);
 
-  if (!matchDoc) {
-    throw new Error("Match not found");
-  }
+  // Use transaction to prevent race conditions during concurrent reveals
+  await db.runTransaction(async (transaction) => {
+    // Use document reference directly (not query) for proper transaction handling
+    const doc = await transaction.get(docRef);
 
-  if (matchIndex >= matchDoc.matches.length) {
-    throw new Error("Match index out of bounds");
-  }
+    if (!doc.exists) {
+      throw new Error("Match not found");
+    }
 
-  const revealed = [...matchDoc.revealed];
-  revealed[matchIndex] = true;
+    const matchDoc = doc.data() as WeeklyMatchDoc;
 
-  // Query to find the document and update it (supports both ID formats)
-  const snapshot = await db
-    .collection(MATCHES_COLLECTION)
-    .where("netid", "==", netid)
-    .where("promptId", "==", promptId)
-    .limit(1)
-    .get();
+    if (matchIndex >= matchDoc.matches.length) {
+      throw new Error("Match index out of bounds");
+    }
 
-  if (!snapshot.empty) {
-    await snapshot.docs[0].ref.update({ revealed });
-  }
+    // Create updated revealed array
+    const revealed = [...matchDoc.revealed];
+    revealed[matchIndex] = true;
+
+    // Update within transaction (atomic read-modify-write)
+    transaction.update(docRef, { revealed });
+  });
 
   return getWeeklyMatch(netid, promptId) as Promise<WeeklyMatchDoc>;
 }

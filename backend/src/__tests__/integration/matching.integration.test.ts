@@ -334,29 +334,38 @@ describe('Matching Algorithm Integration Tests', () => {
 
   describe('Compatibility Scoring', () => {
     test('should prioritize users with shared interests', async () => {
-      // Create users with very specific interests
-      const user1 = await createTestUsers(1);
-      user1[0].profile.interests = ['coding', 'gaming', 'music'];
+      // Create users together to get diverse profiles, then modify interests
+      testUsers = await createTestUsers(6);
 
-      const user2 = await createTestUsers(1);
-      user2[0].profile.interests = ['coding', 'gaming', 'music']; // Same as user1
+      // Modify first 2 users to have identical interests
+      testUsers[0].profile.interests = ['coding', 'gaming', 'music'];
+      await db.collection('profiles').doc(testUsers[0].netid).update({
+        interests: testUsers[0].profile.interests,
+      });
 
-      const user3 = await createTestUsers(1);
-      user3[0].profile.interests = ['reading', 'painting', 'dancing']; // Different
-
-      testUsers = [...user1, ...user2, ...user3];
+      testUsers[1].profile.interests = ['coding', 'gaming', 'music']; // Same as user0
+      await db.collection('profiles').doc(testUsers[1].netid).update({
+        interests: testUsers[1].profile.interests,
+      });
 
       const prompt = await createTestPrompt();
       testPromptId = prompt.promptId;
 
       await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      const matchedCount = await generateMatchesForPrompt(testPromptId);
 
-      // User1 and User2 should likely match (high compatibility)
-      const user1Matches = await getUserMatches(user1[0].netid, testPromptId);
+      // Verify matching ran and created matches
+      expect(matchedCount).toBeGreaterThan(0);
 
-      // Due to high compatibility, user2 should be in user1's matches
-      expect(user1Matches!.matches).toContain(user2[0].netid);
+      // User0 and User1 have identical interests, should likely match
+      const user0Matches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const user1Matches = await getUserMatches(testUsers[1].netid, testPromptId);
+
+      // Due to high compatibility (shared interests), they should match each other
+      expect(user0Matches).toBeTruthy();
+      expect(user1Matches).toBeTruthy();
+      expect(user0Matches!.matches).toContain(testUsers[1].netid);
+      expect(user1Matches!.matches).toContain(testUsers[0].netid);
     });
   });
 
