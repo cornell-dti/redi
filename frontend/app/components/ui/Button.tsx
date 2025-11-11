@@ -86,7 +86,7 @@ export default function Button({
     if (variant === 'primary' || variant === 'negative') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } else {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
     setIsPressed(true);
