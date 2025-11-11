@@ -14,6 +14,13 @@ export interface UserDoc {
   email: string;
   firebaseUid: string;
   createdAt: FirestoreTimestampType;
+  pushToken?: string; // Expo push notification token
+  pushTokenUpdatedAt?: FirestoreTimestampType; // Last time token was updated
+  notificationPreferences?: {
+    newMessages: boolean; // Default: true
+    matchDrops: boolean; // Default: true
+    mutualNudges: boolean; // Default: true
+  };
 }
 // User document when writing to Firestore (includes FieldValue for serverTimestamp)
 export interface UserDocWrite {
@@ -21,6 +28,13 @@ export interface UserDocWrite {
   email: string;
   firebaseUid: string;
   createdAt: FirestoreTimestampType | FieldValue;
+  pushToken?: string;
+  pushTokenUpdatedAt?: FirestoreTimestampType | FieldValue;
+  notificationPreferences?: {
+    newMessages: boolean;
+    matchDrops: boolean;
+    mutualNudges: boolean;
+  };
 }
 
 // Profile document when writing to Firestore (includes FieldValue for timestamps)
@@ -499,7 +513,7 @@ export interface NudgeStatusResponse {
 // NOTIFICATIONS MODELS
 // =============================================================================
 
-export type NotificationType = 'mutual_nudge' | 'new_message';
+export type NotificationType = 'mutual_nudge' | 'new_message' | 'match_drop';
 
 // Notification document in Firestore (notifications collection)
 export interface NotificationDoc {
@@ -509,12 +523,16 @@ export interface NotificationDoc {
   message: string;
   read: boolean;
   metadata: {
-    promptId?: string; // For mutual_nudge
+    promptId?: string; // For mutual_nudge, match_drop
     matchNetid?: string; // For mutual_nudge
-    conversationId?: string; // For mutual_nudge (auto-created conversation)
+    conversationId?: string; // For mutual_nudge, new_message
     matchName?: string; // For mutual_nudge (matched user's name)
     matchFirebaseUid?: string; // For mutual_nudge (matched user's Firebase UID)
-    chatId?: string; // For new_message (future)
+    chatId?: string; // For new_message
+    senderId?: string; // For new_message (sender's Firebase UID)
+    senderName?: string; // For new_message (sender's name)
+    senderNetid?: string; // For new_message (sender's netid)
+    matchCount?: number; // For match_drop (number of new matches)
   };
   createdAt: FirestoreTimestampType;
 }
@@ -533,6 +551,10 @@ export interface NotificationDocWrite {
     matchName?: string;
     matchFirebaseUid?: string;
     chatId?: string;
+    senderId?: string;
+    senderName?: string;
+    senderNetid?: string;
+    matchCount?: number;
   };
   createdAt: FirestoreTimestampType | FieldValue;
 }
@@ -552,6 +574,10 @@ export interface NotificationResponse {
     matchName?: string;
     matchFirebaseUid?: string;
     chatId?: string;
+    senderId?: string;
+    senderName?: string;
+    senderNetid?: string;
+    matchCount?: number;
   };
   createdAt: string; // ISO string format for JSON
 }

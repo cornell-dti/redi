@@ -19,6 +19,7 @@
   "main": "lib/index.js",
   "dependencies": {
     "dotenv": "^16.4.5",
+    "expo-server-sdk": "^4.0.0",
     "firebase-admin": "^12.6.0",
     "firebase-functions": "^6.0.1"
   },

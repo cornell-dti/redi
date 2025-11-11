@@ -76,26 +76,31 @@ export default function ChatDetailScreen() {
 
   const {
     conversationId: routeConversationId,
-    userId,
-    name,
+    userId: routeUserId,
+    name: routeName,
     netid: routeNetid,
   } = useLocalSearchParams();
 
   // Ensure params are strings, not arrays
   const netid = Array.isArray(routeNetid) ? routeNetid[0] : routeNetid;
+  const userId = Array.isArray(routeUserId) ? routeUserId[0] : routeUserId;
+  const name = Array.isArray(routeName) ? routeName[0] : routeName;
+  const initialConversationId = Array.isArray(routeConversationId)
+    ? routeConversationId[0]
+    : routeConversationId;
 
   // Debug logging
   useEffect(() => {
     console.log('Chat detail params:', {
-      conversationId: routeConversationId,
+      conversationId: initialConversationId,
       userId,
       name,
       netid,
     });
-  }, [routeConversationId, userId, name, netid]);
+  }, [initialConversationId, userId, name, netid]);
 
   const [conversationId, setConversationId] = useState<string | null>(
-    (routeConversationId as string) || null
+    initialConversationId || null
   );
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
