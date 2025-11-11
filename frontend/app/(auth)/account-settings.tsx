@@ -165,7 +165,7 @@ export default function AccountSettingsPage() {
           </ListItemWrapper>
         </View>
 
-        <View style={styles.section}>
+        {/* <View style={styles.section}>
           <AppText variant="subtitle" style={styles.subtitle}>
             Password
           </AppText>
@@ -179,7 +179,7 @@ export default function AccountSettingsPage() {
               onPress={() => router.push('/edit-password' as any)}
             />
           </ListItemWrapper>
-        </View>
+        </View> */}
 
         <View style={styles.section}>
           <AppText variant="subtitle" style={styles.subtitle} color="negative">
