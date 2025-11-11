@@ -699,6 +699,7 @@ export default function ChatDetailScreen() {
             style={styles.messageInput}
             onSubmitEditing={sendMessage}
             returnKeyType="send"
+            blurOnSubmit={true}
             forceMinHeight
           />
 
