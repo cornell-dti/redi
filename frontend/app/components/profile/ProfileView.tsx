@@ -205,7 +205,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({
       )}
 
       <View style={styles.contentContainer}>
-        <AppText variant="title">{profile.firstName}</AppText>
+        <AppText variant="title" indented style={{ marginBottom: -32 }}>
+          {profile.firstName}
+        </AppText>
 
         <View style={styles.buttonCont}>
           {showNudgeButton && (
