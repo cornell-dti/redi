@@ -1,7 +1,7 @@
 import AppText from '@/app/components/ui/AppText';
 import { ProfileResponse, PromptData, getProfileAge } from '@/types';
 import { router, useFocusEffect } from 'expo-router';
-import { Check, ChevronRight, Pencil, Plus } from 'lucide-react-native';
+import { Check, ChevronRight, Eye, Pencil, Plus } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -356,6 +356,14 @@ export default function EditProfileScreen() {
         }}
         scrollEventThrottle={16}
       >
+        <Button
+          iconLeft={Eye}
+          variant="secondary"
+          title="Preview Profile"
+          onPress={() => router.push('/profile-preview' as any)}
+          fullWidth
+        />
+
         <View style={styles.section}>
           <AppText variant="subtitle" style={styles.subtitle}>
             My photos
