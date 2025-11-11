@@ -137,13 +137,28 @@ export const validateProfileCreation: ValidationChain[] = [
   body('instagram')
     .optional()
     .trim()
-    .matches(/^@?[A-Za-z0-9_.]+$/)
+    .customSanitizer((value: string) => {
+      if (!value) return value;
+      // Extract username from Instagram URL if provided
+      const urlMatch = value.match(/instagram\.com\/([A-Za-z0-9_.]+)/);
+      if (urlMatch) return urlMatch[1];
+      // Remove @ prefix if present
+      return value.replace(/^@/, '');
+    })
+    .matches(/^[A-Za-z0-9_.]+$/)
     .withMessage('Invalid Instagram handle')
     .isLength({ max: 30 }),
 
   body('snapchat')
     .optional()
     .trim()
+    .customSanitizer((value: string) => {
+      if (!value) return value;
+      // Extract username from Snapchat URL if provided
+      const urlMatch = value.match(/snapchat\.com\/add\/([A-Za-z0-9._-]+)/);
+      if (urlMatch) return urlMatch[1];
+      return value;
+    })
     .matches(/^[A-Za-z0-9._-]+$/)
     .withMessage('Invalid Snapchat handle')
     .isLength({ max: 30 }),
@@ -165,6 +180,13 @@ export const validateProfileCreation: ValidationChain[] = [
   body('github')
     .optional()
     .trim()
+    .customSanitizer((value: string) => {
+      if (!value) return value;
+      // Extract username from GitHub URL if provided
+      const urlMatch = value.match(/github\.com\/([A-Za-z0-9-]+)/);
+      if (urlMatch) return urlMatch[1];
+      return value;
+    })
     .matches(/^[A-Za-z0-9-]+$/)
     .withMessage('Invalid GitHub username'),
 
