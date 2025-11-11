@@ -330,7 +330,7 @@ router.post(
             recipientNetid,
             'new_message',
             `${senderInfo.name} sent you a message`,
-            'Tap to view',
+            'Someone sent you a chat',
             {
               conversationId,
               senderId: userId,
