@@ -212,7 +212,7 @@ export default function ProfileScreen() {
             <Button
               iconLeft={Eye}
               variant="secondary"
-              title="Preview profile"
+              title="Preview Profile"
               onPress={() => router.push('/profile-preview' as any)}
               fullWidth
             />
