@@ -151,7 +151,7 @@ export default function CreateProfileScreen() {
       updateField('linkedIn', `https://${linkedin}`);
     }
 
-    // Normalize Instagram
+    // Normalize Instagram - extract username only
     if (data.instagram) {
       let instagram = data.instagram.trim();
       // Remove @ if present
@@ -160,13 +160,13 @@ export default function CreateProfileScreen() {
       instagram = instagram.replace(/^https?:\/\//, '');
       // Remove www. if present
       instagram = instagram.replace(/^www\./, '');
-      // Remove instagram.com/ if present (we'll add it back)
+      // Remove instagram.com/ if present
       instagram = instagram.replace(/^instagram\.com\//, '');
-      // Create the full Instagram URL
-      updateField('instagram', `https://instagram.com/${instagram}`);
+      // Store just the username (backend expects username only)
+      updateField('instagram', instagram);
     }
 
-    // Normalize Snapchat
+    // Normalize Snapchat - extract username only
     if (data.snapchat) {
       let snapchat = data.snapchat.trim();
       // Remove @ if present
@@ -175,13 +175,13 @@ export default function CreateProfileScreen() {
       snapchat = snapchat.replace(/^https?:\/\//, '');
       // Remove www. if present
       snapchat = snapchat.replace(/^www\./, '');
-      // Remove snapchat.com/add/ if present (we'll add it back)
+      // Remove snapchat.com/add/ if present
       snapchat = snapchat.replace(/^snapchat\.com\/add\//, '');
-      // Create the full Snapchat URL
-      updateField('snapchat', `https://snapchat.com/add/${snapchat}`);
+      // Store just the username (backend expects username only)
+      updateField('snapchat', snapchat);
     }
 
-    // Normalize GitHub
+    // Normalize GitHub - extract username only
     if (data.github) {
       let github = data.github.trim();
       // Remove @ if present
@@ -190,10 +190,10 @@ export default function CreateProfileScreen() {
       github = github.replace(/^https?:\/\//, '');
       // Remove www. if present
       github = github.replace(/^www\./, '');
-      // Remove github.com/ if present (we'll add it back)
+      // Remove github.com/ if present
       github = github.replace(/^github\.com\//, '');
-      // Create the full GitHub URL
-      updateField('github', `https://github.com/${github}`);
+      // Store just the username (backend expects username only)
+      updateField('github', github);
     }
 
     // Normalize Website (ensure it has https://)
@@ -845,7 +845,9 @@ export default function CreateProfileScreen() {
       case 16:
         return (
           <View style={styles.stepContainer}>
-            <AppText variant="title">Welcome, {data.firstName}!</AppText>
+            <AppText variant="title" style={{ textAlign: 'center' }}>
+              Welcome, {data.firstName}!
+            </AppText>
             <View style={styles.welcomeContainer}>
               {data.pictures[0] && (
                 <Image
@@ -949,6 +951,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stepContainer: {
+    justifyContent: 'center',
     padding: 20,
     gap: 20,
   },
@@ -977,7 +980,7 @@ const styles = StyleSheet.create({
   majorSheetContent: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '24',
+    gap: 24,
   },
   promptsContainer: {
     gap: 16,

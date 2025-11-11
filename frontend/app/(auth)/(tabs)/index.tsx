@@ -36,6 +36,7 @@ import { useRouter } from 'expo-router';
 import { Check, Heart, Pencil } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   Dimensions,
   ScrollView,
   StatusBar,
@@ -68,6 +69,29 @@ export default function MatchesScreen() {
   const [showPromptSheet, setShowPromptSheet] = useState(false);
   const [tempAnswer, setTempAnswer] = useState('');
   const lastLoadTime = useRef<number>(0);
+
+  // Create animated values for each pagination dot
+  const dotAnimationsRef = useRef<Animated.Value[]>([]);
+
+  // Initialize dot animations when currentMatches changes
+  useEffect(() => {
+    dotAnimationsRef.current = currentMatches.map(
+      (_, i) =>
+        dotAnimationsRef.current[i] || new Animated.Value(i === 0 ? 1 : 0)
+    );
+  }, [currentMatches.length]);
+
+  // Animate dots when active index changes
+  useEffect(() => {
+    dotAnimationsRef.current.forEach((animation, index) => {
+      Animated.spring(animation, {
+        toValue: index === currentMatchIndex ? 1 : 0,
+        useNativeDriver: false,
+        friction: 8,
+        tension: 80,
+      }).start();
+    });
+  }, [currentMatchIndex]);
 
   // Debounced data loading to prevent excessive API calls
   const loadDataDebounced = useDebouncedCallback(() => {
@@ -353,15 +377,35 @@ export default function MatchesScreen() {
 
         {currentMatches.length > 1 && (
           <View style={styles.pagination}>
-            {currentMatches.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.paginationDot,
-                  index === currentMatchIndex && styles.paginationDotActive,
-                ]}
-              />
-            ))}
+            {currentMatches.map((_, index) => {
+              const animation = dotAnimationsRef.current[index];
+              const width = animation?.interpolate({
+                inputRange: [0, 1],
+                outputRange: [8, 20],
+              });
+              const height = animation?.interpolate({
+                inputRange: [0, 1],
+                outputRange: [8, 10],
+              });
+              const opacity = animation?.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.5, 1],
+              });
+
+              return (
+                <Animated.View
+                  key={index}
+                  style={[
+                    styles.paginationDot,
+                    {
+                      width,
+                      height,
+                      opacity,
+                    },
+                  ]}
+                />
+              );
+            })}
           </View>
         )}
       </View>
@@ -394,6 +438,7 @@ export default function MatchesScreen() {
         visible={showPromptSheet}
         onDismiss={() => setShowPromptSheet(false)}
         title={activePrompt?.question || 'Weekly Prompt'}
+        bottomRound={false}
       >
         {activePrompt && (
           <View style={{ gap: 16, flex: 1 }}>
@@ -503,14 +548,8 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: AppColors.backgroundDimmest,
-  },
-  paginationDotActive: {
-    backgroundColor: AppColors.accentDefault,
-    width: 24,
+    borderRadius: 5,
+    backgroundColor: AppColors.foregroundDefault,
   },
   emptyState: {
     backgroundColor: AppColors.backgroundDimmer,
@@ -529,10 +568,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   emptyStateContainer: {
-    // flex: 1,
-    // minHeight: 400,
     justifyContent: 'center',
     alignItems: 'center',
-    // paddingBottom: 175,
   },
 });

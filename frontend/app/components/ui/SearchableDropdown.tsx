@@ -98,7 +98,8 @@ export default function SearchableDropdown({
           onDismiss?.();
         }}
         title={label || 'Select an option'}
-        height="80%"
+        height="50%"
+        bottomRound={false}
       >
         <AppInput
           placeholder={placeholder}

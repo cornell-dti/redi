@@ -143,16 +143,20 @@ export const YEAR_OPTIONS = [
   'Graduate',
 ];
 
-// Sample prompts for Step 11
 export const AVAILABLE_PROMPTS = [
-  'My ideal Sunday morning...',
-  'The key to my heart is...',
-  'I go crazy for...',
-  'My most controversial opinion...',
-  'Green flags I look for...',
-  'Dating me is like...',
-  "I'm looking for someone who...",
-  'Together we could...',
-  'A perfect date would be...',
-  'I know the best spot in Ithaca for...',
+  'My friends describe me as the one who…',
+  'You’ll probably catch me talking about…',
+  'I’m most myself when…',
+  'The best part of my week usually is…',
+  'The hill I’ll die on is…',
+  'We’ll get along if…',
+  'My go-to lazy dinner is…',
+  'The playlist I’d put on in the background is…',
+  'Recently obsessed with…',
+  'Currently trying to get better at…',
+  'My most unhinged opinion is…',
+  'The last time I couldn’t stop laughing was…',
+  'Two truths and a lie (your turn):',
+  'My toxic trait (in a fun way) is…',
+  'The most delusional thing I believe is…',
 ];

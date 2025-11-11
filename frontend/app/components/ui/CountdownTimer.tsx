@@ -103,18 +103,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
   },
   timeBlockWrapper: {
     alignItems: 'center',
-    gap: 4,
+    flex: 1,
   },
   timeBlock: {
     backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 32,
-    width: 80,
+    flex: 1,
+    minWidth: 80,
     alignItems: 'center',
   },
   colon: {

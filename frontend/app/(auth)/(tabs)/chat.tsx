@@ -207,7 +207,7 @@ export default function ChatScreen() {
             triggerAnimation={animationTrigger}
           />
         ) : (
-          <ListItemWrapper>
+          <ListItemWrapper applyToNestedChild>
             {displayData.map((item) => (
               <ChatItem
                 key={item.id}

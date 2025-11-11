@@ -20,6 +20,7 @@ interface AppInputProps extends TextInputProps {
   dateFormat?: boolean; // Automatically format as MM/DD/YYYY or MM/DD/YY
   bottomBorderRound?: boolean;
   disabled?: boolean;
+  forceMinHeight?: boolean;
 }
 
 const AppInput: React.FC<AppInputProps> = ({
@@ -33,6 +34,7 @@ const AppInput: React.FC<AppInputProps> = ({
   dateFormat,
   bottomBorderRound,
   disabled = false,
+  forceMinHeight = false,
   ...props
 }) => {
   const borderColorAnim = useRef(new Animated.Value(0)).current;
@@ -150,6 +152,7 @@ const AppInput: React.FC<AppInputProps> = ({
                 variant === 'white'
                   ? AppColors.backgroundDefault
                   : AppColors.backgroundDimmer,
+              minHeight: forceMinHeight ? 56 : null,
             },
             noRound && { borderRadius: 6 },
             fullRound && { borderRadius: 32 },

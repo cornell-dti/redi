@@ -107,6 +107,7 @@ export default function WeeklyMatchCard({
                 iconLeft={Bell}
                 fullWidth
                 disabled={isSending}
+                soundEffect={require('@/assets/sounds/nudge.mp3')}
               />
             )}
             <Button

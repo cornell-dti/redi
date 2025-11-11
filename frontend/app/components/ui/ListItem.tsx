@@ -23,6 +23,7 @@ interface ListItemProps {
   style?: StyleProp<ViewStyle>;
   destructive?: boolean;
   disabled?: boolean;
+  pressableStyle?: StyleProp<ViewStyle>;
 }
 
 export default function ListItem({
@@ -35,6 +36,7 @@ export default function ListItem({
   style,
   destructive,
   disabled = false,
+  pressableStyle,
 }: ListItemProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isPressed, setIsPressed] = React.useState(false);
@@ -80,6 +82,7 @@ export default function ListItem({
           description ? { height: 'auto' } : { height: 54 },
           disabled && { opacity: 0.4 },
           style,
+          pressableStyle,
         ]}
         accessibilityRole="button"
         disabled={disabled}
