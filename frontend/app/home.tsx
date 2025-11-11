@@ -324,7 +324,6 @@ export default function HomePage() {
           onPress={() => handleModeChange('login')}
           variant="negative"
           fullWidth
-          iconLeft={Bug}
         />
       </View> */}
 
