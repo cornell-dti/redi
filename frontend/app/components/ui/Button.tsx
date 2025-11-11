@@ -11,13 +11,16 @@ import {
 } from 'react-native';
 import { AppColors } from '../AppColors';
 
+// Type for custom icons that accept size and color props
+type CustomIcon = React.ComponentType<{ size?: number; color?: string }>;
+
 interface ButtonProps {
   title: string;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'negative';
   disabled?: boolean;
-  iconLeft?: LucideIcon;
-  iconRight?: LucideIcon;
+  iconLeft?: LucideIcon | CustomIcon;
+  iconRight?: LucideIcon | CustomIcon;
   fullWidth?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
