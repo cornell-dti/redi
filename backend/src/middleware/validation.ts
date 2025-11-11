@@ -135,7 +135,7 @@ export const validateProfileCreation: ValidationChain[] = [
     .customSanitizer(sanitizeText),
 
   body('instagram')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .customSanitizer((value: string) => {
       if (!value) return value;
@@ -150,7 +150,7 @@ export const validateProfileCreation: ValidationChain[] = [
     .isLength({ max: 30 }),
 
   body('snapchat')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .customSanitizer((value: string) => {
       if (!value) return value;
@@ -164,21 +164,25 @@ export const validateProfileCreation: ValidationChain[] = [
     .isLength({ max: 30 }),
 
   body('phoneNumber')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .matches(/^\+?[1-9]\d{1,14}$/)
     .withMessage('Invalid phone number format'),
 
-  body('website').optional().trim().isURL().withMessage('Invalid website URL'),
+  body('website')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isURL()
+    .withMessage('Invalid website URL'),
 
   body('linkedIn')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isURL()
     .withMessage('Invalid LinkedIn URL'),
 
   body('github')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .customSanitizer((value: string) => {
       if (!value) return value;
