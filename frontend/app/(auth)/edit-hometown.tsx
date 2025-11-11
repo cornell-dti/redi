@@ -10,13 +10,16 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
+import Checkbox from '../components/ui/Checkbox';
 import EditingHeader from '../components/ui/EditingHeader';
+import FooterSpacer from '../components/ui/FooterSpacer';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
@@ -28,6 +31,8 @@ export default function EditHometownPage() {
   const [saving, setSaving] = useState(false);
   const [hometown, setHometown] = useState('');
   const [originalHometown, setOriginalHometown] = useState('');
+  const [showOnProfile, setShowOnProfile] = useState(true);
+  const [originalShowOnProfile, setOriginalShowOnProfile] = useState(true);
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
@@ -50,6 +55,9 @@ export default function EditHometownPage() {
         const hometownValue = profileData.hometown || '';
         setHometown(hometownValue);
         setOriginalHometown(hometownValue);
+        const showHometownValue = profileData.showHometownOnProfile ?? true;
+        setShowOnProfile(showHometownValue);
+        setOriginalShowOnProfile(showHometownValue);
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -75,9 +83,11 @@ export default function EditHometownPage() {
     try {
       await updateProfile({
         hometown: hometown.trim(),
+        showHometownOnProfile: showOnProfile,
       });
 
       setOriginalHometown(hometown);
+      setOriginalShowOnProfile(showOnProfile);
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
@@ -94,7 +104,10 @@ export default function EditHometownPage() {
   };
 
   const hasUnsavedChanges = () => {
-    return hometown.trim() !== originalHometown.trim();
+    return (
+      hometown.trim() !== originalHometown.trim() ||
+      showOnProfile !== originalShowOnProfile
+    );
   };
 
   const handleBack = () => {
@@ -143,6 +156,24 @@ export default function EditHometownPage() {
             />
             <AppText>.</AppText>
           </View>
+
+          <View style={styles.checkboxSection}>
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setShowOnProfile(!showOnProfile)}
+            >
+              <Checkbox
+                value={showOnProfile}
+                onValueChange={setShowOnProfile}
+                color={showOnProfile ? AppColors.accentDefault : undefined}
+              />
+              <AppText variant="body" style={styles.checkboxLabel}>
+                Show on my profile
+              </AppText>
+            </TouchableOpacity>
+          </View>
+
+          <FooterSpacer />
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -174,5 +205,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  checkboxSection: {
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  checkboxRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkboxLabel: {
+    textAlign: 'center',
   },
 });

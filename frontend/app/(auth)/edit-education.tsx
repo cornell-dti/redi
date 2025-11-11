@@ -3,7 +3,14 @@ import { School } from '@/types';
 import { router } from 'expo-router';
 import { Check, ChevronDown, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
+import {
+  Alert,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CORNELL_MAJORS,
@@ -16,7 +23,9 @@ import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import AppInput from '../components/ui/AppInput';
 import Button from '../components/ui/Button';
+import Checkbox from '../components/ui/Checkbox';
 import EditingHeader from '../components/ui/EditingHeader';
+import FooterSpacer from '../components/ui/FooterSpacer';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
@@ -41,6 +50,10 @@ export default function EditEducationPage() {
   const [originalSchool, setOriginalSchool] = useState<School | ''>('');
   const [originalMajors, setOriginalMajors] = useState<string[]>([]);
   const [originalYear, setOriginalYear] = useState<Year | null>(null);
+
+  // Visibility preference
+  const [showOnProfile, setShowOnProfile] = useState(true);
+  const [originalShowOnProfile, setOriginalShowOnProfile] = useState(true);
 
   // Sheet states
   const [showSchoolSheet, setShowSchoolSheet] = useState(false);
@@ -73,6 +86,10 @@ export default function EditEducationPage() {
         setOriginalSchool(profileData.school);
         setOriginalMajors(profileData.major);
         setOriginalYear(profileData.year);
+
+        const showCollegeValue = profileData.showCollegeOnProfile ?? true;
+        setShowOnProfile(showCollegeValue);
+        setOriginalShowOnProfile(showCollegeValue);
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -108,11 +125,13 @@ export default function EditEducationPage() {
         school,
         major: majors,
         year,
+        showCollegeOnProfile: showOnProfile,
       });
 
       setOriginalSchool(school);
       setOriginalMajors(majors);
       setOriginalYear(year);
+      setOriginalShowOnProfile(showOnProfile);
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
@@ -132,6 +151,7 @@ export default function EditEducationPage() {
     return (
       school !== originalSchool ||
       year !== originalYear ||
+      showOnProfile !== originalShowOnProfile ||
       JSON.stringify(majors.sort()) !== JSON.stringify(originalMajors.sort())
     );
   };
@@ -235,6 +255,25 @@ export default function EditEducationPage() {
               variant="secondary"
             />
           </View>
+
+          {/* Visibility Checkbox */}
+          <View style={styles.checkboxSection}>
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setShowOnProfile(!showOnProfile)}
+            >
+              <Checkbox
+                value={showOnProfile}
+                onValueChange={setShowOnProfile}
+                color={showOnProfile ? AppColors.accentDefault : undefined}
+              />
+              <AppText variant="body" style={styles.checkboxLabel}>
+                Show on my profile
+              </AppText>
+            </TouchableOpacity>
+          </View>
+
+          <FooterSpacer />
         </View>
       </ScrollView>
 
@@ -416,5 +455,18 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: AppColors.foregroundDimmer,
+  },
+  checkboxSection: {
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  checkboxRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkboxLabel: {
+    textAlign: 'center',
   },
 });
