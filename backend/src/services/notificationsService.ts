@@ -37,6 +37,9 @@ export async function createNotification(
     matchName?: string;
     matchFirebaseUid?: string;
     chatId?: string;
+    senderId?: string;
+    senderName?: string;
+    matchCount?: number;
   } = {}
 ): Promise<string> {
   const notificationDoc: NotificationDocWrite = {

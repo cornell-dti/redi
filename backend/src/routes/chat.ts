@@ -3,6 +3,12 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { db } from '../../firebaseAdmin';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import { chatRateLimit } from '../middleware/rateLimiting';
+import {
+  sendPushNotification,
+  checkNotificationPreference,
+} from '../services/pushNotificationService';
+import { createNotification } from '../services/notificationsService';
+import { isUserBlocked } from '../services/blockingService';
 
 const router = express.Router();
 
@@ -270,6 +276,88 @@ router.post(
           timestamp: FieldValue.serverTimestamp(),
         },
         updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      // Send notification to recipient (async, don't block response)
+      setImmediate(async () => {
+        try {
+          // Get recipient (the other user in the conversation)
+          const recipientId = conversationData.participantIds.find(
+            (id: string) => id !== userId
+          );
+
+          if (!recipientId) {
+            console.warn('No recipient found for message notification');
+            return;
+          }
+
+          // Get sender and recipient info
+          const senderInfo = conversationData.participants[userId];
+          const recipientInfo = conversationData.participants[recipientId];
+
+          if (!senderInfo || !recipientInfo) {
+            console.warn('Missing participant info for notifications');
+            return;
+          }
+
+          const senderNetid = senderInfo.netid;
+          const recipientNetid = recipientInfo.netid;
+
+          // Check if sender is blocked by recipient
+          const blocked = await isUserBlocked(senderNetid, recipientNetid);
+          if (blocked) {
+            console.log(
+              `User ${senderNetid} is blocked by ${recipientNetid}, skipping notification`
+            );
+            return;
+          }
+
+          // Check notification preferences
+          const prefEnabled = await checkNotificationPreference(
+            recipientNetid,
+            'newMessages'
+          );
+
+          if (!prefEnabled) {
+            console.log(
+              `User ${recipientNetid} has disabled new message notifications`
+            );
+            return;
+          }
+
+          // Create in-app notification
+          await createNotification(
+            recipientNetid,
+            'new_message',
+            `${senderInfo.name} sent you a message`,
+            'Tap to view',
+            {
+              conversationId,
+              senderId: userId,
+              senderName: senderInfo.name,
+            }
+          );
+
+          // Send push notification
+          await sendPushNotification(
+            recipientNetid,
+            `${senderInfo.name} sent you a message`,
+            'You have a new message', // Generic for privacy
+            {
+              type: 'new_message',
+              conversationId,
+              senderId: userId,
+              senderName: senderInfo.name,
+            }
+          );
+
+          console.log(
+            `✅ Message notification sent to ${recipientNetid} from ${senderNetid}`
+          );
+        } catch (notifError) {
+          console.error('Error sending message notification:', notifError);
+          // Don't throw - notification failure shouldn't affect message delivery
+        }
       });
 
       res.status(201).json({

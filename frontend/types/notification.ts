@@ -2,7 +2,7 @@
 // NOTIFICATION TYPES
 // =============================================================================
 
-export type NotificationType = 'mutual_nudge' | 'new_message';
+export type NotificationType = 'mutual_nudge' | 'new_message' | 'match_drop';
 
 export interface NotificationResponse {
   id: string; // Document ID
@@ -18,6 +18,9 @@ export interface NotificationResponse {
     matchName?: string; // Matched user's name
     matchFirebaseUid?: string; // Matched user's Firebase UID
     chatId?: string;
+    senderId?: string; // For new_message (sender's Firebase UID)
+    senderName?: string; // For new_message (sender's name)
+    matchCount?: number; // For match_drop (number of new matches)
   };
   createdAt: string; // ISO string format
 }
@@ -34,5 +37,8 @@ export interface CreateNotificationInput {
     matchName?: string; // Matched user's name
     matchFirebaseUid?: string; // Matched user's Firebase UID
     chatId?: string;
+    senderId?: string;
+    senderName?: string;
+    matchCount?: number;
   };
 }
