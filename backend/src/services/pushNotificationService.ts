@@ -1,4 +1,4 @@
-import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
+import { Expo, ExpoPushMessage } from 'expo-server-sdk';
 import { db } from '../../firebaseAdmin';
 import { UserDoc } from '../../types';
 

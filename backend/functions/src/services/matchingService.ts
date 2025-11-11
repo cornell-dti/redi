@@ -365,45 +365,6 @@ export async function generateMatchesForPrompt(
     console.warn(`Could not update prompt ${promptId} status:`, error);
   }
 
-  // Send notifications to users who received matches (async, don't block return)
-  if (matchedCount > 0) {
-    // Import notification services
-    const { createMatchDropNotifications } = await import(
-      "./notificationsService"
-    );
-    const { sendMatchDropNotifications } = await import(
-      "./pushNotificationService"
-    );
-
-    // Get list of users who have matches for this prompt
-    const usersWithMatches: string[] = [];
-    for (const netid of userNetids) {
-      const docId = `${netid}_${promptId}`;
-      const matchDoc = await db.collection("weeklyMatches").doc(docId).get();
-      if (matchDoc.exists) {
-        usersWithMatches.push(netid);
-      }
-    }
-
-    console.log(
-      `Sending match drop notifications to ${usersWithMatches.length} users`
-    );
-
-    // Send notifications asynchronously
-    Promise.all([
-      createMatchDropNotifications(usersWithMatches, promptId),
-      sendMatchDropNotifications(usersWithMatches, promptId),
-    ])
-      .then(([inAppCount, pushCount]) => {
-        console.log(
-          `✅ Match drop notifications complete: ${inAppCount} in-app, ${pushCount} push`
-        );
-      })
-      .catch((error) => {
-        console.error("Error sending match drop notifications:", error);
-      });
-  }
-
   return matchedCount;
 }
 

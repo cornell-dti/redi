@@ -1,108 +1,174 @@
-import { Expo, ExpoPushMessage } from 'expo-server-sdk';
-import { db } from '../firebaseAdmin';
+import { Expo, ExpoPushMessage } from "expo-server-sdk";
+import { db } from "../firebaseAdmin";
+import { UserDoc } from "../types";
 
 // Create a new Expo SDK client
 const expo = new Expo({
   accessToken: process.env.EXPO_ACCESS_TOKEN,
-  useFcmV1: true,
+  useFcmV1: true, // Use FCM V1 API (recommended)
 });
 
-interface UserDoc {
-  netid: string;
-  pushToken?: string;
-  notificationPreferences?: {
-    newMessages: boolean;
-    matchDrops: boolean;
-    mutualNudges: boolean;
-  };
-}
-
 /**
- * Send match drop notifications to users who received matches
- * @param userNetids - Array of netids who received matches
- * @param promptId - The prompt ID for the matches
- * @returns Promise resolving to number of successful notifications sent
+ * Send a push notification to a single user
+ * @param netid - User's Cornell NetID
+ * @param title - Notification title
+ * @param body - Notification body
+ * @param data - Additional data to send with the notification
+ * @returns Promise resolving to success status
  */
-export async function sendMatchDropNotifications(
-  userNetids: string[],
-  promptId: string
-): Promise<number> {
+export async function sendPushNotification(
+  netid: string,
+  title: string,
+  body: string,
+  data?: Record<string, any>
+): Promise<boolean> {
   try {
-    console.log(
-      `Sending match drop notifications to ${userNetids.length} users`
-    );
+    // Get user's push token
+    const userSnapshot = await db
+      .collection("users")
+      .where("netid", "==", netid)
+      .limit(1)
+      .get();
 
-    // Fetch user documents in batches (Firestore 'in' limit is 10)
-    const allUserDocs: any[] = [];
-
-    for (let i = 0; i < userNetids.length; i += 10) {
-      const batch = userNetids.slice(i, i + 10);
-      const usersSnapshot = await db
-        .collection('users')
-        .where('netid', 'in', batch)
-        .get();
-
-      allUserDocs.push(...usersSnapshot.docs);
+    if (userSnapshot.empty) {
+      console.warn(`User not found for push notification: ${netid}`);
+      return false;
     }
 
-    // Build push notification messages
-    const messages: ExpoPushMessage[] = [];
-    const messageToUserMap = new Map<number, string>();
+    const userData = userSnapshot.docs[0].data() as UserDoc;
+    const pushToken = userData.pushToken;
 
-    for (const userDoc of allUserDocs) {
-      const userData = userDoc.data() as UserDoc;
-      const pushToken = userData.pushToken;
+    if (!pushToken) {
+      console.log(`No push token for user: ${netid}`);
+      return false;
+    }
 
-      // Check if user has push token
-      if (!pushToken) {
-        console.log(`No push token for user: ${userData.netid}`);
-        continue;
-      }
+    // Check if the push token is valid
+    if (!Expo.isExpoPushToken(pushToken)) {
+      console.error(
+        `Invalid push token for user ${netid}: ${pushToken}`
+      );
+      // Remove invalid token
+      await userSnapshot.docs[0].ref.update({
+        pushToken: null,
+        pushTokenUpdatedAt: null,
+      });
+      return false;
+    }
 
-      // Validate push token
-      if (!Expo.isExpoPushToken(pushToken)) {
-        console.error(
-          `Invalid push token for user ${userData.netid}: ${pushToken}`
-        );
-        // Remove invalid token
-        await userDoc.ref.update({
+    // Construct push notification message
+    const message: ExpoPushMessage = {
+      to: pushToken,
+      sound: "default",
+      title,
+      body,
+      data: data || {},
+      priority: "high",
+    };
+
+    // Send the push notification
+    const ticketChunk = await expo.sendPushNotificationsAsync([message]);
+    const ticket = ticketChunk[0];
+
+    // Check for errors
+    if (ticket.status === "error") {
+      console.error(
+        `Error sending push notification to ${netid}:`,
+        ticket.message
+      );
+
+      // If the token is invalid, remove it
+      if (
+        ticket.details?.error === "DeviceNotRegistered" ||
+        ticket.message?.includes("not registered")
+      ) {
+        await userSnapshot.docs[0].ref.update({
           pushToken: null,
           pushTokenUpdatedAt: null,
         });
-        continue;
       }
 
-      // Check notification preferences (default to true if not set)
-      const preferences = userData.notificationPreferences;
-      if (preferences && preferences.matchDrops === false) {
-        console.log(
-          `User ${userData.netid} has disabled match drop notifications`
-        );
-        continue;
-      }
-
-      // Get match count for this user
-      const matchCount = await getMatchCountForUser(userData.netid, promptId);
-
-      // Create push notification message
-      messages.push({
-        to: pushToken,
-        sound: 'default',
-        title: 'Your matches are here! 🎉',
-        body: `Check out your ${matchCount} new ${matchCount === 1 ? 'match' : 'matches'} for this week`,
-        data: {
-          type: 'match_drop',
-          promptId,
-          matchCount,
-        },
-        priority: 'high',
-      });
-
-      messageToUserMap.set(messages.length - 1, userData.netid);
+      return false;
     }
 
+    console.log(`✅ Push notification sent to ${netid}: ${title}`);
+    return true;
+  } catch (error) {
+    console.error(`Error sending push notification to ${netid}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Send push notifications to multiple users
+ * @param notifications - Array of notification objects with netid, title, body, data
+ * @returns Promise resolving to number of successful sends
+ */
+export async function sendBulkPushNotifications(
+  notifications: Array<{
+    netid: string;
+    title: string;
+    body: string;
+    data?: Record<string, any>;
+  }>
+): Promise<number> {
+  try {
+    // Get all user push tokens
+    const netids = notifications.map((n) => n.netid);
+    const usersSnapshot = await db
+      .collection("users")
+      .where("netid", "in", netids)
+      .get();
+
+    // Create a map of netid -> push token
+    const tokenMap = new Map<string, { token: string; docRef: any }>();
+    usersSnapshot.docs.forEach((doc) => {
+      const userData = doc.data() as UserDoc;
+      if (userData.pushToken) {
+        tokenMap.set(userData.netid, {
+          token: userData.pushToken,
+          docRef: doc.ref,
+        });
+      }
+    });
+
+    // Construct push notification messages
+    const messages: ExpoPushMessage[] = [];
+    const messageToUserMap = new Map<number, string>(); // index -> netid
+
+    notifications.forEach((notification, index) => {
+      const tokenData = tokenMap.get(notification.netid);
+      if (!tokenData) {
+        console.log(`No push token for user: ${notification.netid}`);
+        return;
+      }
+
+      if (!Expo.isExpoPushToken(tokenData.token)) {
+        console.error(
+          `Invalid push token for user ${notification.netid}: ${tokenData.token}`
+        );
+        // Remove invalid token
+        tokenData.docRef.update({
+          pushToken: null,
+          pushTokenUpdatedAt: null,
+        });
+        return;
+      }
+
+      messages.push({
+        to: tokenData.token,
+        sound: "default",
+        title: notification.title,
+        body: notification.body,
+        data: notification.data || {},
+        priority: "high",
+      });
+
+      messageToUserMap.set(messages.length - 1, notification.netid);
+    });
+
     if (messages.length === 0) {
-      console.log('No valid push tokens found for match drop notifications');
+      console.log("No valid push tokens found for bulk notifications");
       return 0;
     }
 
@@ -120,77 +186,111 @@ export async function sendMatchDropNotifications(
           const globalIndex = chunkIndex + ticketIndex;
           const netid = messageToUserMap.get(globalIndex);
 
-          if (ticket.status === 'ok') {
+          if (ticket.status === "ok") {
             successCount++;
-            console.log(`✅ Match drop notification sent to ${netid}`);
-          } else if (ticket.status === 'error') {
+            console.log(`✅ Push notification sent to ${netid}`);
+          } else if (ticket.status === "error") {
             console.error(
-              `Error sending match drop notification to ${netid}:`,
+              `Error sending push notification to ${netid}:`,
               ticket.message
             );
 
             // If the token is invalid, remove it
             if (
-              ticket.details?.error === 'DeviceNotRegistered' ||
-              ticket.message?.includes('not registered')
+              ticket.details?.error === "DeviceNotRegistered" ||
+              ticket.message?.includes("not registered")
             ) {
-              db.collection('users')
-                .where('netid', '==', netid)
-                .limit(1)
-                .get()
-                .then((snapshot) => {
-                  if (!snapshot.empty) {
-                    snapshot.docs[0].ref.update({
-                      pushToken: null,
-                      pushTokenUpdatedAt: null,
-                    });
-                  }
+              const tokenData = tokenMap.get(netid!);
+              if (tokenData) {
+                tokenData.docRef.update({
+                  pushToken: null,
+                  pushTokenUpdatedAt: null,
                 });
+              }
             }
           }
         });
 
         chunkIndex += chunk.length;
       } catch (error) {
-        console.error('Error sending push notification chunk:', error);
+        console.error("Error sending push notification chunk:", error);
       }
     }
 
     console.log(
-      `📊 Match drop notifications: ${successCount}/${messages.length} successful`
+      `📊 Bulk push notifications: ${successCount}/${messages.length} successful`
     );
     return successCount;
   } catch (error) {
-    console.error('Error sending match drop notifications:', error);
+    console.error("Error sending bulk push notifications:", error);
     return 0;
   }
 }
 
 /**
- * Get the number of matches a user received for a specific prompt
+ * Check user's notification preferences before sending
  * @param netid - User's Cornell NetID
- * @param promptId - The prompt ID
- * @returns Promise resolving to match count
+ * @param notificationType - Type of notification to check
+ * @returns Promise resolving to boolean indicating if notification should be sent
  */
-async function getMatchCountForUser(
+export async function checkNotificationPreference(
   netid: string,
-  promptId: string
-): Promise<number> {
+  notificationType: "newMessages" | "matchDrops" | "mutualNudges"
+): Promise<boolean> {
   try {
-    const docId = `${netid}_${promptId}`;
-    const matchDoc = await db.collection('weeklyMatches').doc(docId).get();
+    const userSnapshot = await db
+      .collection("users")
+      .where("netid", "==", netid)
+      .limit(1)
+      .get();
 
-    if (!matchDoc.exists) {
-      return 0;
+    if (userSnapshot.empty) {
+      return true; // Default to allowing if user not found
     }
 
-    const matchData = matchDoc.data();
-    return matchData?.matches?.length || 0;
+    const userData = userSnapshot.docs[0].data() as UserDoc;
+    const preferences = userData.notificationPreferences;
+
+    // If no preferences set, default to true (opt-out model)
+    if (!preferences) {
+      return true;
+    }
+
+    // Check specific preference
+    return preferences[notificationType] !== false;
   } catch (error) {
-    console.error(
-      `Error getting match count for ${netid} on ${promptId}:`,
-      error
-    );
-    return 0;
+    console.error("Error checking notification preference:", error);
+    return true; // Default to allowing on error
+  }
+}
+
+/**
+ * Remove push token for a user (e.g., on logout or token invalidation)
+ * @param netid - User's Cornell NetID
+ * @returns Promise resolving to success status
+ */
+export async function removePushToken(netid: string): Promise<boolean> {
+  try {
+    const userSnapshot = await db
+      .collection("users")
+      .where("netid", "==", netid)
+      .limit(1)
+      .get();
+
+    if (userSnapshot.empty) {
+      console.warn(`User not found when removing push token: ${netid}`);
+      return false;
+    }
+
+    await userSnapshot.docs[0].ref.update({
+      pushToken: null,
+      pushTokenUpdatedAt: null,
+    });
+
+    console.log(`Push token removed for user: ${netid}`);
+    return true;
+  } catch (error) {
+    console.error(`Error removing push token for ${netid}:`, error);
+    return false;
   }
 }
