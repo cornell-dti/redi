@@ -14,7 +14,7 @@ export interface OnboardingData {
   showGenderOnProfile: boolean;
 
   // Step 4: Pronouns
-  pronouns: string[];
+  pronouns: string;
   showPronounsOnProfile: boolean;
 
   // Step 5: Hometown
@@ -71,7 +71,7 @@ export const INITIAL_ONBOARDING_DATA: OnboardingData = {
   birthdate: '',
   genders: [],
   showGenderOnProfile: true,
-  pronouns: [],
+  pronouns: '',
   showPronounsOnProfile: true,
   hometown: '',
   showHometownOnProfile: true,
@@ -103,14 +103,10 @@ export const GENDER_OPTIONS = [
   { label: 'Non-Binary', value: 'non-binary' },
 ] as const;
 export const PRONOUN_OPTIONS = [
-  'He',
-  'Him',
-  'His',
-  'She',
-  'Her',
-  'Hers',
-  'They',
-  'Them',
+  'He/Him/His',
+  'She/Her/Hers',
+  'They/Them/Theirs',
+  'Other',
 ];
 export const SEXUAL_ORIENTATION_OPTIONS = [
   'Straight',

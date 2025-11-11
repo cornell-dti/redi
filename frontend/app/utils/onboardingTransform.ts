@@ -126,8 +126,7 @@ export function transformOnboardingToProfilePayload(
     major: onboardingData.major,
     pictures: onboardingData.pictures,
     hometown: onboardingData.hometown || undefined,
-    pronouns:
-      onboardingData.pronouns.length > 0 ? onboardingData.pronouns : undefined,
+    pronouns: onboardingData.pronouns || undefined,
     ethnicity:
       onboardingData.ethnicity && onboardingData.ethnicity.length > 0
         ? onboardingData.ethnicity

@@ -396,7 +396,7 @@ export default function CreateProfileScreen() {
           <View style={styles.stepContainer}>
             <OnboardingTitle
               title="What pronouns do you use?"
-              subtitle="Select all that describe you to help us show your profile to the right people"
+              subtitle="Select the pronouns that best describe you"
             />
 
             <ListItemWrapper>
@@ -404,10 +404,10 @@ export default function CreateProfileScreen() {
                 <ListItem
                   key={pronoun}
                   title={pronoun}
-                  selected={data.pronouns.includes(pronoun)}
-                  onPress={() => toggleArrayItem('pronouns', pronoun)}
+                  selected={data.pronouns === pronoun}
+                  onPress={() => updateField('pronouns', pronoun)}
                   right={
-                    data.pronouns.includes(pronoun) ? (
+                    data.pronouns === pronoun ? (
                       <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }

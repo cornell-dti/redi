@@ -45,7 +45,7 @@ export interface ProfileDocWrite {
   gender: Gender;
   birthdate: FirestoreTimestampType | Date;
   hometown?: string;
-  pronouns?: string[];
+  pronouns?: string;
   ethnicity?: string[];
   sexualOrientation?: string[];
   showGenderOnProfile?: boolean;
@@ -105,7 +105,7 @@ export interface ProfileDoc {
   gender: Gender;
   birthdate: FirestoreTimestampType;
   hometown?: string;
-  pronouns?: string[];
+  pronouns?: string;
   ethnicity?: string[];
   sexualOrientation?: string[];
   showGenderOnProfile?: boolean;
@@ -149,7 +149,7 @@ export interface ProfileResponse {
   gender: Gender;
   birthdate: string; // ISO string format for JSON
   hometown?: string;
-  pronouns?: string[];
+  pronouns?: string;
   ethnicity?: string[];
   sexualOrientation?: string[];
   showGenderOnProfile?: boolean;
