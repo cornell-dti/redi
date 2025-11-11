@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 import ListItem from './ListItem';
@@ -9,6 +9,7 @@ interface ChatItemProps {
   lastMessage: string;
   image: string;
   onPress?: () => void;
+  pressableStyle?: StyleProp<ViewStyle>;
 }
 
 export default function ChatItem({
@@ -16,6 +17,7 @@ export default function ChatItem({
   lastMessage,
   image,
   onPress,
+  pressableStyle,
 }: ChatItemProps) {
   // Check if image is a valid URL (not placeholder)
   const hasValidImage = image && !image.includes('placeholder');
@@ -36,7 +38,8 @@ export default function ChatItem({
       title={name}
       description={lastMessage}
       onPress={onPress}
-    ></ListItem>
+      pressableStyle={pressableStyle}
+    />
   );
 }
 
