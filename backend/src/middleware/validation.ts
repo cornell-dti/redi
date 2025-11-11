@@ -98,8 +98,8 @@ export const validateProfileCreation: ValidationChain[] = [
   body('pronouns')
     .optional()
     .trim()
-    .isLength({ max: 50 })
-    .customSanitizer(sanitizeText),
+    .isIn(['He/Him/His', 'She/Her/Hers', 'They/Them/Theirs', 'Other'])
+    .withMessage('Invalid pronoun format'),
 
   body('major')
     .optional()

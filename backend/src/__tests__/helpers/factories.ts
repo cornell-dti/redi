@@ -38,7 +38,7 @@ export const createMockProfile = (
   gender: 'male' as Gender,
   birthdate: new Date('2000-01-01'),
   hometown: 'New York',
-  pronouns: ['he/him'],
+  pronouns: 'He/Him/His',
   year: 'Junior' as Year,
   school: 'College of Arts and Sciences' as School,
   major: ['Computer Science'],
