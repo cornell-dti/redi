@@ -845,7 +845,9 @@ export default function CreateProfileScreen() {
       case 16:
         return (
           <View style={styles.stepContainer}>
-            <AppText variant="title">Welcome, {data.firstName}!</AppText>
+            <AppText variant="title" style={{ textAlign: 'center' }}>
+              Welcome, {data.firstName}!
+            </AppText>
             <View style={styles.welcomeContainer}>
               {data.pictures[0] && (
                 <Image
@@ -949,6 +951,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stepContainer: {
+    justifyContent: 'center',
     padding: 20,
     gap: 20,
   },
