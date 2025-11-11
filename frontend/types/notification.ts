@@ -20,6 +20,7 @@ export interface NotificationResponse {
     chatId?: string;
     senderId?: string; // For new_message (sender's Firebase UID)
     senderName?: string; // For new_message (sender's name)
+    senderNetid?: string; // For new_message (sender's netid)
     matchCount?: number; // For match_drop (number of new matches)
   };
   createdAt: string; // ISO string format
@@ -39,6 +40,7 @@ export interface CreateNotificationInput {
     chatId?: string;
     senderId?: string;
     senderName?: string;
+    senderNetid?: string;
     matchCount?: number;
   };
 }

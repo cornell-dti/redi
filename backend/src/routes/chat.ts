@@ -17,17 +17,20 @@ const router = express.Router();
  */
 const getUserProfile = async (firebaseUid: string) => {
   try {
+    console.log(`🔍 Getting user profile for Firebase UID: ${firebaseUid}`);
     const userSnapshot = await db
       .collection('users')
       .where('firebaseUid', '==', firebaseUid)
       .get();
 
     if (userSnapshot.empty) {
+      console.warn(`⚠️ No user found with Firebase UID: ${firebaseUid}`);
       return null;
     }
 
     const userData = userSnapshot.docs[0].data();
     const netid = userData.netid;
+    console.log(`✅ Found user with netid: ${netid} for Firebase UID: ${firebaseUid}`);
 
     const profileSnapshot = await db
       .collection('profiles')
@@ -44,14 +47,14 @@ const getUserProfile = async (firebaseUid: string) => {
     }
 
     const profileData = profileSnapshot.docs[0].data();
-    return {
+    const profile = {
       firebaseUid,
       netid,
       name: profileData.firstName || netid,
       image: profileData.pictures?.[0] || null,
     };
   } catch (error) {
-    console.error('Error getting user profile:', error);
+    console.error('❌ Error getting user profile:', error);
     return null;
   }
 };
@@ -125,6 +128,10 @@ router.post(
       ]);
 
       if (!currentUserProfile || !otherUserProfile) {
+        console.error('❌ Cannot create conversation - missing user profile(s)', {
+          currentUserProfile: !!currentUserProfile,
+          otherUserProfile: !!otherUserProfile,
+        });
         return res.status(403).json({ error: 'Cannot create conversation' });
       }
 
@@ -243,6 +250,7 @@ router.post(
       const conversationDoc = await conversationRef.get();
 
       if (!conversationDoc.exists) {
+        console.error(`❌ Conversation ${conversationId} does not exist for user ${userId}`);
         return res
           .status(403)
           .json({ error: 'Cannot access this conversation' });
@@ -250,6 +258,9 @@ router.post(
 
       const conversationData = conversationDoc.data();
       if (!conversationData?.participantIds.includes(userId)) {
+        console.error(`❌ User ${userId} is not a participant in conversation ${conversationId}`, {
+          participantIds: conversationData?.participantIds,
+        });
         return res
           .status(403)
           .json({ error: 'Cannot access this conversation' });
@@ -335,6 +346,7 @@ router.post(
               conversationId,
               senderId: userId,
               senderName: senderInfo.name,
+              senderNetid,
             }
           );
 
@@ -348,6 +360,7 @@ router.post(
               conversationId,
               senderId: userId,
               senderName: senderInfo.name,
+              senderNetid,
             }
           );
 

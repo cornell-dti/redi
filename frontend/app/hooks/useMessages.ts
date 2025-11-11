@@ -29,14 +29,18 @@ export const useMessages = (
 
   useEffect(() => {
     if (!conversationId) {
+      console.log('useMessages: No conversationId provided');
       setLoading(false);
       return;
     }
 
     if (!isActive) {
+      console.log('useMessages: Screen not active, skipping listener');
       // Don't listen when screen is not focused
       return;
     }
+
+    console.log(`useMessages: Setting up listener for conversation ${conversationId}`);
 
     // Create Firestore query using React Native Firebase
     const unsubscribe = firestore()
@@ -47,6 +51,7 @@ export const useMessages = (
       .limit(limit)
       .onSnapshot(
         (snapshot) => {
+          console.log(`useMessages: Received ${snapshot.docs.length} messages for conversation ${conversationId}`);
           const messagesData: Message[] = snapshot.docs.map(
             (doc) =>
               ({
@@ -60,14 +65,17 @@ export const useMessages = (
           setError(null);
         },
         (err) => {
-          console.error('Error listening to messages:', err);
+          console.error('❌ Error listening to messages:', err);
           setError(err as Error);
           setLoading(false);
         }
       );
 
     // Cleanup listener on unmount or when screen loses focus
-    return () => unsubscribe();
+    return () => {
+      console.log(`useMessages: Cleaning up listener for conversation ${conversationId}`);
+      unsubscribe();
+    };
   }, [conversationId, limit, isActive]);
 
   return { messages, loading, error };

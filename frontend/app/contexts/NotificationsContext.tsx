@@ -72,7 +72,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             data.senderName
               ? `&name=${encodeURIComponent(data.senderName as string)}`
               : ''
-          }` as any
+          }${data.senderNetid ? `&netid=${data.senderNetid}` : ''}` as any
         );
       } else if (data.type === 'match_drop') {
         router.push('/(auth)/(tabs)/' as any); // Navigate to matches tab
@@ -84,7 +84,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             data.matchName
               ? `&name=${encodeURIComponent(data.matchName as string)}`
               : ''
-          }` as any
+          }${data.matchNetid ? `&netid=${data.matchNetid}` : ''}` as any
         );
       }
     });
