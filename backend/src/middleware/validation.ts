@@ -205,7 +205,9 @@ export const validatePromptAnswer: ValidationChain[] = [
   body('promptId')
     .trim()
     .matches(/^(TEST-W\d{2}|\d{4}-W?\d{1,2})$/)
-    .withMessage('Invalid prompt ID format (expected: YYYY-WW, YYYY-W-WW, or TEST-W##)'),
+    .withMessage(
+      'Invalid prompt ID format (expected: YYYY-WW, YYYY-W-WW, or TEST-W##)'
+    ),
 
   body('answer')
     .trim()
@@ -229,7 +231,9 @@ export const validatePreferences: ValidationChain[] = [
     .withMessage('Maximum age must be between 18 and 100')
     .custom((max, { req }) => {
       if (req.body.ageRange?.min && max < req.body.ageRange.min) {
-        throw new Error('Maximum age must be greater than or equal to minimum age');
+        throw new Error(
+          'Maximum age must be greater than or equal to minimum age'
+        );
       }
       return true;
     }),
