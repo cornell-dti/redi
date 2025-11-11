@@ -529,10 +529,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   emptyStateContainer: {
-    // flex: 1,
-    // minHeight: 400,
     justifyContent: 'center',
     alignItems: 'center',
-    // paddingBottom: 175,
   },
 });

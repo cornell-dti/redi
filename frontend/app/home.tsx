@@ -540,6 +540,16 @@ export default function HomePage() {
           Please try again with your Cornell .edu email address.
         </AppText>
 
+        <AppText variant="body" style={styles.sheetText}>
+          We require a Cornell email address to ensure that redi is exclusively
+          for the Cornell community. This helps create a safe and trusted
+          environment where you can connect with fellow Cornellians.
+        </AppText>
+        <AppText variant="body" style={styles.sheetText}>
+          Your email is kept private and is only used for account verification
+          and authentication purposes.
+        </AppText>
+
         <Button
           onPress={() => setShowGoogleErrorSheet(false)}
           title="Close"
