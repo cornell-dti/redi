@@ -6,6 +6,7 @@
   "scripts": {
     "list-emails": "ts-node scripts/list-emails.ts",
     "seed-conversations": "ts-node scripts/seed-conversations.ts",
+    "delete-test-auth-users": "ts-node scripts/delete-test-auth-users.ts",
     "build": "tsc",
     "start": "node dist/src/index.js",
     "heroku-postbuild": "npm run build",
