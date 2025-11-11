@@ -2,7 +2,6 @@ import { router } from 'expo-router';
 import {
   ArrowLeft,
   ArrowRight,
-  Bug,
   Info,
   LogIn,
   Play,
@@ -318,7 +317,7 @@ export default function HomePage() {
 
   const renderWelcomeScreen = () => (
     <View style={{ flex: 1, gap: 24, position: 'relative' }}>
-      <View style={{ position: 'absolute', top: 48, right: 0, width: 200 }}>
+      {/* <View style={{ position: 'absolute', top: 48, right: 0, width: 200 }}>
         <Button
           title="DEBUG LOGIN"
           onPress={() => handleModeChange('login')}
@@ -326,7 +325,7 @@ export default function HomePage() {
           fullWidth
           iconLeft={Bug}
         />
-      </View>
+      </View> */}
 
       <View style={styles.logoContainer}>
         <Image
