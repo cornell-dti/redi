@@ -1,5 +1,5 @@
 import AppText from '@/app/components/ui/AppText';
-import { ProfileResponse, getProfileAge } from '@/types';
+import { getProfileAge, ProfileResponse, WeeklyPromptResponse } from '@/types';
 import {
   Bell,
   Cake,
@@ -41,6 +41,9 @@ interface ProfileViewProps {
   nudgeDisabled?: boolean;
   showOpenChatButton?: boolean;
   onOpenChat?: () => void;
+  weeklyPrompt?: WeeklyPromptResponse | null;
+  weeklyPromptAnswer?: string;
+  onEditWeeklyPrompt?: () => void;
 }
 
 const ProfileView: React.FC<ProfileViewProps> = ({
@@ -51,6 +54,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   nudgeDisabled = false,
   showOpenChatButton = false,
   onOpenChat,
+  weeklyPrompt,
+  weeklyPromptAnswer,
+  onEditWeeklyPrompt,
 }) => {
   const screenWidth = Dimensions.get('window').width;
   const age = getProfileAge(profile);
@@ -357,6 +363,21 @@ const ProfileView: React.FC<ProfileViewProps> = ({
             </View>
           </View>
         )}
+
+        {weeklyPrompt && weeklyPromptAnswer && (
+          <View style={styles.section}>
+            <AppText variant="subtitle" indented>
+              Weekly Prompt
+            </AppText>
+
+            <ListItemWrapper>
+              <View style={styles.promptQuestion}>
+                <AppText color="dimmer">{weeklyPrompt.question}</AppText>
+                <AppText variant="subtitle">{weeklyPromptAnswer}</AppText>
+              </View>
+            </ListItemWrapper>
+          </View>
+        )}
       </View>
 
       <FooterSpacer />
@@ -468,6 +489,18 @@ const styles = StyleSheet.create({
   paginationDot: {
     borderRadius: 5,
     backgroundColor: 'rgba(255, 255, 255, 1)',
+  },
+  promptQuestion: {
+    padding: 16,
+    gap: 8,
+    borderRadius: 4,
+    backgroundColor: AppColors.backgroundDimmer,
+  },
+  answerCard: {
+    backgroundColor: AppColors.backgroundDimmer,
+    borderRadius: 4,
+    padding: 16,
+    gap: 8,
   },
 });
 
