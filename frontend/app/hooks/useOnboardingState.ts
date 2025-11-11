@@ -156,8 +156,8 @@ export function useOnboardingState() {
         return data.interestedIn.length > 0;
 
       case 11:
-        // Photos: 3-5 photos required
-        return data.pictures.length >= 3 && data.pictures.length <= 5;
+        // Photos: 3-6 photos required
+        return data.pictures.length >= 3 && data.pictures.length <= 6;
 
       case 12:
         // Prompts: 1-3 prompts required, each with answer
