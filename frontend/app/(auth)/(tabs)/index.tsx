@@ -438,6 +438,7 @@ export default function MatchesScreen() {
         visible={showPromptSheet}
         onDismiss={() => setShowPromptSheet(false)}
         title={activePrompt?.question || 'Weekly Prompt'}
+        bottomRound={false}
       >
         {activePrompt && (
           <View style={{ gap: 16, flex: 1 }}>
