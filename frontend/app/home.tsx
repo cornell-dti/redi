@@ -110,7 +110,7 @@ export default function HomePage() {
           toValue: 0,
           useNativeDriver: true,
           tension: 40,
-          friction: 0,
+          friction: 10,
         }),
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -318,14 +318,14 @@ export default function HomePage() {
 
   const renderWelcomeScreen = () => (
     <View style={{ flex: 1, gap: 24, position: 'relative' }}>
-      {/* <View style={{ position: 'absolute', top: 48, right: 0, width: 200 }}>
+      <View style={{ position: 'absolute', top: 48, right: 0, width: 200 }}>
         <Button
-          title="DEBUG LOGIN"
+          title="TESTING LOGIN"
           onPress={() => handleModeChange('login')}
           variant="negative"
           fullWidth
         />
-      </View> */}
+      </View>
 
       <View style={styles.logoContainer}>
         <Image
@@ -417,8 +417,8 @@ export default function HomePage() {
           <View style={styles.formContainer}>
             <AppText variant="title" style={styles.formTitle}>
               {mode === 'signup'
-                ? 'Create account [DEBUG]'
-                : 'Welcome back! [DEBUG]'}
+                ? 'Create account [TESTING]'
+                : 'Welcome back! [TESTING]'}
             </AppText>
             <AppText variant="subtitle" style={styles.formSubtitle}>
               {mode === 'signup'
@@ -480,14 +480,14 @@ export default function HomePage() {
               }}
               style={styles.toggleAuthMode}
             >
-              <AppText variant="body" style={styles.toggleAuthModeText}>
+              {/* <AppText variant="body" style={styles.toggleAuthModeText}>
                 {mode === 'signup'
                   ? 'Already have an account? '
                   : "Don't have an account? "}
                 <AppText variant="body" style={styles.toggleAuthModeTextBold}>
                   {mode === 'signup' ? 'Log in' : 'Create account'}
                 </AppText>
-              </AppText>
+              </AppText> */}
             </TouchableOpacity>
 
             <Button
