@@ -204,8 +204,8 @@ export function validateProfilePayload(
   if (!payload.pictures || payload.pictures.length < 3) {
     errors.push('At least 3 photos are required');
   }
-  if (payload.pictures && payload.pictures.length > 5) {
-    errors.push('Maximum 5 photos allowed');
+  if (payload.pictures && payload.pictures.length > 6) {
+    errors.push('Maximum 6 photos allowed');
   }
 
   return {
