@@ -856,7 +856,7 @@ export default function CreateProfileScreen() {
                 />
               )}
               <AppText variant="body" style={styles.welcomeText}>
-                Matches drop every Friday at 9:00 AM. Send a nudge to show
+                Matches drop every Friday at 12:00 AM. Send a nudge to show
                 interest, and if they nudge back, you&apos;ll unlock chat!
               </AppText>
             </View>
