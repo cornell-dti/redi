@@ -680,15 +680,19 @@ router.get(
         const answerData = answerDoc.data();
         const netid: string = answerData.netid;
 
-        // Fetch user profile
-        const profileDoc = await db.collection('profiles').doc(netid).get();
+        // Fetch user profile by querying netid field
+        const profileSnapshot = await db
+          .collection('profiles')
+          .where('netid', '==', netid)
+          .limit(1)
+          .get();
 
         let firstName = 'Unknown';
         let profilePicture: string | undefined = undefined;
         let uuid = netid;
 
-        if (profileDoc.exists) {
-          const profileData = profileDoc.data() as ProfileDoc;
+        if (!profileSnapshot.empty) {
+          const profileData = profileSnapshot.docs[0].data() as ProfileDoc;
           firstName = profileData.firstName || 'Unknown';
           profilePicture = profileData.pictures?.[0]; // First picture
 

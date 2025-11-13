@@ -56,6 +56,104 @@ interface ManualMatchResponse {
 }
 
 /**
+ * User details with full profile info
+ */
+interface UserDetailsResponse {
+  netId: string;
+  firstName: string;
+  pictures: string[];
+  promptAnswer: string | null;
+}
+
+/**
+ * GET /api/admin/users/:netId/details
+ * Get detailed user information including all pictures and prompt answer
+ *
+ * @secured Requires admin authentication
+ *
+ * @param {string} netId - User's netID
+ * @param {string} promptId - Optional prompt ID to fetch answer
+ * @returns {UserDetailsResponse} 200 - User details with pictures and prompt answer
+ * @returns {Error} 401/403 - Unauthorized (handled by middleware)
+ * @returns {Error} 404 - User not found
+ * @returns {Error} 500 - Internal server error
+ */
+router.get('/api/admin/users/:netId/details', async (req: AdminRequest, res) => {
+  try {
+    const { netId } = req.params;
+    const { promptId } = req.query;
+
+    console.log(`Admin ${req.user?.email} fetching details for user ${netId}`);
+
+    // Fetch profile by querying netid field (profiles use auto-generated IDs)
+    const profileSnapshot = await db
+      .collection('profiles')
+      .where('netid', '==', netId)
+      .limit(1)
+      .get();
+
+    if (profileSnapshot.empty) {
+      return res.status(404).json({ error: 'User profile not found' });
+    }
+
+    const profileData = profileSnapshot.docs[0].data() as ProfileDoc;
+
+    // Fetch prompt answer if promptId provided
+    let promptAnswer = null;
+    if (promptId && typeof promptId === 'string') {
+      const answerDoc = await db
+        .collection('weeklyPromptAnswers')
+        .doc(`${netId}_${promptId}`)
+        .get();
+
+      if (answerDoc.exists) {
+        promptAnswer = answerDoc.data()?.answer || null;
+      }
+    }
+
+    const userDetails: UserDetailsResponse = {
+      netId,
+      firstName: profileData.firstName || 'Unknown',
+      pictures: profileData.pictures || [],
+      promptAnswer,
+    };
+
+    // Log successful action
+    await logAdminAction(
+      'VIEW_USER',
+      req.user!.uid,
+      req.user!.email,
+      'user',
+      netId,
+      { promptId: promptId || null },
+      getIpAddress(req),
+      getUserAgent(req)
+    );
+
+    res.status(200).json(userDetails);
+  } catch (error) {
+    console.error('Error fetching user details:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Log failed action
+    await logAdminAction(
+      'VIEW_USER',
+      req.user!.uid,
+      req.user!.email,
+      'user',
+      req.params.netId,
+      { error: errorMessage },
+      getIpAddress(req),
+      getUserAgent(req),
+      false,
+      errorMessage
+    );
+
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+/**
  * GET /api/admin/users
  * Get all users with profile information for admin use
  *
@@ -76,14 +174,18 @@ router.get('/api/admin/users', async (req: AdminRequest, res) => {
       const userData = userDoc.data();
       const netId = userData.netid || userDoc.id;
 
-      // Fetch profile for this user
-      const profileDoc = await db.collection('profiles').doc(netId).get();
+      // Fetch profile for this user by querying netid field
+      const profileSnapshot = await db
+        .collection('profiles')
+        .where('netid', '==', netId)
+        .limit(1)
+        .get();
 
       let firstName = 'Unknown';
       let profilePicture: string | undefined;
 
-      if (profileDoc.exists) {
-        const profileData = profileDoc.data() as ProfileDoc;
+      if (!profileSnapshot.empty) {
+        const profileData = profileSnapshot.docs[0].data() as ProfileDoc;
         firstName = profileData.firstName || 'Unknown';
         profilePicture = profileData.pictures?.[0];
       }
