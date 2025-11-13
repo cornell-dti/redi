@@ -19,8 +19,8 @@ import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
 import { useDebouncedCallback } from '@/app/hooks/useDebounce';
 import {
-  getNextFridayMidnight,
-  isCountdownPeriod,
+  shouldShowCountdown,
+  getMatchDropDescription,
 } from '@/app/utils/dateUtils';
 import {
   cacheMatchData,
@@ -63,7 +63,7 @@ export default function MatchesScreen() {
 
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [showCountdown, setShowCountdown] = useState(isCountdownPeriod());
+  const [showCountdown, setShowCountdown] = useState(false);
   const [activePrompt, setActivePrompt] = useState<WeeklyPromptResponse | null>(
     null
   );
@@ -109,11 +109,15 @@ export default function MatchesScreen() {
 
     // Update countdown state every minute
     const interval = setInterval(() => {
-      setShowCountdown(isCountdownPeriod());
+      if (activePrompt) {
+        setShowCountdown(shouldShowCountdown(activePrompt.matchDate));
+      } else {
+        setShowCountdown(false);
+      }
     }, 60000);
 
     return () => clearInterval(interval);
-  }, []); // Only run on mount
+  }, [activePrompt]); // Update when activePrompt changes
 
   const loadData = useCallback(async () => {
     // Prevent rapid successive calls (rate limiting on client side)
@@ -136,9 +140,17 @@ export default function MatchesScreen() {
       try {
         prompt = await getActivePrompt();
         setActivePrompt(prompt);
+
+        // Set countdown visibility based on active prompt
+        if (prompt) {
+          setShowCountdown(shouldShowCountdown(prompt.matchDate));
+        } else {
+          setShowCountdown(false);
+        }
       } catch (promptError) {
         console.error('Error fetching active prompt:', promptError);
         setActivePrompt(null);
+        setShowCountdown(false); // Hide countdown if no active prompt
         // Don't return early - continue loading matches even without an active prompt
       }
 
@@ -262,7 +274,9 @@ export default function MatchesScreen() {
 
   const renderCountdownPeriod = () => (
     <>
-      <CountdownTimer targetDate={getNextFridayMidnight()} />
+      <CountdownTimer
+        targetDate={activePrompt ? new Date(activePrompt.matchDate) : new Date()}
+      />
       {activePrompt && (
         <ListItemWrapper style={styles.promptSection}>
           <View style={styles.promptQuestion}>
@@ -452,7 +466,9 @@ export default function MatchesScreen() {
       <View style={styles.headerContainer}>
         <AppText variant="title">Matches</AppText>
         <AppText variant="subtitle" color="dimmer">
-          Dropping Friday at 12:00 AM
+          {activePrompt
+            ? getMatchDropDescription(activePrompt.matchDate)
+            : 'Check back soon for new matches'}
         </AppText>
       </View>
 
