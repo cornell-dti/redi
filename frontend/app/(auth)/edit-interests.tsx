@@ -184,6 +184,7 @@ export default function EditInterestsPage() {
             onChangeText={setNewInterest}
             autoCapitalize="words"
             autoCorrect={false}
+            autoFocus={true}
           />
           <Button
             title="Add"

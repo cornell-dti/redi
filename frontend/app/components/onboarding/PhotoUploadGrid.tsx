@@ -43,16 +43,29 @@ export default function PhotoUploadGrid({
     const hasPermission = await requestPermission();
     if (!hasPermission) return;
 
+    // Calculate how many more photos can be added
+    const remainingSlots = maxPhotos - photos.length;
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
+      allowsEditing: false,
+      allowsMultipleSelection: true,
       quality: 0.8,
+      selectionLimit: remainingSlots,
     });
 
-    if (!result.canceled && result.assets[0]) {
-      const newPhotos = [...photos, result.assets[0].uri];
+    if (!result.canceled && result.assets.length > 0) {
+      const selectedUris = result.assets.map((asset) => asset.uri);
+
+      const newPhotos = [...photos, ...selectedUris].slice(0, maxPhotos);
       onPhotosChange(newPhotos);
+
+      if (selectedUris.length > remainingSlots) {
+        Alert.alert(
+          'Too Many Photos',
+          `You can only add ${remainingSlots} more photo${remainingSlots === 1 ? '' : 's'}.`
+        );
+      }
     }
   };
 

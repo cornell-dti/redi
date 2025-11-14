@@ -184,6 +184,7 @@ export default function EditClubsPage() {
             onChangeText={setNewClub}
             autoCapitalize="words"
             autoCorrect={false}
+            autoFocus={true}
           />
           <Button
             title="Add"
