@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   fetchUsersWithProfiles,
   createManualMatch,
   fetchRecentMatches,
+  fetchUserDetails as fetchUserDetailsAPI,
   UserWithProfile,
   ManualMatchResponse,
+  UserDetailsResponse,
 } from '@/api/admin';
 
 export default function ManualMatchCreation() {
@@ -25,6 +27,24 @@ export default function ManualMatchCreation() {
   const [expiresAt, setExpiresAt] = useState('');
   const [chatUnlocked, setChatUnlocked] = useState(false);
   const [revealed, setRevealed] = useState(false);
+
+  // User details state
+  const [user1Details, setUser1Details] =
+    useState<UserDetailsResponse | null>(null);
+  const [user2Details, setUser2Details] =
+    useState<UserDetailsResponse | null>(null);
+  const [isLoadingUser1, setIsLoadingUser1] = useState(false);
+  const [isLoadingUser2, setIsLoadingUser2] = useState(false);
+  const [user1Error, setUser1Error] = useState<string | null>(null);
+  const [user2Error, setUser2Error] = useState<string | null>(null);
+
+  // Searchable dropdown state
+  const [user1SearchTerm, setUser1SearchTerm] = useState('');
+  const [user2SearchTerm, setUser2SearchTerm] = useState('');
+  const [showUser1Dropdown, setShowUser1Dropdown] = useState(false);
+  const [showUser2Dropdown, setShowUser2Dropdown] = useState(false);
+  const user1DropdownRef = useRef<HTMLDivElement>(null);
+  const user2DropdownRef = useRef<HTMLDivElement>(null);
 
   // Load users on mount
   useEffect(() => {
@@ -62,14 +82,156 @@ export default function ManualMatchCreation() {
     }
   };
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        user1DropdownRef.current &&
+        !user1DropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowUser1Dropdown(false);
+      }
+      if (
+        user2DropdownRef.current &&
+        !user2DropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowUser2Dropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Filter users based on search term
+  const filterUsers = (searchTerm: string): UserWithProfile[] => {
+    if (!searchTerm) return users;
+    const term = searchTerm.toLowerCase();
+    return users.filter(
+      (user) =>
+        user.netId.toLowerCase().includes(term) ||
+        user.firstName.toLowerCase().includes(term)
+    );
+  };
+
+  // Handle User 1 search input change
+  const handleUser1SearchChange = (value: string) => {
+    setUser1SearchTerm(value);
+    setShowUser1Dropdown(true);
+    setUser1NetId('');
+    setUser1Details(null);
+    setUser1Error(null);
+  };
+
+  // Handle User 1 selection from dropdown
+  const handleUser1Select = async (user: UserWithProfile) => {
+    setUser1NetId(user.netId);
+    setUser1SearchTerm(`${user.firstName} (${user.netId})`);
+    setShowUser1Dropdown(false);
+    setUser1Error(null);
+
+    // Fetch user details
+    setIsLoadingUser1(true);
+    try {
+      const details = await fetchUserDetailsAPI(user.netId, promptId);
+      setUser1Details(details);
+    } catch (err) {
+      const errorMsg =
+        err instanceof Error ? err.message : 'Error loading user details';
+      setUser1Error(errorMsg);
+    } finally {
+      setIsLoadingUser1(false);
+    }
+  };
+
+  // Handle User 2 search input change
+  const handleUser2SearchChange = (value: string) => {
+    setUser2SearchTerm(value);
+    setShowUser2Dropdown(true);
+    setUser2NetId('');
+    setUser2Details(null);
+    setUser2Error(null);
+  };
+
+  // Handle User 2 selection from dropdown
+  const handleUser2Select = async (user: UserWithProfile) => {
+    setUser2NetId(user.netId);
+    setUser2SearchTerm(`${user.firstName} (${user.netId})`);
+    setShowUser2Dropdown(false);
+    setUser2Error(null);
+
+    // Fetch user details
+    setIsLoadingUser2(true);
+    try {
+      const details = await fetchUserDetailsAPI(user.netId, promptId);
+      setUser2Details(details);
+    } catch (err) {
+      const errorMsg =
+        err instanceof Error ? err.message : 'Error loading user details';
+      setUser2Error(errorMsg);
+    } finally {
+      setIsLoadingUser2(false);
+    }
+  };
+
+  // Re-fetch user details when promptId changes
+  useEffect(() => {
+    if (user1NetId) {
+      const refetchUser1 = async () => {
+        setIsLoadingUser1(true);
+        try {
+          const details = await fetchUserDetailsAPI(user1NetId, promptId);
+          setUser1Details(details);
+        } catch (err) {
+          const errorMsg =
+            err instanceof Error ? err.message : 'Error loading user details';
+          setUser1Error(errorMsg);
+        } finally {
+          setIsLoadingUser1(false);
+        }
+      };
+      refetchUser1();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [promptId]);
+
+  useEffect(() => {
+    if (user2NetId) {
+      const refetchUser2 = async () => {
+        setIsLoadingUser2(true);
+        try {
+          const details = await fetchUserDetailsAPI(user2NetId, promptId);
+          setUser2Details(details);
+        } catch (err) {
+          const errorMsg =
+            err instanceof Error ? err.message : 'Error loading user details';
+          setUser2Error(errorMsg);
+        } finally {
+          setIsLoadingUser2(false);
+        }
+      };
+      refetchUser2();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [promptId]);
+
   const validateForm = (): string | null => {
     // Check all fields are filled
     if (!user1NetId || !user2NetId || !promptId || !expiresAt) {
       return 'All required fields must be filled';
     }
 
+    // Check users exist
+    if (user1Error || !user1Details) {
+      return 'User 1 not found or invalid';
+    }
+
+    if (user2Error || !user2Details) {
+      return 'User 2 not found or invalid';
+    }
+
     // Check users aren't the same
-    if (user1NetId === user2NetId) {
+    if (user1NetId.toLowerCase() === user2NetId.toLowerCase()) {
       return 'Cannot match a user with themselves';
     }
 
@@ -98,7 +260,7 @@ export default function ManualMatchCreation() {
         return;
       }
 
-      // Create manual match via API
+      // Create manual match via API with append support
       const result = await createManualMatch({
         user1NetId,
         user2NetId,
@@ -106,6 +268,7 @@ export default function ManualMatchCreation() {
         expiresAt,
         chatUnlocked,
         revealed,
+        appendToExisting: true, // Allow appending to existing matches
       });
 
       setSuccess(result.message);
@@ -113,6 +276,8 @@ export default function ManualMatchCreation() {
       // Reset form
       setUser1NetId('');
       setUser2NetId('');
+      setUser1SearchTerm('');
+      setUser2SearchTerm('');
       setPromptId('');
       // Reset to default (1 week from now)
       const oneWeekFromNow = new Date();
@@ -120,6 +285,12 @@ export default function ManualMatchCreation() {
       setExpiresAt(oneWeekFromNow.toISOString().slice(0, 16));
       setChatUnlocked(false);
       setRevealed(false);
+
+      // Reset user details
+      setUser1Details(null);
+      setUser2Details(null);
+      setUser1Error(null);
+      setUser2Error(null);
 
       // Reload recent matches
       loadRecentMatches();
@@ -203,69 +374,257 @@ export default function ManualMatchCreation() {
             <path d="M12 16v-4" />
             <path d="M12 8h.01" />
           </svg>
-          <p className="text-sm text-purple-800">
-            This will create manual matches for testing purposes. Use with caution.
-          </p>
+          <div className="text-sm text-purple-800">
+            <p className="font-semibold mb-1">Manual Match Creation</p>
+            <p>
+              This will create matches for testing. If users already have matches
+              for the same prompt, new matches will be appended (max 3 per user).
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* User 1 Selection */}
-        <div>
+        {/* User 1 NetID Searchable Dropdown */}
+        <div ref={user1DropdownRef}>
           <label
             htmlFor="user1"
             className="block text-sm font-medium text-black mb-2"
           >
-            User 1 NetId <span className="text-red-500">*</span>
+            User 1 NetID <span className="text-red-500">*</span>
           </label>
-          {isLoadingUsers ? (
-            <div className="text-sm text-gray-500">Loading users...</div>
-          ) : (
-            <select
+          <div className="relative">
+            <input
+              type="text"
               id="user1"
-              value={user1NetId}
-              onChange={(e) => setUser1NetId(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-black"
-              required
-            >
-              <option value="">-- Select User 1 --</option>
-              {users.map((user) => (
-                <option key={user.netId} value={user.netId}>
-                  {user.firstName} ({user.netId})
-                </option>
-              ))}
-            </select>
+              value={user1SearchTerm}
+              onChange={(e) => handleUser1SearchChange(e.target.value)}
+              onFocus={() => setShowUser1Dropdown(true)}
+              placeholder="Search by name or NetID..."
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black ${
+                user1Error
+                  ? 'border-red-300 focus:ring-red-500'
+                  : user1Details
+                    ? 'border-green-300 focus:ring-green-500'
+                    : 'border-gray-300 focus:ring-purple-500'
+              }`}
+              required={!user1NetId}
+              disabled={isLoadingUsers}
+              autoComplete="off"
+            />
+            {isLoadingUser1 && (
+              <div className="absolute right-3 top-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-purple-600" />
+              </div>
+            )}
+            {!isLoadingUser1 && user1Details && (
+              <div className="absolute right-3 top-3 text-green-600">✓</div>
+            )}
+            {!isLoadingUser1 && user1Error && (
+              <div className="absolute right-3 top-3 text-red-600">✗</div>
+            )}
+
+            {/* Dropdown List */}
+            {showUser1Dropdown && !isLoadingUsers && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {filterUsers(user1SearchTerm).length > 0 ? (
+                  filterUsers(user1SearchTerm).map((user) => (
+                    <button
+                      key={user.netId}
+                      type="button"
+                      onClick={() => handleUser1Select(user)}
+                      className="w-full px-4 py-2 text-left hover:bg-purple-50 focus:bg-purple-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+                    >
+                      <div className="text-sm font-medium text-black">
+                        {user.firstName}
+                      </div>
+                      <div className="text-xs text-gray-600">{user.netId}</div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-3 text-sm text-gray-500">
+                    No users found
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          {user1Error && (
+            <p className="text-sm text-red-600 mt-1">{user1Error}</p>
+          )}
+          {isLoadingUsers && (
+            <p className="text-sm text-gray-500 mt-1">Loading users...</p>
           )}
         </div>
 
-        {/* User 2 Selection */}
-        <div>
+        {/* User 1 Details Card */}
+        {user1Details && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <h4 className="text-sm font-semibold text-purple-900 mb-3">
+              {user1Details.firstName} ({user1Details.netId})
+            </h4>
+
+            {/* Profile Pictures */}
+            {user1Details.pictures.length > 0 ? (
+              <div className="mb-3">
+                <p className="text-xs text-purple-700 mb-2">Profile Pictures:</p>
+                <div className="flex gap-2 flex-wrap">
+                  {user1Details.pictures.map((pic, idx) => (
+                    <img
+                      key={idx}
+                      src={pic}
+                      alt={`${user1Details.firstName} photo ${idx + 1}`}
+                      className="w-16 h-16 rounded-lg object-cover border border-purple-300"
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-purple-600 mb-3">
+                No profile pictures
+              </p>
+            )}
+
+            {/* Prompt Answer */}
+            <div>
+              <p className="text-xs text-purple-700 mb-1">Prompt Response:</p>
+              {!promptId ? (
+                <p className="text-xs text-purple-600 italic">
+                  Enter a Prompt ID to see user response
+                </p>
+              ) : user1Details.promptAnswer ? (
+                <p className="text-sm text-purple-900 bg-white p-2 rounded border border-purple-200">
+                  {user1Details.promptAnswer}
+                </p>
+              ) : (
+                <p className="text-xs text-purple-600 italic">
+                  N/A - User did not respond to this prompt
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* User 2 NetID Searchable Dropdown */}
+        <div ref={user2DropdownRef}>
           <label
             htmlFor="user2"
             className="block text-sm font-medium text-black mb-2"
           >
-            User 2 NetId <span className="text-red-500">*</span>
+            User 2 NetID <span className="text-red-500">*</span>
           </label>
-          {isLoadingUsers ? (
-            <div className="text-sm text-gray-500">Loading users...</div>
-          ) : (
-            <select
+          <div className="relative">
+            <input
+              type="text"
               id="user2"
-              value={user2NetId}
-              onChange={(e) => setUser2NetId(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-black"
-              required
-            >
-              <option value="">-- Select User 2 --</option>
-              {users.map((user) => (
-                <option key={user.netId} value={user.netId}>
-                  {user.firstName} ({user.netId})
-                </option>
-              ))}
-            </select>
+              value={user2SearchTerm}
+              onChange={(e) => handleUser2SearchChange(e.target.value)}
+              onFocus={() => setShowUser2Dropdown(true)}
+              placeholder="Search by name or NetID..."
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 text-black ${
+                user2Error
+                  ? 'border-red-300 focus:ring-red-500'
+                  : user2Details
+                    ? 'border-green-300 focus:ring-green-500'
+                    : 'border-gray-300 focus:ring-purple-500'
+              }`}
+              required={!user2NetId}
+              disabled={isLoadingUsers}
+              autoComplete="off"
+            />
+            {isLoadingUser2 && (
+              <div className="absolute right-3 top-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-purple-600" />
+              </div>
+            )}
+            {!isLoadingUser2 && user2Details && (
+              <div className="absolute right-3 top-3 text-green-600">✓</div>
+            )}
+            {!isLoadingUser2 && user2Error && (
+              <div className="absolute right-3 top-3 text-red-600">✗</div>
+            )}
+
+            {/* Dropdown List */}
+            {showUser2Dropdown && !isLoadingUsers && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {filterUsers(user2SearchTerm).length > 0 ? (
+                  filterUsers(user2SearchTerm).map((user) => (
+                    <button
+                      key={user.netId}
+                      type="button"
+                      onClick={() => handleUser2Select(user)}
+                      className="w-full px-4 py-2 text-left hover:bg-purple-50 focus:bg-purple-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+                    >
+                      <div className="text-sm font-medium text-black">
+                        {user.firstName}
+                      </div>
+                      <div className="text-xs text-gray-600">{user.netId}</div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-3 text-sm text-gray-500">
+                    No users found
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          {user2Error && (
+            <p className="text-sm text-red-600 mt-1">{user2Error}</p>
+          )}
+          {isLoadingUsers && (
+            <p className="text-sm text-gray-500 mt-1">Loading users...</p>
           )}
         </div>
+
+        {/* User 2 Details Card */}
+        {user2Details && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <h4 className="text-sm font-semibold text-purple-900 mb-3">
+              {user2Details.firstName} ({user2Details.netId})
+            </h4>
+
+            {/* Profile Pictures */}
+            {user2Details.pictures.length > 0 ? (
+              <div className="mb-3">
+                <p className="text-xs text-purple-700 mb-2">Profile Pictures:</p>
+                <div className="flex gap-2 flex-wrap">
+                  {user2Details.pictures.map((pic, idx) => (
+                    <img
+                      key={idx}
+                      src={pic}
+                      alt={`${user2Details.firstName} photo ${idx + 1}`}
+                      className="w-16 h-16 rounded-lg object-cover border border-purple-300"
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-purple-600 mb-3">
+                No profile pictures
+              </p>
+            )}
+
+            {/* Prompt Answer */}
+            <div>
+              <p className="text-xs text-purple-700 mb-1">Prompt Response:</p>
+              {!promptId ? (
+                <p className="text-xs text-purple-600 italic">
+                  Enter a Prompt ID to see user response
+                </p>
+              ) : user2Details.promptAnswer ? (
+                <p className="text-sm text-purple-900 bg-white p-2 rounded border border-purple-200">
+                  {user2Details.promptAnswer}
+                </p>
+              ) : (
+                <p className="text-xs text-purple-600 italic">
+                  N/A - User did not respond to this prompt
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Prompt ID */}
         <div>
