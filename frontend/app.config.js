@@ -15,7 +15,10 @@ export default {
       supportsTablet: false,
       bundleIdentifier: 'com.incubator.redi',
       googleServicesFile: './GoogleService-Info.plist',
-      buildNumber: '2',
+      buildNumber: '3',
+      infoPlist: {
+        UIRequiredDeviceCapabilities: ['armv7', 'telephony'],
+      },
     },
     android: {
       adaptiveIcon: {
