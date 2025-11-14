@@ -230,7 +230,9 @@ export default function CreateProfileScreen() {
           setUploadingImages(false);
           Alert.alert(
             'Upload Error',
-            'Failed to upload images. Please try again.'
+            uploadError instanceof Error
+              ? uploadError.message
+              : 'Failed to upload images. Please try again.'
           );
           console.error('Image upload failed:', uploadError);
           return;
