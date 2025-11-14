@@ -185,6 +185,7 @@ class APIClient {
     const errorMessage =
       errorData.error || errorData.message || 'Request failed';
 
+    if (response.status === 404) {
       console.log(`[API] 404 Not Found: ${endpoint}`);
     } else {
       console.error(`[API] Error ${response.status} response:`, errorData);
