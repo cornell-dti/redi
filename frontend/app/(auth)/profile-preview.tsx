@@ -15,12 +15,11 @@ import {
   WeeklyPromptResponse,
 } from '@/types';
 import { router } from 'expo-router';
-import { ArrowLeft, Check, PencilIcon } from 'lucide-react-native';
+import { ArrowLeft, Check } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppInput from '../components/ui/AppInput';
-import Banner from '../components/ui/Banner';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Sheet from '../components/ui/Sheet';
 
@@ -147,23 +146,13 @@ export default function ProfilePreviewScreen() {
 
       <View style={styles.content}>
         {/* Header with back button */}
-        <View style={styles.header}>
-          <Button
-            title="Exit preview"
-            iconLeft={ArrowLeft}
-            onPress={() => router.back()}
-            variant="secondary"
-          />
-
-          <Button
-            title="Edit profile"
-            iconLeft={PencilIcon}
-            onPress={() => router.push('/edit-profile' as any)}
-            variant="secondary"
-          />
-        </View>
-
-        <Banner text="Preview mode" />
+        <Button
+          title="Exit preview"
+          iconLeft={ArrowLeft}
+          onPress={() => router.back()}
+          variant="secondary"
+          fullWidth={false}
+        />
       </View>
 
       {/* Profile view */}
@@ -226,16 +215,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
-  header: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
   content: {
     display: 'flex',
     flexDirection: 'column',
     gap: 16,
     padding: 16,
+    alignItems: 'flex-start',
   },
   backButton: {
     padding: 8,

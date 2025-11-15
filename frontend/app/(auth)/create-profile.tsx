@@ -480,6 +480,9 @@ export default function CreateProfileScreen() {
                     title={school}
                     selected={data.school === school}
                     onPress={() => {
+                      if (data.school !== school) {
+                        updateField('major', []);
+                      }
                       updateField('school', school);
                       setShowSchoolSheet(false);
                     }}
