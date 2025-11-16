@@ -954,6 +954,7 @@ export default function CreateProfileScreen() {
         checkboxLabel={getCheckboxLabel()}
         checkboxChecked={getCheckboxValue()}
         onCheckboxChange={handleCheckboxChange}
+        loading={uploadingImages || isSubmitting}
       />
     </SafeAreaView>
   );
