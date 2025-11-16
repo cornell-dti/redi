@@ -57,7 +57,7 @@ export default function Tag({
           </>
         )}
 
-        <AppText numberOfLines={1} style={{ color: textColor }}>
+        <AppText style={{ color: textColor, flex: 1 }}>
           {label}
         </AppText>
       </View>
@@ -81,8 +81,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 128,
-    height: 48,
+    minHeight: 48,
     overflow: 'hidden',
+    maxWidth: '100%',
+    paddingVertical: 8,
   },
   left: {
     display: 'flex',
@@ -90,6 +92,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     gap: 6,
+    flex: 1,
   },
   iconWrapper: {
     alignItems: 'center',
