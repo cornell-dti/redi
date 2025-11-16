@@ -153,6 +153,7 @@ export default function EditHometownPage() {
               value={hometown}
               onChangeText={setHometown}
               autoCapitalize="words"
+              style={{ width: 200 }}
             />
             <AppText>.</AppText>
           </View>

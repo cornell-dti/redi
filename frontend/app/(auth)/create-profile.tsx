@@ -15,6 +15,8 @@ import {
   Animated,
   Dimensions,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -427,6 +429,7 @@ export default function CreateProfileScreen() {
               placeholder="E.g. New York City"
               value={data.hometown}
               onChangeText={(text) => updateField('hometown', text)}
+              autoCapitalize="words"
             />
           </View>
         );
@@ -929,9 +932,18 @@ export default function CreateProfileScreen() {
           opacity: fadeAnim,
         }}
       >
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {renderStep()}
-        </ScrollView>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <ScrollView
+            style={styles.content}
+            contentContainerStyle={{ paddingBottom: 200 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {renderStep()}
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Animated.View>
 
       <OnboardingFooter
