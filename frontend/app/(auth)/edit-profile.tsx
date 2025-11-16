@@ -427,6 +427,13 @@ export default function EditProfileScreen() {
 
           <ListItemWrapper>
             <ListItem
+              title="Name"
+              description={displayName}
+              right={<ChevronRight size={20} />}
+              onPress={() => router.push('/edit-name' as any)}
+            />
+
+            <ListItem
               title="Age"
               description={displayAge ? `${displayAge}` : 'Not set'}
               right={<ChevronRight size={20} />}

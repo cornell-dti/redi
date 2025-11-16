@@ -114,6 +114,6 @@ const styles = StyleSheet.create({
     width: 340,
   },
   answerInput: {
-    height: 60,
+    height: 80,
   },
 });

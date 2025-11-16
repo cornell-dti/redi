@@ -10,29 +10,25 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
-import Checkbox from '../components/ui/Checkbox';
 import EditingHeader from '../components/ui/EditingHeader';
 import FooterSpacer from '../components/ui/FooterSpacer';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 
-export default function EditHometownPage() {
+export default function EditNamePage() {
   useThemeAware();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [hometown, setHometown] = useState('');
-  const [originalHometown, setOriginalHometown] = useState('');
-  const [showOnProfile, setShowOnProfile] = useState(true);
-  const [originalShowOnProfile, setOriginalShowOnProfile] = useState(true);
+  const [firstName, setFirstName] = useState('');
+  const [originalFirstName, setOriginalFirstName] = useState('');
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
@@ -52,12 +48,9 @@ export default function EditHometownPage() {
       const profileData = await getCurrentUserProfile();
 
       if (profileData) {
-        const hometownValue = profileData.hometown || '';
-        setHometown(hometownValue);
-        setOriginalHometown(hometownValue);
-        const showHometownValue = profileData.showHometownOnProfile ?? true;
-        setShowOnProfile(showHometownValue);
-        setOriginalShowOnProfile(showHometownValue);
+        const firstNameValue = profileData.firstName || '';
+        setFirstName(firstNameValue);
+        setOriginalFirstName(firstNameValue);
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -74,40 +67,35 @@ export default function EditHometownPage() {
       return;
     }
 
-    if (!hometown.trim()) {
-      Alert.alert('Required', 'Please enter your hometown');
+    if (!firstName.trim()) {
+      Alert.alert('Required', 'Please enter your first name');
       return;
     }
 
     setSaving(true);
     try {
       await updateProfile({
-        hometown: hometown.trim(),
-        showHometownOnProfile: showOnProfile,
+        firstName: firstName.trim(),
       });
 
-      setOriginalHometown(hometown);
-      setOriginalShowOnProfile(showOnProfile);
+      setOriginalFirstName(firstName);
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
-        label: 'Hometown updated',
+        label: 'Name updated',
       });
 
       router.back();
     } catch (error) {
-      console.error('Failed to update hometown:', error);
-      Alert.alert('Error', 'Failed to update hometown');
+      console.error('Failed to update name:', error);
+      Alert.alert('Error', 'Failed to update name');
     } finally {
       setSaving(false);
     }
   };
 
   const hasUnsavedChanges = () => {
-    return (
-      hometown.trim() !== originalHometown.trim() ||
-      showOnProfile !== originalShowOnProfile
-    );
+    return firstName.trim() !== originalFirstName.trim();
   };
 
   const handleBack = () => {
@@ -132,7 +120,7 @@ export default function EditHometownPage() {
       <StatusBar barStyle="dark-content" />
 
       <EditingHeader
-        title="Edit Hometown"
+        title="Edit Name"
         onSave={handleSave}
         onBack={handleBack}
         isSaving={saving}
@@ -147,31 +135,15 @@ export default function EditHometownPage() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.sentence}>
-            <AppText>I&apos;m from </AppText>
+            <AppText>My name is </AppText>
             <AppInput
-              placeholder="e.g., New York, NY"
-              value={hometown}
-              onChangeText={setHometown}
+              placeholder="Ezra"
+              value={firstName}
+              onChangeText={setFirstName}
               autoCapitalize="words"
               style={{ width: 200 }}
             />
             <AppText>.</AppText>
-          </View>
-
-          <View style={styles.checkboxSection}>
-            <TouchableOpacity
-              style={styles.checkboxRow}
-              onPress={() => setShowOnProfile(!showOnProfile)}
-            >
-              <Checkbox
-                value={showOnProfile}
-                onValueChange={setShowOnProfile}
-                color={showOnProfile ? AppColors.accentDefault : undefined}
-              />
-              <AppText variant="body" style={styles.checkboxLabel}>
-                Show on my profile
-              </AppText>
-            </TouchableOpacity>
           </View>
 
           <FooterSpacer />
@@ -206,18 +178,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-  },
-  checkboxSection: {
-    marginTop: 24,
-    alignItems: 'center',
-  },
-  checkboxRow: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  checkboxLabel: {
-    textAlign: 'center',
   },
 });

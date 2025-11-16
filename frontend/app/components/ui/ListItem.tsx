@@ -78,7 +78,7 @@ export default function ListItem({
                 ? { backgroundColor: AppColors.negativeDimmest } // 🔸 if destructive & pressed
                 : styles.pressed),
 
-          description ? { height: 'auto' } : { height: 54 },
+          description ? { minHeight: 54 } : { minHeight: 54 },
           disabled && { opacity: 0.4 },
           style,
           pressableStyle,
@@ -92,7 +92,10 @@ export default function ListItem({
           <AppText
             variant="body"
             color={destructive ? 'negative' : selected ? 'accent' : 'default'}
-            style={description ? { fontWeight: 'semibold' } : undefined}
+            style={[
+              description ? { fontWeight: 'semibold' } : undefined,
+              { flexShrink: 1 },
+            ]}
           >
             {title}
           </AppText>
@@ -124,11 +127,13 @@ const styles = StyleSheet.create({
   },
   left: {
     marginRight: 12,
+    marginTop: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   right: {
     marginLeft: 12,
+    marginTop: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -117,11 +117,21 @@ export function useOnboardingState() {
           year = year < 30 ? 2000 + year : 1900 + year;
         }
         const date = new Date(year, parseInt(month, 10) - 1, parseInt(day, 10));
-        return (
+        const isValidDate =
           date.getMonth() === parseInt(month, 10) - 1 &&
           date.getDate() === parseInt(day, 10) &&
-          date.getFullYear() === year
-        );
+          date.getFullYear() === year;
+        if (!isValidDate) return false;
+
+        // Check if user is at least 18 years old
+        const today = new Date();
+        const age = today.getFullYear() - date.getFullYear();
+        const monthDiff = today.getMonth() - date.getMonth();
+        const dayDiff = today.getDate() - date.getDate();
+        // Adjust age if birthday hasn't occurred yet this year
+        const actualAge =
+          monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+        return actualAge >= 18;
 
       case 3:
         // Gender: At least one selected

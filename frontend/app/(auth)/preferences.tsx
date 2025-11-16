@@ -111,8 +111,25 @@ export default function DatingPreferencesPage() {
       return;
     }
 
-    if (ageMin > ageMax) {
-      Alert.alert('Invalid Range', 'Minimum age must be less than or equal to maximum age');
+    // Check the text field values to catch cases where keyboard is still up
+    const minAgeValue = parseInt(ageMinText);
+    const maxAgeValue = parseInt(ageMaxText);
+
+    if (isNaN(minAgeValue) || isNaN(maxAgeValue)) {
+      Alert.alert('Invalid Age', 'Please enter valid age values');
+      return;
+    }
+
+    if (minAgeValue < 18 || maxAgeValue < 18) {
+      Alert.alert('Invalid Age', 'Age must be at least 18 years old');
+      return;
+    }
+
+    if (minAgeValue > maxAgeValue) {
+      Alert.alert(
+        'Invalid Range',
+        'Minimum age must be less than or equal to maximum age'
+      );
       return;
     }
 
@@ -267,6 +284,9 @@ export default function DatingPreferencesPage() {
                   if (ageMinText === '' || isNaN(parseInt(ageMinText))) {
                     setAgeMinText('18');
                     setAgeMin(18);
+                  } else {
+                    // Sync text field with the clamped value
+                    setAgeMinText(ageMin.toString());
                   }
                 }}
                 keyboardType="number-pad"
@@ -298,6 +318,9 @@ export default function DatingPreferencesPage() {
                   if (ageMaxText === '' || isNaN(parseInt(ageMaxText))) {
                     setAgeMaxText('25');
                     setAgeMax(25);
+                  } else {
+                    // Sync text field with the clamped value
+                    setAgeMaxText(ageMax.toString());
                   }
                 }}
                 keyboardType="number-pad"

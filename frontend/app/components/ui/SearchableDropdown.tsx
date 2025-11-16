@@ -107,6 +107,7 @@ export default function SearchableDropdown({
           value={searchQuery}
           onChangeText={setSearchQuery}
           autoFocus
+          maxLength={allowOther ? 60 : undefined}
         />
 
         {filteredOptions.length > 0 ? (
