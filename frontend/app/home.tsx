@@ -318,14 +318,14 @@ export default function HomePage() {
 
   const renderWelcomeScreen = () => (
     <View style={{ flex: 1, gap: 24, position: 'relative' }}>
-      {/* <View style={{ position: 'absolute', top: 48, right: 0, width: 200 }}>
+      <View style={{ position: 'absolute', top: 48, right: 0, width: 200 }}>
         <Button
           title="TESTING LOGIN"
           onPress={() => handleModeChange('signup')}
           variant="negative"
           fullWidth
         />
-      </View> */}
+      </View>
 
       <View style={styles.logoContainer}>
         <Image
