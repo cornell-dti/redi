@@ -106,7 +106,7 @@ export default function PhotoUploadGrid({
 
                 {slot.index === 0 && (
                   <View style={styles.mainBadgeContainer}>
-                    <Tag label="Main" variant="accent" style={{ width: 70 }} />
+                    <Tag label="Main" variant="accent" />
                   </View>
                 )}
 

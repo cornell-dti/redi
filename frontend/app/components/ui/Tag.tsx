@@ -57,9 +57,7 @@ export default function Tag({
           </>
         )}
 
-        <AppText style={{ color: textColor, flex: 1 }}>
-          {label}
-        </AppText>
+        <AppText style={{ color: textColor, flexShrink: 1 }}>{label}</AppText>
       </View>
 
       {dismissible && (
@@ -92,7 +90,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     gap: 6,
-    flex: 1,
+    flexShrink: 1,
   },
   iconWrapper: {
     alignItems: 'center',
