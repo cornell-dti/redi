@@ -1,3 +1,4 @@
+import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Star, X } from 'lucide-react-native';
 import React from 'react';
@@ -39,6 +40,51 @@ export default function PhotoUploadGrid({
     return true;
   };
 
+  const compressImageIfNeeded = async (
+    uri: string,
+    fileSize?: number
+  ): Promise<string> => {
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB in bytes
+
+    if (!fileSize || fileSize <= MAX_FILE_SIZE) {
+      return uri;
+    }
+
+    let quality = 0.7;
+    let compressedUri = uri;
+
+    try {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        // I think this method call is deprecated, but I cannot find the updated API for it. 
+        const result = await ImageManipulator.manipulateAsync(
+          compressedUri,
+          [],
+          {
+            compress: quality,
+            format: ImageManipulator.SaveFormat.JPEG,
+          }
+        );
+
+        const response = await fetch(result.uri);
+        const blob = await response.blob();
+
+        if (blob.size <= MAX_FILE_SIZE) {
+          return result.uri;
+        }
+
+        compressedUri = result.uri;
+        quality -= 0.2;
+      }
+
+      return compressedUri;
+    } catch (error) {
+      console.error('Error compressing image:', error);
+
+      // Return original if compression fails (possibly change here?)
+      return uri;
+    }
+  };
+
   const pickImage = async () => {
     const hasPermission = await requestPermission();
     if (!hasPermission) return;
@@ -55,12 +101,17 @@ export default function PhotoUploadGrid({
     });
 
     if (!result.canceled && result.assets.length > 0) {
-      const selectedUris = result.assets.map((asset) => asset.uri);
+      // Compress images if needed
+      const processedUris = await Promise.all(
+        result.assets.map(async (asset) => {
+          return await compressImageIfNeeded(asset.uri, asset.fileSize);
+        })
+      );
 
-      const newPhotos = [...photos, ...selectedUris].slice(0, maxPhotos);
+      const newPhotos = [...photos, ...processedUris].slice(0, maxPhotos);
       onPhotosChange(newPhotos);
 
-      if (selectedUris.length > remainingSlots) {
+      if (processedUris.length > remainingSlots) {
         Alert.alert(
           'Too Many Photos',
           `You can only add ${remainingSlots} more photo${remainingSlots === 1 ? '' : 's'}.`
