@@ -12,6 +12,12 @@ import {
   WeeklyPrompt,
   WeeklyPromptAnswerWithProfile,
 } from '@/types/admin';
+import type {
+  DemographicBreakdownResponse,
+  CompatibilityMatrixResponse,
+  EngagementMetricsResponse,
+  MutualNudgeStatsResponse,
+} from '@/types/analytics';
 import { getAuth } from 'firebase/auth';
 import {
   collection,
@@ -825,3 +831,115 @@ export const fetchUserDetails = async (
 
   return res.json();
 };
+
+// =============================================================================
+// ANALYTICS ENDPOINTS
+// =============================================================================
+
+/**
+ * Fetch demographic breakdown (with optional prompt filter)
+ */
+export const fetchDemographicBreakdown = async (
+  promptId?: string
+): Promise<DemographicBreakdownResponse> => {
+  console.log('Fetching demographic breakdown', { promptId });
+
+  const token = await getAuthToken();
+  const url = promptId
+    ? `${API_BASE_URL}/api/admin/analytics/demographics?promptId=${encodeURIComponent(promptId)}`
+    : `${API_BASE_URL}/api/admin/analytics/demographics`;
+
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to fetch demographic breakdown');
+  }
+
+  return res.json();
+};
+
+/**
+ * Fetch compatibility matrix
+ */
+export const fetchCompatibilityMatrix =
+  async (): Promise<CompatibilityMatrixResponse> => {
+    console.log('Fetching compatibility matrix');
+
+    const token = await getAuthToken();
+
+    const res = await fetch(
+      `${API_BASE_URL}/api/admin/analytics/compatibility-matrix`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Failed to fetch compatibility matrix');
+    }
+
+    return res.json();
+  };
+
+/**
+ * Fetch engagement metrics
+ */
+export const fetchEngagementMetrics =
+  async (): Promise<EngagementMetricsResponse> => {
+    console.log('Fetching engagement metrics');
+
+    const token = await getAuthToken();
+
+    const res = await fetch(`${API_BASE_URL}/api/admin/analytics/engagement`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Failed to fetch engagement metrics');
+    }
+
+    return res.json();
+  };
+
+/**
+ * Fetch mutual nudge statistics
+ */
+export const fetchMutualNudgeStats =
+  async (): Promise<MutualNudgeStatsResponse> => {
+    console.log('Fetching mutual nudge statistics');
+
+    const token = await getAuthToken();
+
+    const res = await fetch(
+      `${API_BASE_URL}/api/admin/analytics/mutual-nudges`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(
+        error.error || 'Failed to fetch mutual nudge statistics'
+      );
+    }
+
+    return res.json();
+  };

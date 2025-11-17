@@ -695,3 +695,84 @@ export type UpdateReportStatusInput = {
   reviewedBy?: string;
   resolution?: string;
 };
+
+// =============================================================================
+// ANALYTICS TYPES
+// =============================================================================
+
+// Gender + Orientation combination for demographic grouping
+export type DemographicCategory =
+  | 'women_seeking_women'
+  | 'women_seeking_men'
+  | 'women_seeking_multiple'
+  | 'men_seeking_women'
+  | 'men_seeking_men'
+  | 'men_seeking_multiple'
+  | 'nonbinary_seeking_women'
+  | 'nonbinary_seeking_men'
+  | 'nonbinary_seeking_multiple'
+  | 'other';
+
+// Demographic breakdown response
+export interface DemographicBreakdownResponse {
+  categories: Array<{
+    label: string; // Display name
+    categoryKey: DemographicCategory; // For programmatic use
+    count: number;
+    percentage: number;
+  }>;
+  totalUsers: number;
+  filteredByPrompt: boolean;
+  promptId?: string;
+}
+
+// Compatibility matrix cell
+export interface CompatibilityCell {
+  userDemographic: DemographicCategory;
+  targetDemographic: DemographicCategory;
+  availableMatches: number;
+}
+
+// Compatibility matrix response
+export interface CompatibilityMatrixResponse {
+  matrix: CompatibilityCell[];
+  generatedAt: string;
+}
+
+// Weekly engagement stats
+export interface WeeklyEngagementStats {
+  weekStart: string; // ISO string (Monday)
+  weekEnd: string; // ISO string (Sunday)
+  promptId?: string; // Prompt for that week
+  activeUsers: number; // Users who answered
+  totalEligibleUsers: number; // Users with complete profiles
+  responseRate: number; // Percentage
+}
+
+// Engagement metrics response
+export interface EngagementMetricsResponse {
+  currentWeek: WeeklyEngagementStats;
+  historicalWeeks: WeeklyEngagementStats[];
+}
+
+// Mutual nudge stats by demographic
+export interface DemographicNudgeStats {
+  demographic: DemographicCategory;
+  demographicLabel: string;
+  totalMatches: number; // Matches received this week
+  mutualNudges: number; // Matches that became mutual
+  mutualNudgeRate: number; // Percentage
+}
+
+// Mutual nudge response
+export interface MutualNudgeStatsResponse {
+  weekStart: string;
+  weekEnd: string;
+  promptId?: string;
+  demographics: DemographicNudgeStats[];
+  overall: {
+    totalMatches: number;
+    mutualNudges: number;
+    mutualNudgeRate: number;
+  };
+}
