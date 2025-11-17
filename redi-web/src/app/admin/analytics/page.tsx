@@ -204,16 +204,8 @@ export default function AdminAnalyticsPage() {
                       stroke="currentColor"
                       strokeWidth="2"
                     />
-                    <path
-                      d="m15 9-6 6"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    />
-                    <path
-                      d="m9 9 6 6"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    />
+                    <path d="m15 9-6 6" stroke="currentColor" strokeWidth="2" />
+                    <path d="m9 9 6 6" stroke="currentColor" strokeWidth="2" />
                   </svg>
                 </div>
                 <div className="ml-3">
@@ -243,7 +235,8 @@ export default function AdminAnalyticsPage() {
                       <p className="text-gray-600">
                         Distribution of users by gender identity and dating
                         preferences
-                        {demographics.filteredByPrompt && ` (filtered by prompt)`}
+                        {demographics.filteredByPrompt &&
+                          ` (filtered by prompt)`}
                       </p>
                     </div>
 
@@ -256,8 +249,8 @@ export default function AdminAnalyticsPage() {
                       <option value="">All Users</option>
                       {prompts.map((prompt) => (
                         <option key={prompt.promptId} value={prompt.promptId}>
-                          {prompt.promptId} -{' '}
-                          {prompt.question.substring(0, 50)}...
+                          {prompt.promptId} - {prompt.question.substring(0, 50)}
+                          ...
                         </option>
                       ))}
                     </select>
@@ -275,8 +268,8 @@ export default function AdminAnalyticsPage() {
                             cx="50%"
                             cy="50%"
                             outerRadius={120}
-                            label={({ percentage }) =>
-                              `${percentage.toFixed(1)}%`
+                            label={(entry: { percent: number }) =>
+                              `${(entry.percent * 100).toFixed(1)}%`
                             }
                           >
                             {demographics.categories.map((entry, index) => (
@@ -312,15 +305,15 @@ export default function AdminAnalyticsPage() {
                             <th className="text-right py-2 text-gray-700">
                               Count
                             </th>
-                            <th className="text-right py-2 text-gray-700">
-                              %
-                            </th>
+                            <th className="text-right py-2 text-gray-700">%</th>
                           </tr>
                         </thead>
                         <tbody>
                           {demographics.categories.map((cat, idx) => (
                             <tr key={idx} className="border-b border-gray-100">
-                              <td className="py-2 text-gray-900">{cat.label}</td>
+                              <td className="py-2 text-gray-900">
+                                {cat.label}
+                              </td>
                               <td className="text-right py-2 font-semibold text-black">
                                 {cat.count}
                               </td>
@@ -367,7 +360,9 @@ export default function AdminAnalyticsPage() {
                       <tbody>
                         {compatibility.matrix
                           .filter((cell) => cell.availableMatches > 0)
-                          .sort((a, b) => b.availableMatches - a.availableMatches)
+                          .sort(
+                            (a, b) => b.availableMatches - a.availableMatches
+                          )
                           .map((cell, idx) => (
                             <tr
                               key={idx}
@@ -564,7 +559,9 @@ export default function AdminAnalyticsPage() {
                           key={idx}
                           className="border-b border-gray-100 hover:bg-gray-50"
                         >
-                          <td className="py-3 px-4 text-gray-900">{demo.demographicLabel}</td>
+                          <td className="py-3 px-4 text-gray-900">
+                            {demo.demographicLabel}
+                          </td>
                           <td className="text-center py-3 px-4 text-black">
                             {demo.totalMatches}
                           </td>

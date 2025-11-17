@@ -29,10 +29,12 @@ export default function ManualMatchCreation() {
   const [revealed, setRevealed] = useState(false);
 
   // User details state
-  const [user1Details, setUser1Details] =
-    useState<UserDetailsResponse | null>(null);
-  const [user2Details, setUser2Details] =
-    useState<UserDetailsResponse | null>(null);
+  const [user1Details, setUser1Details] = useState<UserDetailsResponse | null>(
+    null
+  );
+  const [user2Details, setUser2Details] = useState<UserDetailsResponse | null>(
+    null
+  );
   const [isLoadingUser1, setIsLoadingUser1] = useState(false);
   const [isLoadingUser2, setIsLoadingUser2] = useState(false);
   const [user1Error, setUser1Error] = useState<string | null>(null);
@@ -59,9 +61,7 @@ export default function ManualMatchCreation() {
       setUsers(usersList);
     } catch (err) {
       console.error('Error loading users:', err);
-      setError(
-        err instanceof Error ? err.message : 'Failed to load users'
-      );
+      setError(err instanceof Error ? err.message : 'Failed to load users');
     } finally {
       setIsLoadingUsers(false);
     }
@@ -296,9 +296,7 @@ export default function ManualMatchCreation() {
       loadRecentMatches();
     } catch (err) {
       console.error('Error creating matches:', err);
-      setError(
-        err instanceof Error ? err.message : 'Failed to create matches'
-      );
+      setError(err instanceof Error ? err.message : 'Failed to create matches');
     } finally {
       setIsSubmitting(false);
     }
@@ -377,8 +375,9 @@ export default function ManualMatchCreation() {
           <div className="text-sm text-purple-800">
             <p className="font-semibold mb-1">Manual Match Creation</p>
             <p>
-              This will create matches for testing. If users already have matches
-              for the same prompt, new matches will be appended (max 3 per user).
+              This will create matches for testing. If users already have
+              matches for the same prompt, new matches will be appended (max 3
+              per user).
             </p>
           </div>
         </div>
@@ -468,7 +467,9 @@ export default function ManualMatchCreation() {
             {/* Profile Pictures */}
             {user1Details.pictures.length > 0 ? (
               <div className="mb-3">
-                <p className="text-xs text-purple-700 mb-2">Profile Pictures:</p>
+                <p className="text-xs text-purple-700 mb-2">
+                  Profile Pictures:
+                </p>
                 <div className="flex gap-2 flex-wrap">
                   {user1Details.pictures.map((pic, idx) => (
                     <img
@@ -588,7 +589,9 @@ export default function ManualMatchCreation() {
             {/* Profile Pictures */}
             {user2Details.pictures.length > 0 ? (
               <div className="mb-3">
-                <p className="text-xs text-purple-700 mb-2">Profile Pictures:</p>
+                <p className="text-xs text-purple-700 mb-2">
+                  Profile Pictures:
+                </p>
                 <div className="flex gap-2 flex-wrap">
                   {user2Details.pictures.map((pic, idx) => (
                     <img
@@ -664,9 +667,7 @@ export default function ManualMatchCreation() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-black"
             required
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Default: 1 week from now
-          </p>
+          <p className="text-xs text-gray-500 mt-1">Default: 1 week from now</p>
         </div>
 
         {/* Optional Checkboxes */}

@@ -936,9 +936,7 @@ export const fetchMutualNudgeStats =
 
     if (!res.ok) {
       const error = await res.json();
-      throw new Error(
-        error.error || 'Failed to fetch mutual nudge statistics'
-      );
+      throw new Error(error.error || 'Failed to fetch mutual nudge statistics');
     }
 
     return res.json();
