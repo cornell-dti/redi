@@ -1,39 +1,39 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import AdminProtectedRoute from '@/components/AdminProtectedRoute';
-import Link from 'next/link';
-import { getAuth } from 'firebase/auth';
-import { FIREBASE_APP } from '../../../../firebase';
 import {
-  fetchDemographicBreakdown,
+  fetchAllPrompts,
   fetchCompatibilityMatrix,
+  fetchDemographicBreakdown,
   fetchEngagementMetrics,
   fetchMutualNudgeStats,
-  fetchAllPrompts,
 } from '@/api/admin';
+import AdminProtectedRoute from '@/components/AdminProtectedRoute';
+import type { WeeklyPrompt } from '@/types/admin';
 import type {
-  DemographicBreakdownResponse,
   CompatibilityMatrixResponse,
+  DemographicBreakdownResponse,
   EngagementMetricsResponse,
   MutualNudgeStatsResponse,
 } from '@/types/analytics';
-import type { WeeklyPrompt } from '@/types/admin';
+import { getAuth } from 'firebase/auth';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import {
-  PieChart,
-  Pie,
+  Bar,
+  BarChart,
+  CartesianGrid,
   Cell,
-  ResponsiveContainer,
   Legend,
-  Tooltip,
-  LineChart,
   Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  BarChart,
-  Bar,
 } from 'recharts';
+import { FIREBASE_APP } from '../../../../firebase';
 
 const COLORS = [
   '#000000',
@@ -268,8 +268,8 @@ export default function AdminAnalyticsPage() {
                             cx="50%"
                             cy="50%"
                             outerRadius={120}
-                            label={(entry: { percent: number }) =>
-                              `${(entry.percent * 100).toFixed(1)}%`
+                            label={(entry: { percent?: number }) =>
+                              `${((entry.percent ?? 0) * 100).toFixed(1)}%`
                             }
                           >
                             {demographics.categories.map((entry, index) => (
