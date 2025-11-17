@@ -236,7 +236,7 @@ export async function getCompatibilityMatrix(): Promise<CompatibilityMatrixRespo
 
     // Determine what genders this demographic is interested in
     const sampleUser = usersInDemo[0];
-    const preferences = preferencesMap.get(sampleUser.netid) || [];
+    const userPreferences = preferencesMap.get(sampleUser.netid) || [];
 
     // Count potential matches by target demographic
     for (const targetDemo of allDemographics) {
@@ -244,8 +244,18 @@ export async function getCompatibilityMatrix(): Promise<CompatibilityMatrixRespo
         // Must be in target demographic
         if (u.demographic !== targetDemo) return false;
 
-        // User must be interested in potential match's gender
-        return preferences.includes(u.gender);
+        // Get target's preferences
+        const targetPreferences = preferencesMap.get(u.netid) || [];
+
+        // MUTUAL COMPATIBILITY CHECK:
+        // 1. User must be interested in target's gender
+        const userInterestedInTarget = userPreferences.includes(u.gender);
+
+        // 2. Target must be interested in user's gender
+        const targetInterestedInUser = targetPreferences.includes(sampleUser.gender);
+
+        // Both must be true for compatibility
+        return userInterestedInTarget && targetInterestedInUser;
       });
 
       const key = `${userDemo}:${targetDemo}`;
