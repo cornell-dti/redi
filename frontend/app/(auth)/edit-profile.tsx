@@ -1,8 +1,8 @@
 import AppText from '@/app/components/ui/AppText';
 import { ProfileResponse, PromptData, getProfileAge } from '@/types';
 import { router, useFocusEffect } from 'expo-router';
-import { Check, ChevronRight, Pencil, Plus } from 'lucide-react-native';
-import React, { useCallback, useRef, useState } from 'react';
+import { Check, ChevronRight, Eye, Pencil, Plus } from 'lucide-react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -45,26 +45,31 @@ export default function EditProfileScreen() {
   // Scroll position preservation
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollPositionRef = useRef(0);
-  const hasInitiallyLoaded = useRef(false);
+  const isInitialMountRef = useRef(true);
 
-  // Fetch profile data on mount and when screen comes into focus
+  // Fetch profile data whenever screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      // Only fetch on initial load, not on subsequent focus events
-      if (!hasInitiallyLoaded.current) {
-        fetchProfile();
-        hasInitiallyLoaded.current = true;
-      } else {
-        // Restore scroll position when returning to this screen
-        setTimeout(() => {
-          scrollViewRef.current?.scrollTo({
-            y: scrollPositionRef.current,
-            animated: false,
-          });
-        }, 100);
-      }
+      fetchProfile();
     }, [])
   );
+
+  // Restore scroll position after loading completes (but not on initial mount)
+  useEffect(() => {
+    if (!loading && !isInitialMountRef.current) {
+      // Use a small delay to ensure the ScrollView has rendered with new content
+      const timer = setTimeout(() => {
+        scrollViewRef.current?.scrollTo({
+          y: scrollPositionRef.current,
+          animated: false,
+        });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+    if (!loading && isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+    }
+  }, [loading]);
 
   const fetchProfile = async () => {
     const user = getCurrentUser();
@@ -351,6 +356,14 @@ export default function EditProfileScreen() {
         }}
         scrollEventThrottle={16}
       >
+        <Button
+          iconLeft={Eye}
+          variant="secondary"
+          title="Preview Profile"
+          onPress={() => router.push('/profile-preview' as any)}
+          fullWidth
+        />
+
         <View style={styles.section}>
           <AppText variant="subtitle" style={styles.subtitle}>
             My photos
@@ -413,6 +426,13 @@ export default function EditProfileScreen() {
           </AppText>
 
           <ListItemWrapper>
+            <ListItem
+              title="Name"
+              description={displayName}
+              right={<ChevronRight size={20} />}
+              onPress={() => router.push('/edit-name' as any)}
+            />
+
             <ListItem
               title="Age"
               description={displayAge ? `${displayAge}` : 'Not set'}

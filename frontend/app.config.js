@@ -15,11 +15,14 @@ export default {
       supportsTablet: false,
       bundleIdentifier: 'com.incubator.redi',
       googleServicesFile: './GoogleService-Info.plist',
-      buildNumber: '2',
+      buildNumber: '3',
+      infoPlist: {
+        UIRequiredDeviceCapabilities: ['armv7', 'telephony'],
+      },
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: './assets/images/adaptive-icon.png',
+        foregroundImage: './assets/images/icon.png',
         backgroundColor: '#ffffff',
       },
       edgeToEdgeEnabled: true,
@@ -36,10 +39,9 @@ export default {
       [
         'expo-splash-screen',
         {
-          image: './assets/images/splash-icon.png',
+          image: './assets/images/icon.png',
           imageWidth: 200,
           resizeMode: 'contain',
-          backgroundColor: '#ffffff',
         },
       ],
       [
@@ -52,6 +54,12 @@ export default {
       ],
       '@react-native-firebase/app',
       '@react-native-firebase/auth',
+      [
+        '@react-native-google-signin/google-signin',
+        {
+          iosUrlScheme: 'com.googleusercontent.apps.272234540869-6okghrkn79ub3kf6urj9h2jed3nmopel',
+        },
+      ],
       [
         'expo-image-picker',
         {

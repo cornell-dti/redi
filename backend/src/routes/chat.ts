@@ -3,6 +3,12 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { db } from '../../firebaseAdmin';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import { chatRateLimit } from '../middleware/rateLimiting';
+import {
+  sendPushNotification,
+  checkNotificationPreference,
+} from '../services/pushNotificationService';
+import { createNotification } from '../services/notificationsService';
+import { isUserBlocked } from '../services/blockingService';
 
 const router = express.Router();
 
@@ -11,17 +17,20 @@ const router = express.Router();
  */
 const getUserProfile = async (firebaseUid: string) => {
   try {
+    console.log(`🔍 Getting user profile for Firebase UID: ${firebaseUid}`);
     const userSnapshot = await db
       .collection('users')
       .where('firebaseUid', '==', firebaseUid)
       .get();
 
     if (userSnapshot.empty) {
+      console.warn(`⚠️ No user found with Firebase UID: ${firebaseUid}`);
       return null;
     }
 
     const userData = userSnapshot.docs[0].data();
     const netid = userData.netid;
+    console.log(`✅ Found user with netid: ${netid} for Firebase UID: ${firebaseUid}`);
 
     const profileSnapshot = await db
       .collection('profiles')
@@ -38,14 +47,14 @@ const getUserProfile = async (firebaseUid: string) => {
     }
 
     const profileData = profileSnapshot.docs[0].data();
-    return {
+    const profile = {
       firebaseUid,
       netid,
       name: profileData.firstName || netid,
       image: profileData.pictures?.[0] || null,
     };
   } catch (error) {
-    console.error('Error getting user profile:', error);
+    console.error('❌ Error getting user profile:', error);
     return null;
   }
 };
@@ -119,6 +128,10 @@ router.post(
       ]);
 
       if (!currentUserProfile || !otherUserProfile) {
+        console.error('❌ Cannot create conversation - missing user profile(s)', {
+          currentUserProfile: !!currentUserProfile,
+          otherUserProfile: !!otherUserProfile,
+        });
         return res.status(403).json({ error: 'Cannot create conversation' });
       }
 
@@ -237,6 +250,7 @@ router.post(
       const conversationDoc = await conversationRef.get();
 
       if (!conversationDoc.exists) {
+        console.error(`❌ Conversation ${conversationId} does not exist for user ${userId}`);
         return res
           .status(403)
           .json({ error: 'Cannot access this conversation' });
@@ -244,6 +258,9 @@ router.post(
 
       const conversationData = conversationDoc.data();
       if (!conversationData?.participantIds.includes(userId)) {
+        console.error(`❌ User ${userId} is not a participant in conversation ${conversationId}`, {
+          participantIds: conversationData?.participantIds,
+        });
         return res
           .status(403)
           .json({ error: 'Cannot access this conversation' });
@@ -270,6 +287,90 @@ router.post(
           timestamp: FieldValue.serverTimestamp(),
         },
         updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      // Send notification to recipient (async, don't block response)
+      setImmediate(async () => {
+        try {
+          // Get recipient (the other user in the conversation)
+          const recipientId = conversationData.participantIds.find(
+            (id: string) => id !== userId
+          );
+
+          if (!recipientId) {
+            console.warn('No recipient found for message notification');
+            return;
+          }
+
+          // Get sender and recipient info
+          const senderInfo = conversationData.participants[userId];
+          const recipientInfo = conversationData.participants[recipientId];
+
+          if (!senderInfo || !recipientInfo) {
+            console.warn('Missing participant info for notifications');
+            return;
+          }
+
+          const senderNetid = senderInfo.netid;
+          const recipientNetid = recipientInfo.netid;
+
+          // Check if sender is blocked by recipient
+          const blocked = await isUserBlocked(senderNetid, recipientNetid);
+          if (blocked) {
+            console.log(
+              `User ${senderNetid} is blocked by ${recipientNetid}, skipping notification`
+            );
+            return;
+          }
+
+          // Check notification preferences
+          const prefEnabled = await checkNotificationPreference(
+            recipientNetid,
+            'newMessages'
+          );
+
+          if (!prefEnabled) {
+            console.log(
+              `User ${recipientNetid} has disabled new message notifications`
+            );
+            return;
+          }
+
+          // Create in-app notification
+          await createNotification(
+            recipientNetid,
+            'new_message',
+            `${senderInfo.name} sent you a message`,
+            'Someone sent you a chat',
+            {
+              conversationId,
+              senderId: userId,
+              senderName: senderInfo.name,
+              senderNetid,
+            }
+          );
+
+          // Send push notification
+          await sendPushNotification(
+            recipientNetid,
+            `${senderInfo.name} sent you a message`,
+            'You have a new message', // Generic for privacy
+            {
+              type: 'new_message',
+              conversationId,
+              senderId: userId,
+              senderName: senderInfo.name,
+              senderNetid,
+            }
+          );
+
+          console.log(
+            `✅ Message notification sent to ${recipientNetid} from ${senderNetid}`
+          );
+        } catch (notifError) {
+          console.error('Error sending message notification:', notifError);
+          // Don't throw - notification failure shouldn't affect message delivery
+        }
       });
 
       res.status(201).json({

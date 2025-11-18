@@ -13,6 +13,7 @@ import nudgesRouter from './routes/nudges';
 import preferencesRouter from './routes/preferences';
 import profilesRouter from './routes/profiles';
 import promptsRouter from './routes/prompts';
+import pushTokensRouter from './routes/pushTokens';
 import reportsRouter from './routes/reports';
 import usersRouter from './routes/users';
 import authRouter from './routes/auth';
@@ -106,6 +107,7 @@ app.use(promptsRouter); // /api/prompts
 app.use(imagesRouter); // /api/images
 app.use(nudgesRouter); // /api/nudges
 app.use(notificationsRouter); // /api/notifications
+app.use(pushTokensRouter); // /api/users/push-token, /api/users/notification-preferences
 app.use(chatRouter); // /api/chat
 app.use(reportsRouter); // /api/reports
 app.use(adminMatchesRouter); // /api/admin/matches, /api/admin/users

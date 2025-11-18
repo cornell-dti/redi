@@ -3,12 +3,22 @@ import { GENDER_OPTIONS } from '@/types/onboarding';
 import { router } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StatusBar, StyleSheet } from 'react-native';
+import {
+  Alert,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
+import AppText from '../components/ui/AppText';
+import Checkbox from '../components/ui/Checkbox';
 import EditingHeader from '../components/ui/EditingHeader';
+import FooterSpacer from '../components/ui/FooterSpacer';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
@@ -22,6 +32,8 @@ export default function EditGenderPage() {
   const [saving, setSaving] = useState(false);
   const [selectedGender, setSelectedGender] = useState<Gender | null>(null);
   const [originalGender, setOriginalGender] = useState<Gender | null>(null);
+  const [showOnProfile, setShowOnProfile] = useState(true);
+  const [originalShowOnProfile, setOriginalShowOnProfile] = useState(true);
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
@@ -43,6 +55,9 @@ export default function EditGenderPage() {
       if (profileData) {
         setSelectedGender(profileData.gender);
         setOriginalGender(profileData.gender);
+        const showGenderValue = profileData.showGenderOnProfile ?? true;
+        setShowOnProfile(showGenderValue);
+        setOriginalShowOnProfile(showGenderValue);
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -68,9 +83,11 @@ export default function EditGenderPage() {
     try {
       await updateProfile({
         gender: selectedGender,
+        showGenderOnProfile: showOnProfile,
       });
 
       setOriginalGender(selectedGender);
+      setOriginalShowOnProfile(showOnProfile);
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
@@ -87,7 +104,10 @@ export default function EditGenderPage() {
   };
 
   const hasUnsavedChanges = () => {
-    return selectedGender !== originalGender;
+    return (
+      selectedGender !== originalGender ||
+      showOnProfile !== originalShowOnProfile
+    );
   };
 
   const handleBack = () => {
@@ -137,6 +157,24 @@ export default function EditGenderPage() {
             />
           ))}
         </ListItemWrapper>
+
+        <View style={styles.checkboxSection}>
+          <TouchableOpacity
+            style={styles.checkboxRow}
+            onPress={() => setShowOnProfile(!showOnProfile)}
+          >
+            <Checkbox
+              value={showOnProfile}
+              onValueChange={setShowOnProfile}
+              color={showOnProfile ? AppColors.accentDefault : undefined}
+            />
+            <AppText variant="body" style={styles.checkboxLabel}>
+              Show on my profile
+            </AppText>
+          </TouchableOpacity>
+        </View>
+
+        <FooterSpacer />
       </ScrollView>
 
       {/* Unsaved Changes Sheet */}
@@ -158,5 +196,18 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     padding: 16,
+  },
+  checkboxSection: {
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  checkboxRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkboxLabel: {
+    textAlign: 'center',
   },
 });

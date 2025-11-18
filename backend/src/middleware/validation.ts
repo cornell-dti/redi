@@ -98,8 +98,8 @@ export const validateProfileCreation: ValidationChain[] = [
   body('pronouns')
     .optional()
     .trim()
-    .isLength({ max: 50 })
-    .customSanitizer(sanitizeText),
+    .isIn(['He/Him/His', 'She/Her/Hers', 'They/Them/Theirs', 'Other'])
+    .withMessage('Invalid pronoun format'),
 
   body('major')
     .optional()
@@ -137,13 +137,28 @@ export const validateProfileCreation: ValidationChain[] = [
   body('instagram')
     .optional()
     .trim()
-    .matches(/^@?[A-Za-z0-9_.]+$/)
+    .customSanitizer((value: string) => {
+      if (!value) return value;
+      // Extract username from Instagram URL if provided
+      const urlMatch = value.match(/instagram\.com\/([A-Za-z0-9_.]+)/);
+      if (urlMatch) return urlMatch[1];
+      // Remove @ prefix if present
+      return value.replace(/^@/, '');
+    })
+    .matches(/^[A-Za-z0-9_.]+$/)
     .withMessage('Invalid Instagram handle')
     .isLength({ max: 30 }),
 
   body('snapchat')
     .optional()
     .trim()
+    .customSanitizer((value: string) => {
+      if (!value) return value;
+      // Extract username from Snapchat URL if provided
+      const urlMatch = value.match(/snapchat\.com\/add\/([A-Za-z0-9._-]+)/);
+      if (urlMatch) return urlMatch[1];
+      return value;
+    })
     .matches(/^[A-Za-z0-9._-]+$/)
     .withMessage('Invalid Snapchat handle')
     .isLength({ max: 30 }),
@@ -165,6 +180,13 @@ export const validateProfileCreation: ValidationChain[] = [
   body('github')
     .optional()
     .trim()
+    .customSanitizer((value: string) => {
+      if (!value) return value;
+      // Extract username from GitHub URL if provided
+      const urlMatch = value.match(/github\.com\/([A-Za-z0-9-]+)/);
+      if (urlMatch) return urlMatch[1];
+      return value;
+    })
     .matches(/^[A-Za-z0-9-]+$/)
     .withMessage('Invalid GitHub username'),
 
@@ -183,7 +205,9 @@ export const validatePromptAnswer: ValidationChain[] = [
   body('promptId')
     .trim()
     .matches(/^(TEST-W\d{2}|\d{4}-W?\d{1,2})$/)
-    .withMessage('Invalid prompt ID format (expected: YYYY-WW, YYYY-W-WW, or TEST-W##)'),
+    .withMessage(
+      'Invalid prompt ID format (expected: YYYY-WW, YYYY-W-WW, or TEST-W##)'
+    ),
 
   body('answer')
     .trim()
@@ -207,7 +231,9 @@ export const validatePreferences: ValidationChain[] = [
     .withMessage('Maximum age must be between 18 and 100')
     .custom((max, { req }) => {
       if (req.body.ageRange?.min && max < req.body.ageRange.min) {
-        throw new Error('Maximum age must be greater than or equal to minimum age');
+        throw new Error(
+          'Maximum age must be greater than or equal to minimum age'
+        );
       }
       return true;
     }),

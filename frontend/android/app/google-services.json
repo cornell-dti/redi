@@ -1,26 +1,43 @@
 {
   "project_info": {
-    "project_number": "827839734794",
-    "project_id": "redi-fb4ea",
-    "storage_bucket": "redi-fb4ea.firebasestorage.app"
+    "project_number": "272234540869",
+    "project_id": "redi-1c25e",
+    "storage_bucket": "redi-1c25e.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:827839734794:android:eee93af0ddf64d3282ebf3",
+        "mobilesdk_app_id": "1:272234540869:android:a12edbf9721ac7f3fc182c",
         "android_client_info": {
           "package_name": "com.incubator.redi"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "272234540869-847nqbb7foi8557s1msn3aegck6vs27e.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyDhbsy3A-W0TTYuRi9PRKCkMcW4wODb_JY"
+          "current_key": "AIzaSyCtl6vOVHMQ3JXqrGH_yNK_uoUaV0RqEdw"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "272234540869-847nqbb7foi8557s1msn3aegck6vs27e.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "272234540869-6okghrkn79ub3kf6urj9h2jed3nmopel.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.incubator.redi"
+              }
+            }
+          ]
         }
       }
     }

@@ -172,6 +172,7 @@ export default function EditClubsPage() {
           setNewClub('');
         }}
         title="Add Club"
+        bottomRound={false}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -183,6 +184,7 @@ export default function EditClubsPage() {
             onChangeText={setNewClub}
             autoCapitalize="words"
             autoCorrect={false}
+            autoFocus={true}
           />
           <Button
             title="Add"

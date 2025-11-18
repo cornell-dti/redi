@@ -1,6 +1,7 @@
+import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { LucideIcon } from 'lucide-react-native';
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Animated,
   Text,
@@ -10,18 +11,22 @@ import {
 } from 'react-native';
 import { AppColors } from '../AppColors';
 
+// Type for custom icons that accept size and color props
+type CustomIcon = React.ComponentType<{ size?: number; color?: string }>;
+
 interface ButtonProps {
   title: string;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'negative';
   disabled?: boolean;
-  iconLeft?: LucideIcon;
-  iconRight?: LucideIcon;
+  iconLeft?: LucideIcon | CustomIcon;
+  iconRight?: LucideIcon | CustomIcon;
   fullWidth?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
   noRound?: boolean;
   dropdown?: boolean;
+  soundEffect?: any; // Audio source from require() - e.g., require('@/assets/sounds/click.mp3')
 }
 
 export default function Button({
@@ -36,16 +41,55 @@ export default function Button({
   textStyle,
   noRound = false,
   dropdown = false,
+  soundEffect,
 }: ButtonProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isPressed, setIsPressed] = React.useState(false);
+  const soundRef = useRef<Audio.Sound | null>(null);
+
+  // Load sound effect when component mounts
+  useEffect(() => {
+    if (soundEffect) {
+      const loadSound = async () => {
+        try {
+          const { sound } = await Audio.Sound.createAsync(soundEffect);
+          soundRef.current = sound;
+        } catch (error) {
+          console.error('Error loading sound:', error);
+        }
+      };
+      loadSound();
+    }
+
+    // Cleanup: unload sound when component unmounts
+    return () => {
+      if (soundRef.current) {
+        soundRef.current.unloadAsync();
+      }
+    };
+  }, [soundEffect]);
+
+  const playSound = async () => {
+    if (soundRef.current && !disabled) {
+      try {
+        await soundRef.current.replayAsync();
+      } catch (error) {
+        console.error('Error playing sound:', error);
+      }
+    }
+  };
 
   const handlePressIn = () => {
+    if (disabled) return;
+
+    // Play sound effect
+    playSound();
+
     // Add strong haptic feedback for primary and negative variants
     if (variant === 'primary' || variant === 'negative') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } else {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
     setIsPressed(true);
@@ -151,7 +195,12 @@ export default function Button({
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View
+      style={[
+        { transform: [{ scale: scaleAnim }] },
+        fullWidth && { flex: 1, minHeight: 48 },
+      ]}
+    >
       <TouchableOpacity
         style={[getButtonStyle(), style]}
         onPress={onPress}

@@ -15,6 +15,8 @@ import {
   Animated,
   Dimensions,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -151,7 +153,7 @@ export default function CreateProfileScreen() {
       updateField('linkedIn', `https://${linkedin}`);
     }
 
-    // Normalize Instagram
+    // Normalize Instagram - extract username only
     if (data.instagram) {
       let instagram = data.instagram.trim();
       // Remove @ if present
@@ -160,13 +162,13 @@ export default function CreateProfileScreen() {
       instagram = instagram.replace(/^https?:\/\//, '');
       // Remove www. if present
       instagram = instagram.replace(/^www\./, '');
-      // Remove instagram.com/ if present (we'll add it back)
+      // Remove instagram.com/ if present
       instagram = instagram.replace(/^instagram\.com\//, '');
-      // Create the full Instagram URL
-      updateField('instagram', `https://instagram.com/${instagram}`);
+      // Store just the username (backend expects username only)
+      updateField('instagram', instagram);
     }
 
-    // Normalize Snapchat
+    // Normalize Snapchat - extract username only
     if (data.snapchat) {
       let snapchat = data.snapchat.trim();
       // Remove @ if present
@@ -175,13 +177,13 @@ export default function CreateProfileScreen() {
       snapchat = snapchat.replace(/^https?:\/\//, '');
       // Remove www. if present
       snapchat = snapchat.replace(/^www\./, '');
-      // Remove snapchat.com/add/ if present (we'll add it back)
+      // Remove snapchat.com/add/ if present
       snapchat = snapchat.replace(/^snapchat\.com\/add\//, '');
-      // Create the full Snapchat URL
-      updateField('snapchat', `https://snapchat.com/add/${snapchat}`);
+      // Store just the username (backend expects username only)
+      updateField('snapchat', snapchat);
     }
 
-    // Normalize GitHub
+    // Normalize GitHub - extract username only
     if (data.github) {
       let github = data.github.trim();
       // Remove @ if present
@@ -190,10 +192,10 @@ export default function CreateProfileScreen() {
       github = github.replace(/^https?:\/\//, '');
       // Remove www. if present
       github = github.replace(/^www\./, '');
-      // Remove github.com/ if present (we'll add it back)
+      // Remove github.com/ if present
       github = github.replace(/^github\.com\//, '');
-      // Create the full GitHub URL
-      updateField('github', `https://github.com/${github}`);
+      // Store just the username (backend expects username only)
+      updateField('github', github);
     }
 
     // Normalize Website (ensure it has https://)
@@ -230,7 +232,9 @@ export default function CreateProfileScreen() {
           setUploadingImages(false);
           Alert.alert(
             'Upload Error',
-            'Failed to upload images. Please try again.'
+            uploadError instanceof Error
+              ? uploadError.message
+              : 'Failed to upload images. Please try again.'
           );
           console.error('Image upload failed:', uploadError);
           return;
@@ -396,7 +400,7 @@ export default function CreateProfileScreen() {
           <View style={styles.stepContainer}>
             <OnboardingTitle
               title="What pronouns do you use?"
-              subtitle="Select all that describe you to help us show your profile to the right people"
+              subtitle="Select the pronouns that best describe you"
             />
 
             <ListItemWrapper>
@@ -404,10 +408,10 @@ export default function CreateProfileScreen() {
                 <ListItem
                   key={pronoun}
                   title={pronoun}
-                  selected={data.pronouns.includes(pronoun)}
-                  onPress={() => toggleArrayItem('pronouns', pronoun)}
+                  selected={data.pronouns === pronoun}
+                  onPress={() => updateField('pronouns', pronoun)}
                   right={
-                    data.pronouns.includes(pronoun) ? (
+                    data.pronouns === pronoun ? (
                       <Check size={20} color={AppColors.accentDefault} />
                     ) : null
                   }
@@ -425,6 +429,7 @@ export default function CreateProfileScreen() {
               placeholder="E.g. New York City"
               value={data.hometown}
               onChangeText={(text) => updateField('hometown', text)}
+              autoCapitalize="words"
             />
           </View>
         );
@@ -478,6 +483,9 @@ export default function CreateProfileScreen() {
                     title={school}
                     selected={data.school === school}
                     onPress={() => {
+                      if (data.school !== school) {
+                        updateField('major', []);
+                      }
                       updateField('school', school);
                       setShowSchoolSheet(false);
                     }}
@@ -567,19 +575,53 @@ export default function CreateProfileScreen() {
               subtitle="Optional - this helps you connect with people who share similar cultural backgrounds."
             />
             <ListItemWrapper>
-              {ETHNICITY_OPTIONS.map((ethnicity) => (
-                <ListItem
-                  key={ethnicity}
-                  title={ethnicity}
-                  selected={data.ethnicity?.includes(ethnicity)}
-                  onPress={() => toggleArrayItem('ethnicity', ethnicity)}
-                  right={
-                    data.ethnicity?.includes(ethnicity) ? (
-                      <Check size={20} color={AppColors.accentDefault} />
-                    ) : null
-                  }
-                />
-              ))}
+              {ETHNICITY_OPTIONS.map((ethnicity) => {
+                const isPreferNotToSay = ethnicity === 'Prefer not to say';
+                const hasPreferNotToSay =
+                  data.ethnicity?.includes('Prefer not to say');
+                const hasOtherEthnicity =
+                  data.ethnicity &&
+                  data.ethnicity.some((e) => e !== 'Prefer not to say');
+
+                // Disable "Prefer not to say" if other ethnicities are selected
+                // Disable other ethnicities if "Prefer not to say" is selected
+                const isDisabled = isPreferNotToSay
+                  ? hasOtherEthnicity
+                  : hasPreferNotToSay;
+
+                return (
+                  <ListItem
+                    key={ethnicity}
+                    title={ethnicity}
+                    selected={data.ethnicity?.includes(ethnicity)}
+                    disabled={isDisabled}
+                    onPress={() => {
+                      if (isPreferNotToSay) {
+                        // If clicking "Prefer not to say", toggle it exclusively
+                        if (hasPreferNotToSay) {
+                          // Already selected, unselect it
+                          updateField('ethnicity', []);
+                        } else {
+                          // Not selected, set it exclusively
+                          updateField('ethnicity', ['Prefer not to say']);
+                        }
+                      } else {
+                        // If clicking other ethnicity and "Prefer not to say" is selected, remove it first
+                        if (hasPreferNotToSay) {
+                          updateField('ethnicity', [ethnicity]);
+                        } else {
+                          toggleArrayItem('ethnicity', ethnicity);
+                        }
+                      }
+                    }}
+                    right={
+                      data.ethnicity?.includes(ethnicity) ? (
+                        <Check size={20} color={AppColors.accentDefault} />
+                      ) : null
+                    }
+                  />
+                );
+              })}
             </ListItemWrapper>
           </View>
         );
@@ -618,25 +660,6 @@ export default function CreateProfileScreen() {
               onPhotosChange={(photos) => updateField('pictures', photos)}
               minPhotos={3}
               maxPhotos={6}
-            />
-            {/* Temporary skip button for testing */}
-            <Button
-              title="Skip Photos (Testing Only)"
-              onPress={() => {
-                // Add placeholder photos for testing
-                const placeholderPhotos = [
-                  'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
-                  'https://media.licdn.com/dms/image/v2/D4E03AQHIyGmXArUgLQ/profile-displayphoto-shrink_200_200/B4EZSMgrNeGwAY-/0/1737524163741?e=2147483647&v=beta&t=nb1U9gqxgOz9Jzf0bAnUY5wk5R9v_nn9AsgdhYbbpbk',
-                  'https://media.licdn.com/dms/image/v2/D4E03AQEppsomLWUZgA/profile-displayphoto-scale_200_200/B4EZkMKRSMIUAA-/0/1756845653823?e=2147483647&v=beta&t=oANMmUogYztIXt7p1pB11qv-Qwh0IHYmFMZIdl9CFZE',
-                ];
-                updateField('pictures', placeholderPhotos);
-                Alert.alert(
-                  'Photos Skipped',
-                  'Placeholder photos added for testing',
-                  [{ text: 'OK', onPress: () => setCurrentStep(12) }]
-                );
-              }}
-              variant="secondary"
             />
           </View>
         );
@@ -705,6 +728,7 @@ export default function CreateProfileScreen() {
                 setClubInput('');
               }}
               title="Add club"
+              bottomRound={false}
             >
               <View style={styles.majorSheetContent}>
                 <AppInput
@@ -803,6 +827,7 @@ export default function CreateProfileScreen() {
                 setInterestInput('');
               }}
               title="Add interest"
+              bottomRound={false}
             >
               <View style={styles.majorSheetContent}>
                 <AppInput
@@ -828,7 +853,9 @@ export default function CreateProfileScreen() {
       case 16:
         return (
           <View style={styles.stepContainer}>
-            <AppText variant="title">Welcome, {data.firstName}!</AppText>
+            <AppText variant="title" style={{ textAlign: 'center' }}>
+              And now, {data.firstName}, you're redi!
+            </AppText>
             <View style={styles.welcomeContainer}>
               {data.pictures[0] && (
                 <Image
@@ -837,7 +864,7 @@ export default function CreateProfileScreen() {
                 />
               )}
               <AppText variant="body" style={styles.welcomeText}>
-                Matches drop every Friday at 9:00 AM. Send a nudge to show
+                Matches drop every Friday at 12:00 AM. Send a nudge to show
                 interest, and if they nudge back, you&apos;ll unlock chat!
               </AppText>
             </View>
@@ -905,9 +932,18 @@ export default function CreateProfileScreen() {
           opacity: fadeAnim,
         }}
       >
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {renderStep()}
-        </ScrollView>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <ScrollView
+            style={styles.content}
+            contentContainerStyle={{ paddingBottom: 200 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {renderStep()}
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Animated.View>
 
       <OnboardingFooter
@@ -918,6 +954,7 @@ export default function CreateProfileScreen() {
         checkboxLabel={getCheckboxLabel()}
         checkboxChecked={getCheckboxValue()}
         onCheckboxChange={handleCheckboxChange}
+        loading={uploadingImages || isSubmitting}
       />
     </SafeAreaView>
   );
@@ -932,6 +969,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stepContainer: {
+    justifyContent: 'center',
     padding: 20,
     gap: 20,
   },
@@ -960,7 +998,7 @@ const styles = StyleSheet.create({
   majorSheetContent: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '24',
+    gap: 24,
   },
   promptsContainer: {
     gap: 16,

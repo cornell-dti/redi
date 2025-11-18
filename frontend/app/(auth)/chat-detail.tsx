@@ -23,6 +23,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
@@ -71,29 +72,35 @@ export default function ChatDetailScreen() {
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [blocking, setBlocking] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const {
     conversationId: routeConversationId,
-    userId,
-    name,
+    userId: routeUserId,
+    name: routeName,
     netid: routeNetid,
   } = useLocalSearchParams();
 
   // Ensure params are strings, not arrays
   const netid = Array.isArray(routeNetid) ? routeNetid[0] : routeNetid;
+  const userId = Array.isArray(routeUserId) ? routeUserId[0] : routeUserId;
+  const name = Array.isArray(routeName) ? routeName[0] : routeName;
+  const initialConversationId = Array.isArray(routeConversationId)
+    ? routeConversationId[0]
+    : routeConversationId;
 
   // Debug logging
   useEffect(() => {
     console.log('Chat detail params:', {
-      conversationId: routeConversationId,
+      conversationId: initialConversationId,
       userId,
       name,
       netid,
     });
-  }, [routeConversationId, userId, name, netid]);
+  }, [initialConversationId, userId, name, netid]);
 
   const [conversationId, setConversationId] = useState<string | null>(
-    (routeConversationId as string) || null
+    initialConversationId || null
   );
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -104,6 +111,23 @@ export default function ChatDetailScreen() {
   const sendButtonAnim = useRef(new Animated.Value(0)).current;
 
   const { messages: firebaseMessages, loading } = useMessages(conversationId);
+
+  // Track keyboard visibility
+  useEffect(() => {
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setKeyboardVisible(true)
+    );
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
+    };
+  }, []);
 
   // Animate send button in/out based on message input
   useEffect(() => {
@@ -667,7 +691,9 @@ export default function ChatDetailScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.inputContainer}
       >
-        <View style={styles.inputRow}>
+        <View
+          style={[styles.inputRow, { marginBottom: keyboardVisible ? 20 : 8 }]}
+        >
           <AppInput
             value={newMessage}
             onChangeText={setNewMessage}
@@ -678,6 +704,8 @@ export default function ChatDetailScreen() {
             style={styles.messageInput}
             onSubmitEditing={sendMessage}
             returnKeyType="send"
+            blurOnSubmit={true}
+            forceMinHeight
           />
 
           <Animated.View
@@ -716,7 +744,10 @@ export default function ChatDetailScreen() {
               onPress={sendMessage}
               disabled={sending}
               icon={Send}
-              style={styles.sendButton}
+              style={{
+                ...styles.sendButton,
+                top: keyboardVisible ? 3 : 25,
+              }}
             />
           </Animated.View>
         </View>
@@ -784,8 +815,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 16,
     paddingBottom: 48,
-    marginBottom: 8,
     flex: 1,
+    minHeight: 56,
     gap: 8,
   },
   textInputContainer: {
@@ -793,7 +824,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messageInput: {
-    height: 54,
+    minHeight: 54,
     paddingTop: 17,
     paddingLeft: 20,
     paddingRight: 64,
@@ -808,7 +839,6 @@ const styles = StyleSheet.create({
   sendButton: {
     width: 50,
     height: 50,
-    top: 25,
   },
   sendButtonActive: {
     backgroundColor: AppColors.accentDefault,

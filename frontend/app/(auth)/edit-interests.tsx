@@ -172,6 +172,7 @@ export default function EditInterestsPage() {
           setNewInterest('');
         }}
         title="Add interest"
+        bottomRound={false}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -183,6 +184,7 @@ export default function EditInterestsPage() {
             onChangeText={setNewInterest}
             autoCapitalize="words"
             autoCorrect={false}
+            autoFocus={true}
           />
           <Button
             title="Add"

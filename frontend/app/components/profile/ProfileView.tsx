@@ -1,5 +1,5 @@
 import AppText from '@/app/components/ui/AppText';
-import { ProfileResponse, getProfileAge } from '@/types';
+import { getProfileAge, ProfileResponse, WeeklyPromptResponse } from '@/types';
 import {
   Bell,
   Cake,
@@ -11,8 +11,9 @@ import {
   Magnet,
   MessageCircle,
 } from 'lucide-react-native';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
+  Animated,
   Dimensions,
   Image,
   Linking,
@@ -40,6 +41,9 @@ interface ProfileViewProps {
   nudgeDisabled?: boolean;
   showOpenChatButton?: boolean;
   onOpenChat?: () => void;
+  weeklyPrompt?: WeeklyPromptResponse | null;
+  weeklyPromptAnswer?: string;
+  onEditWeeklyPrompt?: () => void;
 }
 
 const ProfileView: React.FC<ProfileViewProps> = ({
@@ -50,10 +54,18 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   nudgeDisabled = false,
   showOpenChatButton = false,
   onOpenChat,
+  weeklyPrompt,
+  weeklyPromptAnswer,
+  onEditWeeklyPrompt,
 }) => {
   const screenWidth = Dimensions.get('window').width;
   const age = getProfileAge(profile);
   const [activeImageIndex, setActiveImageIndex] = React.useState(0);
+
+  // Create animated values for each pagination dot
+  const dotAnimations = useRef(
+    (profile.pictures || []).map(() => new Animated.Value(0))
+  ).current;
 
   type SocialItem = {
     icon: React.ReactNode;
@@ -126,6 +138,18 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     setActiveImageIndex(index);
   };
 
+  // Animate dots when active index changes
+  useEffect(() => {
+    dotAnimations.forEach((animation, index) => {
+      Animated.spring(animation, {
+        toValue: index === activeImageIndex ? 1 : 0,
+        useNativeDriver: false,
+        friction: 8,
+        tension: 80,
+      }).start();
+    });
+  }, [activeImageIndex]);
+
   return (
     <ScrollView style={styles.container}>
       {/* Image carousel */}
@@ -152,22 +176,44 @@ const ProfileView: React.FC<ProfileViewProps> = ({
           {/* Pagination dots */}
           {profile.pictures.length > 1 && (
             <View style={styles.paginationContainer}>
-              {profile.pictures.map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.paginationDot,
-                    index === activeImageIndex && styles.paginationDotActive,
-                  ]}
-                />
-              ))}
+              {profile.pictures.map((_, index) => {
+                const animation = dotAnimations[index];
+                const width = animation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [8, 20],
+                });
+                const height = animation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [8, 10],
+                });
+                const opacity = animation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.5, 1],
+                });
+
+                return (
+                  <Animated.View
+                    key={index}
+                    style={[
+                      styles.paginationDot,
+                      {
+                        width,
+                        height,
+                        opacity,
+                      },
+                    ]}
+                  />
+                );
+              })}
             </View>
           )}
         </View>
       )}
 
       <View style={styles.contentContainer}>
-        <AppText variant="title">{profile.firstName}</AppText>
+        <AppText variant="title" indented style={{ marginBottom: -32 }}>
+          {profile.firstName}
+        </AppText>
 
         <View style={styles.buttonCont}>
           {showNudgeButton && (
@@ -317,6 +363,21 @@ const ProfileView: React.FC<ProfileViewProps> = ({
             </View>
           </View>
         )}
+
+        {weeklyPrompt && weeklyPromptAnswer && (
+          <View style={styles.section}>
+            <AppText variant="subtitle" indented>
+              Weekly Prompt
+            </AppText>
+
+            <ListItemWrapper>
+              <View style={styles.promptQuestion}>
+                <AppText color="dimmer">{weeklyPrompt.question}</AppText>
+                <AppText variant="subtitle">{weeklyPromptAnswer}</AppText>
+              </View>
+            </ListItemWrapper>
+          </View>
+        )}
       </View>
 
       <FooterSpacer />
@@ -345,7 +406,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     flex: 1,
-    width: '55%',
     gap: 16,
   },
   section: {
@@ -427,16 +487,20 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   paginationDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-  },
-  paginationDotActive: {
-    backgroundColor: 'rgba(255, 255, 255, 1)',
-    width: 10,
-    height: 10,
     borderRadius: 5,
+    backgroundColor: 'rgba(255, 255, 255, 1)',
+  },
+  promptQuestion: {
+    padding: 16,
+    gap: 8,
+    borderRadius: 4,
+    backgroundColor: AppColors.backgroundDimmer,
+  },
+  answerCard: {
+    backgroundColor: AppColors.backgroundDimmer,
+    borderRadius: 4,
+    padding: 16,
+    gap: 8,
   },
 });
 

@@ -57,9 +57,7 @@ export default function Tag({
           </>
         )}
 
-        <AppText numberOfLines={1} style={{ color: textColor }}>
-          {label}
-        </AppText>
+        <AppText style={{ color: textColor, flexShrink: 1 }}>{label}</AppText>
       </View>
 
       {dismissible && (
@@ -81,8 +79,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 128,
-    height: 48,
+    minHeight: 48,
     overflow: 'hidden',
+    maxWidth: '100%',
+    paddingVertical: 8,
   },
   left: {
     display: 'flex',
@@ -90,6 +90,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     gap: 6,
+    flexShrink: 1,
   },
   iconWrapper: {
     alignItems: 'center',

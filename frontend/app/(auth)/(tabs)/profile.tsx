@@ -6,6 +6,7 @@ import FooterSpacer from '@/app/components/ui/FooterSpacer';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
+import Pressable from '@/app/components/ui/Pressable';
 import Sheet from '@/app/components/ui/Sheet';
 import SignOutSheet from '@/app/components/ui/SignOutSheet';
 import { ProfileResponse } from '@/types';
@@ -28,7 +29,7 @@ import {
   Star,
   StarIcon,
 } from 'lucide-react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Alert,
   Image,
@@ -184,7 +185,12 @@ export default function ProfileScreen() {
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.profileTop}>
-          <Image source={{ uri: displayImages[0] }} style={styles.profilePic} />
+          <Pressable onPress={() => router.push('/edit-profile' as any)}>
+            <Image
+              source={{ uri: displayImages[0] }}
+              style={styles.profilePic}
+            />
+          </Pressable>
 
           <View style={styles.nameContainer}>
             <AppText variant="title">{displayName}</AppText>
@@ -206,7 +212,7 @@ export default function ProfileScreen() {
             <Button
               iconLeft={Eye}
               variant="secondary"
-              title="Preview profile"
+              title="Preview Profile"
               onPress={() => router.push('/profile-preview' as any)}
               fullWidth
             />
@@ -386,7 +392,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     gap: 16,
-    maxWidth: '53%',
   },
   sheetContent: {
     display: 'flex',

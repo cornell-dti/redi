@@ -1,7 +1,8 @@
+import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Star, X } from 'lucide-react-native';
 import React from 'react';
-import { Alert, Image, StyleSheet, View } from 'react-native';
+import { Alert, Dimensions, Image, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppText from '../ui/AppText';
 import IconButton from '../ui/IconButton';
@@ -14,6 +15,12 @@ interface PhotoUploadGridProps {
   minPhotos?: number;
   maxPhotos?: number;
 }
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const GRID_GAP = 4;
+const GRID_PADDING = 0; // Adjust if you want padding around the grid
+const GRID_SLOT_SIZE =
+  (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * 2) / 3 - 14;
 
 export default function PhotoUploadGrid({
   photos,
@@ -33,20 +40,83 @@ export default function PhotoUploadGrid({
     return true;
   };
 
+  const compressImageIfNeeded = async (
+    uri: string,
+    fileSize?: number
+  ): Promise<string> => {
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB in bytes
+
+    if (!fileSize || fileSize <= MAX_FILE_SIZE) {
+      return uri;
+    }
+
+    let quality = 0.7;
+    let compressedUri = uri;
+
+    try {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        // I think this method call is deprecated, but I cannot find the updated API for it. 
+        const result = await ImageManipulator.manipulateAsync(
+          compressedUri,
+          [],
+          {
+            compress: quality,
+            format: ImageManipulator.SaveFormat.JPEG,
+          }
+        );
+
+        const response = await fetch(result.uri);
+        const blob = await response.blob();
+
+        if (blob.size <= MAX_FILE_SIZE) {
+          return result.uri;
+        }
+
+        compressedUri = result.uri;
+        quality -= 0.2;
+      }
+
+      return compressedUri;
+    } catch (error) {
+      console.error('Error compressing image:', error);
+
+      // Return original if compression fails (possibly change here?)
+      return uri;
+    }
+  };
+
   const pickImage = async () => {
     const hasPermission = await requestPermission();
     if (!hasPermission) return;
 
+    // Calculate how many more photos can be added
+    const remainingSlots = maxPhotos - photos.length;
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
+      allowsEditing: false,
+      allowsMultipleSelection: true,
       quality: 0.8,
+      selectionLimit: remainingSlots,
     });
 
-    if (!result.canceled && result.assets[0]) {
-      const newPhotos = [...photos, result.assets[0].uri];
+    if (!result.canceled && result.assets.length > 0) {
+      // Compress images if needed
+      const processedUris = await Promise.all(
+        result.assets.map(async (asset) => {
+          return await compressImageIfNeeded(asset.uri, asset.fileSize);
+        })
+      );
+
+      const newPhotos = [...photos, ...processedUris].slice(0, maxPhotos);
       onPhotosChange(newPhotos);
+
+      if (processedUris.length > remainingSlots) {
+        Alert.alert(
+          'Too Many Photos',
+          `You can only add ${remainingSlots} more photo${remainingSlots === 1 ? '' : 's'}.`
+        );
+      }
     }
   };
 
@@ -149,14 +219,13 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
+    gap: GRID_GAP,
     borderRadius: 24,
     overflow: 'hidden',
   },
   gridSlot: {
-    width: '32.5%',
-    height: 120,
-    aspectRatio: 1,
+    width: GRID_SLOT_SIZE,
+    height: GRID_SLOT_SIZE,
     borderRadius: 4,
     overflow: 'hidden',
     position: 'relative',

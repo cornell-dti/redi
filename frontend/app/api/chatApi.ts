@@ -161,12 +161,13 @@ export const sendMessage = async (
 
     if (!response.ok) {
       const errorData = await response.json();
+      console.error(`❌ Failed to send message (${response.status}):`, errorData);
       throw new Error(errorData.error || 'Failed to send message');
     }
 
-    return await response.json();
+    const result = await response.json();
   } catch (error) {
-    console.error('Error sending message:', error);
+    console.error('❌ Error sending message:', error);
     throw error;
   }
 };

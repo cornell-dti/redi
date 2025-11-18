@@ -73,6 +73,7 @@ export default function WeeklyMatchCard({
             variant="primary"
             iconLeft={nudgeSent ? Check : Bell}
             fullWidth
+            disabled={nudgeSent || nudgeDisabled}
           />
           <Button
             title="View Profile"
@@ -107,6 +108,7 @@ export default function WeeklyMatchCard({
                 iconLeft={Bell}
                 fullWidth
                 disabled={isSending}
+                soundEffect={require('@/assets/sounds/nudge.mp3')}
               />
             )}
             <Button
@@ -142,6 +144,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     zIndex: 5,
     gap: 16,
+    flex: 1,
+    width: '100%',
   },
   name: {
     marginBottom: 4,
@@ -152,7 +156,8 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     gap: 16,
-    width: '50%',
+    flex: 1,
+    // width: '50%',
   },
   text: {
     gap: 4,

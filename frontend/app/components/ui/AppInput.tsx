@@ -17,7 +17,10 @@ interface AppInputProps extends TextInputProps {
   noRound?: boolean;
   variant?: 'gray' | 'white';
   fullRound?: boolean;
-  dateFormat?: boolean; // Automatically format as MM/DD/YYYY
+  dateFormat?: boolean; // Automatically format as MM/DD/YYYY or MM/DD/YY
+  bottomBorderRound?: boolean;
+  disabled?: boolean;
+  forceMinHeight?: boolean;
 }
 
 const AppInput: React.FC<AppInputProps> = ({
@@ -29,17 +32,38 @@ const AppInput: React.FC<AppInputProps> = ({
   variant,
   fullRound,
   dateFormat,
+  bottomBorderRound,
+  disabled = false,
+  forceMinHeight = false,
   ...props
 }) => {
   const borderColorAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const previousValueRef = useRef('');
 
-  // Format date input as MM/DD/YYYY
-  const formatDateInput = (text: string): string => {
+  // Format date input as MM/DD/YYYY or MM/DD/YY (supports both 2 and 4 digit years)
+  const formatDateInput = (text: string, isDeleting: boolean): string => {
     // Remove all non-numeric characters
     const cleaned = text.replace(/\D/g, '');
 
-    // Add slashes at appropriate positions
+    // If deleting, don't auto-add slashes - just format what's there
+    if (isDeleting) {
+      let formatted = cleaned;
+      if (cleaned.length > 2) {
+        formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+      }
+      if (cleaned.length > 4) {
+        formatted =
+          cleaned.slice(0, 2) +
+          '/' +
+          cleaned.slice(2, 4) +
+          '/' +
+          cleaned.slice(4, 8);
+      }
+      return formatted;
+    }
+
+    // When adding, auto-add slashes at appropriate positions
     let formatted = cleaned;
     if (cleaned.length >= 2) {
       formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
@@ -58,7 +82,12 @@ const AppInput: React.FC<AppInputProps> = ({
 
   const handleDateChange = (text: string) => {
     if (dateFormat && props.onChangeText) {
-      const formatted = formatDateInput(text);
+      const previousCleaned = previousValueRef.current.replace(/\D/g, '');
+      const currentCleaned = text.replace(/\D/g, '');
+      const isDeleting = currentCleaned.length < previousCleaned.length;
+
+      const formatted = formatDateInput(text, isDeleting);
+      previousValueRef.current = formatted;
       props.onChangeText(formatted);
     }
   };
@@ -69,6 +98,7 @@ const AppInput: React.FC<AppInputProps> = ({
   });
 
   const handlePressIn = () => {
+    if (disabled) return;
     Animated.spring(scaleAnim, {
       toValue: 0.97,
       useNativeDriver: true,
@@ -76,6 +106,7 @@ const AppInput: React.FC<AppInputProps> = ({
   };
 
   const handlePressOut = () => {
+    if (disabled) return;
     Animated.spring(scaleAnim, {
       toValue: 1,
       useNativeDriver: true,
@@ -83,6 +114,7 @@ const AppInput: React.FC<AppInputProps> = ({
   };
 
   const handleFocus = (e: any) => {
+    if (disabled) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
     Animated.timing(borderColorAnim, {
       toValue: 1,
@@ -93,6 +125,7 @@ const AppInput: React.FC<AppInputProps> = ({
   };
 
   const handleBlur = (e: any) => {
+    if (disabled) return;
     Animated.timing(borderColorAnim, {
       toValue: 0,
       duration: 120,
@@ -119,9 +152,17 @@ const AppInput: React.FC<AppInputProps> = ({
                 variant === 'white'
                   ? AppColors.backgroundDefault
                   : AppColors.backgroundDimmer,
+              minHeight: forceMinHeight ? 56 : null,
             },
             noRound && { borderRadius: 6 },
             fullRound && { borderRadius: 32 },
+            bottomBorderRound && {
+              borderTopLeftRadius: 6,
+              borderTopRightRadius: 6,
+              borderBottomLeftRadius: 24,
+              borderBottomRightRadius: 24,
+            },
+            disabled && { opacity: 0.5 },
           ]}
         >
           <TextInput
@@ -131,10 +172,12 @@ const AppInput: React.FC<AppInputProps> = ({
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
             {...props}
+            editable={!disabled}
             keyboardType={dateFormat ? 'number-pad' : props.keyboardType}
             maxLength={dateFormat ? 10 : props.maxLength}
             onChangeText={dateFormat ? handleDateChange : props.onChangeText}
             multiline={props.multiline || false}
+            placeholderTextColor={AppColors.foregroundDimmer}
           />
         </Animated.View>
       </Animated.View>

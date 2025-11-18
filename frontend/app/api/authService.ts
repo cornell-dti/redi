@@ -1,14 +1,13 @@
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
-import * as AuthSession from 'expo-auth-session';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Linking from 'expo-linking';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { FirebaseError } from 'firebase/app';
 import { createUserInBackend, loginUserInBackend } from './userApi';
-import { API_BASE_URL } from '../../constants/constants';
 
-// Type for Firebase errors (compatible with both Web and RN Firebase)
-interface FirebaseError extends Error {
-  code: string;
-}
+// Configure Google Sign-In
+GoogleSignin.configure({
+  webClientId: '272234540869-847nqbb7foi8557s1msn3aegck6vs27e.apps.googleusercontent.com',
+  iosClientId: '272234540869-6okghrkn79ub3kf6urj9h2jed3nmopel.apps.googleusercontent.com',
+});
 
 export const validateCornellEmail = (email: string): boolean => {
   const cornellEmailRegex = /^[a-zA-Z0-9]+@cornell\.edu$/;
@@ -118,72 +117,77 @@ export const signInUser = async (
 };
 
 /**
- * Signs in a user with Google OAuth
- * @param clientId - Google OAuth client ID
- * @param redirectScheme - App redirect scheme for OAuth
+ * Signs in a user with Google OAuth using native Google Sign-In
  * @throws Error with user-friendly message if Google sign in fails
  */
-export const signInWithGoogle = async (
-  clientId: string,
-  redirectScheme: string
-): Promise<void> => {
+export const signInWithGoogle = async (): Promise<void> => {
   try {
-    const request = new AuthSession.AuthRequest({
-      clientId,
-      scopes: ['openid', 'profile', 'email'],
-      redirectUri: AuthSession.makeRedirectUri({
-        scheme: redirectScheme,
-      }),
-      responseType: AuthSession.ResponseType.IdToken,
-    });
+    // Check if device supports Google Play services (Android)
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
 
-    const result = await request.promptAsync({
-      authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
-    });
+    // Sign in with Google
+    const userInfo = await GoogleSignin.signIn();
 
-    if (result.type === 'success') {
-      const { id_token } = result.params;
+    // Get the ID token and email
+    const idToken = userInfo.data?.idToken;
+    const email = userInfo.data?.user?.email;
 
-      // Create a Google credential with the token
-      const googleCredential = auth.GoogleAuthProvider.credential(id_token);
+    if (!idToken) {
+      throw new Error('Failed to get Google ID token');
+    }
 
-      // Sign-in the user with the credential
-      const userCredential =
-        await auth().signInWithCredential(googleCredential);
-      const firebaseUser = userCredential.user;
+    if (!email) {
+      await GoogleSignin.signOut();
+      throw new Error('Failed to get email from Google account');
+    }
 
-      if (firebaseUser && firebaseUser.email) {
-        // Validate Cornell email
-        if (!validateCornellEmail(firebaseUser.email)) {
-          // Sign out the user if they don't have a Cornell email
-          await auth().signOut();
-          throw new Error(
-            'Please use your Cornell email address (@cornell.edu)'
-          );
-        }
+    // Validate Cornell email BEFORE signing in to Firebase
+    // This prevents the auth state listener from being triggered with an invalid user
+    if (!validateCornellEmail(email)) {
+      await GoogleSignin.signOut();
+      throw new Error(
+        'Please use your Cornell email address (@cornell.edu)'
+      );
+    }
 
-        // Try to login first, if user doesn't exist, create them
+    // Create a Google credential with the token
+    const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+
+    // Sign-in the user with the credential
+    const userCredential = await auth().signInWithCredential(googleCredential);
+    const firebaseUser = userCredential.user;
+
+    if (firebaseUser && firebaseUser.email) {
+      // Try to login first, if user doesn't exist, create them
+      try {
+        await loginUserInBackend(firebaseUser.email);
+      } catch (loginError) {
+        // If login fails, try to create the user
         try {
-          await loginUserInBackend(firebaseUser.email);
-        } catch (loginError) {
-          // If login fails, try to create the user
-          try {
-            await createUserInBackend(firebaseUser.email);
-          } catch (createError) {
-            console.error('Failed to create user:', createError);
-            await auth().signOut();
-            throw new Error('Failed to create user account. Please try again.');
-          }
+          await createUserInBackend(firebaseUser.email);
+        } catch (createError) {
+          console.error('Failed to create user:', createError);
+          await auth().signOut();
+          await GoogleSignin.signOut();
+          throw new Error('Failed to create user account. Please try again.');
         }
       }
-    } else if (result.type === 'cancel') {
-      throw new Error('Sign in was cancelled');
     }
-  } catch (error) {
+  } catch (error: any) {
+    // Handle specific Google Sign-In errors
+    if (error.code === 'SIGN_IN_CANCELLED') {
+      throw new Error('Sign in was cancelled');
+    } else if (error.code === 'IN_PROGRESS') {
+      throw new Error('Sign in already in progress');
+    } else if (error.code === 'PLAY_SERVICES_NOT_AVAILABLE') {
+      throw new Error('Google Play Services not available');
+    }
+
     // If it's already our custom error, don't wrap it
     if (error instanceof Error) {
       throw error;
     }
+
     console.log('Google Sign-In Error:', error);
     throw new Error('Google Sign-In failed. Please try again.');
   }
@@ -195,10 +199,23 @@ export const signInWithGoogle = async (
  */
 export const signOutUser = async (): Promise<void> => {
   try {
+    // Sign out from Firebase first
     await auth().signOut();
+    console.log('Firebase sign-out successful');
   } catch (error) {
-    console.error('Sign out error:', error);
-    throw new Error('Failed to sign out. Please try again.');
+    console.error('Firebase sign out error:', error);
+    throw new Error('Failed to sign out from Firebase. Please try again.');
+  }
+
+  // Attempt to sign out from Google (don't fail if this errors)
+  try {
+    // Some versions of the GoogleSignin typings don't expose isSignedIn(),
+    // so attempt to sign out directly and ignore failures.
+    await GoogleSignin.signOut();
+    console.log('Google sign-out successful');
+  } catch (error) {
+    // Log the error but don't throw - Firebase sign-out already succeeded
+    console.warn('Google sign-out error (non-critical):', error);
   }
 };
 
@@ -220,127 +237,3 @@ export const onAuthStateChanged = (
 ) => {
   return auth().onAuthStateChanged(callback);
 };
-
-// ============================================
-// PASSWORDLESS EMAIL LINK AUTHENTICATION
-// ============================================
-
-const EMAIL_FOR_SIGN_IN_KEY = '@emailForSignIn';
-
-/**
- * Sends a passwordless sign-in link to the user's email
- * @param email - Cornell email address
- * @throws Error if sending the link fails
- */
-export const sendPasswordlessSignInLink = async (
-  email: string
-): Promise<void> => {
-  // Validate Cornell email before proceeding
-  if (!validateCornellEmail(email)) {
-    throw new Error('Please use your Cornell email address (@cornell.edu)');
-  }
-
-  try {
-    // Call our backend to generate Firebase link and send email
-    const response = await fetch(`${API_BASE_URL}/api/auth/send-signin-link`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to send sign-in link');
-    }
-
-    // Save the email locally to complete sign-in later
-    await AsyncStorage.setItem(EMAIL_FOR_SIGN_IN_KEY, email);
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
-    throw new Error('Failed to send sign-in link. Please try again.');
-  }
-};
-
-/**
- * Completes the passwordless sign-in flow using the email link
- * @param emailLink - The email link received by the user
- * @param email - Optional email (if not provided, retrieves from storage)
- * @throws Error if sign-in fails
- */
-export const signInWithEmailLink = async (
-  emailLink: string,
-  email?: string
-): Promise<void> => {
-  try {
-    // Check if the link is a valid sign-in link using React Native Firebase
-    const isEmailLink = await auth().isSignInWithEmailLink(emailLink);
-    if (!isEmailLink) {
-      throw new Error('Invalid sign-in link.');
-    }
-
-    // Get email from parameter or storage
-    let emailForSignIn = email;
-    if (!emailForSignIn) {
-      const storedEmail = await AsyncStorage.getItem(EMAIL_FOR_SIGN_IN_KEY);
-      emailForSignIn = storedEmail || undefined;
-    }
-
-    if (!emailForSignIn) {
-      throw new Error(
-        'Please provide your email to complete sign-in.'
-      );
-    }
-
-    // Validate Cornell email
-    if (!validateCornellEmail(emailForSignIn)) {
-      throw new Error('Please use your Cornell email address (@cornell.edu)');
-    }
-
-    // Sign in with the email link using React Native Firebase
-    const userCredential = await auth().signInWithEmailLink(
-      emailForSignIn,
-      emailLink
-    );
-    const firebaseUser = userCredential.user;
-
-    if (firebaseUser && firebaseUser.email) {
-      // Clear the stored email
-      await AsyncStorage.removeItem(EMAIL_FOR_SIGN_IN_KEY);
-
-      // Try to login first, if user doesn't exist, create them
-      try {
-        await loginUserInBackend(firebaseUser.email);
-      } catch (loginError) {
-        // If login fails, try to create the user
-        try {
-          await createUserInBackend(firebaseUser.email);
-        } catch (createError) {
-          console.error('Failed to create user:', createError);
-          await auth().signOut();
-          throw new Error('Failed to create user account. Please try again.');
-        }
-      }
-    }
-  } catch (error) {
-    // If it's already our custom error, don't wrap it
-    if (error instanceof Error) {
-      throw error;
-    }
-
-    const err = error as FirebaseError;
-
-    // Handle specific Firebase errors
-    if (err.code === 'auth/invalid-action-code') {
-      throw new Error('This sign-in link has expired or already been used.');
-    } else if (err.code === 'auth/invalid-email') {
-      throw new Error('Please enter a valid email address.');
-    } else {
-      throw new Error(err.message || 'Sign-in failed. Please try again.');
-    }
-  }
-};
-

@@ -1,17 +1,27 @@
 import { getCurrentUser } from '@/app/api/authService';
 import { getCurrentUserProfile } from '@/app/api/profileApi';
+import {
+  getActivePrompt,
+  getPromptAnswer,
+  submitPromptAnswer,
+} from '@/app/api/promptsApi';
 import { AppColors } from '@/app/components/AppColors';
 import ProfileView from '@/app/components/profile/ProfileView';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
-import { ProfileResponse } from '@/types';
+import {
+  ProfileResponse,
+  WeeklyPromptAnswerResponse,
+  WeeklyPromptResponse,
+} from '@/types';
 import { router } from 'expo-router';
-import { ArrowLeft, PencilIcon } from 'lucide-react-native';
+import { ArrowLeft, Check } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Banner from '../components/ui/Banner';
+import AppInput from '../components/ui/AppInput';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import Sheet from '../components/ui/Sheet';
 
 /**
  * Profile Preview Page
@@ -21,9 +31,16 @@ export default function ProfilePreviewScreen() {
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activePrompt, setActivePrompt] = useState<WeeklyPromptResponse | null>(
+    null
+  );
+  const [userAnswer, setUserAnswer] = useState<string>('');
+  const [showPromptSheet, setShowPromptSheet] = useState(false);
+  const [tempAnswer, setTempAnswer] = useState('');
 
   useEffect(() => {
     fetchProfile();
+    fetchWeeklyPrompt();
   }, []);
 
   const fetchProfile = async () => {
@@ -50,6 +67,40 @@ export default function ProfilePreviewScreen() {
       setError(err instanceof Error ? err.message : 'Failed to load profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchWeeklyPrompt = async () => {
+    try {
+      const prompt = await getActivePrompt();
+      setActivePrompt(prompt);
+
+      if (prompt) {
+        try {
+          const answer: WeeklyPromptAnswerResponse = await getPromptAnswer(
+            prompt.promptId
+          );
+          setUserAnswer(answer.answer);
+        } catch {
+          setUserAnswer('');
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching weekly prompt:', error);
+      setActivePrompt(null);
+    }
+  };
+
+  const handleSubmitAnswer = async () => {
+    if (!activePrompt || !tempAnswer.trim()) return;
+
+    try {
+      await submitPromptAnswer(activePrompt.promptId, tempAnswer);
+      setUserAnswer(tempAnswer);
+      setShowPromptSheet(false);
+      setTempAnswer('');
+    } catch (error) {
+      console.error('Error submitting answer:', error);
     }
   };
 
@@ -95,27 +146,61 @@ export default function ProfilePreviewScreen() {
 
       <View style={styles.content}>
         {/* Header with back button */}
-        <View style={styles.header}>
-          <Button
-            title="Exit preview"
-            iconLeft={ArrowLeft}
-            onPress={() => router.back()}
-            variant="secondary"
-          />
-
-          <Button
-            title="Edit profile"
-            iconLeft={PencilIcon}
-            onPress={() => router.push('/edit-profile' as any)}
-            variant="secondary"
-          />
-        </View>
-
-        <Banner text="Preview mode" />
+        <Button
+          title="Exit preview"
+          iconLeft={ArrowLeft}
+          onPress={() => router.back()}
+          variant="secondary"
+          fullWidth={false}
+        />
       </View>
 
       {/* Profile view */}
-      <ProfileView profile={profile} />
+      <ProfileView
+        profile={profile}
+        weeklyPrompt={activePrompt}
+        weeklyPromptAnswer={userAnswer}
+        onEditWeeklyPrompt={() => {
+          setTempAnswer(userAnswer);
+          setShowPromptSheet(true);
+        }}
+      />
+
+      {/* Weekly Prompt Sheet */}
+      <Sheet
+        visible={showPromptSheet}
+        onDismiss={() => setShowPromptSheet(false)}
+        title={activePrompt?.question || 'Weekly Prompt'}
+        bottomRound={false}
+      >
+        {activePrompt && (
+          <View style={{ gap: 16, flex: 1 }}>
+            <AppInput
+              placeholder="Your answer..."
+              value={tempAnswer}
+              onChangeText={setTempAnswer}
+              multiline
+              numberOfLines={3}
+              maxLength={120}
+              style={{ height: 84, borderRadius: 24 }}
+              returnKeyType="done"
+            />
+
+            <AppText variant="bodySmall" color="dimmer">
+              {tempAnswer.length}/120 characters
+            </AppText>
+
+            <Button
+              title={userAnswer ? 'Update answer' : 'Submit answer'}
+              onPress={handleSubmitAnswer}
+              variant="primary"
+              fullWidth
+              iconLeft={Check}
+              disabled={!tempAnswer.trim()}
+            />
+          </View>
+        )}
+      </Sheet>
     </SafeAreaView>
   );
 }
@@ -130,16 +215,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
-  header: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
   content: {
     display: 'flex',
     flexDirection: 'column',
     gap: 16,
     padding: 16,
+    alignItems: 'flex-start',
   },
   backButton: {
     padding: 8,

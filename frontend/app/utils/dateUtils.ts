@@ -42,3 +42,33 @@ export function isWeekendPeriod(): boolean {
   // Friday (5), Saturday (6), or Sunday (0)
   return dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6;
 }
+
+/**
+ * Determine if we should show countdown based on current time vs match date
+ * @param matchDate - ISO string of the match date (e.g., Friday at 12:01 AM ET)
+ * @returns boolean indicating if countdown should be shown
+ */
+export function shouldShowCountdown(matchDate: string): boolean {
+  const now = new Date();
+  const match = new Date(matchDate);
+
+  // Show countdown if match date is in the future
+  return now < match;
+}
+
+/**
+ * Get a human-readable description of when matches drop
+ * @param matchDate - ISO string of the match date
+ * @returns string like "Dropping Friday at 12:01 AM"
+ */
+export function getMatchDropDescription(matchDate: string): string {
+  const match = new Date(matchDate);
+  const dayName = match.toLocaleDateString('en-US', { weekday: 'long' });
+  const time = match.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  return `Dropping ${dayName} at ${time}`;
+}

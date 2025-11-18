@@ -2,12 +2,22 @@ import { SEXUAL_ORIENTATION_OPTIONS } from '@/types/onboarding';
 import { router } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StatusBar, StyleSheet } from 'react-native';
+import {
+  Alert,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
+import AppText from '../components/ui/AppText';
+import Checkbox from '../components/ui/Checkbox';
 import EditingHeader from '../components/ui/EditingHeader';
+import FooterSpacer from '../components/ui/FooterSpacer';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
@@ -25,6 +35,8 @@ export default function EditSexualityPage() {
   const [originalOrientation, setOriginalOrientation] = useState<string | null>(
     null
   );
+  const [showOnProfile, setShowOnProfile] = useState(true);
+  const [originalShowOnProfile, setOriginalShowOnProfile] = useState(true);
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
@@ -48,6 +60,10 @@ export default function EditSexualityPage() {
         const orientation = profileData.sexualOrientation?.[0] || null;
         setSelectedOrientation(orientation);
         setOriginalOrientation(orientation);
+        const showOrientationValue =
+          profileData.showSexualOrientationOnProfile ?? true;
+        setShowOnProfile(showOrientationValue);
+        setOriginalShowOnProfile(showOrientationValue);
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -73,9 +89,11 @@ export default function EditSexualityPage() {
     try {
       await updateProfile({
         sexualOrientation: [selectedOrientation],
+        showSexualOrientationOnProfile: showOnProfile,
       });
 
       setOriginalOrientation(selectedOrientation);
+      setOriginalShowOnProfile(showOnProfile);
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
@@ -92,7 +110,10 @@ export default function EditSexualityPage() {
   };
 
   const hasUnsavedChanges = () => {
-    return selectedOrientation !== originalOrientation;
+    return (
+      selectedOrientation !== originalOrientation ||
+      showOnProfile !== originalShowOnProfile
+    );
   };
 
   const handleBack = () => {
@@ -142,6 +163,24 @@ export default function EditSexualityPage() {
             />
           ))}
         </ListItemWrapper>
+
+        <View style={styles.checkboxSection}>
+          <TouchableOpacity
+            style={styles.checkboxRow}
+            onPress={() => setShowOnProfile(!showOnProfile)}
+          >
+            <Checkbox
+              value={showOnProfile}
+              onValueChange={setShowOnProfile}
+              color={showOnProfile ? AppColors.accentDefault : undefined}
+            />
+            <AppText variant="body" style={styles.checkboxLabel}>
+              Show on my profile
+            </AppText>
+          </TouchableOpacity>
+        </View>
+
+        <FooterSpacer />
       </ScrollView>
 
       {/* Unsaved Changes Sheet */}
@@ -167,5 +206,18 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     padding: 16,
+  },
+  checkboxSection: {
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  checkboxRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkboxLabel: {
+    textAlign: 'center',
   },
 });

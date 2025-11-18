@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import React, { useRef } from 'react';
 import {
   Animated,
@@ -22,6 +21,8 @@ interface ListItemProps {
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
   destructive?: boolean;
+  disabled?: boolean;
+  pressableStyle?: StyleProp<ViewStyle>;
 }
 
 export default function ListItem({
@@ -33,12 +34,15 @@ export default function ListItem({
   onPress,
   style,
   destructive,
+  disabled = false,
+  pressableStyle,
 }: ListItemProps) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isPressed, setIsPressed] = React.useState(false);
 
   const handlePressIn = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (disabled) return;
+    // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsPressed(true);
     Animated.spring(scaleAnim, {
       toValue: 0.97,
@@ -47,6 +51,7 @@ export default function ListItem({
   };
 
   const handlePressOut = () => {
+    if (disabled) return;
     setIsPressed(false);
     Animated.spring(scaleAnim, {
       toValue: 1,
@@ -57,7 +62,7 @@ export default function ListItem({
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <Pressable
-        onPress={onPress}
+        onPress={disabled ? undefined : onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         android_ripple={{ color: AppColors.backgroundDimmest }}
@@ -73,10 +78,13 @@ export default function ListItem({
                 ? { backgroundColor: AppColors.negativeDimmest } // 🔸 if destructive & pressed
                 : styles.pressed),
 
-          description ? { height: 'auto' } : { height: 54 },
+          description ? { minHeight: 54 } : { minHeight: 54 },
+          disabled && { opacity: 0.4 },
           style,
+          pressableStyle,
         ]}
         accessibilityRole="button"
+        disabled={disabled}
       >
         {left ? <View style={styles.left}>{left}</View> : null}
 
@@ -84,7 +92,10 @@ export default function ListItem({
           <AppText
             variant="body"
             color={destructive ? 'negative' : selected ? 'accent' : 'default'}
-            style={description ? { fontWeight: 'semibold' } : undefined}
+            style={[
+              description ? { fontWeight: 'semibold' } : undefined,
+              { flexShrink: 1 },
+            ]}
           >
             {title}
           </AppText>
@@ -116,11 +127,13 @@ const styles = StyleSheet.create({
   },
   left: {
     marginRight: 12,
+    marginTop: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
   right: {
     marginLeft: 12,
+    marginTop: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },

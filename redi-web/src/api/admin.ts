@@ -699,6 +699,7 @@ export interface CreateManualMatchInput {
   expiresAt: string; // ISO date string
   chatUnlocked?: boolean;
   revealed?: boolean;
+  appendToExisting?: boolean; // If true, appends to existing matches instead of erroring
 }
 
 /**
@@ -780,6 +781,46 @@ export const fetchRecentMatches = async (): Promise<ManualMatchResponse[]> => {
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.error || 'Failed to fetch recent matches');
+  }
+
+  return res.json();
+};
+
+/**
+ * User details response from backend
+ */
+export interface UserDetailsResponse {
+  netId: string;
+  firstName: string;
+  pictures: string[];
+  promptAnswer: string | null;
+}
+
+/**
+ * Fetch detailed user information including all pictures and prompt answer
+ */
+export const fetchUserDetails = async (
+  netId: string,
+  promptId?: string
+): Promise<UserDetailsResponse> => {
+  console.log('Fetching user details:', netId, promptId);
+
+  const token = await getAuthToken();
+
+  const queryParams = promptId ? `?promptId=${promptId}` : '';
+  const res = await fetch(
+    `${API_BASE_URL}/api/admin/users/${netId}/details${queryParams}`,
+    {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to fetch user details');
   }
 
   return res.json();

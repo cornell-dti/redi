@@ -185,7 +185,11 @@ class APIClient {
     const errorMessage =
       errorData.error || errorData.message || 'Request failed';
 
-    console.error(`[API] Error ${response.status} response:`, errorData);
+    if (response.status === 404) {
+      console.log(`[API] 404 Not Found: ${endpoint}`);
+    } else {
+      console.error(`[API] Error ${response.status} response:`, errorData);
+    }
 
     // Handle specific status codes
     switch (response.status) {
@@ -233,6 +237,34 @@ class APIClient {
           429,
           'RATE_LIMITED'
         );
+
+      case 400:
+        // Bad request - check for validation errors
+        const validationDetails = errorData.details;
+        if (validationDetails && Array.isArray(validationDetails)) {
+          // Format validation errors for user display
+          // Each error has: { param: 'fieldName', msg: 'error message', value: actualValue }
+          const formattedErrors = validationDetails
+            .map((err: any) => {
+              // Make field names more user-friendly
+              const fieldName = err.param
+                .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+                .replace(/^./, (str: string) => str.toUpperCase()) // Capitalize first letter
+                .trim();
+              return `• ${fieldName}: ${err.msg}`;
+            })
+            .join('\n');
+
+          console.error('[API] Validation errors:', validationDetails);
+
+          throw new APIError(
+            `Please fix the following:\n\n${formattedErrors}`,
+            400,
+            'VALIDATION_ERROR'
+          );
+        }
+        // If no validation details, use generic message
+        throw new APIError(errorMessage || 'Invalid request', 400, 'BAD_REQUEST');
 
       case 500:
       case 502:

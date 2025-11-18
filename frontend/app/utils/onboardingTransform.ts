@@ -6,11 +6,16 @@ import {
 } from '@/types';
 
 /**
- * Converts MM/DD/YYYY format to ISO date string
+ * Converts MM/DD/YYYY or MM/DD/YY format to ISO date string
  */
 function convertBirthdateToISO(birthdate: string): string {
-  const [month, day, year] = birthdate.split('/').map(Number);
-  const date = new Date(year, month - 1, day);
+  const [month, day, yearStr] = birthdate.split('/');
+  let year = parseInt(yearStr, 10);
+  // Convert 2-digit year to 4-digit (00-29 -> 2000-2029, 30-99 -> 1930-1999)
+  if (yearStr.length === 2) {
+    year = year < 30 ? 2000 + year : 1900 + year;
+  }
+  const date = new Date(year, parseInt(month, 10) - 1, parseInt(day, 10));
   return date.toISOString();
 }
 
@@ -121,8 +126,7 @@ export function transformOnboardingToProfilePayload(
     major: onboardingData.major,
     pictures: onboardingData.pictures,
     hometown: onboardingData.hometown || undefined,
-    pronouns:
-      onboardingData.pronouns.length > 0 ? onboardingData.pronouns : undefined,
+    pronouns: onboardingData.pronouns || undefined,
     ethnicity:
       onboardingData.ethnicity && onboardingData.ethnicity.length > 0
         ? onboardingData.ethnicity
@@ -200,8 +204,8 @@ export function validateProfilePayload(
   if (!payload.pictures || payload.pictures.length < 3) {
     errors.push('At least 3 photos are required');
   }
-  if (payload.pictures && payload.pictures.length > 5) {
-    errors.push('Maximum 5 photos allowed');
+  if (payload.pictures && payload.pictures.length > 6) {
+    errors.push('Maximum 6 photos allowed');
   }
 
   return {

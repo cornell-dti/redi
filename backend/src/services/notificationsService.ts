@@ -22,7 +22,8 @@ const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
  * @param type - Type of notification
  * @param title - Notification title
  * @param message - Notification message
- * @param metadata - Additional metadata (promptId, matchNetid, conversationId, matchName, matchFirebaseUid, chatId, etc.)
+ * @param metadata - Additional metadata (promptId, matchNetid, conversationId, matchName,
+ *                   matchFirebaseUid, chatId, etc.)
  * @returns Promise resolving to the created notification ID
  */
 export async function createNotification(
@@ -37,6 +38,10 @@ export async function createNotification(
     matchName?: string;
     matchFirebaseUid?: string;
     chatId?: string;
+    senderId?: string;
+    senderName?: string;
+    senderNetid?: string;
+    matchCount?: number;
   } = {}
 ): Promise<string> {
   const notificationDoc: NotificationDocWrite = {

@@ -58,7 +58,6 @@ export default function PromptSelector({
                 icon={X}
                 onPress={onRemove}
                 variant="negative"
-                // size="small"
                 noRound
               />
             )}
@@ -71,7 +70,7 @@ export default function PromptSelector({
             multiline
             numberOfLines={3}
             maxLength={120}
-            noRound
+            bottomBorderRound
             style={styles.answerInput}
           />
         </>
@@ -115,6 +114,6 @@ const styles = StyleSheet.create({
     width: 340,
   },
   answerInput: {
-    height: 60,
+    height: 80,
   },
 });

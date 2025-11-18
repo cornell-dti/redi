@@ -13,48 +13,45 @@ const ONBOARDING_VIDEO_SHOWN_KEY = '@onboarding_video_shown';
 type HapticStyle = 'light' | 'medium' | 'heavy' | 'soft' | 'rigid';
 
 const HAPTIC_TIMELINE: { time: number; style: HapticStyle }[] = [
-  { time: 0.0, style: 'medium' }, // 3
-  { time: 1.0, style: 'medium' }, // 2
-  { time: 2.0, style: 'medium' }, // 1
-  { time: 3.27, style: 'soft' }, // AWKWARD
-  { time: 4.1, style: 'soft' }, // TIRING
-  { time: 4.23, style: 'soft' }, // SCARY
-  { time: 5.06, style: 'soft' }, // SHALLOW
-  { time: 6.04, style: 'heavy' }, // intro...REDI
-  // ---
-  { time: 6.25, style: 'medium' }, // Cornell's
-  { time: 7.07, style: 'medium' }, // dating
-  { time: 7.17, style: 'medium' }, // app
-  // --
-  { time: 8.08, style: 'soft' }, // CURATED
-  { time: 8.21, style: 'soft' }, // MATCHES
-  { time: 9.05, style: 'soft' }, // ANONYMOUS
-  { time: 9.16, style: 'soft' }, // NUDGING
-  { time: 9.29, style: 'soft' }, // CORNELL
-  { time: 10.13, style: 'soft' }, // EXCLUSIVE
-  // --
-  { time: 10.25, style: 'medium' }, // 3
-  { time: 11.05, style: 'medium' }, // matches
-  { time: 11.14, style: 'soft' }, // every
-  { time: 11.25, style: 'soft' }, // week
-  // --
-  { time: 12.07, style: 'soft' }, // chats
-  { time: 12.16, style: 'soft' }, // open
-  { time: 12.24, style: 'soft' }, // when
-  { time: 13.01, style: 'soft' }, // you
-  { time: 13.08, style: 'soft' }, // both
-  { time: 13.15, style: 'heavy' }, // nudge
-  // --
-  { time: 14.07, style: 'soft' }, // meet your next match
-  { time: 15.0, style: 'soft' }, // next frame
-  { time: 15.23, style: 'soft' }, // next frame
-  { time: 16.15, style: 'soft' }, // next frame
-  // --
-  { time: 16.15, style: 'medium' }, // are
-  { time: 16.22, style: 'medium' }, // you
-  { time: 16.29, style: 'heavy' }, // redi
-  { time: 17.07, style: 'soft' }, // ?
-  { time: 19.08, style: 'soft' }, // logo
+  { time: 0.01, style: 'rigid' }, // Very start
+  { time: 0.99, style: 'rigid' }, // First major beat
+  { time: 1.99, style: 'rigid' }, // Second major beat
+
+  // MIDDLE (3-13s): 17 NEW soft background beats 🆕
+  { time: 3.0, style: 'soft' },
+  { time: 3.608, style: 'soft' },
+  { time: 4.216, style: 'soft' },
+  { time: 4.824, style: 'soft' },
+  { time: 5.432, style: 'soft' },
+  { time: 6.04, style: 'soft' },
+  { time: 6.648, style: 'soft' },
+  { time: 7.256, style: 'soft' },
+  { time: 7.864, style: 'soft' },
+  { time: 8.472, style: 'soft' },
+  { time: 9.08, style: 'soft' },
+  { time: 9.688, style: 'soft' },
+  { time: 10.296, style: 'soft' },
+  { time: 10.904, style: 'soft' },
+  { time: 11.512, style: 'soft' },
+  { time: 12.12, style: 'soft' },
+  // ... continues every 0.608 seconds (99 BPM)
+  { time: 12.728, style: 'soft' },
+
+  // Finale section (14-20s) - Intense beats
+  { time: 13.15, style: 'rigid' }, // NUDGE
+  { time: 13.77, style: 'medium' }, // Build-up
+  { time: 14.12, style: 'heavy' }, // STRONGEST beat in entire audio
+  { time: 14.66, style: 'medium' },
+  { time: 15.58, style: 'medium' },
+  { time: 16.11, style: 'heavy' }, // Major beat
+  { time: 16.47, style: 'medium' },
+  { time: 17.01, style: 'heavy' }, // Major beat
+  { time: 17.56, style: 'medium' },
+  { time: 18.46, style: 'heavy' }, // Major beat
+  { time: 18.73, style: 'medium' },
+  { time: 19.01, style: 'medium' },
+  { time: 19.37, style: 'medium' },
+  { time: 19.9, style: 'medium' }, // Final beat
 ];
 
 interface OnboardingVideoProps {
@@ -138,7 +135,7 @@ export default function OnboardingVideo({
       <View style={styles.container}>
         <Video
           ref={videoRef}
-          source={require('../../../assets/videos/onboarding.mp4')}
+          source={require('../../../assets/videos/onboarding.mov')}
           style={styles.video}
           resizeMode={ResizeMode.COVER}
           shouldPlay
