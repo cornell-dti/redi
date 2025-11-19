@@ -1,6 +1,7 @@
 import { LucideIcon } from 'lucide-react-native';
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
+import { useMotion } from '../../contexts/MotionContext';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 
@@ -17,11 +18,17 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   children,
   triggerAnimation,
 }) => {
+  const { animationEnabled } = useMotion();
   const scaleAnim1 = useRef(new Animated.Value(0)).current;
   const scaleAnim2 = useRef(new Animated.Value(0)).current;
   const scaleAnim3 = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    if (!animationEnabled) {
+      // No animation when animation is disabled
+      return;
+    }
+
     // Reset animations to initial state
     scaleAnim1.setValue(0);
     scaleAnim2.setValue(0);
@@ -53,7 +60,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
       createBounceAnimation(scaleAnim2, 80),
       createBounceAnimation(scaleAnim3, 160),
     ]).start();
-  }, [triggerAnimation]);
+  }, [triggerAnimation, animationEnabled]);
 
   const translateY1 = scaleAnim1.interpolate({
     inputRange: [0, 1],

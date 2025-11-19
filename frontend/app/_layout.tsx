@@ -13,6 +13,8 @@ import OnboardingVideo, {
   markOnboardingVideoAsShown,
 } from './components/onboarding/OnboardingVideo';
 import LoadingSpinner from './components/ui/LoadingSpinner';
+import { HapticsProvider } from './contexts/HapticsContext';
+import { MotionProvider } from './contexts/MotionContext';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
 
@@ -290,9 +292,13 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <ToastProvider>
-        <RootNavigator />
-      </ToastProvider>
+      <MotionProvider>
+        <HapticsProvider>
+          <ToastProvider>
+            <RootNavigator />
+          </ToastProvider>
+        </HapticsProvider>
+      </MotionProvider>
     </ThemeProvider>
   );
 }

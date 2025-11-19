@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { ArrowRight } from 'lucide-react-native';
+import { useMotion } from '../../contexts/MotionContext';
 import { AppColors } from '../AppColors';
 import AppText from '../ui/AppText';
 import Button from '../ui/Button';
@@ -29,30 +30,37 @@ export default function OnboardingFooter({
   onCheckboxChange,
   loading = false,
 }: OnboardingFooterProps) {
+  const { animationEnabled } = useMotion();
   const slideAnim = useRef(new Animated.Value(-20)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (loading) {
-      // Slide in and fade in when loading starts
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      if (!animationEnabled) {
+        // No animation - set values immediately
+        slideAnim.setValue(0);
+        opacityAnim.setValue(1);
+      } else {
+        // Slide in and fade in when loading starts
+        Animated.parallel([
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacityAnim, {
+            toValue: 1,
+            duration: 300,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
     } else {
       // Reset animation values when not loading
       slideAnim.setValue(-20);
       opacityAnim.setValue(0);
     }
-  }, [loading, slideAnim, opacityAnim]);
+  }, [loading, slideAnim, opacityAnim, animationEnabled]);
 
   // Animated spinner component that conforms to CustomIcon type
   const AnimatedSpinner = ({ size = 20, color = AppColors.backgroundDefault }: { size?: number; color?: string }) => (
