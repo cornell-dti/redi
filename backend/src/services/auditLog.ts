@@ -51,6 +51,11 @@ export type AuditAction =
   // Report actions
   | 'UPDATE_REPORT_STATUS'
   | 'RESOLVE_REPORT'
+  // Analytics actions
+  | 'VIEW_DEMOGRAPHICS_ANALYTICS'
+  | 'VIEW_COMPATIBILITY_ANALYTICS'
+  | 'VIEW_ENGAGEMENT_ANALYTICS'
+  | 'VIEW_NUDGE_ANALYTICS'
   // System actions
   | 'ADMIN_LOGIN'
   | 'ADMIN_LOGOUT'

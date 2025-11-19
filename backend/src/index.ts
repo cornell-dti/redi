@@ -2,6 +2,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
+import adminAnalyticsRouter from './routes/admin-analytics';
 import adminMatchesRouter from './routes/admin-matches';
 import adminPromptsRouter from './routes/admin-prompts';
 import adminReportsRouter from './routes/admin-reports';
@@ -108,6 +109,7 @@ app.use(notificationsRouter); // /api/notifications
 app.use(pushTokensRouter); // /api/users/push-token, /api/users/notification-preferences
 app.use(chatRouter); // /api/chat
 app.use(reportsRouter); // /api/reports
+app.use(adminAnalyticsRouter); // /api/admin/analytics
 app.use(adminMatchesRouter); // /api/admin/matches, /api/admin/users
 app.use(adminPromptsRouter); // /api/admin/prompts
 app.use(adminReportsRouter); // /api/admin/reports
