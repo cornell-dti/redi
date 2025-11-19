@@ -1,11 +1,15 @@
 import AppText from '@/app/components/ui/AppText';
 import Pressable from '@/app/components/ui/Pressable';
+import Toggle from '@/app/components/ui/Toggle';
 import { Check } from 'lucide-react-native';
 import React from 'react';
 import { ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
+import ListItemWrapper from '../components/ui/ListItemWrapper';
+import { useHaptics } from '../contexts/HapticsContext';
+import { useMotion } from '../contexts/MotionContext';
 import {
   ThemeName,
   themes,
@@ -27,6 +31,8 @@ const themeOptions: ThemeOption[] = [
 export default function AppearanceScreen() {
   useThemeAware(); // Force re-render when theme changes
   const { currentTheme, setTheme } = useTheme();
+  const { animationEnabled, setAnimationEnabled } = useMotion();
+  const { hapticsEnabled, setHapticsEnabled } = useHaptics();
 
   // 🔹 Chunk helper for readability
   const chunk = <T,>(arr: T[], size: number): T[][] =>
@@ -110,6 +116,36 @@ export default function AppearanceScreen() {
             ))}
           </View>
         </View>
+
+        <View style={styles.section}>
+          <AppText variant="subtitle" indented>
+            Accessibility
+          </AppText>
+
+          <ListItemWrapper>
+            <View style={styles.optionContainer}>
+              <View style={styles.optionLabel}>
+                <AppText variant="body">Animation</AppText>
+                <AppText color="dimmer">Enable motion effects</AppText>
+              </View>
+              <Toggle
+                value={animationEnabled}
+                onValueChange={setAnimationEnabled}
+              />
+            </View>
+
+            <View style={styles.optionContainer}>
+              <View style={styles.optionLabel}>
+                <AppText variant="body">Haptics</AppText>
+                <AppText color="dimmer">Enable vibration feedback</AppText>
+              </View>
+              <Toggle
+                value={hapticsEnabled}
+                onValueChange={setHapticsEnabled}
+              />
+            </View>
+          </ListItemWrapper>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -164,5 +200,17 @@ const styles = StyleSheet.create({
   },
   pressed: {
     backgroundColor: AppColors.backgroundDimmest,
+  },
+  optionContainer: {
+    backgroundColor: AppColors.backgroundDimmer,
+    borderRadius: 4,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  optionLabel: {
+    flex: 1,
+    gap: 4,
   },
 });
