@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
+import { useMotion } from '../../contexts/MotionContext';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 
@@ -178,23 +179,29 @@ const styles = StyleSheet.create({
 
 // Component for a single flip digit showing full value with flip animation
 function FlipDigit({ value }: { value: string }) {
+  const { animationEnabled } = useMotion();
   const [displayValue, setDisplayValue] = useState(value);
   const flipAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (value !== displayValue) {
-      // Start flip animation immediately when value changes
-      Animated.timing(flipAnimation, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }).start(() => {
-        // After animation, reset and update display value
-        flipAnimation.setValue(0);
+      if (!animationEnabled) {
+        // No animation - just update immediately
         setDisplayValue(value);
-      });
+      } else {
+        // Start flip animation immediately when value changes
+        Animated.timing(flipAnimation, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }).start(() => {
+          // After animation, reset and update display value
+          flipAnimation.setValue(0);
+          setDisplayValue(value);
+        });
+      }
     }
-  }, [value, displayValue, flipAnimation]);
+  }, [value, displayValue, flipAnimation, animationEnabled]);
 
   // Interpolate rotation for full flip (0deg to -180deg)
   const flipRotation = flipAnimation.interpolate({
