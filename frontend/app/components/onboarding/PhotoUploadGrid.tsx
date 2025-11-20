@@ -1,4 +1,6 @@
+import { useHaptics } from '@/app/contexts/HapticsContext';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
+import * as Haptics from 'expo-haptics';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Star, X } from 'lucide-react-native';
@@ -41,6 +43,7 @@ interface DraggablePhotoProps {
   onDragEnd: (toIndex: number) => void;
   onHoverChange: (toIndex: number | null) => void;
   totalPhotos: number;
+  onHaptic: () => void;
 }
 
 function DraggablePhoto({
@@ -54,6 +57,7 @@ function DraggablePhoto({
   onDragEnd,
   onHoverChange,
   totalPhotos,
+  onHaptic,
 }: DraggablePhotoProps) {
   useThemeAware(); // Force re-render when theme changes
 
@@ -61,12 +65,14 @@ function DraggablePhoto({
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
   const zIndex = useSharedValue(0);
+  const lastTargetIndex = useSharedValue(index);
 
   const gesture = Gesture.Pan()
     .onStart(() => {
       runOnJS(onDragStart)();
       scale.value = withSpring(1.1);
       zIndex.value = 1000;
+      lastTargetIndex.value = index;
     })
     .onUpdate((event) => {
       translateX.value = event.translationX;
@@ -80,6 +86,12 @@ function DraggablePhoto({
         0,
         Math.min(index + offset, totalPhotos - 1)
       );
+
+      // Trigger haptic feedback when crossing to a new position
+      if (targetIndex !== lastTargetIndex.value) {
+        runOnJS(onHaptic)();
+        lastTargetIndex.value = targetIndex;
+      }
 
       runOnJS(onHoverChange)(targetIndex);
     })
@@ -101,6 +113,8 @@ function DraggablePhoto({
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
+    width: GRID_SLOT_SIZE,
+    height: GRID_SLOT_SIZE,
     transform: [
       { translateX: translateX.value },
       { translateY: translateY.value },
@@ -108,37 +122,47 @@ function DraggablePhoto({
     ],
     zIndex: zIndex.value,
     opacity: isDragging ? 0.8 : 1,
+    shadowColor: isDragging ? '#000' : 'transparent',
+    shadowOffset: {
+      width: 0,
+      height: isDragging ? 4 : 0,
+    },
+    shadowOpacity: isDragging ? 0.3 : 0,
+    shadowRadius: isDragging ? 4.65 : 0,
+    elevation: isDragging ? 8 : 0,
   }));
 
   return (
     <GestureDetector gesture={gesture}>
-      <Animated.View style={[styles.gridSlot, animatedStyle]}>
-        <Image source={{ uri: photo }} style={styles.photo} />
+      <Animated.View style={animatedStyle}>
+        <View style={styles.gridSlot}>
+          <Image source={{ uri: photo }} style={styles.photo} />
 
-        {isMain && (
-          <View style={styles.mainBadgeContainer}>
-            <Tag label="Main" variant="accent" />
-          </View>
-        )}
+          {isMain && (
+            <View style={styles.mainBadgeContainer}>
+              <Tag label="Main" variant="accent" />
+            </View>
+          )}
 
-        {!isMain && (
-          <View style={styles.setMainButtonContainer}>
+          {!isMain && (
+            <View style={styles.setMainButtonContainer}>
+              <IconButton
+                icon={Star}
+                onPress={onSetMain}
+                variant="secondary"
+                size="small"
+              />
+            </View>
+          )}
+
+          <View style={styles.removeButtonContainer}>
             <IconButton
-              icon={Star}
-              onPress={onSetMain}
-              variant="secondary"
+              icon={X}
+              onPress={onRemove}
+              variant="negative"
               size="small"
             />
           </View>
-        )}
-
-        <View style={styles.removeButtonContainer}>
-          <IconButton
-            icon={X}
-            onPress={onRemove}
-            variant="negative"
-            size="small"
-          />
         </View>
       </Animated.View>
     </GestureDetector>
@@ -152,6 +176,13 @@ export default function PhotoUploadGrid({
   maxPhotos = 6,
 }: PhotoUploadGridProps) {
   useThemeAware(); // Force re-render when theme changes
+  const { hapticsEnabled } = useHaptics();
+
+  const triggerHaptic = () => {
+    if (hapticsEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+  };
 
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
@@ -323,6 +354,7 @@ export default function PhotoUploadGrid({
                   }}
                   onHoverChange={setHoverIndex}
                   totalPhotos={photos.length}
+                  onHaptic={triggerHaptic}
                 />
               </View>
             );

@@ -7,12 +7,13 @@ import {
   SEXUAL_ORIENTATION_OPTIONS,
   YEAR_OPTIONS,
 } from '@/types';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { Check, ChevronDown, Plus } from 'lucide-react-native';
+import { Check, ChevronDown, GripVertical, Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
-  Animated,
+  Animated as RNAnimated,
   Dimensions,
   Image,
   KeyboardAvoidingView,
@@ -22,6 +23,13 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CORNELL_MAJORS, CORNELL_SCHOOLS } from '../../constants/cornell';
 import { getCurrentUser } from '../api/authService';
@@ -42,6 +50,7 @@ import ListItemWrapper from '../components/ui/ListItemWrapper';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
+import { useHaptics } from '../contexts/HapticsContext';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useOnboardingState } from '../hooks/useOnboardingState';
 import {
@@ -52,13 +61,117 @@ import {
 
 const TOTAL_STEPS = 15; // Steps 2-16 (Step 1 is in home.tsx)
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const PROMPT_ITEM_HEIGHT = 120; // Approximate height of a prompt selector
+
+interface DraggablePromptSelectorProps {
+  prompt: PromptData;
+  index: number;
+  isDragging: boolean;
+  onUpdate: (prompt: PromptData) => void;
+  onRemove: () => void;
+  onDragStart: () => void;
+  onDragEnd: (toIndex: number) => void;
+  onHoverChange: (toIndex: number | null) => void;
+  canRemove: boolean;
+  totalPrompts: number;
+  onHaptic: () => void;
+}
+
+function DraggablePromptSelector({
+  prompt,
+  index,
+  isDragging,
+  onUpdate,
+  onRemove,
+  onDragStart,
+  onDragEnd,
+  onHoverChange,
+  canRemove,
+  totalPrompts,
+  onHaptic,
+}: DraggablePromptSelectorProps) {
+  const translateY = useSharedValue(0);
+  const zIndex = useSharedValue(0);
+  const lastTargetIndex = useSharedValue(index);
+
+  const handleGesture = Gesture.Pan()
+    .onStart(() => {
+      runOnJS(onDragStart)();
+      zIndex.value = 1000;
+      lastTargetIndex.value = index;
+    })
+    .onUpdate((event) => {
+      translateY.value = event.translationY;
+
+      const offset = Math.round(event.translationY / PROMPT_ITEM_HEIGHT);
+      const targetIndex = Math.max(
+        0,
+        Math.min(index + offset, totalPrompts - 1)
+      );
+
+      if (targetIndex !== lastTargetIndex.value) {
+        runOnJS(onHaptic)();
+        lastTargetIndex.value = targetIndex;
+      }
+
+      runOnJS(onHoverChange)(targetIndex);
+    })
+    .onEnd((event) => {
+      const offset = Math.round(event.translationY / PROMPT_ITEM_HEIGHT);
+      const toIndex = Math.max(0, Math.min(index + offset, totalPrompts - 1));
+
+      runOnJS(onDragEnd)(toIndex);
+      runOnJS(onHoverChange)(null);
+
+      translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
+      zIndex.value = 0;
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+    zIndex: zIndex.value,
+    opacity: isDragging ? 0.8 : 1,
+  }));
+
+  return (
+    <Animated.View style={[animatedStyle, styles.draggablePromptWrapper]}>
+      <View style={styles.promptWithHandle}>
+        <GestureDetector gesture={handleGesture}>
+          <View style={styles.promptDragHandle}>
+            <GripVertical size={20} color={AppColors.foregroundDimmer} />
+          </View>
+        </GestureDetector>
+        <View style={styles.promptSelectorContainer}>
+          <PromptSelector
+            prompt={prompt}
+            onUpdate={onUpdate}
+            onRemove={onRemove}
+            canRemove={canRemove}
+          />
+        </View>
+      </View>
+    </Animated.View>
+  );
+}
 
 export default function CreateProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
+  const { hapticsEnabled } = useHaptics();
+
+  const triggerHaptic = () => {
+    if (hapticsEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+  };
+
   const [currentStep, setCurrentStep] = useState(2); // Start at step 2
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const slideAnim = useRef(new RNAnimated.Value(0)).current;
+  const fadeAnim = useRef(new RNAnimated.Value(1)).current;
+  const [draggingPromptIndex, setDraggingPromptIndex] = useState<number | null>(
+    null
+  );
+  const [hoverPromptIndex, setHoverPromptIndex] = useState<number | null>(null);
 
   const {
     data,
@@ -84,14 +197,14 @@ export default function CreateProfileScreen() {
     fadeAnim.setValue(0);
 
     // Animate in
-    Animated.parallel([
-      Animated.spring(slideAnim, {
+    RNAnimated.parallel([
+      RNAnimated.spring(slideAnim, {
         toValue: 0,
         useNativeDriver: true,
         tension: 65,
         friction: 10,
       }),
-      Animated.timing(fadeAnim, {
+      RNAnimated.timing(fadeAnim, {
         toValue: 1,
         duration: 250,
         useNativeDriver: true,
@@ -314,6 +427,15 @@ export default function CreateProfileScreen() {
       'prompts',
       data.prompts.filter((p) => p.id !== id)
     );
+  };
+
+  const reorderPrompts = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+
+    const newPrompts = [...data.prompts];
+    const [movedPrompt] = newPrompts.splice(fromIndex, 1);
+    newPrompts.splice(toIndex, 0, movedPrompt);
+    updateField('prompts', newPrompts);
   };
 
   const addClub = () => {
@@ -669,15 +791,60 @@ export default function CreateProfileScreen() {
           <View style={styles.stepContainer}>
             <OnboardingTitle title="Select 1-3 prompts for your profile" />
             <View style={styles.promptsContainer}>
-              {data.prompts.map((prompt) => (
-                <PromptSelector
-                  key={prompt.id}
-                  prompt={prompt}
-                  onUpdate={(updated) => updatePrompt(prompt.id, updated)}
-                  onRemove={() => removePrompt(prompt.id)}
-                  canRemove={true}
-                />
-              ))}
+              {data.prompts.map((prompt, index) => {
+                const isDragging = draggingPromptIndex === index;
+                const shouldShowGhost =
+                  hoverPromptIndex === index &&
+                  draggingPromptIndex !== null &&
+                  draggingPromptIndex !== hoverPromptIndex;
+
+                return (
+                  <View key={prompt.id} style={styles.promptItemWrapper}>
+                    {shouldShowGhost && draggingPromptIndex !== null && (
+                      <View style={styles.promptGhostPlaceholder}>
+                        <View style={styles.promptWithHandle}>
+                          <View style={styles.promptDragHandle}>
+                            <GripVertical
+                              size={20}
+                              color={AppColors.foregroundDimmer}
+                            />
+                          </View>
+                          <View
+                            style={[
+                              styles.promptSelectorContainer,
+                              { opacity: 0.3 },
+                            ]}
+                          >
+                            <PromptSelector
+                              prompt={data.prompts[draggingPromptIndex]}
+                              onUpdate={() => {}}
+                              onRemove={() => {}}
+                              canRemove={true}
+                            />
+                          </View>
+                        </View>
+                      </View>
+                    )}
+                    <DraggablePromptSelector
+                      prompt={prompt}
+                      index={index}
+                      isDragging={isDragging}
+                      onUpdate={(updated) => updatePrompt(prompt.id, updated)}
+                      onRemove={() => removePrompt(prompt.id)}
+                      onDragStart={() => setDraggingPromptIndex(index)}
+                      onDragEnd={(toIndex) => {
+                        reorderPrompts(index, toIndex);
+                        setDraggingPromptIndex(null);
+                        setHoverPromptIndex(null);
+                      }}
+                      onHoverChange={setHoverPromptIndex}
+                      canRemove={true}
+                      totalPrompts={data.prompts.length}
+                      onHaptic={triggerHaptic}
+                    />
+                  </View>
+                );
+              })}
               {data.prompts.length < 3 && (
                 <Button
                   title={
@@ -925,7 +1092,7 @@ export default function CreateProfileScreen() {
         showBackButton={true}
       />
 
-      <Animated.View
+      <RNAnimated.View
         style={{
           flex: 1,
           transform: [{ translateX: slideAnim }],
@@ -944,7 +1111,7 @@ export default function CreateProfileScreen() {
             {renderStep()}
           </ScrollView>
         </KeyboardAvoidingView>
-      </Animated.View>
+      </RNAnimated.View>
 
       <OnboardingFooter
         onNext={handleNext}
@@ -1016,5 +1183,36 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
     maxWidth: 360,
+  },
+  draggablePromptWrapper: {
+    position: 'relative',
+  },
+  promptWithHandle: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  promptDragHandle: {
+    padding: 8,
+    paddingTop: 16,
+    marginLeft: -8,
+  },
+  promptSelectorContainer: {
+    flex: 1,
+  },
+  promptItemWrapper: {
+    position: 'relative',
+  },
+  promptGhostPlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 999,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: AppColors.accentDefault,
+    borderRadius: 24,
+    backgroundColor: AppColors.backgroundDimmer,
   },
 });

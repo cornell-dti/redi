@@ -1,7 +1,15 @@
 import AppText from '@/app/components/ui/AppText';
 import { ProfileResponse, PromptData, getProfileAge } from '@/types';
+import * as Haptics from 'expo-haptics';
 import { router, useFocusEffect } from 'expo-router';
-import { Check, ChevronRight, Eye, Pencil, Plus } from 'lucide-react-native';
+import {
+  Check,
+  ChevronRight,
+  Eye,
+  GripVertical,
+  Pencil,
+  Plus,
+} from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -11,6 +19,13 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { deleteImage, uploadImages } from '../api/imageApi';
@@ -25,12 +40,120 @@ import ListItemWrapper from '../components/ui/ListItemWrapper';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
+import { useHaptics } from '../contexts/HapticsContext';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
+
+// Constants for drag calculations
+const PROMPT_ITEM_HEIGHT = 72; // Approximate height of a ListItem
+
+interface DraggablePromptItemProps {
+  prompt: PromptData;
+  index: number;
+  isDragging: boolean;
+  onDragStart: () => void;
+  onDragEnd: (toIndex: number) => void;
+  onHoverChange: (toIndex: number | null) => void;
+  onPress: () => void;
+  totalPrompts: number;
+  onHaptic: () => void;
+}
+
+function DraggablePromptItem({
+  prompt,
+  index,
+  isDragging,
+  onDragStart,
+  onDragEnd,
+  onHoverChange,
+  onPress,
+  totalPrompts,
+  onHaptic,
+}: DraggablePromptItemProps) {
+  const translateY = useSharedValue(0);
+  const zIndex = useSharedValue(0);
+  const lastTargetIndex = useSharedValue(index);
+
+  const handleGesture = Gesture.Pan()
+    .onStart(() => {
+      runOnJS(onDragStart)();
+      zIndex.value = 1000;
+      lastTargetIndex.value = index;
+    })
+    .onUpdate((event) => {
+      translateY.value = event.translationY;
+
+      // Calculate hover position while dragging
+      const offset = Math.round(event.translationY / PROMPT_ITEM_HEIGHT);
+      const targetIndex = Math.max(
+        0,
+        Math.min(index + offset, totalPrompts - 1)
+      );
+
+      // Trigger haptic feedback when crossing to a new position
+      if (targetIndex !== lastTargetIndex.value) {
+        runOnJS(onHaptic)();
+        lastTargetIndex.value = targetIndex;
+      }
+
+      runOnJS(onHoverChange)(targetIndex);
+    })
+    .onEnd((event) => {
+      // Calculate which position the prompt was dropped on
+      const offset = Math.round(event.translationY / PROMPT_ITEM_HEIGHT);
+      const toIndex = Math.max(0, Math.min(index + offset, totalPrompts - 1));
+
+      runOnJS(onDragEnd)(toIndex);
+      runOnJS(onHoverChange)(null);
+
+      // Reset position with reduced bounce
+      translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
+      zIndex.value = 0;
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+    zIndex: zIndex.value,
+    opacity: isDragging ? 0.8 : 1,
+    shadowColor: isDragging ? '#000' : 'transparent',
+    shadowOffset: {
+      width: 0,
+      height: isDragging ? 4 : 0,
+    },
+    shadowOpacity: isDragging ? 0.3 : 0,
+    shadowRadius: isDragging ? 4.65 : 0,
+    elevation: isDragging ? 8 : 0,
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <ListItem
+        title={prompt.question}
+        description={prompt.answer}
+        left={
+          <GestureDetector gesture={handleGesture}>
+            <View style={styles.dragHandle}>
+              <GripVertical size={20} color={AppColors.foregroundDimmer} />
+            </View>
+          </GestureDetector>
+        }
+        right={<ChevronRight size={20} />}
+        onPress={onPress}
+      />
+    </Animated.View>
+  );
+}
 
 export default function EditProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
   const { showToast } = useToast();
+  const { hapticsEnabled } = useHaptics();
+
+  const triggerHaptic = () => {
+    if (hapticsEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+  };
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +164,10 @@ export default function EditProfileScreen() {
   const [originalPhotos, setOriginalPhotos] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [draggingPromptIndex, setDraggingPromptIndex] = useState<number | null>(
+    null
+  );
+  const [hoverPromptIndex, setHoverPromptIndex] = useState<number | null>(null);
 
   // Scroll position preservation
   const scrollViewRef = useRef<ScrollView>(null);
@@ -213,9 +340,12 @@ export default function EditProfileScreen() {
         }
       }
 
-      // Step 5: Update profile with final image URLs
+      // Step 5: Update profile with final image URLs and prompts
       await updateProfile({
         pictures: finalImageUrls,
+        prompts: prompts
+          .filter((p) => p.question && p.answer)
+          .map((p) => ({ question: p.question, answer: p.answer })),
       });
 
       setOriginalPrompts(prompts);
@@ -224,7 +354,7 @@ export default function EditProfileScreen() {
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
-        label: 'Photos updated',
+        label: 'Profile updated',
       });
     } catch (error) {
       console.error('Failed to update profile:', error);
@@ -274,6 +404,15 @@ export default function EditProfileScreen() {
 
   const removePrompt = (id: string) => {
     setPrompts(prompts.filter((p) => p.id !== id));
+  };
+
+  const reorderPrompts = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+
+    const newPrompts = [...prompts];
+    const [movedPrompt] = newPrompts.splice(fromIndex, 1);
+    newPrompts.splice(toIndex, 0, movedPrompt);
+    setPrompts(newPrompts);
   };
 
   // Get display data - use profile data if available, otherwise fallback
@@ -378,31 +517,74 @@ export default function EditProfileScreen() {
 
         <View style={styles.section}>
           <AppText variant="subtitle" style={styles.subtitle}>
-            Written prompts
+            Written prompts (3 max)
           </AppText>
 
           <ListItemWrapper>
             {prompts.length > 0 &&
               prompts
                 .filter((p) => p.question && p.answer)
-                .map((prompt) => (
-                  <ListItem
-                    key={prompt.id}
-                    title={prompt.question}
-                    description={prompt.answer}
-                    right={<ChevronRight size={20} />}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/edit-prompt',
-                        params: {
-                          promptId: prompt.id,
-                          question: prompt.question,
-                          answer: prompt.answer,
-                        },
-                      } as any)
-                    }
-                  />
-                ))}
+                .map((prompt, index) => {
+                  const isDragging = draggingPromptIndex === index;
+
+                  // Show ghost placeholder at hover position
+                  const shouldShowGhost =
+                    hoverPromptIndex === index &&
+                    draggingPromptIndex !== null &&
+                    draggingPromptIndex !== hoverPromptIndex;
+
+                  return (
+                    <View key={prompt.id} style={styles.promptItemWrapper}>
+                      {shouldShowGhost && draggingPromptIndex !== null && (
+                        <View style={styles.promptGhostPlaceholder}>
+                          <ListItem
+                            title={prompts[draggingPromptIndex].question}
+                            description={prompts[draggingPromptIndex].answer}
+                            left={
+                              <GripVertical
+                                size={20}
+                                color={AppColors.foregroundDimmer}
+                              />
+                            }
+                            right={
+                              <ChevronRight
+                                size={20}
+                                color={AppColors.foregroundDimmer}
+                              />
+                            }
+                            style={{ opacity: 0.3 }}
+                          />
+                        </View>
+                      )}
+                      <DraggablePromptItem
+                        prompt={prompt}
+                        index={index}
+                        isDragging={isDragging}
+                        onDragStart={() => setDraggingPromptIndex(index)}
+                        onDragEnd={(toIndex) => {
+                          reorderPrompts(index, toIndex);
+                          setDraggingPromptIndex(null);
+                          setHoverPromptIndex(null);
+                        }}
+                        onHoverChange={setHoverPromptIndex}
+                        onPress={() =>
+                          router.push({
+                            pathname: '/edit-prompt',
+                            params: {
+                              promptId: prompt.id,
+                              question: prompt.question,
+                              answer: prompt.answer,
+                            },
+                          } as any)
+                        }
+                        totalPrompts={
+                          prompts.filter((p) => p.question && p.answer).length
+                        }
+                        onHaptic={triggerHaptic}
+                      />
+                    </View>
+                  );
+                })}
             <Button
               title="Add prompt"
               iconLeft={Plus}
@@ -416,6 +598,9 @@ export default function EditProfileScreen() {
               }
               variant="secondary"
               noRound
+              disabled={
+                prompts.filter((p) => p.question && p.answer).length >= 3
+              }
             />
           </ListItemWrapper>
         </View>
@@ -686,5 +871,24 @@ const styles = StyleSheet.create({
     color: AppColors.foregroundDimmer,
     fontSize: 14,
     textAlign: 'center',
+  },
+  promptItemWrapper: {
+    position: 'relative',
+  },
+  promptGhostPlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 999,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: AppColors.accentDefault,
+    borderRadius: 4,
+    backgroundColor: AppColors.backgroundDimmer,
+  },
+  dragHandle: {
+    padding: 8,
+    marginLeft: -8,
   },
 });
