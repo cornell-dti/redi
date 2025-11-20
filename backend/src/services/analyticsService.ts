@@ -11,7 +11,7 @@ import {
   EngagementMetricsResponse,
   MutualNudgeStatsResponse,
   Gender,
-} from '../types';
+} from '../../types';
 
 /**
  * Helper: Categorize user by gender + sexual orientation preferences

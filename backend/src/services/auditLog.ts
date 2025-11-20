@@ -21,6 +21,7 @@ export type AuditResourceType =
   | 'users'
   | 'admin'
   | 'report'
+  | 'analytics'
   | 'system';
 
 /**
