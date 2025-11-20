@@ -13,6 +13,8 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useHaptics } from '../../contexts/HapticsContext';
+import { useMotion } from '../../contexts/MotionContext';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 
@@ -35,7 +37,11 @@ export default function Sheet({
   title,
   bottomRound = true,
 }: SheetProps) {
-  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const { animationEnabled } = useMotion();
+  const { hapticsEnabled } = useHaptics();
+  const translateY = useRef(
+    new Animated.Value(!animationEnabled ? 8 : SCREEN_HEIGHT)
+  ).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const isAnimatingRef = useRef(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -47,13 +53,13 @@ export default function Sheet({
     isAnimatingRef.current = true;
     Animated.parallel([
       Animated.timing(translateY, {
-        toValue: SCREEN_HEIGHT,
-        duration: 250,
+        toValue: !animationEnabled ? 8 : SCREEN_HEIGHT,
+        duration: !animationEnabled ? 150 : 250,
         useNativeDriver: true,
       }),
       Animated.timing(overlayOpacity, {
         toValue: 0,
-        duration: 250,
+        duration: !animationEnabled ? 150 : 250,
         useNativeDriver: true,
       }),
     ]).start(({ finished }) => {
@@ -89,31 +95,39 @@ export default function Sheet({
   useEffect(() => {
     if (visible) {
       // Reset animated values to starting position
-      translateY.setValue(SCREEN_HEIGHT);
+      translateY.setValue(!animationEnabled ? 8 : SCREEN_HEIGHT);
       overlayOpacity.setValue(0);
       isAnimatingRef.current = false;
 
-      // Haptic pattern synced with sheet bounce animation
-      // Initial impact when sheet starts sliding in
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      // Haptic pattern synced with sheet bounce animation (only if enabled)
+      if (hapticsEnabled) {
+        // Initial impact when sheet starts sliding in
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-      // Lighter tap to match the bounce settle (~200ms matches spring timing)
-      setTimeout(() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }, 200);
+        // Lighter tap to match the bounce settle (~200ms matches spring timing)
+        setTimeout(() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }, 200);
+      }
 
-      // Use a spring for a subtle bounce on open
+      // Use animation or spring based on preference
       Animated.parallel([
-        Animated.spring(translateY, {
-          toValue: 0,
-          useNativeDriver: true,
-          // bounciness gives a small overshoot/bounce; keep it subtle
-          bounciness: 6,
-          speed: 12,
-        }),
+        !animationEnabled
+          ? Animated.timing(translateY, {
+              toValue: 0,
+              duration: 150,
+              useNativeDriver: true,
+            })
+          : Animated.spring(translateY, {
+              toValue: 0,
+              useNativeDriver: true,
+              // bounciness gives a small overshoot/bounce; keep it subtle
+              bounciness: 6,
+              speed: 12,
+            }),
         Animated.timing(overlayOpacity, {
           toValue: 0.5,
-          duration: 300,
+          duration: !animationEnabled ? 150 : 300,
           useNativeDriver: true,
         }),
       ]).start();
@@ -121,7 +135,7 @@ export default function Sheet({
       // Reset keyboard height when sheet closes
       setKeyboardHeight(0);
     }
-  }, [visible, translateY, overlayOpacity]);
+  }, [visible, translateY, overlayOpacity, animationEnabled, hapticsEnabled]);
 
   const pan = useRef(new Animated.Value(0)).current;
   const lastPanY = useRef(0);
