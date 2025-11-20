@@ -1,8 +1,16 @@
+import { useThemeAware } from '@/app/contexts/ThemeContext';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Star, X } from 'lucide-react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert, Dimensions, Image, StyleSheet, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { AppColors } from '../AppColors';
 import AppText from '../ui/AppText';
 import IconButton from '../ui/IconButton';
@@ -22,12 +30,141 @@ const GRID_PADDING = 0; // Adjust if you want padding around the grid
 const GRID_SLOT_SIZE =
   (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * 2) / 3 - 14;
 
+interface DraggablePhotoProps {
+  photo: string;
+  index: number;
+  isMain: boolean;
+  isDragging: boolean;
+  onRemove: () => void;
+  onSetMain: () => void;
+  onDragStart: () => void;
+  onDragEnd: (toIndex: number) => void;
+  onHoverChange: (toIndex: number | null) => void;
+  totalPhotos: number;
+}
+
+function DraggablePhoto({
+  photo,
+  index,
+  isMain,
+  isDragging,
+  onRemove,
+  onSetMain,
+  onDragStart,
+  onDragEnd,
+  onHoverChange,
+  totalPhotos,
+}: DraggablePhotoProps) {
+  useThemeAware(); // Force re-render when theme changes
+
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const zIndex = useSharedValue(0);
+
+  const gesture = Gesture.Pan()
+    .onStart(() => {
+      runOnJS(onDragStart)();
+      scale.value = withSpring(1.1);
+      zIndex.value = 1000;
+    })
+    .onUpdate((event) => {
+      translateX.value = event.translationX;
+      translateY.value = event.translationY;
+
+      // Calculate hover position while dragging
+      const col = Math.round(event.translationX / (GRID_SLOT_SIZE + GRID_GAP));
+      const row = Math.round(event.translationY / (GRID_SLOT_SIZE + GRID_GAP));
+      const offset = row * 3 + col;
+      const targetIndex = Math.max(
+        0,
+        Math.min(index + offset, totalPhotos - 1)
+      );
+
+      runOnJS(onHoverChange)(targetIndex);
+    })
+    .onEnd((event) => {
+      // Calculate which grid position the photo was dropped on
+      const col = Math.round(event.translationX / (GRID_SLOT_SIZE + GRID_GAP));
+      const row = Math.round(event.translationY / (GRID_SLOT_SIZE + GRID_GAP));
+      const offset = row * 3 + col;
+      const toIndex = Math.max(0, Math.min(index + offset, totalPhotos - 1));
+
+      runOnJS(onDragEnd)(toIndex);
+      runOnJS(onHoverChange)(null);
+
+      // Reset position and scale with reduced bounce
+      translateX.value = withSpring(0, { damping: 20, stiffness: 200 });
+      translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
+      scale.value = withSpring(1, { damping: 20, stiffness: 150 });
+      zIndex.value = 0;
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+    zIndex: zIndex.value,
+    opacity: isDragging ? 0.8 : 1,
+  }));
+
+  return (
+    <GestureDetector gesture={gesture}>
+      <Animated.View style={[styles.gridSlot, animatedStyle]}>
+        <Image source={{ uri: photo }} style={styles.photo} />
+
+        {isMain && (
+          <View style={styles.mainBadgeContainer}>
+            <Tag label="Main" variant="accent" />
+          </View>
+        )}
+
+        {!isMain && (
+          <View style={styles.setMainButtonContainer}>
+            <IconButton
+              icon={Star}
+              onPress={onSetMain}
+              variant="secondary"
+              size="small"
+            />
+          </View>
+        )}
+
+        <View style={styles.removeButtonContainer}>
+          <IconButton
+            icon={X}
+            onPress={onRemove}
+            variant="negative"
+            size="small"
+          />
+        </View>
+      </Animated.View>
+    </GestureDetector>
+  );
+}
+
 export default function PhotoUploadGrid({
   photos,
   onPhotosChange,
   minPhotos = 3,
   maxPhotos = 6,
 }: PhotoUploadGridProps) {
+  useThemeAware(); // Force re-render when theme changes
+
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+
+  const reorderPhotos = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || toIndex >= photos.length) return;
+
+    const newPhotos = [...photos];
+    const [movedPhoto] = newPhotos.splice(fromIndex, 1);
+    newPhotos.splice(toIndex, 0, movedPhoto);
+    onPhotosChange(newPhotos);
+  };
+
   const requestPermission = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -55,7 +192,7 @@ export default function PhotoUploadGrid({
 
     try {
       for (let attempt = 0; attempt < 3; attempt++) {
-        // I think this method call is deprecated, but I cannot find the updated API for it. 
+        // I think this method call is deprecated, but I cannot find the updated API for it.
         const result = await ImageManipulator.manipulateAsync(
           compressedUri,
           [],
@@ -137,6 +274,8 @@ export default function PhotoUploadGrid({
 
   // Create 6 slots (2x3 grid)
   const GRID_SLOTS = 6;
+
+  // Create slots for rendering
   const slots = Array.from({ length: GRID_SLOTS }, (_, index) => {
     if (index < photos.length) {
       return { type: 'photo' as const, photo: photos[index], index };
@@ -151,35 +290,40 @@ export default function PhotoUploadGrid({
       <View style={styles.grid}>
         {slots.map((slot, slotIndex) => {
           if (slot.type === 'photo') {
+            const isDragging = draggingIndex === slot.index;
+
+            // Show ghost placeholder at hover position
+            const shouldShowGhost =
+              hoverIndex === slotIndex &&
+              draggingIndex !== null &&
+              draggingIndex !== hoverIndex;
+
             return (
-              <View key={slotIndex} style={styles.gridSlot}>
-                <Image source={{ uri: slot.photo }} style={styles.photo} />
-
-                {slot.index === 0 && (
-                  <View style={styles.mainBadgeContainer}>
-                    <Tag label="Main" variant="accent" />
-                  </View>
-                )}
-
-                {slot.index !== 0 && (
-                  <View style={styles.setMainButtonContainer}>
-                    <IconButton
-                      icon={Star}
-                      onPress={() => setAsMainPhoto(slot.index)}
-                      variant="secondary"
-                      size="small"
+              <View key={slotIndex} style={styles.gridSlotWrapper}>
+                {shouldShowGhost && (
+                  <View style={[styles.gridSlot, styles.ghostPlaceholder]}>
+                    <Image
+                      source={{ uri: photos[draggingIndex] }}
+                      style={[styles.photo, styles.ghostImage]}
                     />
                   </View>
                 )}
-
-                <View style={styles.removeButtonContainer}>
-                  <IconButton
-                    icon={X}
-                    onPress={() => removePhoto(slot.index)}
-                    variant="negative"
-                    size="small"
-                  />
-                </View>
+                <DraggablePhoto
+                  photo={slot.photo}
+                  index={slot.index}
+                  isMain={slot.index === 0}
+                  isDragging={isDragging}
+                  onRemove={() => removePhoto(slot.index)}
+                  onSetMain={() => setAsMainPhoto(slot.index)}
+                  onDragStart={() => setDraggingIndex(slot.index)}
+                  onDragEnd={(toIndex) => {
+                    reorderPhotos(slot.index, toIndex);
+                    setDraggingIndex(null);
+                    setHoverIndex(null);
+                  }}
+                  onHoverChange={setHoverIndex}
+                  totalPhotos={photos.length}
+                />
               </View>
             );
           }
@@ -223,6 +367,11 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
   },
+  gridSlotWrapper: {
+    position: 'relative',
+    width: GRID_SLOT_SIZE,
+    height: GRID_SLOT_SIZE,
+  },
   gridSlot: {
     width: GRID_SLOT_SIZE,
     height: GRID_SLOT_SIZE,
@@ -234,6 +383,21 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+  },
+  ghostPlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    backgroundColor: AppColors.backgroundDimmer,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: AppColors.accentDefault,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  ghostImage: {
+    opacity: 0.3,
   },
   mainBadgeContainer: {
     position: 'absolute',

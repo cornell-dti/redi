@@ -5,6 +5,7 @@ import auth from '@react-native-firebase/auth';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { APIError } from './api/apiClient';
 import { onAuthStateChanged } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
@@ -291,15 +292,17 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <MotionProvider>
-        <HapticsProvider>
-          <ToastProvider>
-            <RootNavigator />
-          </ToastProvider>
-        </HapticsProvider>
-      </MotionProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <MotionProvider>
+          <HapticsProvider>
+            <ToastProvider>
+              <RootNavigator />
+            </ToastProvider>
+          </HapticsProvider>
+        </MotionProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
 
