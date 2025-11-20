@@ -104,66 +104,68 @@ export default function SearchableMultiSelect({
           setSearchQuery('');
         }}
         title={label || 'Select options'}
-        height="80%"
+        height="60%"
+        bottomRound={false}
       >
-        {/* Search Bar */}
-        <AppInput
-          placeholder={placeholder}
-          placeholderTextColor={AppColors.foregroundDimmer}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          autoFocus
-        />
-
-        {/* Options List */}
-        {filteredOptions.length > 0 ? (
-          <ScrollView
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-          >
-            <ListItemWrapper>
-              {filteredOptions.map((item, index) => (
-                <ListItem
-                  key={`${item}-${index}`}
-                  title={item}
-                  selected={selected.includes(item)}
-                  onPress={() => toggleOption(item)}
-                  right={
-                    selected.includes(item) ? (
-                      <Check size={20} color={AppColors.accentDefault} />
-                    ) : (
-                      <Square color={AppColors.foregroundDimmer} />
-                    )
-                  }
-                />
-              ))}
-            </ListItemWrapper>
-          </ScrollView>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <AppText style={styles.emptyText}>No results found</AppText>
-          </View>
-        )}
-
-        {/* Actions */}
-
-        <View style={styles.actions}>
-          <Button
-            title="Done"
-            iconLeft={Check}
-            onPress={() => setIsOpen(false)}
-            variant="primary"
-            fullWidth
+        <View style={styles.sheetContent}>
+          {/* Search Bar */}
+          <AppInput
+            placeholder={placeholder}
+            placeholderTextColor={AppColors.foregroundDimmer}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
           />
 
-          {selected.length > 0 && (
-            <Button
-              title="Clear All"
-              onPress={clearAll}
-              variant="negative"
-              iconLeft={X}
-            />
+          {/* Options List */}
+          {filteredOptions.length > 0 ? (
+            <ScrollView
+              style={styles.scrollView}
+              showsVerticalScrollIndicator={false}
+            >
+              <ListItemWrapper>
+                {filteredOptions.map((item, index) => (
+                  <ListItem
+                    key={`${item}-${index}`}
+                    title={item}
+                    selected={selected.includes(item)}
+                    onPress={() => toggleOption(item)}
+                    right={
+                      selected.includes(item) ? (
+                        <Check size={20} color={AppColors.accentDefault} />
+                      ) : (
+                        <Square color={AppColors.foregroundDimmer} />
+                      )
+                    }
+                  />
+                ))}
+              </ListItemWrapper>
+            </ScrollView>
+          ) : (
+            <View style={styles.emptyContainer}>
+              <AppText style={styles.emptyText}>No results found</AppText>
+            </View>
           )}
+
+          {/* Actions */}
+          <View style={styles.actions}>
+            <Button
+              title="Done"
+              iconLeft={Check}
+              onPress={() => setIsOpen(false)}
+              variant="primary"
+              fullWidth
+            />
+
+            {selected.length > 0 && (
+              <Button
+                title="Clear All"
+                onPress={clearAll}
+                variant="negative"
+                iconLeft={X}
+              />
+            )}
+          </View>
         </View>
       </Sheet>
     </View>
@@ -191,12 +193,15 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 4,
   },
+  sheetContent: {
+    flex: 1,
+    gap: 16,
+  },
   list: {
     flex: 1,
   },
   scrollView: {
     flex: 1,
-    marginTop: 24,
   },
   emptyContainer: {
     padding: 32,
