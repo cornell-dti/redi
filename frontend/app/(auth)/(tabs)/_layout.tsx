@@ -74,9 +74,15 @@ export default function TabLayout() {
 
   // In dark mode, navbar matches page background; in light mode, navbar is dark
   const isDark = themeMode === 'dark';
-  const navbarBg = isDark ? AppColors.backgroundDefault : AppColors.foregroundDefault;
-  const activeTint = isDark ? AppColors.accentDefault : AppColors.backgroundDefault;
-  const inactiveTint = isDark ? AppColors.foregroundDimmer : AppColors.foregroundDimmer;
+  const navbarBg = isDark
+    ? AppColors.backgroundDefault
+    : AppColors.foregroundDefault;
+  const activeTint = isDark
+    ? AppColors.accentDefault
+    : AppColors.backgroundDefault;
+  const inactiveTint = isDark
+    ? AppColors.foregroundDimmer
+    : AppColors.foregroundDimmer;
 
   return (
     <Tabs

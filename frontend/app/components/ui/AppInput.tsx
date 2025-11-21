@@ -1,6 +1,5 @@
 import * as Haptics from 'expo-haptics';
 import React, { useRef } from 'react';
-import { useThemeAware } from "../../contexts/ThemeContext";
 import {
   Animated,
   StyleSheet,
@@ -8,6 +7,7 @@ import {
   TextInputProps,
   View,
 } from 'react-native';
+import { useThemeAware } from '../../contexts/ThemeContext';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 

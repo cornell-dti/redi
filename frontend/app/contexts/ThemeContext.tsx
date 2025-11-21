@@ -6,7 +6,12 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { AppColors, updateAccentColors, updateNegativeColors, updateThemeColors } from '../components/AppColors';
+import {
+  AppColors,
+  updateAccentColors,
+  updateNegativeColors,
+  updateThemeColors,
+} from '../components/AppColors';
 
 export type ThemeName =
   | 'default'
@@ -194,9 +199,9 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const THEME_STORAGE_KEY = '@app_theme';
 const MODE_STORAGE_KEY = '@app_theme_mode';
 
-export function ThemeProvider({ children }: { children: ReactNode}) {
+export function ThemeProvider({ children }: { children: ReactNode }) {
   const [currentTheme, setCurrentTheme] = useState<Theme>(themes.default);
-  const [themeMode, setThemeMode] = useState<ThemeMode>('light');
+  const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
   const [themeVersion, setThemeVersion] = useState(0);
 
   useEffect(() => {
@@ -235,14 +240,15 @@ export function ThemeProvider({ children }: { children: ReactNode}) {
         AsyncStorage.getItem(MODE_STORAGE_KEY),
       ]);
 
-      const theme = savedTheme && savedTheme in themes
-        ? themes[savedTheme as ThemeName]
-        : themes.default;
-      const mode = (savedMode as ThemeMode) || 'light';
+      const theme =
+        savedTheme && savedTheme in themes
+          ? themes[savedTheme as ThemeName]
+          : themes.default;
 
+      // ⛔ Ignore saved mode — force dark mode
       setCurrentTheme(theme);
-      setThemeMode(mode);
-      applyTheme(theme, mode);
+      setThemeMode('dark');
+      applyTheme(theme, 'dark');
     } catch (error) {
       console.error('Failed to load theme:', error);
     }
@@ -270,7 +276,9 @@ export function ThemeProvider({ children }: { children: ReactNode}) {
   };
 
   return (
-    <ThemeContext.Provider value={{ currentTheme, themeMode, setTheme, setMode, themeVersion }}>
+    <ThemeContext.Provider
+      value={{ currentTheme, themeMode, setTheme, setMode, themeVersion }}
+    >
       {children}
     </ThemeContext.Provider>
   );

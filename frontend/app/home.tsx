@@ -323,7 +323,7 @@ export default function HomePage() {
       <View style={{ position: 'absolute', top: 48, right: 0, width: 200 }}>
         <Button
           title="TESTING LOGIN"
-          onPress={() => handleModeChange('signup')}
+          onPress={() => handleModeChange('login')}
           variant="negative"
           fullWidth
         />
@@ -505,7 +505,12 @@ export default function HomePage() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
       {/* <StatusBar barStyle="dark-content" /> */}
 
       {mode === 'splash' && renderSplashScreen()}
@@ -568,7 +573,6 @@ const styles = StyleSheet.create({
     padding: 16,
     justifyContent: 'center',
     // alignItems: 'center',
-    
   },
   // Main screen container - holds top and bottom sections
   screenContainer: {

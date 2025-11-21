@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 
+import { useThemeAware } from '@/app/contexts/ThemeContext';
 import { ArrowRight } from 'lucide-react-native';
 import { useMotion } from '../../contexts/MotionContext';
 import { AppColors } from '../AppColors';
@@ -30,6 +31,8 @@ export default function OnboardingFooter({
   onCheckboxChange,
   loading = false,
 }: OnboardingFooterProps) {
+  useThemeAware(); // Force re-render when theme changes
+
   const { animationEnabled } = useMotion();
   const slideAnim = useRef(new Animated.Value(-20)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -63,7 +66,13 @@ export default function OnboardingFooter({
   }, [loading, slideAnim, opacityAnim, animationEnabled]);
 
   // Animated spinner component that conforms to CustomIcon type
-  const AnimatedSpinner = ({ size = 20, color = AppColors.backgroundDefault }: { size?: number; color?: string }) => (
+  const AnimatedSpinner = ({
+    size = 20,
+    color = AppColors.backgroundDefault,
+  }: {
+    size?: number;
+    color?: string;
+  }) => (
     <Animated.View
       style={{
         transform: [{ translateX: slideAnim }],
