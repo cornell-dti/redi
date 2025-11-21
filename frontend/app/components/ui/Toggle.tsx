@@ -1,7 +1,7 @@
 import React from 'react';
 import { Animated, Pressable, StyleSheet } from 'react-native';
 import { useMotion } from '../../contexts/MotionContext';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../../contexts/ThemeContext';
 import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 import { AppColors } from '../AppColors';
 
@@ -11,6 +11,7 @@ interface ToggleProps {
 }
 
 export default function Toggle({ value, onValueChange }: ToggleProps) {
+  useThemeAware(); // Force re-render when theme changes
   const { currentTheme } = useTheme();
   const { animationEnabled } = useMotion();
   const haptic = useHapticFeedback();
@@ -93,6 +94,7 @@ export default function Toggle({ value, onValueChange }: ToggleProps) {
             style={[
               styles.thumb,
               {
+                backgroundColor: AppColors.backgroundDefault,
                 transform: [{ translateX: combinedTranslateX }, { scaleX }],
               },
             ]}
@@ -108,7 +110,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 32,
     borderRadius: 16,
-    backgroundColor: AppColors.backgroundDimmest,
     padding: 2,
     justifyContent: 'center',
   },
@@ -116,7 +117,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: AppColors.backgroundDefault,
   },
   pressed: {
     opacity: 0.8,

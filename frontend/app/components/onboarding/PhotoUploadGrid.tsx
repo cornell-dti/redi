@@ -128,7 +128,7 @@ function DraggablePhoto({
     ],
     zIndex: zIndex.value,
     opacity: isDragging ? 0.8 : 1,
-    shadowColor: isDragging ? '#000' : 'transparent',
+    shadowColor: isDragging ? AppColors.shadowDefault : AppColors.transparent,
     shadowOffset: {
       width: 0,
       height: isDragging ? 4 : 0,
@@ -332,7 +332,16 @@ export default function PhotoUploadGrid({
             return (
               <View key={slotIndex} style={styles.gridSlotWrapper}>
                 {shouldShowGhost && (
-                  <View style={[styles.gridSlot, styles.ghostPlaceholder]}>
+                  <View
+                    style={[
+                      styles.gridSlot,
+                      styles.ghostPlaceholder,
+                      {
+                        backgroundColor: AppColors.backgroundDimmer,
+                        borderColor: AppColors.accentDefault,
+                      },
+                    ]}
+                  >
                     <Image
                       source={{ uri: photos[draggingIndex] }}
                       style={[styles.photo, styles.ghostImage]}
@@ -364,11 +373,21 @@ export default function PhotoUploadGrid({
             return (
               <Pressable
                 key={slotIndex}
-                style={[styles.gridSlot, styles.addButton]}
+                style={[
+                  styles.gridSlot,
+                  styles.addButton,
+                  {
+                    borderColor: AppColors.backgroundDimmest,
+                    backgroundColor: AppColors.backgroundDimmer,
+                  },
+                ]}
                 onPress={pickImage}
               >
                 <Camera size={32} color={AppColors.foregroundDimmer} />
-                <AppText variant="bodySmall" style={styles.addButtonText}>
+                <AppText
+                  variant="bodySmall"
+                  style={[styles.addButtonText, { color: AppColors.foregroundDimmer }]}
+                >
                   {photos.length === 0 ? 'Add photo' : 'Add more'}
                 </AppText>
               </Pressable>
@@ -379,7 +398,10 @@ export default function PhotoUploadGrid({
         })}
       </View>
 
-      <AppText variant="bodySmall" style={styles.helperText}>
+      <AppText
+        variant="bodySmall"
+        style={[styles.helperText, { color: AppColors.foregroundDimmer }]}
+      >
         {photos.length < minPhotos
           ? `Add at least ${minPhotos - photos.length} more photo${minPhotos - photos.length > 1 ? 's' : ''}`
           : `${photos.length}/${maxPhotos} photos added`}
@@ -420,10 +442,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    backgroundColor: AppColors.backgroundDimmer,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: AppColors.accentDefault,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 999,
@@ -449,18 +469,14 @@ const styles = StyleSheet.create({
   addButton: {
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: AppColors.backgroundDimmest,
-    backgroundColor: AppColors.backgroundDimmer,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
   },
   addButtonText: {
-    color: AppColors.foregroundDimmer,
     textAlign: 'center',
   },
   helperText: {
-    color: AppColors.foregroundDimmer,
     textAlign: 'center',
   },
 });

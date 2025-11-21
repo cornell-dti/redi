@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { useThemeAware } from '../../contexts/ThemeContext';
 import { useMotion } from '../../contexts/MotionContext';
 import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 import { AppColors } from '../AppColors';
@@ -36,6 +37,7 @@ export default function Sheet({
   title,
   bottomRound = true,
 }: SheetProps) {
+  useThemeAware(); // Force re-render when theme changes
   const { animationEnabled } = useMotion();
   const haptic = useHapticFeedback();
   const translateY = useRef(
@@ -182,7 +184,7 @@ export default function Sheet({
       <View style={styles.container} pointerEvents={visible ? 'auto' : 'none'}>
         <Pressable style={StyleSheet.absoluteFill} onPress={handleDismiss}>
           <Animated.View
-            style={[styles.overlay, { opacity: overlayOpacity }]}
+            style={[styles.overlay, { backgroundColor: AppColors.foregroundDefault, opacity: overlayOpacity }]}
           />
         </Pressable>
 
@@ -191,6 +193,7 @@ export default function Sheet({
             style={
               [
                 styles.sheet,
+                { backgroundColor: AppColors.backgroundDefault },
                 height && height !== 'auto' && { height },
                 {
                   borderBottomLeftRadius: bottomRound ? 48 : 24,
@@ -205,7 +208,7 @@ export default function Sheet({
               {...panResponder.panHandlers}
               style={styles.dragHandleContainer}
             >
-              <View style={styles.dragHandle} />
+              <View style={[styles.dragHandle, { backgroundColor: AppColors.borderDefault }]} />
             </View>
             <View style={styles.titleContainer}>
               {title && <AppText variant="subtitle">{title}</AppText>}
@@ -237,10 +240,8 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: AppColors.foregroundDefault,
   },
   sheet: {
-    backgroundColor: AppColors.backgroundDefault,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 16,
@@ -259,7 +260,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#e0e0e0',
   },
   titleContainer: {
     marginBottom: 8,

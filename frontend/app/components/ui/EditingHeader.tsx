@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Check } from 'lucide-react-native';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useThemeAware } from '../../contexts/ThemeContext';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 import IconButton from './IconButton';
@@ -26,6 +27,7 @@ export default function EditingHeader({
   title,
   showSave = true,
 }: EditingHeaderProps) {
+  useThemeAware(); // Force re-render when theme changes
   const router = useRouter();
 
   const handleBack = () => {
@@ -39,7 +41,7 @@ export default function EditingHeader({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { borderBottomColor: AppColors.backgroundDimmest }]}>
       <View style={styles.buttonRow}>
         <IconButton
           onPress={handleBack}
@@ -75,7 +77,6 @@ const styles = StyleSheet.create({
     padding: 16,
     position: 'relative',
     borderBottomWidth: 1,
-    borderBottomColor: AppColors.backgroundDimmest,
   },
   buttonRow: {
     display: 'flex',

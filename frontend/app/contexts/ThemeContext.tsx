@@ -6,7 +6,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { updateAccentColors } from '../components/AppColors';
+import { AppColors, updateAccentColors, updateThemeColors } from '../components/AppColors';
 
 export type ThemeName =
   | 'default'
@@ -16,12 +16,40 @@ export type ThemeName =
   | 'orange'
   | 'purple';
 
+export type ThemeMode = 'light' | 'dark';
+
 export interface Theme {
   name: ThemeName;
   accentDefault: string;
   accentDimmer: string;
   accentAlpha: string;
 }
+
+// Dark mode color palette
+const darkModeColors = {
+  backgroundDefault: '#121212',
+  backgroundDimmer: '#1E1E1E',
+  backgroundDimmest: '#2A2A2A',
+  foregroundDefault: '#E5E5E5',
+  foregroundDimmer: '#999999',
+  overlayDark: 'rgba(0, 0, 0, 0.6)',
+  overlayLight: 'rgba(255, 255, 255, 0.12)',
+  borderDefault: '#333333',
+  borderDimmer: '#444444',
+};
+
+// Light mode color palette
+const lightModeColors = {
+  backgroundDefault: '#FFFFFF',
+  backgroundDimmer: '#F4F4F4',
+  backgroundDimmest: '#E5E5E5',
+  foregroundDefault: '#1F1F1F',
+  foregroundDimmer: '#7A7A7A',
+  overlayDark: 'rgba(0, 0, 0, 0.35)',
+  overlayLight: 'rgba(255, 255, 255, 0.08)',
+  borderDefault: '#E0E0E0',
+  borderDimmer: '#DDDDDD',
+};
 
 export const themes: Record<ThemeName, Theme> = {
   default: {
@@ -64,35 +92,60 @@ export const themes: Record<ThemeName, Theme> = {
 
 interface ThemeContextType {
   currentTheme: Theme;
+  themeMode: ThemeMode;
   setTheme: (themeName: ThemeName) => Promise<void>;
+  setMode: (mode: ThemeMode) => Promise<void>;
   themeVersion: number;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = '@app_theme';
+const MODE_STORAGE_KEY = '@app_theme_mode';
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({ children }: { children: ReactNode}) {
   const [currentTheme, setCurrentTheme] = useState<Theme>(themes.default);
+  const [themeMode, setThemeMode] = useState<ThemeMode>('light');
   const [themeVersion, setThemeVersion] = useState(0);
 
   useEffect(() => {
     loadTheme();
   }, []);
 
+  const applyTheme = (theme: Theme, mode: ThemeMode) => {
+    console.log('🎨 Applying theme:', theme.name, 'Mode:', mode);
+
+    // Apply mode colors (light/dark)
+    const modeColors = mode === 'dark' ? darkModeColors : lightModeColors;
+    console.log('🌈 Mode colors:', modeColors);
+    updateThemeColors(modeColors);
+
+    // Apply accent colors
+    updateAccentColors(
+      theme.accentDefault,
+      theme.accentDimmer,
+      theme.accentAlpha
+    );
+
+    console.log('✅ Theme applied. Background:', AppColors.backgroundDefault);
+    setThemeVersion((v) => v + 1);
+  };
+
   const loadTheme = async () => {
     try {
-      const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-      if (savedTheme && savedTheme in themes) {
-        const theme = themes[savedTheme as ThemeName];
-        setCurrentTheme(theme);
-        updateAccentColors(
-          theme.accentDefault,
-          theme.accentDimmer,
-          theme.accentAlpha
-        );
-        setThemeVersion((v) => v + 1);
-      }
+      const [savedTheme, savedMode] = await Promise.all([
+        AsyncStorage.getItem(THEME_STORAGE_KEY),
+        AsyncStorage.getItem(MODE_STORAGE_KEY),
+      ]);
+
+      const theme = savedTheme && savedTheme in themes
+        ? themes[savedTheme as ThemeName]
+        : themes.default;
+      const mode = (savedMode as ThemeMode) || 'light';
+
+      setCurrentTheme(theme);
+      setThemeMode(mode);
+      applyTheme(theme, mode);
     } catch (error) {
       console.error('Failed to load theme:', error);
     }
@@ -103,19 +156,24 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       await AsyncStorage.setItem(THEME_STORAGE_KEY, themeName);
       const theme = themes[themeName];
       setCurrentTheme(theme);
-      updateAccentColors(
-        theme.accentDefault,
-        theme.accentDimmer,
-        theme.accentAlpha
-      );
-      setThemeVersion((v) => v + 1);
+      applyTheme(theme, themeMode);
     } catch (error) {
       console.error('Failed to save theme:', error);
     }
   };
 
+  const setMode = async (mode: ThemeMode) => {
+    try {
+      await AsyncStorage.setItem(MODE_STORAGE_KEY, mode);
+      setThemeMode(mode);
+      applyTheme(currentTheme, mode);
+    } catch (error) {
+      console.error('Failed to save theme mode:', error);
+    }
+  };
+
   return (
-    <ThemeContext.Provider value={{ currentTheme, setTheme, themeVersion }}>
+    <ThemeContext.Provider value={{ currentTheme, themeMode, setTheme, setMode, themeVersion }}>
       {children}
     </ThemeContext.Provider>
   );

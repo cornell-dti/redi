@@ -3,6 +3,7 @@ import FilledChatIcon from '@/app/components/icons/FilledChatIcon';
 import FilledHeartIcon from '@/app/components/icons/FilledHeartIcon';
 import FilledProfileIcon from '@/app/components/icons/FilledProfileIcon';
 import { useNotifications } from '@/app/contexts/NotificationsContext';
+import { useTheme, useThemeAware } from '@/app/contexts/ThemeContext';
 import { useHapticFeedback } from '@/app/hooks/useHapticFeedback';
 import { Tabs } from 'expo-router';
 import { Bell, Heart, MessageCircle, User } from 'lucide-react-native';
@@ -67,15 +68,23 @@ const AnimatedTabButton = (props: any) => {
 };
 
 export default function TabLayout() {
+  useThemeAware(); // Force re-render when theme changes
+  const { themeMode } = useTheme();
   const { unreadCount } = useNotifications();
+
+  // In dark mode, navbar matches page background; in light mode, navbar is dark
+  const isDark = themeMode === 'dark';
+  const navbarBg = isDark ? AppColors.backgroundDefault : AppColors.foregroundDefault;
+  const activeTint = isDark ? AppColors.accentDefault : AppColors.backgroundDefault;
+  const inactiveTint = isDark ? AppColors.foregroundDimmer : AppColors.foregroundDimmer;
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: AppColors.backgroundDefault,
-        tabBarInactiveTintColor: AppColors.foregroundDimmer,
+        tabBarActiveTintColor: activeTint,
+        tabBarInactiveTintColor: inactiveTint,
         tabBarStyle: {
-          backgroundColor: AppColors.foregroundDefault,
+          backgroundColor: navbarBg,
           paddingTop: 16,
           paddingBottom: 16,
           height: 100,

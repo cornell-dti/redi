@@ -188,7 +188,7 @@ export default function EditPromptPage() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       <StatusBar barStyle="dark-content" />
 
       <EditingHeader
@@ -317,7 +317,7 @@ export default function EditPromptPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
+    
   },
   keyboardAvoid: {
     flex: 1,

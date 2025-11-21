@@ -261,7 +261,7 @@ export default function MatchesScreen() {
       />
       {activePrompt && (
         <ListItemWrapper style={styles.promptSection}>
-          <View style={styles.promptQuestion}>
+          <View style={[styles.promptQuestion, { backgroundColor: AppColors.backgroundDimmer }]}>
             <AppText color="dimmer"> Weekly Prompt: </AppText>
 
             <AppText variant="subtitle">{activePrompt.question}</AppText>
@@ -285,7 +285,7 @@ export default function MatchesScreen() {
     <>
       {activePrompt && (
         <ListItemWrapper style={styles.promptSection}>
-          <View style={styles.promptQuestion}>
+          <View style={[styles.promptQuestion, { backgroundColor: AppColors.backgroundDimmer }]}>
             <AppText color="dimmer"> Weekly Prompt: </AppText>
 
             <AppText variant="subtitle">{activePrompt.question}</AppText>
@@ -446,6 +446,7 @@ export default function MatchesScreen() {
                   style={[
                     styles.paginationDot,
                     {
+                      backgroundColor: AppColors.foregroundDefault,
                       width: dotWidth,
                       height: dotHeight,
                       opacity,
@@ -461,7 +462,7 @@ export default function MatchesScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.headerContainer}>
@@ -525,7 +526,6 @@ export default function MatchesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
     paddingTop: 64,
   },
   scrollView: {
@@ -540,7 +540,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   countdownSection: {
-    backgroundColor: AppColors.backgroundDefault,
     borderRadius: 12,
     padding: 24,
     alignItems: 'center',
@@ -562,8 +561,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   promptCard: {
-    backgroundColor: AppColors.accentAlpha,
-    borderColor: AppColors.accentDefault,
     borderWidth: 1,
     borderRadius: 4,
     gap: 4,
@@ -574,10 +571,8 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 8,
     borderRadius: 4,
-    backgroundColor: AppColors.backgroundDimmer,
   },
   answerCard: {
-    backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 4,
     padding: 16,
   },
@@ -599,10 +594,8 @@ const styles = StyleSheet.create({
   },
   paginationDot: {
     borderRadius: 5,
-    backgroundColor: AppColors.foregroundDefault,
   },
   emptyState: {
-    backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 24,
     padding: 40,
     alignItems: 'center',

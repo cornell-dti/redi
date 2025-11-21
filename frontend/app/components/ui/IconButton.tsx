@@ -1,6 +1,7 @@
 import { LucideIcon } from 'lucide-react-native';
 import React, { useRef } from 'react';
 import { Animated, TouchableOpacity, ViewStyle } from 'react-native';
+import { useThemeAware } from '../../contexts/ThemeContext';
 import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 import { AppColors } from '../AppColors';
 
@@ -24,6 +25,7 @@ export default function IconButton({
   children,
   noRound,
 }: React.PropsWithChildren<IconButtonProps>) {
+  useThemeAware(); // Force re-render when theme changes
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isPressed, setIsPressed] = React.useState(false);
   const haptic = useHapticFeedback();

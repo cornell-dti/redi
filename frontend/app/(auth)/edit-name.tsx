@@ -116,7 +116,7 @@ export default function EditNamePage() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       <StatusBar barStyle="dark-content" />
 
       <EditingHeader
@@ -164,7 +164,7 @@ export default function EditNamePage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
+    
   },
   keyboardAvoid: {
     flex: 1,

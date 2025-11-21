@@ -68,6 +68,7 @@ export default function ListItem({
         android_ripple={{ color: AppColors.backgroundDimmest }}
         style={({ pressed }) => [
           styles.container,
+          { backgroundColor: AppColors.backgroundDimmer },
           selected && { backgroundColor: AppColors.accentAlpha },
 
           // 🔹 pressed or isPressed logic
@@ -76,7 +77,7 @@ export default function ListItem({
               ? { backgroundColor: AppColors.accentAlpha }
               : destructive
                 ? { backgroundColor: AppColors.negativeDimmest } // 🔸 if destructive & pressed
-                : styles.pressed),
+                : { backgroundColor: AppColors.backgroundDimmest }),
 
           description ? { minHeight: 54 } : { minHeight: 54 },
           disabled && { opacity: 0.4 },
@@ -119,11 +120,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 6,
-  },
-  pressed: {
-    backgroundColor: AppColors.backgroundDimmest,
   },
   left: {
     marginRight: 12,

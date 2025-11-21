@@ -179,12 +179,12 @@ export default function ChatScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
         <Header title="Messages" />
         <View
           style={[
             styles.container,
-            { justifyContent: 'center', alignItems: 'center' },
+            { backgroundColor: AppColors.backgroundDefault, justifyContent: 'center', alignItems: 'center' },
           ]}
         >
           <LoadingSpinner />
@@ -194,7 +194,7 @@ export default function ChatScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       <StatusBar barStyle="dark-content" />
 
       <Header title="Messages" />
@@ -231,10 +231,8 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
   },
   activeMatches: {
-    backgroundColor: AppColors.backgroundDefault,
     paddingVertical: 16,
   },
   activeMatchesList: {

@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import Constants from 'expo-constants';
 import { API_BASE_URL } from '@/constants/constants';
+import { useThemeAware } from '../contexts/ThemeContext';
 
 /**
  * Debug Configuration Screen
@@ -10,6 +11,7 @@ import { API_BASE_URL } from '@/constants/constants';
  * Or add a temporary button in your app to navigate here during testing.
  */
 export default function DebugConfigScreen() {
+  useThemeAware(); // Force re-render when theme changes
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Environment Configuration</Text>

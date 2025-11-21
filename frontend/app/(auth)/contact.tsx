@@ -12,7 +12,7 @@ import { useThemeAware } from '../contexts/ThemeContext';
 export default function ContactPage() {
   useThemeAware(); // Force re-render when theme changes
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       <StatusBar barStyle="dark-content" />
 
       <EditingHeader showSave={false} title="Contact the team" />
@@ -45,7 +45,7 @@ export default function ContactPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
+    
   },
   scrollView: {
     flex: 1,

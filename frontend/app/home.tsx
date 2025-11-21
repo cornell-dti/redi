@@ -35,12 +35,14 @@ import AppText from './components/ui/AppText';
 import Button from './components/ui/Button';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import Sheet from './components/ui/Sheet';
+import { useThemeAware } from './contexts/ThemeContext';
 
 type AuthMode = 'splash' | 'welcome' | 'signup' | 'login';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function HomePage() {
+  useThemeAware(); // Force re-render when theme changes
   const [mode, setMode] = useState<AuthMode>('splash');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -503,7 +505,7 @@ export default function HomePage() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       {/* <StatusBar barStyle="dark-content" /> */}
 
       {mode === 'splash' && renderSplashScreen()}
@@ -566,7 +568,7 @@ const styles = StyleSheet.create({
     padding: 16,
     justifyContent: 'center',
     // alignItems: 'center',
-    backgroundColor: AppColors.backgroundDefault,
+    
   },
   // Main screen container - holds top and bottom sections
   screenContainer: {

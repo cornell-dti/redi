@@ -137,7 +137,7 @@ export default function AccountSettingsPage() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       <StatusBar barStyle="dark-content" />
 
       <EditingHeader showSave={false} title="Account settings" />
@@ -223,7 +223,7 @@ export default function AccountSettingsPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
+    
   },
   centerContent: {
     justifyContent: 'center',

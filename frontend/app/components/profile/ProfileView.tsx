@@ -115,12 +115,14 @@ const ProfileView: React.FC<ProfileViewProps> = ({
             icon: (
               <LinkedinIcon size={24} color={AppColors.foregroundDefault} />
             ),
-            url: ensureProtocol(profile.linkedIn),
+            url: profile.linkedIn.startsWith('in/')
+              ? `https://linkedin.com/${profile.linkedIn}`
+              : ensureProtocol(profile.linkedIn),
           },
         'github' in profile &&
           profile.github && {
             icon: <GithubIcon size={24} color={AppColors.foregroundDefault} />,
-            url: ensureProtocol(profile.github),
+            url: `https://github.com/${profile.github.replace(/^@/, '')}`,
           },
         'website' in profile &&
           profile.website && {
@@ -494,8 +496,8 @@ const styles = StyleSheet.create({
   },
   paginationDot: {
     borderRadius: 5,
-    backgroundColor: 'rgba(255, 255, 255, 1)',
-    shadowColor: '#000',
+    backgroundColor: AppColors.surfaceWhite,
+    shadowColor: AppColors.shadowDefault,
     shadowOffset: {
       width: 0,
       height: 2,

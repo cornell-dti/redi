@@ -82,7 +82,10 @@ const normalizeWebsite = (value: string): string => {
   // Remove www if still present
   cleaned = cleaned.replace(/^www\./i, '');
 
-  // Remove trailing slash
+  // Extract only the domain (remove paths, query params, fragments)
+  cleaned = cleaned.split('/')[0].split('?')[0].split('#')[0];
+
+  // Remove trailing slash (in case there's only a slash with no path)
   cleaned = cleaned.replace(/\/$/, '');
 
   return cleaned;
@@ -278,7 +281,7 @@ export default function EditSocialsPage() {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       <StatusBar barStyle="dark-content" />
 
       <EditingHeader
@@ -409,7 +412,7 @@ export default function EditSocialsPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
+    
   },
   scrollView: {
     flex: 1,

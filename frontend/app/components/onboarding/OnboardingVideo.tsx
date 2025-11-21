@@ -4,6 +4,7 @@ import { X } from 'lucide-react-native';
 import React, { useEffect, useRef } from 'react';
 import { Dimensions, Modal, StyleSheet, View } from 'react-native';
 import { useHapticFeedback } from '../../hooks/useHapticFeedback';
+import { AppColors } from '../AppColors';
 import IconButton from '../ui/IconButton';
 
 const ONBOARDING_VIDEO_SHOWN_KEY = '@onboarding_video_shown';
@@ -184,7 +185,7 @@ export async function markOnboardingVideoAsShown(): Promise<void> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: AppColors.surfaceBlack,
   },
   video: {
     width: Dimensions.get('window').width,

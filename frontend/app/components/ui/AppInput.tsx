@@ -1,5 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import React, { useRef } from 'react';
+import { useThemeAware } from "../../contexts/ThemeContext";
 import {
   Animated,
   StyleSheet,

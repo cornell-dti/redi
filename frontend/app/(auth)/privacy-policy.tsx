@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
   useThemeAware(); // Force re-render when theme changes
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       <StatusBar barStyle="dark-content" />
       <EditingHeader showSave={false} title="Privacy Policy" />
 
@@ -164,7 +164,7 @@ export default function PrivacyPolicyPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
+    
   },
   scrollView: {
     flex: 1,

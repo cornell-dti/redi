@@ -1,6 +1,7 @@
 // app/components/ui/SectionCard.tsx
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
+import { AppColors } from '../AppColors';
 import AppText from './AppText';
 
 interface SectionCardProps {
@@ -28,11 +29,11 @@ const SectionCard: React.FC<SectionCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    backgroundColor: AppColors.surfaceWhite,
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: AppColors.shadowDefault,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,

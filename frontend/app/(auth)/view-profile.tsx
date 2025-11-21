@@ -21,6 +21,7 @@ import { createOrGetConversationByNetid } from '../api/chatApi';
 import IconButton from '../components/ui/IconButton';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
+import { useThemeAware } from '../contexts/ThemeContext';
 
 /**
  * View Profile Page
@@ -37,6 +38,7 @@ const REPORT_REASONS: { value: ReportReason; label: string }[] = [
 ];
 
 export default function ViewProfileScreen() {
+  useThemeAware(); // Force re-render when theme changes
   const { showToast } = useToast();
   const { netid, promptId } = useLocalSearchParams<{
     netid: string;
@@ -466,7 +468,7 @@ export default function ViewProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
+    
   },
   centerContent: {
     justifyContent: 'center',

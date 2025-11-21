@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     height: 100,
     position: 'relative',
     overflow: 'visible',
-    shadowColor: '#000',
+    shadowColor: AppColors.shadowDefault,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
     opacity: 0,
-    shadowColor: '#000',
+    shadowColor: AppColors.shadowDefault,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
-    shadowColor: '#000',
+    shadowColor: AppColors.shadowDefault,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   flipCardNegativeSpace: {
     position: 'absolute',
     top: '43%',
-    backgroundColor: '#ECECEC',
+    backgroundColor: AppColors.backgroundDimmest,
     left: -4,
     width: 8,
     height: 16,
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   flipCardNegativeSpaceRight: {
     position: 'absolute',
     top: '43%',
-    backgroundColor: '#ECECEC',
+    backgroundColor: AppColors.backgroundDimmest,
     right: -4,
     width: 8,
     height: 16,
@@ -278,7 +278,7 @@ function FlipDigit({ value }: { value: string }) {
           style={[
             styles.flipCardNumberContainerFull,
             {
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              backgroundColor: AppColors.overlayLight,
               opacity: flipTextOpacity,
             },
           ]}

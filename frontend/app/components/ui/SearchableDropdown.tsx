@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useThemeAware } from "../../contexts/ThemeContext";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppInput from './AppInput';
@@ -29,6 +30,7 @@ export default function SearchableDropdown({
   autoOpen = false,
   onDismiss,
 }: SearchableDropdownProps) {
+  useThemeAware(); // Force re-render when theme changes
   const [isOpen, setIsOpen] = useState(autoOpen);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredOptions, setFilteredOptions] = useState(options);

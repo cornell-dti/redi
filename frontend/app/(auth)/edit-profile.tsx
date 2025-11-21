@@ -114,7 +114,7 @@ function DraggablePromptItem({
     transform: [{ translateY: translateY.value }],
     zIndex: zIndex.value,
     opacity: isDragging ? 0.8 : 1,
-    shadowColor: isDragging ? '#000' : 'transparent',
+    shadowColor: isDragging ? AppColors.shadowDefault : AppColors.transparent,
     shadowOffset: {
       width: 0,
       height: isDragging ? 4 : 0,
@@ -488,7 +488,7 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       <StatusBar barStyle="dark-content" />
 
       <EditingHeader
@@ -792,7 +792,7 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
+    
     display: 'flex',
     flexDirection: 'column',
   },

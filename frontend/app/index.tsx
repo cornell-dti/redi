@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AppColors } from './components/AppColors';
 import OnboardingVideo from './components/onboarding/OnboardingVideo';
+import { useThemeAware } from './contexts/ThemeContext';
 
 export default function Index() {
+  useThemeAware(); // Force re-render when theme changes
   const [showVideo, setShowVideo] = useState(true);
 
   const handleVideoFinish = () => {
@@ -17,7 +19,7 @@ export default function Index() {
   // This page is only shown when user is not authenticated
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       <OnboardingVideo visible={showVideo} onFinish={handleVideoFinish} />
     </View>
   );
@@ -26,6 +28,6 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
+    
   },
 });

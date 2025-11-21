@@ -28,6 +28,7 @@ import Sheet from '../components/ui/Sheet';
  * Shows how your profile appears to other users
  */
 export default function ProfilePreviewScreen() {
+  useThemeAware(); // Force re-render when theme changes
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -208,7 +209,7 @@ export default function ProfilePreviewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
+    
   },
   centerContent: {
     justifyContent: 'center',

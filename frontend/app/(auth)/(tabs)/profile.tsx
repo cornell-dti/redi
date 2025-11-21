@@ -157,7 +157,13 @@ export default function ProfileScreen() {
   // Show loading spinner while fetching
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, styles.centerContent]}>
+      <SafeAreaView
+        style={[
+          styles.container,
+          styles.centerContent,
+          { backgroundColor: AppColors.backgroundDefault },
+        ]}
+      >
         <LoadingSpinner />
         <AppText style={styles.loadingText}>Loading profile...</AppText>
       </SafeAreaView>
@@ -167,7 +173,13 @@ export default function ProfileScreen() {
   // Show error message if failed to load
   if (error && !profile) {
     return (
-      <SafeAreaView style={[styles.container, styles.centerContent]}>
+      <SafeAreaView
+        style={[
+          styles.container,
+          styles.centerContent,
+          { backgroundColor: AppColors.backgroundDefault },
+        ]}
+      >
         <AppText style={styles.errorText}>{error}</AppText>
         <Button
           title="Retry"
@@ -180,7 +192,12 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
       <StatusBar barStyle="dark-content" />
 
       <ScrollView style={styles.scrollView}>
@@ -222,29 +239,39 @@ export default function ProfileScreen() {
             <ListItem
               onPress={() => router.push('/preferences' as any)}
               title="Dating Preferences"
-              right={<ChevronRight size={20} />}
-              left={<Heart size={20} />}
+              right={
+                <ChevronRight color={AppColors.foregroundDimmer} size={20} />
+              }
+              left={<Heart color={AppColors.foregroundDefault} size={20} />}
             />
 
             <ListItem
               onPress={() => router.push('/appearance' as any)}
               title="Appearance"
-              right={<ChevronRight size={20} />}
-              left={<Palette size={20} />}
+              right={
+                <ChevronRight color={AppColors.foregroundDimmer} size={20} />
+              }
+              left={<Palette color={AppColors.foregroundDefault} size={20} />}
             />
 
             <ListItem
               onPress={() => router.push('/account-settings' as any)}
               title="Account Settings"
-              right={<ChevronRight size={20} />}
-              left={<SettingsIcon size={20} />}
+              right={
+                <ChevronRight color={AppColors.foregroundDimmer} size={20} />
+              }
+              left={
+                <SettingsIcon color={AppColors.foregroundDefault} size={20} />
+              }
             />
 
             <ListItem
               onPress={() => router.push('/safety' as any)}
               title="Safety"
-              right={<ChevronRight size={20} />}
-              left={<Lock size={20} />}
+              right={
+                <ChevronRight color={AppColors.foregroundDimmer} size={20} />
+              }
+              left={<Lock color={AppColors.foregroundDefault} size={20} />}
             />
           </ListItemWrapper>
 
@@ -252,36 +279,50 @@ export default function ProfileScreen() {
             <ListItem
               onPress={() => setShowOnboardingVideo(true)}
               title="Show Onboarding Video"
-              right={<ChevronRight size={20} />}
-              left={<Play size={20} />}
+              right={
+                <ChevronRight color={AppColors.foregroundDimmer} size={20} />
+              }
+              left={<Play color={AppColors.foregroundDefault} size={20} />}
             />
 
             <ListItem
               onPress={() => router.push('/terms-and-conditions' as any)}
               title="Terms & Conditions"
-              right={<ChevronRight size={20} />}
-              left={<ClipboardList size={20} />}
+              right={
+                <ChevronRight color={AppColors.foregroundDimmer} size={20} />
+              }
+              left={
+                <ClipboardList color={AppColors.foregroundDefault} size={20} />
+              }
             />
 
             <ListItem
               onPress={() => router.push('/privacy-policy' as any)}
               title="Privacy Policy"
-              right={<ChevronRight size={20} />}
-              left={<ShieldCheck size={20} />}
+              right={
+                <ChevronRight color={AppColors.foregroundDimmer} size={20} />
+              }
+              left={
+                <ShieldCheck color={AppColors.foregroundDefault} size={20} />
+              }
             />
 
             <ListItem
               onPress={() => setShowRatingSheet(true)}
               title="Leave a Rating"
-              right={<ExternalLink size={20} />}
-              left={<StarIcon size={20} />}
+              right={
+                <ExternalLink color={AppColors.foregroundDefault} size={20} />
+              }
+              left={<StarIcon color={AppColors.foregroundDefault} size={20} />}
             />
 
             <ListItem
               onPress={() => router.push('/contact' as any)}
               title="Contact the Team"
-              right={<ChevronRight size={20} />}
-              left={<MailIcon size={20} />}
+              right={
+                <ChevronRight color={AppColors.foregroundDimmer} size={20} />
+              }
+              left={<MailIcon color={AppColors.foregroundDefault} size={20} />}
             />
           </ListItemWrapper>
 
@@ -343,7 +384,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     gap: 24,
-    backgroundColor: AppColors.backgroundDefault,
     paddingTop: 64,
   },
   centerContent: {
@@ -404,7 +444,6 @@ const styles = StyleSheet.create({
     color: AppColors.foregroundDefault,
     paddingVertical: 48,
     borderRadius: 24,
-    backgroundColor: AppColors.backgroundDimmer,
   },
   sheetButtons: {
     display: 'flex',

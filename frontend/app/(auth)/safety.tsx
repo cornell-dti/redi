@@ -101,7 +101,12 @@ export default function SafetyPage() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
       <StatusBar barStyle="dark-content" />
 
       <EditingHeader showSave={false} title="Safety" />
@@ -207,7 +212,6 @@ export default function SafetyPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
   },
   scrollView: {
     padding: 16,

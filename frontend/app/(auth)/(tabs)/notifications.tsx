@@ -123,7 +123,7 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.top}>
@@ -170,7 +170,7 @@ export default function NotificationsScreen() {
               )}
 
               {!loading && !error && notifications.length > 0 && (
-                <ListItemWrapper style={styles.list}>
+                <ListItemWrapper style={[styles.list, { backgroundColor: AppColors.backgroundDefault }]}>
                   {notifications.map((notification) => (
                     <NotificationItem
                       key={notification.id}
@@ -214,7 +214,6 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
     justifyContent: 'space-between',
   },
   scrollView: {
@@ -222,11 +221,9 @@ const styles = StyleSheet.create({
     height: '90%',
   },
   list: {
-    backgroundColor: AppColors.backgroundDefault,
   },
   separator: {
     height: 1,
-    backgroundColor: AppColors.backgroundDimmer,
     marginLeft: 76,
   },
   footer: {

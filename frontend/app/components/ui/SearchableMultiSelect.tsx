@@ -1,5 +1,6 @@
 import { Check, Square, X } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
+import { useThemeAware } from "../../contexts/ThemeContext";
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppInput from './AppInput';
@@ -29,6 +30,7 @@ export default function SearchableMultiSelect({
   label,
   description,
 }: SearchableMultiSelectProps) {
+  useThemeAware(); // Force re-render when theme changes
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredOptions, setFilteredOptions] = useState(options);

@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     // subtle dark tint as fallback; for a smooth gradient replace this View with a LinearGradient component
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: AppColors.overlayDark,
     justifyContent: 'flex-end',
     padding: 16,
     zIndex: 2,

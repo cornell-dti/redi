@@ -1,7 +1,8 @@
 import AppText from '@/app/components/ui/AppText';
+import ListItem from '@/app/components/ui/ListItem';
 import Pressable from '@/app/components/ui/Pressable';
 import Toggle from '@/app/components/ui/Toggle';
-import { Check } from 'lucide-react-native';
+import { Check, Moon, Sun } from 'lucide-react-native';
 import React from 'react';
 import { ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,7 +31,7 @@ const themeOptions: ThemeOption[] = [
 
 export default function AppearanceScreen() {
   useThemeAware(); // Force re-render when theme changes
-  const { currentTheme, setTheme } = useTheme();
+  const { currentTheme, themeMode, setTheme, setMode } = useTheme();
   const { animationEnabled, setAnimationEnabled } = useMotion();
   const { hapticsEnabled, setHapticsEnabled } = useHaptics();
 
@@ -44,8 +45,8 @@ export default function AppearanceScreen() {
   const themeRows = chunk(themeOptions, 3);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
+      <StatusBar barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'} />
 
       <EditingHeader showSave={false} title="Appearance" />
 
@@ -55,6 +56,38 @@ export default function AppearanceScreen() {
           rowGap: 24,
         }}
       >
+        <View style={styles.section}>
+          <AppText variant="subtitle" indented>
+            Theme
+          </AppText>
+
+          <ListItemWrapper>
+            <ListItem
+              title="Light mode"
+              left={<Sun size={20} color={AppColors.foregroundDefault} />}
+              right={
+                themeMode === 'light' ? (
+                  <Check size={20} color={AppColors.accentDefault} />
+                ) : null
+              }
+              selected={themeMode === 'light'}
+              onPress={() => setMode('light')}
+            />
+
+            <ListItem
+              title="Dark mode"
+              left={<Moon size={20} color={AppColors.foregroundDefault} />}
+              right={
+                themeMode === 'dark' ? (
+                  <Check size={20} color={AppColors.accentDefault} />
+                ) : null
+              }
+              selected={themeMode === 'dark'}
+              onPress={() => setMode('dark')}
+            />
+          </ListItemWrapper>
+        </View>
+
         <View style={styles.section}>
           <AppText variant="subtitle" indented>
             Accent color
@@ -78,10 +111,11 @@ export default function AppearanceScreen() {
                       onPress={() => setTheme(theme.name)}
                       style={({ pressed }) => [
                         styles.colorOption,
+                        { backgroundColor: AppColors.backgroundDimmer },
                         isSelected && {
                           backgroundColor: AppColors.accentAlpha,
                         },
-                        pressed && !isSelected && styles.pressed,
+                        pressed && !isSelected && { backgroundColor: AppColors.backgroundDimmest },
                         isFirstRow &&
                           isFirstItem && { borderTopLeftRadius: 24 },
                         isFirstRow &&
@@ -124,7 +158,7 @@ export default function AppearanceScreen() {
           </AppText>
 
           <ListItemWrapper>
-            <View style={styles.optionContainer}>
+            <View style={[styles.optionContainer, { backgroundColor: AppColors.backgroundDimmer }]}>
               <View style={styles.optionLabel}>
                 <AppText variant="body">Animation</AppText>
                 <AppText color="dimmer">Enable motion effects</AppText>
@@ -135,7 +169,7 @@ export default function AppearanceScreen() {
               />
             </View>
 
-            <View style={styles.optionContainer}>
+            <View style={[styles.optionContainer, { backgroundColor: AppColors.backgroundDimmer }]}>
               <View style={styles.optionLabel}>
                 <AppText variant="body">Haptics</AppText>
                 <AppText color="dimmer">Enable vibration feedback</AppText>
@@ -155,7 +189,6 @@ export default function AppearanceScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
   },
   scrollView: {
     padding: 16,
@@ -193,15 +226,10 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: AppColors.backgroundDimmer,
     gap: 8,
     borderRadius: 4,
   },
-  pressed: {
-    backgroundColor: AppColors.backgroundDimmest,
-  },
   optionContainer: {
-    backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 4,
     padding: 16,
     flexDirection: 'row',

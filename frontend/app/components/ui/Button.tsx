@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ViewStyle,
 } from 'react-native';
+import { useThemeAware } from '../../contexts/ThemeContext';
 import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 import { AppColors } from '../AppColors';
 
@@ -43,6 +44,7 @@ export default function Button({
   dropdown = false,
   soundEffect,
 }: ButtonProps) {
+  useThemeAware(); // Force re-render when theme changes
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isPressed, setIsPressed] = React.useState(false);
   const soundRef = useRef<Audio.Sound | null>(null);

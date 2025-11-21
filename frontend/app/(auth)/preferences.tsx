@@ -225,7 +225,7 @@ export default function DatingPreferencesPage() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
         <StatusBar barStyle="dark-content" />
         <View style={styles.loadingContainer}>
           <AppText>Loading...</AppText>
@@ -235,7 +235,7 @@ export default function DatingPreferencesPage() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       <StatusBar barStyle="dark-content" />
 
       <EditingHeader
@@ -442,7 +442,7 @@ export default function DatingPreferencesPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
+    
   },
   loadingContainer: {
     flex: 1,

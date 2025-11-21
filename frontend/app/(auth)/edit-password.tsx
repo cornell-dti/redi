@@ -66,7 +66,7 @@ export default function EditPasswordPage() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
       <StatusBar barStyle="dark-content" />
 
       <EditingHeader title="Edit Password" onSave={handleSave} />
@@ -108,7 +108,7 @@ export default function EditPasswordPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
+    
   },
   keyboardAvoid: {
     flex: 1,
