@@ -39,9 +39,9 @@ import ListItemWrapper from '../components/ui/ListItemWrapper';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
-import { useThemeAware } from '../contexts/ThemeContext';
-import { useHapticFeedback } from '../hooks/useHapticFeedback';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
+import { useHapticFeedback } from '../hooks/useHapticFeedback';
 
 // Constants for drag calculations
 const PROMPT_ITEM_HEIGHT = 72; // Approximate height of a ListItem
@@ -487,9 +487,18 @@ export default function EditProfileScreen() {
     );
   }
 
+  const { themeMode } = useTheme();
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <EditingHeader
         showSave={true}
@@ -792,7 +801,7 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
+
     display: 'flex',
     flexDirection: 'column',
   },

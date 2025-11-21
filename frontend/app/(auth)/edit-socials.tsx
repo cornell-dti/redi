@@ -22,7 +22,7 @@ import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Sheet from '../components/ui/Sheet';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
-import { useThemeAware } from '../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 
 type SocialType = 'instagram' | 'snapchat' | 'linkedin' | 'github' | 'website';
@@ -96,7 +96,10 @@ const normalizeAtUsername = (value: string): string => {
   let cleaned = value.replace(/^https?:\/\/(www\.)?/i, '');
 
   // Remove common social media domains and paths
-  cleaned = cleaned.replace(/^(instagram\.com|snapchat\.com|github\.com)\//i, '');
+  cleaned = cleaned.replace(
+    /^(instagram\.com|snapchat\.com|github\.com)\//i,
+    ''
+  );
 
   // Remove @ if present at the start
   cleaned = cleaned.replace(/^@/, '');
@@ -280,9 +283,18 @@ export default function EditSocialsPage() {
     },
   ];
 
+  const { themeMode } = useTheme();
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <EditingHeader
         title="Edit Socials"
@@ -412,7 +424,6 @@ export default function EditSocialsPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
   },
   scrollView: {
     flex: 1,

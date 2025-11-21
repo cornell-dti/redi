@@ -6,14 +6,23 @@ import AppText from '../components/ui/AppText';
 import EditingHeader from '../components/ui/EditingHeader';
 import FooterSpacer from '../components/ui/FooterSpacer';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
-import { useThemeAware } from '../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 
 export default function PrivacyPolicyPage() {
   useThemeAware(); // Force re-render when theme changes
 
+  const { themeMode } = useTheme();
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
       <EditingHeader showSave={false} title="Privacy Policy" />
 
       <ScrollView
@@ -164,7 +173,6 @@ export default function PrivacyPolicyPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
   },
   scrollView: {
     flex: 1,

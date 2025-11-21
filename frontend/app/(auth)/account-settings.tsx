@@ -21,7 +21,7 @@ import { AppColors } from '../components/AppColors';
 import AppInput from '../components/ui/AppInput';
 import EditingHeader from '../components/ui/EditingHeader';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
-import { useThemeAware } from '../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 
 export default function AccountSettingsPage() {
   useThemeAware(); // Force re-render when theme changes
@@ -30,6 +30,7 @@ export default function AccountSettingsPage() {
   const [showSignOutSheet, setShowSignOutSheet] = useState(false);
   const [showDeleteSheet, setShowDeleteSheet] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { themeMode } = useTheme();
 
   useEffect(() => {
     async function fetchUserData() {
@@ -137,8 +138,15 @@ export default function AccountSettingsPage() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <EditingHeader showSave={false} title="Account settings" />
 
@@ -223,7 +231,6 @@ export default function AccountSettingsPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
   },
   centerContent: {
     justifyContent: 'center',

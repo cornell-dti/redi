@@ -14,7 +14,7 @@ import { blockUser, getBlockedUsers, unblockUser } from '../api/blockingApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
-import { useThemeAware } from '../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 
 export default function SafetyPage() {
   useThemeAware(); // Force re-render when theme changes
@@ -100,6 +100,8 @@ export default function SafetyPage() {
     }
   };
 
+  const { themeMode } = useTheme();
+
   return (
     <SafeAreaView
       style={[
@@ -107,7 +109,9 @@ export default function SafetyPage() {
         { backgroundColor: AppColors.backgroundDefault },
       ]}
     >
-      <StatusBar barStyle="dark-content" />
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <EditingHeader showSave={false} title="Safety" />
 

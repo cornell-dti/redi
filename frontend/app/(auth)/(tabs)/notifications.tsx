@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../../components/AppColors';
 import ListItemWrapper from '../../components/ui/ListItemWrapper';
 import NotificationItem from '../../components/ui/NotificationItem';
-import { useThemeAware } from '../../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../../contexts/ThemeContext';
 
 // Helper to get icon for notification type
 const getNotificationIcon = (type: string): LucideIcon => {
@@ -122,9 +122,18 @@ export default function NotificationsScreen() {
     }
   };
 
+  const { themeMode } = useTheme();
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <View style={styles.top}>
         {!loading && !error && notifications.length === 0 ? (
@@ -170,7 +179,12 @@ export default function NotificationsScreen() {
               )}
 
               {!loading && !error && notifications.length > 0 && (
-                <ListItemWrapper style={[styles.list, { backgroundColor: AppColors.backgroundDefault }]}>
+                <ListItemWrapper
+                  style={[
+                    styles.list,
+                    { backgroundColor: AppColors.backgroundDefault },
+                  ]}
+                >
                   {notifications.map((notification) => (
                     <NotificationItem
                       key={notification.id}
@@ -220,8 +234,7 @@ const styles = StyleSheet.create({
     padding: 16,
     height: '90%',
   },
-  list: {
-  },
+  list: {},
   separator: {
     height: 1,
     marginLeft: 76,

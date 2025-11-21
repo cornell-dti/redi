@@ -511,7 +511,9 @@ export default function HomePage() {
         { backgroundColor: AppColors.backgroundDefault },
       ]}
     >
-      {/* <StatusBar barStyle="dark-content" /> */}
+      {/*  <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      /> */}
 
       {mode === 'splash' && renderSplashScreen()}
       {mode === 'welcome' && renderWelcomeScreen()}

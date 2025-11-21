@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
-import { useThemeAware } from '../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 
 export default function EditPasswordPage() {
@@ -65,9 +65,18 @@ export default function EditPasswordPage() {
     }
   };
 
+  const { themeMode } = useTheme();
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <EditingHeader title="Edit Password" onSave={handleSave} />
 
@@ -108,7 +117,6 @@ export default function EditPasswordPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
   },
   keyboardAvoid: {
     flex: 1,

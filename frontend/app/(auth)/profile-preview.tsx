@@ -22,7 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AppInput from '../components/ui/AppInput';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Sheet from '../components/ui/Sheet';
-import { useThemeAware } from '../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 
 /**
  * Profile Preview Page
@@ -110,7 +110,9 @@ export default function ProfilePreviewScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar
+          barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+        />
         <LoadingSpinner />
         <AppText style={styles.loadingText}>Loading profile...</AppText>
       </SafeAreaView>
@@ -121,7 +123,9 @@ export default function ProfilePreviewScreen() {
   if (error || !profile) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar
+          barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+        />
         <AppText style={styles.errorText}>
           {error || 'Failed to load profile'}
         </AppText>
@@ -141,10 +145,14 @@ export default function ProfilePreviewScreen() {
     );
   }
 
+  const { themeMode } = useTheme();
+
   // Main content
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <View style={styles.content}>
         {/* Header with back button */}

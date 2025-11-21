@@ -1,4 +1,5 @@
 import AppText from '@/app/components/ui/AppText';
+import { useThemeAware } from '@/app/contexts/ThemeContext';
 import { getProfileAge, ProfileResponse, WeeklyPromptResponse } from '@/types';
 import {
   Bell,
@@ -58,6 +59,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   weeklyPromptAnswer,
   onEditWeeklyPrompt,
 }) => {
+  useThemeAware();
+
   const screenWidth = Dimensions.get('window').width;
   const age = getProfileAge(profile);
   const [activeImageIndex, setActiveImageIndex] = React.useState(0);

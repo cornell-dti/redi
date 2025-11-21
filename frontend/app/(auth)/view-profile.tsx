@@ -21,7 +21,7 @@ import { createOrGetConversationByNetid } from '../api/chatApi';
 import IconButton from '../components/ui/IconButton';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
-import { useThemeAware } from '../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 
 /**
  * View Profile Page
@@ -39,6 +39,7 @@ const REPORT_REASONS: { value: ReportReason; label: string }[] = [
 
 export default function ViewProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
+
   const { showToast } = useToast();
   const { netid, promptId } = useLocalSearchParams<{
     netid: string;
@@ -182,7 +183,9 @@ export default function ViewProfileScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar
+          barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+        />
         <LoadingSpinner />
         <AppText style={styles.loadingText}>Loading profile...</AppText>
       </SafeAreaView>
@@ -193,7 +196,9 @@ export default function ViewProfileScreen() {
   if (error || !profile) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar
+          barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+        />
         <AppText style={styles.errorText}>
           {error || 'Failed to load profile'}
         </AppText>
@@ -213,10 +218,14 @@ export default function ViewProfileScreen() {
     );
   }
 
+  const { themeMode } = useTheme();
+
   // Main content
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <View style={styles.content}>
         <View style={styles.header}>
@@ -468,7 +477,6 @@ export default function ViewProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
   },
   centerContent: {
     justifyContent: 'center',

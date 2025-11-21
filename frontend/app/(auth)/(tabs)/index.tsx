@@ -16,7 +16,7 @@ import EmptyState from '@/app/components/ui/EmptyState';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
 import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
-import { useThemeAware } from '@/app/contexts/ThemeContext';
+import { useTheme, useThemeAware } from '@/app/contexts/ThemeContext';
 import { useDebouncedCallback } from '@/app/hooks/useDebounce';
 import {
   getMatchDropDescription,
@@ -261,7 +261,12 @@ export default function MatchesScreen() {
       />
       {activePrompt && (
         <ListItemWrapper style={styles.promptSection}>
-          <View style={[styles.promptQuestion, { backgroundColor: AppColors.backgroundDimmer }]}>
+          <View
+            style={[
+              styles.promptQuestion,
+              { backgroundColor: AppColors.backgroundDimmer },
+            ]}
+          >
             <AppText color="dimmer"> Weekly Prompt: </AppText>
 
             <AppText variant="subtitle">{activePrompt.question}</AppText>
@@ -285,7 +290,12 @@ export default function MatchesScreen() {
     <>
       {activePrompt && (
         <ListItemWrapper style={styles.promptSection}>
-          <View style={[styles.promptQuestion, { backgroundColor: AppColors.backgroundDimmer }]}>
+          <View
+            style={[
+              styles.promptQuestion,
+              { backgroundColor: AppColors.backgroundDimmer },
+            ]}
+          >
             <AppText color="dimmer"> Weekly Prompt: </AppText>
 
             <AppText variant="subtitle">{activePrompt.question}</AppText>
@@ -461,9 +471,18 @@ export default function MatchesScreen() {
     );
   };
 
+  const { themeMode } = useTheme();
+
   return (
-    <View style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <View style={styles.headerContainer}>
         <AppText variant="title">Matches</AppText>

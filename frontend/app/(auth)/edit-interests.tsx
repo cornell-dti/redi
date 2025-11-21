@@ -21,7 +21,7 @@ import EmptyState from '../components/ui/EmptyState';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
-import { useThemeAware } from '../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 
 export default function EditInterestsPage() {
@@ -131,9 +131,18 @@ export default function EditInterestsPage() {
     setInterests(interests.filter((interest) => interest !== interestToRemove));
   };
 
+  const { themeMode } = useTheme();
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <EditingHeader
         title="Edit Interests"
@@ -228,7 +237,6 @@ export default function EditInterestsPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
   },
   scrollView: {
     flex: 1,

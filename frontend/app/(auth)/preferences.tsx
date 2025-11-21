@@ -23,7 +23,7 @@ import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import SearchableMultiSelect from '../components/ui/SearchableMultiSelect';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
-import { useThemeAware } from '../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 
 export default function DatingPreferencesPage() {
@@ -223,10 +223,19 @@ export default function DatingPreferencesPage() {
     );
   };
 
+  const { themeMode } = useTheme();
+
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-        <StatusBar barStyle="dark-content" />
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: AppColors.backgroundDefault },
+        ]}
+      >
+        <StatusBar
+          barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+        />
         <View style={styles.loadingContainer}>
           <AppText>Loading...</AppText>
         </View>
@@ -235,8 +244,15 @@ export default function DatingPreferencesPage() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <EditingHeader
         onSave={handleSave}
@@ -442,7 +458,6 @@ export default function DatingPreferencesPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
   },
   loadingContainer: {
     flex: 1,

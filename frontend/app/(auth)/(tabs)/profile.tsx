@@ -42,7 +42,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser, signOutUser } from '../../api/authService';
 import { getCurrentUserProfile } from '../../api/profileApi';
 import { AppColors } from '../../components/AppColors';
-import { useThemeAware } from '../../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../../contexts/ThemeContext';
 
 // Mock fallback data for fields not in API
 const mockFallbackData = {
@@ -190,6 +190,7 @@ export default function ProfileScreen() {
       </SafeAreaView>
     );
   }
+  const { themeMode } = useTheme();
 
   return (
     <View
@@ -198,7 +199,9 @@ export default function ProfileScreen() {
         { backgroundColor: AppColors.backgroundDefault },
       ]}
     >
-      <StatusBar barStyle="dark-content" />
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.profileTop}>

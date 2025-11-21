@@ -21,7 +21,7 @@ import FooterSpacer from '../components/ui/FooterSpacer';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Toggle from '../components/ui/Toggle';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
-import { useThemeAware } from '../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 
 export default function EditHometownPage() {
@@ -127,9 +127,18 @@ export default function EditHometownPage() {
     router.back();
   };
 
+  const { themeMode } = useTheme();
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <EditingHeader
         title="Edit Hometown"
@@ -185,7 +194,6 @@ export default function EditHometownPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
   },
   keyboardAvoid: {
     flex: 1,

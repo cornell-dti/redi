@@ -25,7 +25,7 @@ import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import Toggle from '../components/ui/Toggle';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
-import { useThemeAware } from '../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 
 export default function EditEducationPage() {
@@ -179,9 +179,18 @@ export default function EditEducationPage() {
     );
   }
 
+  const { themeMode } = useTheme();
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <EditingHeader
         title="Edit Education"
@@ -398,7 +407,6 @@ export default function EditEducationPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
   },
   centerContent: {
     justifyContent: 'center',

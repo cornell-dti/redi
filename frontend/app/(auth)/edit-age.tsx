@@ -11,7 +11,7 @@ import { AppColors } from '../components/AppColors';
 import AppInput from '../components/ui/AppInput';
 import EditingHeader from '../components/ui/EditingHeader';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
-import { useThemeAware } from '../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 import { calculateAge } from '../utils/profileUtils';
 
@@ -136,9 +136,18 @@ export default function EditAgePage() {
     router.back();
   };
 
+  const { themeMode } = useTheme();
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <EditingHeader
         title="Edit Age"

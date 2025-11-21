@@ -12,11 +12,11 @@ import { Check, ChevronDown, GripVertical, Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
-  Animated as RNAnimated,
   Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
+  Animated as RNAnimated,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -49,7 +49,7 @@ import ListItemWrapper from '../components/ui/ListItemWrapper';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
-import { useThemeAware } from '../contexts/ThemeContext';
+import { useTheme, useThemeAware } from '../contexts/ThemeContext';
 import { useHapticFeedback } from '../hooks/useHapticFeedback';
 import { useOnboardingState } from '../hooks/useOnboardingState';
 import {
@@ -1074,9 +1074,18 @@ export default function CreateProfileScreen() {
     if (currentStep === 9) updateField('showEthnicityOnProfile', checked);
   };
 
+  const { themeMode } = useTheme();
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <OnboardingHeader
         currentStep={currentStep - 1}
@@ -1123,7 +1132,6 @@ export default function CreateProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
   },
   content: {
     flex: 1,
