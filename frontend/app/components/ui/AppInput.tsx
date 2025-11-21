@@ -22,6 +22,7 @@ interface AppInputProps extends TextInputProps {
   bottomBorderRound?: boolean;
   disabled?: boolean;
   forceMinHeight?: boolean;
+  fullWidth?: boolean;
 }
 
 const AppInput: React.FC<AppInputProps> = ({
@@ -36,6 +37,7 @@ const AppInput: React.FC<AppInputProps> = ({
   bottomBorderRound,
   disabled = false,
   forceMinHeight = false,
+  fullWidth,
   ...props
 }) => {
   useThemeAware(); // Force re-render when theme changes
@@ -137,7 +139,7 @@ const AppInput: React.FC<AppInputProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, fullWidth && { flex: 1 }]}>
       {label && (
         <AppText color="dimmer" style={styles.label}>
           {label}

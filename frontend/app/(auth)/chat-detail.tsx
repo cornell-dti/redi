@@ -382,8 +382,13 @@ export default function ChatDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar />
 
       <View style={styles.header}>
         <IconButton
@@ -692,7 +697,13 @@ export default function ChatDetailScreen() {
         style={styles.inputContainer}
       >
         <View
-          style={[styles.inputRow, { marginBottom: keyboardVisible ? 20 : 8 }]}
+          style={[
+            styles.inputRow,
+            {
+              flex: 1,
+              marginBottom: keyboardVisible ? 20 : 8,
+            },
+          ]}
         >
           <AppInput
             value={newMessage}
@@ -706,50 +717,15 @@ export default function ChatDetailScreen() {
             returnKeyType="send"
             blurOnSubmit={true}
             forceMinHeight
+            fullWidth
           />
 
-          <Animated.View
-            style={[
-              styles.sendButtonContainer,
-              {
-                transform: [
-                  {
-                    translateX: sendButtonAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [80, -62], // Slide in from right (80px off-screen)
-                    }),
-                  },
-                  {
-                    rotate: sendButtonAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['15deg', '0deg'], // Slight rotation
-                    }),
-                  },
-                  {
-                    scale: sendButtonAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0.3, 1], // Scale up for bounce effect
-                    }),
-                  },
-                ],
-                opacity: sendButtonAnim.interpolate({
-                  inputRange: [0, 0.5, 1],
-                  outputRange: [0, 0.5, 1],
-                }),
-              },
-            ]}
-            pointerEvents={newMessage.trim() ? 'auto' : 'none'}
-          >
-            <IconButton
-              onPress={sendMessage}
-              disabled={sending}
-              icon={Send}
-              style={{
-                ...styles.sendButton,
-                top: keyboardVisible ? 3 : 25,
-              }}
-            />
-          </Animated.View>
+          <IconButton
+            onPress={sendMessage}
+            disabled={sending}
+            icon={Send}
+            style={styles.sendButton}
+          />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -759,7 +735,6 @@ export default function ChatDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
   },
   header: {
     display: 'flex',
@@ -810,12 +785,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: AppColors.backgroundDimmest,
     minHeight: 80,
+    flex: 1,
+    maxHeight: 80,
   },
   inputRow: {
     flexDirection: 'row',
     padding: 16,
     paddingBottom: 48,
-    flex: 1,
     minHeight: 56,
     gap: 8,
   },
@@ -824,13 +800,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messageInput: {
-    minHeight: 54,
+    height: 32,
     paddingTop: 17,
     paddingLeft: 20,
     paddingRight: 64,
     borderRadius: 24,
     fontSize: 16,
-    width: 390,
+    flex: 1,
   },
   sendButtonContainer: {
     justifyContent: 'center',
