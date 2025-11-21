@@ -161,6 +161,9 @@ export default function EditProfileScreen() {
     null
   );
   const [hoverPromptIndex, setHoverPromptIndex] = useState<number | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState<
+    'back' | 'preview' | null
+  >(null);
 
   // Scroll position preservation
   const scrollViewRef = useRef<ScrollView>(null);
@@ -360,23 +363,43 @@ export default function EditProfileScreen() {
 
   const handleBack = () => {
     if (hasUnsavedChanges()) {
+      setPendingNavigation('back');
       setShowUnsavedSheet(true);
     } else {
       router.back();
     }
   };
 
+  const handlePreviewProfile = () => {
+    if (hasUnsavedChanges()) {
+      setPendingNavigation('preview');
+      setShowUnsavedSheet(true);
+    } else {
+      router.push('/profile-preview' as any);
+    }
+  };
+
   const handleDiscardAndExit = () => {
     setShowUnsavedSheet(false);
-    router.back();
+    if (pendingNavigation === 'back') {
+      router.back();
+    } else if (pendingNavigation === 'preview') {
+      router.push('/profile-preview' as any);
+    }
+    setPendingNavigation(null);
   };
 
   const handleSaveAndExit = async () => {
     await handleSave();
     if (!saving) {
-      // Only exit if save was successful
+      // Only navigate if save was successful
       setShowUnsavedSheet(false);
-      router.back();
+      if (pendingNavigation === 'back') {
+        router.back();
+      } else if (pendingNavigation === 'preview') {
+        router.push('/profile-preview' as any);
+      }
+      setPendingNavigation(null);
     }
   };
 
@@ -492,7 +515,7 @@ export default function EditProfileScreen() {
           iconLeft={Eye}
           variant="secondary"
           title="Preview Profile"
-          onPress={() => router.push('/profile-preview' as any)}
+          onPress={handlePreviewProfile}
           fullWidth
         />
 

@@ -132,7 +132,9 @@ export default function Sheet({
       // Reset keyboard height when sheet closes
       setKeyboardHeight(0);
     }
-  }, [visible, translateY, overlayOpacity, animationEnabled, haptic]);
+    // Note: haptic is intentionally excluded from deps to prevent re-triggering animation on re-renders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, translateY, overlayOpacity, animationEnabled]);
 
   const pan = useRef(new Animated.Value(0)).current;
   const lastPanY = useRef(0);

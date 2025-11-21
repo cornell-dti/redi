@@ -126,7 +126,9 @@ const Toast: React.FC<ToastProps> = ({
         }
       };
     }
-  }, [visible, animationEnabled, haptic]);
+    // Note: haptic is intentionally excluded from deps to prevent re-triggering animation on re-renders
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, animationEnabled]);
 
   if (!visible) return null;
 

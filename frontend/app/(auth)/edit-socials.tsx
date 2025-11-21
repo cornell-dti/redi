@@ -2,7 +2,7 @@ import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Pressable from '@/app/components/ui/Pressable';
 import { router } from 'expo-router';
-import { Check, Globe, Instagram, Trash2 } from 'lucide-react-native';
+import { Check, Globe, Instagram, Plus, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -290,10 +290,10 @@ export default function EditSocialsPage() {
           />
 
           <Button
-            title="Save"
+            title={(inputValue.length > 0 && 'Save') || 'Add'}
             onPress={saveSocialLink}
             variant="primary"
-            iconLeft={Check}
+            iconLeft={(inputValue.length > 0 && Check) || Plus}
           />
 
           {inputValue.length > 0 && (
