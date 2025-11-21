@@ -308,7 +308,7 @@ export default function EditSocialsPage() {
                   iconLeft={Check}
                 />
                 <Button
-                  title="Discard"
+                  title="Remove"
                   onPress={removeSocialLink}
                   variant="negative"
                   iconLeft={Trash2}
