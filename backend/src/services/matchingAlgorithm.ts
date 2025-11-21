@@ -10,6 +10,7 @@
  */
 
 import { PreferencesDoc, ProfileDoc, Year } from '../../types';
+import { ALL_MAJORS, CORNELL_SCHOOLS } from '../../constants/cornell';
 
 /**
  * UserData interface for matching algorithm
@@ -134,22 +135,30 @@ export function checkCompatibility(
     return false;
   }
 
-  //TODO don't get rid of all schools, just add points
-  // Check school preference (empty array means all schools accepted)
+  // Check school preference as EXCLUSION filter
+  // Empty array means all schools accepted
+  // If all schools are excluded, treat as empty (soft filter)
   if (
     preferences.schools.length > 0 &&
-    !preferences.schools.includes(profile.school)
+    preferences.schools.length < CORNELL_SCHOOLS.length
   ) {
-    return false;
+    if (preferences.schools.includes(profile.school)) {
+      return false; // Reject if school is in exclusion list
+    }
   }
 
-  // Check major preference (empty array means all majors accepted)
-  if (preferences.majors.length > 0) {
-    const hasMatchingMajor = profile.major.some((userMajor: string) =>
+  // Check major preference as EXCLUSION filter
+  // Empty array means all majors accepted
+  // If all majors are excluded, treat as empty (soft filter)
+  if (
+    preferences.majors.length > 0 &&
+    preferences.majors.length < ALL_MAJORS.length
+  ) {
+    const hasExcludedMajor = profile.major.some((userMajor: string) =>
       preferences.majors.includes(userMajor)
     );
-    if (!hasMatchingMajor) {
-      return false;
+    if (hasExcludedMajor) {
+      return false; // Reject if user has an excluded major
     }
   }
 
