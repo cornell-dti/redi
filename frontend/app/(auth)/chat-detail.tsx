@@ -794,6 +794,7 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
     minHeight: 56,
     gap: 8,
+    position: 'relative',
   },
   textInputContainer: {
     minHeight: 80,
@@ -813,8 +814,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sendButton: {
-    width: 50,
-    height: 50,
+    width: 45,
+    height: 45,
+    position: 'absolute',
+    top: 5.5,
+    right: 13.5,
   },
   sendButtonActive: {
     backgroundColor: AppColors.accentDefault,
