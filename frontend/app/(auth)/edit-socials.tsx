@@ -1,8 +1,13 @@
 import AppInput from '@/app/components/ui/AppInput';
-import AppText from '@/app/components/ui/AppText';
-import Pressable from '@/app/components/ui/Pressable';
 import { router } from 'expo-router';
-import { Check, Globe, Instagram, Plus, Trash2 } from 'lucide-react-native';
+import {
+  Check,
+  ChevronRight,
+  Globe,
+  Instagram,
+  Plus,
+  Trash2,
+} from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -22,6 +27,8 @@ import LinkedinIcon from '../components/icons/LinkedinIcon';
 import SnapchatIcon from '../components/icons/SnapchatIcon';
 import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
+import ListItem from '../components/ui/ListItem';
+import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Sheet from '../components/ui/Sheet';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
@@ -233,27 +240,24 @@ export default function EditSocialsPage() {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.gridContainer}>
+        <ListItemWrapper>
           {socialButtons.map((social) => {
             const IconComp = social.icon;
+            const socialValue = socials[social.type];
             return (
-              <Pressable
+              <ListItem
                 key={social.type}
+                title={social.label}
+                description={socialValue || ''}
+                left={<IconComp size={24} color={social.accentColor} />}
+                right={
+                  <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+                }
                 onPress={() => openSocialSheet(social.type)}
-                style={[
-                  styles.socialButton,
-                  { backgroundColor: social.backgroundColor },
-                ]}
-              >
-                <IconComp size={32} color={social.accentColor} />
-
-                <AppText style={[{ color: social.accentColor }]}>
-                  {social.label}
-                </AppText>
-              </Pressable>
+              />
             );
           })}
-        </View>
+        </ListItemWrapper>
       </ScrollView>
 
       {/* Edit Social Link Sheet */}
@@ -266,7 +270,7 @@ export default function EditSocialsPage() {
         }}
         title={
           selectedSocial
-            ? `Edit ${socialButtons.find((s) => s.type === selectedSocial)?.label}`
+            ? `${selectedSocial && socials[selectedSocial] ? 'Edit' : 'Add'} ${socialButtons.find((s) => s.type === selectedSocial)?.label}`
             : ''
         }
         bottomRound={false}
@@ -286,24 +290,51 @@ export default function EditSocialsPage() {
             onChangeText={setInputValue}
             autoCapitalize="none"
             autoCorrect={false}
+            onSubmitEditing={saveSocialLink}
             keyboardType="url"
+            returnKeyType="done"
+            autoFocus
           />
 
-          <Button
-            title={(inputValue.length > 0 && 'Save') || 'Add'}
-            onPress={saveSocialLink}
-            variant="primary"
-            iconLeft={(inputValue.length > 0 && Check) || Plus}
-          />
-
-          {inputValue.length > 0 && (
-            <Button
-              title="Remove"
-              onPress={removeSocialLink}
-              variant="negative"
-              iconLeft={Trash2}
-            />
-          )}
+          <View style={styles.buttonRow}>
+            {/* Contextual buttons based on whether social has a value */}
+            {selectedSocial && socials[selectedSocial] ? (
+              // Has existing value: Show Save + Discard
+              <>
+                <Button
+                  title="Save"
+                  onPress={saveSocialLink}
+                  variant="primary"
+                  iconLeft={Check}
+                />
+                <Button
+                  title="Discard"
+                  onPress={removeSocialLink}
+                  variant="negative"
+                  iconLeft={Trash2}
+                />
+              </>
+            ) : (
+              // No value: Show Add + Cancel
+              <>
+                <Button
+                  title="Add"
+                  onPress={saveSocialLink}
+                  variant="primary"
+                  iconLeft={Plus}
+                />
+                <Button
+                  title="Cancel"
+                  onPress={() => {
+                    setSheetVisible(false);
+                    setSelectedSocial(null);
+                    setInputValue('');
+                  }}
+                  variant="secondary"
+                />
+              </>
+            )}
+          </View>
         </KeyboardAvoidingView>
       </Sheet>
 
@@ -327,23 +358,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
-  socialButton: {
-    width: '30%',
-    height: 130,
-    aspectRatio: 1,
-    borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
   sheetContent: {
     gap: 16,
+  },
+  buttonRow: {
+    display: 'flex',
+    gap: 12,
   },
 });
