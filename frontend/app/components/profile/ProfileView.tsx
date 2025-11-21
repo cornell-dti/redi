@@ -11,7 +11,7 @@ import {
   Magnet,
   MessageCircle,
 } from 'lucide-react-native';
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
   Animated,
   Dimensions,
@@ -304,6 +304,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                 const isLast = index === socialItems.length - 1;
                 return (
                   <Pressable
+                    fullWidth
                     key={index}
                     style={[
                       styles.socialItem,
@@ -449,6 +450,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     flex: 1,
+    borderRadius: 4,
   },
   firstItem: {
     borderTopLeftRadius: 24,
