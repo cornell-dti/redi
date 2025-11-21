@@ -2,6 +2,7 @@
 import React from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import { AppColors } from '../AppColors';
+import { useThemeAware } from '../../contexts/ThemeContext';
 import AppText from './AppText';
 
 interface SectionCardProps {
@@ -15,6 +16,8 @@ const SectionCard: React.FC<SectionCardProps> = ({
   children,
   style,
 }) => {
+  useThemeAware(); // Force re-render when theme changes
+
   return (
     <View style={[styles.container, style]}>
       {title && (
@@ -29,7 +32,7 @@ const SectionCard: React.FC<SectionCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: AppColors.surfaceWhite,
+    backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 8,
     padding: 16,
     marginBottom: 16,

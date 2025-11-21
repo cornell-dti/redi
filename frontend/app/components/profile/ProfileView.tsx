@@ -410,6 +410,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 24,
+    backgroundColor: AppColors.backgroundDefault,
   },
   buttonCont: {
     display: 'flex',

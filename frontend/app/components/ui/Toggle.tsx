@@ -1,7 +1,7 @@
 import React from 'react';
 import { Animated, Pressable, StyleSheet } from 'react-native';
 import { useMotion } from '../../contexts/MotionContext';
-import { useTheme, useThemeAware } from '../../contexts/ThemeContext';
+import { useThemeAware } from '../../contexts/ThemeContext';
 import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 import { AppColors } from '../AppColors';
 
@@ -12,7 +12,6 @@ interface ToggleProps {
 
 export default function Toggle({ value, onValueChange }: ToggleProps) {
   useThemeAware(); // Force re-render when theme changes
-  const { currentTheme, themeMode } = useTheme();
   const { animationEnabled } = useMotion();
   const haptic = useHapticFeedback();
   const baseTranslateX = React.useRef(
@@ -71,13 +70,10 @@ export default function Toggle({ value, onValueChange }: ToggleProps) {
 
   const combinedTranslateX = Animated.add(baseTranslateX, pressOffset);
 
-  // Get the correct accent color based on theme mode
-  const accentColor = themeMode === 'dark' ? currentTheme.dark.accentDefault : currentTheme.light.accentDefault;
-
-  // Interpolate background color for smooth transition
+  // Interpolate background color for smooth transition using AppColors
   const backgroundColor = colorAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [AppColors.backgroundDimmest, accentColor],
+    outputRange: [AppColors.backgroundDimmest, AppColors.accentDefault],
   });
 
   return (

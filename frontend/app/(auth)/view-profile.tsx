@@ -39,6 +39,7 @@ const REPORT_REASONS: { value: ReportReason; label: string }[] = [
 
 export default function ViewProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
+  const { themeMode } = useTheme();
 
   const { showToast } = useToast();
   const { netid, promptId } = useLocalSearchParams<{
@@ -217,8 +218,6 @@ export default function ViewProfileScreen() {
       </SafeAreaView>
     );
   }
-
-  const { themeMode } = useTheme();
 
   // Main content
   return (
@@ -477,11 +476,13 @@ export default function ViewProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: AppColors.backgroundDefault,
   },
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
     gap: 16,
+    backgroundColor: AppColors.backgroundDefault,
   },
   header: {
     display: 'flex',
@@ -493,6 +494,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 16,
     padding: 16,
+    backgroundColor: AppColors.backgroundDefault,
   },
   loadingText: {
     fontSize: 16,

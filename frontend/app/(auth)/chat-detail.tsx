@@ -464,8 +464,10 @@ export default function ChatDetailScreen() {
         {sheetView === 'menu' && (
           <ListItemWrapper>
             <ListItem
-              left={<User2 size={20} />}
-              right={<ChevronRight size={20} />}
+              left={<User2 size={20} color={AppColors.foregroundDefault} />}
+              right={
+                <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+              }
               title="View profile"
               onPress={() => {
                 if (!netid) {

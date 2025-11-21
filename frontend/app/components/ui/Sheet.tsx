@@ -12,8 +12,8 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { useThemeAware } from '../../contexts/ThemeContext';
 import { useMotion } from '../../contexts/MotionContext';
+import { useThemeAware } from '../../contexts/ThemeContext';
 import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
@@ -184,7 +184,13 @@ export default function Sheet({
       <View style={styles.container} pointerEvents={visible ? 'auto' : 'none'}>
         <Pressable style={StyleSheet.absoluteFill} onPress={handleDismiss}>
           <Animated.View
-            style={[styles.overlay, { backgroundColor: AppColors.foregroundDefault, opacity: overlayOpacity }]}
+            style={[
+              styles.overlay,
+              {
+                backgroundColor: AppColors.foregroundDefault,
+                opacity: overlayOpacity,
+              },
+            ]}
           />
         </Pressable>
 
@@ -208,7 +214,12 @@ export default function Sheet({
               {...panResponder.panHandlers}
               style={styles.dragHandleContainer}
             >
-              <View style={[styles.dragHandle, { backgroundColor: AppColors.borderDefault }]} />
+              <View
+                style={[
+                  styles.dragHandle,
+                  { backgroundColor: AppColors.borderDefault },
+                ]}
+              />
             </View>
             <View style={styles.titleContainer}>
               {title && <AppText variant="subtitle">{title}</AppText>}

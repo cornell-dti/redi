@@ -1,6 +1,8 @@
 import { ProfileResponse } from '@/types';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { AppColors } from '../AppColors';
+import { useThemeAware } from '../../contexts/ThemeContext';
 
 interface ProfileCardProps {
   profile: ProfileResponse;
@@ -13,6 +15,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   title,
   compact = false,
 }) => {
+  useThemeAware(); // Force re-render when theme changes
+
   if (compact) {
     return (
       <View style={styles.compactCard}>
@@ -73,37 +77,37 @@ const ProfileField: React.FC<ProfileFieldProps> = ({ label, value }) => (
 const styles = StyleSheet.create({
   // Full card styles
   fullCard: {
-    backgroundColor: '#f0f8ff',
+    backgroundColor: AppColors.backgroundDimmer,
     padding: 16,
     borderRadius: 8,
     marginBottom: 12,
     borderLeftWidth: 3,
-    borderLeftColor: '#007AFF',
+    borderLeftColor: AppColors.accentDefault,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: AppColors.accentDefault,
     marginBottom: 12,
   },
   fieldText: {
     fontSize: 14,
     marginBottom: 4,
-    color: '#333',
+    color: AppColors.foregroundDefault,
   },
   fieldLabel: {
     fontWeight: '600',
   },
   dateText: {
     fontSize: 12,
-    color: '#666',
+    color: AppColors.foregroundDimmer,
     marginTop: 8,
     fontStyle: 'italic',
   },
 
   // Compact card styles
   compactCard: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: AppColors.backgroundDimmer,
     padding: 12,
     borderRadius: 6,
     marginBottom: 8,
@@ -111,11 +115,11 @@ const styles = StyleSheet.create({
   compactTitle: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#333',
+    color: AppColors.foregroundDefault,
   },
   compactBio: {
     fontSize: 12,
-    color: '#666',
+    color: AppColors.foregroundDimmer,
     marginTop: 4,
   },
 });
