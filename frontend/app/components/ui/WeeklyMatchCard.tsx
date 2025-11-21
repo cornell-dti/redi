@@ -4,6 +4,7 @@ import { Alert, Image, StyleSheet, View } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 import Button from './Button';
+import Pressable from './Pressable';
 import Sheet from './Sheet';
 
 interface WeeklyMatchCardProps {
@@ -53,75 +54,77 @@ export default function WeeklyMatchCard({
   };
 
   return (
-    <View style={styles.card}>
-      <View style={styles.overlay} />
-      <Image source={{ uri: image }} style={styles.image} />
-      <View style={styles.info}>
-        <View style={styles.text}>
-          <AppText variant="title" style={styles.name} color="inverse">
-            {name},
-          </AppText>
-          <AppText variant="body" color="inverse" style={styles.details}>
-            {age}, {year}, {major}
-          </AppText>
-        </View>
+    <Pressable onPress={onViewProfile || (() => {})}>
+      <View style={styles.card}>
+        <View style={styles.overlay} />
+        <Image source={{ uri: image }} style={styles.image} />
+        <View style={styles.info}>
+          <View style={styles.text}>
+            <AppText variant="title" style={styles.name} color="inverse">
+              {name},
+            </AppText>
+            <AppText variant="body" color="inverse" style={styles.details}>
+              {age}, {year}, {major}
+            </AppText>
+          </View>
 
-        <View style={styles.buttonContainer}>
-          <Button
-            title={nudgeSent ? 'Nudged' : 'Nudge'}
-            onPress={() => setSheetVisible(true)}
-            variant="primary"
-            iconLeft={nudgeSent ? Check : Bell}
-            fullWidth
-            disabled={nudgeSent || nudgeDisabled}
-          />
-          <Button
-            title="View Profile"
-            onPress={onViewProfile || (() => {})}
-            variant="secondary"
-            iconLeft={User}
-            fullWidth
-          />
-        </View>
-      </View>
-      <Sheet
-        visible={isSheetVisible}
-        onDismiss={() => !isSending && setSheetVisible(false)}
-        title="Send Nudge"
-      >
-        <View style={styles.sheetContent}>
-          {!nudgeSent && (
-            <AppText>Are you sure you want to nudge {name}?</AppText>
-          )}
-
-          <AppText>
-            {nudgeSent
-              ? `You've already nudged ${name}.`
-              : "They won't know you nudged them unless they nudge you back. If both of you nudge each other, you'll both get a notification!"}
-          </AppText>
-
-          <View style={styles.buttonRow}>
-            {!nudgeSent && (
-              <Button
-                title={isSending ? 'Sending...' : 'Nudge'}
-                onPress={handleNudgeConfirm}
-                iconLeft={Bell}
-                fullWidth
-                disabled={isSending}
-                soundEffect={require('@/assets/sounds/nudge.mp3')}
-              />
-            )}
+          <View style={styles.buttonContainer}>
             <Button
-              title={nudgeSent ? 'Close' : 'Never mind'}
-              onPress={() => setSheetVisible(false)}
-              variant="secondary"
+              title={nudgeSent ? 'Nudged' : 'Nudge'}
+              onPress={() => setSheetVisible(true)}
+              variant="primary"
+              iconLeft={nudgeSent ? Check : Bell}
               fullWidth
-              disabled={isSending}
+              disabled={nudgeSent || nudgeDisabled}
+            />
+            <Button
+              title="View Profile"
+              onPress={onViewProfile || (() => {})}
+              variant="secondary"
+              iconLeft={User}
+              fullWidth
             />
           </View>
         </View>
-      </Sheet>
-    </View>
+        <Sheet
+          visible={isSheetVisible}
+          onDismiss={() => !isSending && setSheetVisible(false)}
+          title="Send Nudge"
+        >
+          <View style={styles.sheetContent}>
+            {!nudgeSent && (
+              <AppText>Are you sure you want to nudge {name}?</AppText>
+            )}
+
+            <AppText>
+              {nudgeSent
+                ? `You've already nudged ${name}.`
+                : "They won't know you nudged them unless they nudge you back. If both of you nudge each other, you'll both get a notification!"}
+            </AppText>
+
+            <View style={styles.buttonRow}>
+              {!nudgeSent && (
+                <Button
+                  title={isSending ? 'Sending...' : 'Nudge'}
+                  onPress={handleNudgeConfirm}
+                  iconLeft={Bell}
+                  fullWidth
+                  disabled={isSending}
+                  soundEffect={require('@/assets/sounds/nudge.mp3')}
+                />
+              )}
+              <Button
+                title={nudgeSent ? 'Close' : 'Never mind'}
+                onPress={() => setSheetVisible(false)}
+                variant="secondary"
+                fullWidth
+                disabled={isSending}
+              />
+            </View>
+          </View>
+        </Sheet>
+      </View>
+    </Pressable>
   );
 }
 
