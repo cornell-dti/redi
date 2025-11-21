@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AVPlaybackStatus, ResizeMode, Video } from 'expo-av';
-import * as Haptics from 'expo-haptics';
 import { X } from 'lucide-react-native';
 import React, { useEffect, useRef } from 'react';
 import { Dimensions, Modal, StyleSheet, View } from 'react-native';
+import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 import IconButton from '../ui/IconButton';
 
 const ONBOARDING_VIDEO_SHOWN_KEY = '@onboarding_video_shown';
@@ -65,6 +65,7 @@ export default function OnboardingVideo({
 }: OnboardingVideoProps) {
   const videoRef = useRef<Video>(null);
   const triggeredHapticsRef = useRef<Set<number>>(new Set());
+  const haptic = useHapticFeedback();
 
   // Reset triggered haptics when video becomes visible (for replay scenarios)
   useEffect(() => {
@@ -74,35 +75,35 @@ export default function OnboardingVideo({
   }, [visible]);
 
   const triggerHapticForTime = (currentTime: number) => {
-    HAPTIC_TIMELINE.forEach((haptic, index) => {
+    HAPTIC_TIMELINE.forEach((hapticEvent, index) => {
       // Tighter tolerance for precise timing: 150ms window (reduced from 500ms)
       // This ensures fast sequences like 4.1, 4.23 (130ms apart) trigger correctly
       const tolerance = 0.15; // 150ms window
 
       if (
-        currentTime >= haptic.time &&
-        currentTime < haptic.time + tolerance &&
+        currentTime >= hapticEvent.time &&
+        currentTime < hapticEvent.time + tolerance &&
         !triggeredHapticsRef.current.has(index)
       ) {
         // Mark as triggered
         triggeredHapticsRef.current.add(index);
 
         // Trigger the haptic immediately
-        switch (haptic.style) {
+        switch (hapticEvent.style) {
           case 'light':
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            haptic.light();
             break;
           case 'medium':
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            haptic.medium();
             break;
           case 'heavy':
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            haptic.heavy();
             break;
           case 'soft':
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+            haptic.soft();
             break;
           case 'rigid':
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid);
+            haptic.rigid();
             break;
         }
       }
