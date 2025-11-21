@@ -41,7 +41,12 @@ export default function EditingHeader({
   };
 
   return (
-    <View style={[styles.container, { borderBottomColor: AppColors.backgroundDimmest }]}>
+    <View
+      style={[
+        styles.container,
+        { borderBottomColor: AppColors.backgroundDimmest },
+      ]}
+    >
       <View style={styles.buttonRow}>
         <IconButton
           onPress={handleBack}
@@ -55,7 +60,7 @@ export default function EditingHeader({
         </AppText>
 
         {isSaving ? (
-          <LoadingSpinner />
+          <LoadingSpinner color={AppColors.accentDefault} />
         ) : showSave ? (
           <IconButton
             onPress={async () => onSave?.()}

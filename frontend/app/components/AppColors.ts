@@ -74,8 +74,6 @@ export const updateThemeColors = (colors: Partial<typeof AppColors>) => {
   if (colors.overlayLight !== undefined) AppColors.overlayLight = colors.overlayLight;
   if (colors.borderDefault !== undefined) AppColors.borderDefault = colors.borderDefault;
   if (colors.borderDimmer !== undefined) AppColors.borderDimmer = colors.borderDimmer;
-
-  console.log('🔄 Updated AppColors individually');
 };
 
 // Type for color keys
