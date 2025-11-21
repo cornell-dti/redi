@@ -73,6 +73,7 @@ export default function AppearanceScreen() {
 
                   return (
                     <Pressable
+                      fullWidth
                       key={theme.name}
                       onPress={() => setTheme(theme.name)}
                       style={({ pressed }) => [
@@ -176,7 +177,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     gap: 4,
-    flex: 1,
   },
   colorPreview: {
     width: 32,
@@ -188,7 +188,6 @@ const styles = StyleSheet.create({
   },
   colorOption: {
     flex: 1,
-    width: 130,
     minHeight: 100,
     padding: 16,
     flexDirection: 'column',
