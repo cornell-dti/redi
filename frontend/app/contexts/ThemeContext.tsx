@@ -201,7 +201,7 @@ const MODE_STORAGE_KEY = '@app_theme_mode';
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [currentTheme, setCurrentTheme] = useState<Theme>(themes.default);
-  const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
+  const [themeMode, setThemeMode] = useState<ThemeMode>('light');
   const [themeVersion, setThemeVersion] = useState(0);
 
   useEffect(() => {
@@ -245,10 +245,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
           ? themes[savedTheme as ThemeName]
           : themes.default;
 
-      // ⛔ Ignore saved mode — force dark mode
+      const mode = (savedMode as ThemeMode) || 'light';
+
       setCurrentTheme(theme);
-      setThemeMode('dark');
-      applyTheme(theme, 'dark');
+      setThemeMode(mode);
+      applyTheme(theme, mode);
     } catch (error) {
       console.error('Failed to load theme:', error);
     }
