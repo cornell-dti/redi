@@ -20,7 +20,7 @@ export default function AppText({
 }: AppTextProps) {
   const resolvedColor =
     color === 'inverse'
-      ? AppColors.surfaceWhite
+      ? AppColors.backgroundDefault
       : color === 'negative'
         ? AppColors.negativeDefault
         : color === 'dimmer'

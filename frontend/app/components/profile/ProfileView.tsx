@@ -261,7 +261,11 @@ const ProfileView: React.FC<ProfileViewProps> = ({
 
               {profile.showGenderOnProfile && profile.gender && (
                 <View style={styles.subSection}>
-                  <GenderIcon gender={profile.gender} size={20} />
+                  <GenderIcon
+                    gender={profile.gender}
+                    size={20}
+                    color={AppColors.foregroundDefault}
+                  />
                   <AppText>
                     {profile.gender
                       ? profile.gender.charAt(0).toUpperCase() +
@@ -275,7 +279,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                 profile.sexualOrientation &&
                 profile.sexualOrientation.length > 0 && (
                   <View style={styles.subSection}>
-                    <Magnet size={20} />
+                    <Magnet size={20} color={AppColors.foregroundDefault} />
                     <AppText>{profile.sexualOrientation[0]}</AppText>
                   </View>
                 )}
@@ -283,14 +287,14 @@ const ProfileView: React.FC<ProfileViewProps> = ({
 
             {profile.showHometownOnProfile && profile.hometown && (
               <View style={styles.subSection}>
-                <Home size={20} />
+                <Home size={20} color={AppColors.foregroundDefault} />
                 <AppText>{profile.hometown}</AppText>
               </View>
             )}
 
             {profile.showCollegeOnProfile && profile.school && (
               <View style={styles.subSection}>
-                <GraduationCap size={20} />
+                <GraduationCap size={20} color={AppColors.foregroundDefault} />
                 <AppText>{`${profile.year} in ${profile.school} studying ${profile.major?.join(', ')}`}</AppText>
               </View>
             )}
