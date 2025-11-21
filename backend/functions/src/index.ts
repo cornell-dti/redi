@@ -83,12 +83,12 @@ export const activateWeeklyPrompt = onSchedule(
 );
 
 /**
- * Scheduled function that runs every Friday at 12:01 AM Eastern Time
+ * Scheduled function that runs every Friday at 9:01 AM Eastern Time
  * Generates matches for all users who answered the current week's prompt
  */
 export const generateWeeklyMatches = onSchedule(
   {
-    schedule: "1 0 * * 5", // Every Friday at 12:01 AM
+    schedule: "1 9 * * 5", // Every Friday at 9:01 AM
     timeZone: "America/New_York",
   },
   async () => {
