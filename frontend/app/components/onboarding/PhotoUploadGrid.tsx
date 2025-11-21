@@ -1,6 +1,5 @@
-import { useHaptics } from '@/app/contexts/HapticsContext';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
-import * as Haptics from 'expo-haptics';
+import { useHapticFeedback } from '@/app/hooks/useHapticFeedback';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Star, X } from 'lucide-react-native';
@@ -176,13 +175,7 @@ export default function PhotoUploadGrid({
   maxPhotos = 6,
 }: PhotoUploadGridProps) {
   useThemeAware(); // Force re-render when theme changes
-  const { hapticsEnabled } = useHaptics();
-
-  const triggerHaptic = () => {
-    if (hapticsEnabled) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
-  };
+  const haptic = useHapticFeedback();
 
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
@@ -354,7 +347,7 @@ export default function PhotoUploadGrid({
                   }}
                   onHoverChange={setHoverIndex}
                   totalPhotos={photos.length}
-                  onHaptic={triggerHaptic}
+                  onHaptic={() => haptic.medium()}
                 />
               </View>
             );

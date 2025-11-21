@@ -1,6 +1,5 @@
 import AppText from '@/app/components/ui/AppText';
 import { ProfileResponse, PromptData, getProfileAge } from '@/types';
-import * as Haptics from 'expo-haptics';
 import { router, useFocusEffect } from 'expo-router';
 import {
   Check,
@@ -40,8 +39,8 @@ import ListItemWrapper from '../components/ui/ListItemWrapper';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
-import { useHaptics } from '../contexts/HapticsContext';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useHapticFeedback } from '../hooks/useHapticFeedback';
 import { useToast } from '../contexts/ToastContext';
 
 // Constants for drag calculations
@@ -147,13 +146,7 @@ function DraggablePromptItem({
 export default function EditProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
   const { showToast } = useToast();
-  const { hapticsEnabled } = useHaptics();
-
-  const triggerHaptic = () => {
-    if (hapticsEnabled) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
-  };
+  const haptic = useHapticFeedback();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -580,7 +573,7 @@ export default function EditProfileScreen() {
                         totalPrompts={
                           prompts.filter((p) => p.question && p.answer).length
                         }
-                        onHaptic={triggerHaptic}
+                        onHaptic={() => haptic.medium()}
                       />
                     </View>
                   );

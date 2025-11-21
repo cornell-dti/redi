@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -13,8 +12,8 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { useHaptics } from '../../contexts/HapticsContext';
 import { useMotion } from '../../contexts/MotionContext';
+import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 
@@ -38,7 +37,7 @@ export default function Sheet({
   bottomRound = true,
 }: SheetProps) {
   const { animationEnabled } = useMotion();
-  const { hapticsEnabled } = useHaptics();
+  const haptic = useHapticFeedback();
   const translateY = useRef(
     new Animated.Value(!animationEnabled ? 8 : SCREEN_HEIGHT)
   ).current;
@@ -99,16 +98,14 @@ export default function Sheet({
       overlayOpacity.setValue(0);
       isAnimatingRef.current = false;
 
-      // Haptic pattern synced with sheet bounce animation (only if enabled)
-      if (hapticsEnabled) {
-        // Initial impact when sheet starts sliding in
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      // Haptic pattern synced with sheet bounce animation
+      // Initial impact when sheet starts sliding in
+      haptic.medium();
 
-        // Lighter tap to match the bounce settle (~200ms matches spring timing)
-        setTimeout(() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        }, 200);
-      }
+      // Lighter tap to match the bounce settle (~200ms matches spring timing)
+      setTimeout(() => {
+        haptic.light();
+      }, 200);
 
       // Use animation or spring based on preference
       Animated.parallel([
@@ -135,7 +132,7 @@ export default function Sheet({
       // Reset keyboard height when sheet closes
       setKeyboardHeight(0);
     }
-  }, [visible, translateY, overlayOpacity, animationEnabled, hapticsEnabled]);
+  }, [visible, translateY, overlayOpacity, animationEnabled, haptic]);
 
   const pan = useRef(new Animated.Value(0)).current;
   const lastPanY = useRef(0);

@@ -1,9 +1,8 @@
 import { useThemeAware } from '@/app/contexts/ThemeContext';
-import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef } from 'react';
 import { Animated, PanResponder, StyleSheet, View } from 'react-native';
-import { useHaptics } from '../../contexts/HapticsContext';
 import { useMotion } from '../../contexts/MotionContext';
+import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 import { AppColors } from '../AppColors';
 import AppText from './AppText';
 
@@ -24,7 +23,7 @@ const Toast: React.FC<ToastProps> = ({
 }) => {
   useThemeAware();
   const { animationEnabled } = useMotion();
-  const { hapticsEnabled } = useHaptics();
+  const haptic = useHapticFeedback();
 
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(
@@ -90,13 +89,11 @@ const Toast: React.FC<ToastProps> = ({
       // Reset translateY to correct starting position based on current animationEnabled
       translateY.setValue(!animationEnabled ? 6 : 40);
 
-      // Tic-tac haptic pattern: two light taps (only if enabled)
-      if (hapticsEnabled) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        setTimeout(() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        }, 100);
-      }
+      // Tic-tac haptic pattern: two light taps
+      haptic.light();
+      setTimeout(() => {
+        haptic.light();
+      }, 100);
 
       // Fade in with animation support
       Animated.parallel([
@@ -129,7 +126,7 @@ const Toast: React.FC<ToastProps> = ({
         }
       };
     }
-  }, [visible, animationEnabled, hapticsEnabled]);
+  }, [visible, animationEnabled, haptic]);
 
   if (!visible) return null;
 

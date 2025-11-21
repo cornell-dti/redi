@@ -1,5 +1,4 @@
 import { Audio } from 'expo-av';
-import * as Haptics from 'expo-haptics';
 import { LucideIcon } from 'lucide-react-native';
 import React, { useEffect, useRef } from 'react';
 import {
@@ -9,6 +8,7 @@ import {
   TouchableOpacity,
   ViewStyle,
 } from 'react-native';
+import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 import { AppColors } from '../AppColors';
 
 // Type for custom icons that accept size and color props
@@ -46,6 +46,7 @@ export default function Button({
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isPressed, setIsPressed] = React.useState(false);
   const soundRef = useRef<Audio.Sound | null>(null);
+  const haptic = useHapticFeedback();
 
   // Load sound effect when component mounts
   useEffect(() => {
@@ -87,9 +88,9 @@ export default function Button({
 
     // Add strong haptic feedback for primary and negative variants
     if (variant === 'primary' || variant === 'negative') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptic.medium();
     } else {
-      // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      // haptic.light();
     }
 
     setIsPressed(true);

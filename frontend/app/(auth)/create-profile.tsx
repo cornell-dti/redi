@@ -7,7 +7,6 @@ import {
   SEXUAL_ORIENTATION_OPTIONS,
   YEAR_OPTIONS,
 } from '@/types';
-import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { Check, ChevronDown, GripVertical, Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
@@ -50,8 +49,8 @@ import ListItemWrapper from '../components/ui/ListItemWrapper';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
-import { useHaptics } from '../contexts/HapticsContext';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useHapticFeedback } from '../hooks/useHapticFeedback';
 import { useOnboardingState } from '../hooks/useOnboardingState';
 import {
   extractPreferencesFromOnboarding,
@@ -156,13 +155,7 @@ function DraggablePromptSelector({
 
 export default function CreateProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
-  const { hapticsEnabled } = useHaptics();
-
-  const triggerHaptic = () => {
-    if (hapticsEnabled) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
-  };
+  const haptic = useHapticFeedback();
 
   const [currentStep, setCurrentStep] = useState(2); // Start at step 2
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
@@ -840,7 +833,7 @@ export default function CreateProfileScreen() {
                       onHoverChange={setHoverPromptIndex}
                       canRemove={true}
                       totalPrompts={data.prompts.length}
-                      onHaptic={triggerHaptic}
+                      onHaptic={() => haptic.medium()}
                     />
                   </View>
                 );
