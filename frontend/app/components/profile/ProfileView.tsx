@@ -62,10 +62,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   const age = getProfileAge(profile);
   const [activeImageIndex, setActiveImageIndex] = React.useState(0);
 
-  // Create animated values for each pagination dot
-  const dotAnimations = useRef(
-    (profile.pictures || []).map(() => new Animated.Value(0))
-  ).current;
+  // Track scroll position for real-time dot animation
+  const scrollX = useRef(new Animated.Value(0)).current;
 
   type SocialItem = {
     icon: React.ReactNode;
@@ -138,18 +136,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     setActiveImageIndex(index);
   };
 
-  // Animate dots when active index changes
-  useEffect(() => {
-    dotAnimations.forEach((animation, index) => {
-      Animated.spring(animation, {
-        toValue: index === activeImageIndex ? 1 : 0,
-        useNativeDriver: false,
-        friction: 8,
-        tension: 80,
-      }).start();
-    });
-  }, [activeImageIndex]);
-
   return (
     <ScrollView style={styles.container}>
       {/* Image carousel */}
@@ -160,7 +146,13 @@ const ProfileView: React.FC<ProfileViewProps> = ({
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             style={styles.imageCarousel}
-            onScroll={handleScroll}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+              {
+                useNativeDriver: false,
+                listener: handleScroll,
+              }
+            )}
             scrollEventThrottle={16}
           >
             {profile.pictures.map((picture, index) => (
@@ -177,18 +169,29 @@ const ProfileView: React.FC<ProfileViewProps> = ({
           {profile.pictures.length > 1 && (
             <View style={styles.paginationContainer}>
               {profile.pictures.map((_, index) => {
-                const animation = dotAnimations[index];
-                const width = animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [8, 20],
+                // Create input range for smooth transitions between dots
+                const inputRange = [
+                  (index - 1) * screenWidth,
+                  index * screenWidth,
+                  (index + 1) * screenWidth,
+                ];
+
+                const width = scrollX.interpolate({
+                  inputRange,
+                  outputRange: [8, 20, 8],
+                  extrapolate: 'clamp',
                 });
-                const height = animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [8, 10],
+
+                const height = scrollX.interpolate({
+                  inputRange,
+                  outputRange: [8, 10, 8],
+                  extrapolate: 'clamp',
                 });
-                const opacity = animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.5, 1],
+
+                const opacity = scrollX.interpolate({
+                  inputRange,
+                  outputRange: [0.5, 1, 0.5],
+                  extrapolate: 'clamp',
                 });
 
                 return (
@@ -211,7 +214,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
       )}
 
       <View style={styles.contentContainer}>
-        <AppText variant="title" indented style={{ marginBottom: -32 }}>
+        <AppText variant="title" style={{ marginBottom: -32 }}>
           {profile.firstName}
         </AppText>
 
@@ -407,6 +410,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flex: 1,
     gap: 16,
+    marginTop: 24,
   },
   section: {
     display: 'flex',
@@ -489,6 +493,14 @@ const styles = StyleSheet.create({
   paginationDot: {
     borderRadius: 5,
     backgroundColor: 'rgba(255, 255, 255, 1)',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+    elevation: 5, // For Android
   },
   promptQuestion: {
     padding: 16,
