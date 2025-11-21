@@ -165,6 +165,7 @@ export default function SafetyPage() {
           setBlockInput('');
         }}
         title="Block user"
+        bottomRound={false}
       >
         <View style={styles.sheetContent}>
           <AppText>Enter the NetID of the person you want to block.</AppText>

@@ -1,9 +1,8 @@
-import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { Animated, Pressable, StyleSheet } from 'react-native';
-import { useHaptics } from '../../contexts/HapticsContext';
 import { useMotion } from '../../contexts/MotionContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 import { AppColors } from '../AppColors';
 
 interface ToggleProps {
@@ -14,7 +13,7 @@ interface ToggleProps {
 export default function Toggle({ value, onValueChange }: ToggleProps) {
   const { currentTheme } = useTheme();
   const { animationEnabled } = useMotion();
-  const { hapticsEnabled } = useHaptics();
+  const haptic = useHapticFeedback();
   const baseTranslateX = React.useRef(new Animated.Value(value ? 24 : 0))
     .current;
   const scaleX = React.useRef(new Animated.Value(1)).current;
@@ -22,9 +21,7 @@ export default function Toggle({ value, onValueChange }: ToggleProps) {
   const [isPressed, setIsPressed] = React.useState(false);
 
   const handleToggle = () => {
-    if (hapticsEnabled) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
+    haptic.medium();
     onValueChange(!value);
   };
 

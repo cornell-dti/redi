@@ -3,7 +3,7 @@ import FilledChatIcon from '@/app/components/icons/FilledChatIcon';
 import FilledHeartIcon from '@/app/components/icons/FilledHeartIcon';
 import FilledProfileIcon from '@/app/components/icons/FilledProfileIcon';
 import { useNotifications } from '@/app/contexts/NotificationsContext';
-import * as Haptics from 'expo-haptics';
+import { useHapticFeedback } from '@/app/hooks/useHapticFeedback';
 import { Tabs } from 'expo-router';
 import { Bell, Heart, MessageCircle, User } from 'lucide-react-native';
 import { useRef } from 'react';
@@ -12,6 +12,7 @@ import { AppColors } from '../../components/AppColors';
 
 const AnimatedTabButton = (props: any) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const haptic = useHapticFeedback();
 
   const handlePressIn = (e: any) => {
     Animated.timing(scaleAnim, {
@@ -35,7 +36,7 @@ const AnimatedTabButton = (props: any) => {
 
   const handlePress = (e: any) => {
     // Add medium haptic feedback on tab switch
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptic.medium();
     console.log('AnimatedTabButton: handlePress called', {
       hasOnPress: !!props.onPress,
       accessibilityLabel: props.accessibilityLabel,

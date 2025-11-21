@@ -1,6 +1,6 @@
 import AppInput from '@/app/components/ui/AppInput';
 import { router } from 'expo-router';
-import { Check, Plus } from 'lucide-react-native';
+import { Camera, Check, Gamepad2, Music, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -17,6 +17,7 @@ import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
+import EmptyState from '../components/ui/EmptyState';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
@@ -33,6 +34,7 @@ export default function EditInterestsPage() {
   const [sheetVisible, setSheetVisible] = useState(false);
   const [newInterest, setNewInterest] = useState('');
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
+  const [animationTrigger, setAnimationTrigger] = useState(0);
 
   useEffect(() => {
     fetchProfile();
@@ -143,26 +145,42 @@ export default function EditInterestsPage() {
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={
+          interests.length === 0 ? styles.emptyContainer : undefined
+        }
       >
-        <View style={styles.tagsContainer}>
-          {interests.map((interest) => (
-            <Tag
-              key={interest}
-              label={interest}
-              variant="gray"
-              dismissible
-              onDismiss={() => removeInterest(interest)}
-            />
-          ))}
-        </View>
+        {interests.length === 0 ? (
+          <EmptyState
+            icons={[Music, Camera, Gamepad2]}
+            label="No interests yet - tap below to add some!"
+            triggerAnimation={animationTrigger}
+          />
+        ) : (
+          <View style={styles.tagsContainer}>
+            {interests.map((interest) => (
+              <Tag
+                key={interest}
+                label={interest}
+                variant="gray"
+                dismissible
+                onDismiss={() => removeInterest(interest)}
+              />
+            ))}
+          </View>
+        )}
+      </ScrollView>
 
+      <View style={styles.buttonContainer}>
         <Button
           title="Add interest"
           iconLeft={Plus}
-          onPress={() => setSheetVisible(true)}
+          onPress={() => {
+            setSheetVisible(true);
+            setAnimationTrigger((prev) => prev + 1);
+          }}
           variant="secondary"
         />
-      </ScrollView>
+      </View>
 
       {/* Add Interest Sheet */}
       <Sheet
@@ -179,7 +197,7 @@ export default function EditInterestsPage() {
           style={styles.sheetContent}
         >
           <AppInput
-            placeholder="e.g., Photography, Hiking, Cooking"
+            placeholder="e.g., Music, Photography, Gaming"
             value={newInterest}
             onChangeText={setNewInterest}
             autoCapitalize="words"
@@ -216,11 +234,19 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  emptyContainer: {
+    flex: 1,
+  },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
     marginBottom: 24,
+  },
+  buttonContainer: {
+    padding: 16,
+    paddingBottom: 16,
+    backgroundColor: AppColors.backgroundDefault,
   },
   sheetContent: {
     gap: 16,

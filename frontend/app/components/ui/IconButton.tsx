@@ -1,7 +1,7 @@
-import * as Haptics from 'expo-haptics';
 import { LucideIcon } from 'lucide-react-native';
 import React, { useRef } from 'react';
 import { Animated, TouchableOpacity, ViewStyle } from 'react-native';
+import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 import { AppColors } from '../AppColors';
 
 interface IconButtonProps {
@@ -26,13 +26,14 @@ export default function IconButton({
 }: React.PropsWithChildren<IconButtonProps>) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [isPressed, setIsPressed] = React.useState(false);
+  const haptic = useHapticFeedback();
 
   const handlePressIn = () => {
     // Add strong haptic feedback for primary and negative variants
     if (variant === 'primary' || variant === 'negative') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      haptic.medium();
     } else {
-      // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      // haptic.light();
     }
 
     setIsPressed(true);

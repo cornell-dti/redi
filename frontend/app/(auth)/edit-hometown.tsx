@@ -10,16 +10,16 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
-import Checkbox from '../components/ui/Checkbox';
 import EditingHeader from '../components/ui/EditingHeader';
 import FooterSpacer from '../components/ui/FooterSpacer';
+import ListItemWrapper from '../components/ui/ListItemWrapper';
+import Toggle from '../components/ui/Toggle';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
@@ -158,21 +158,14 @@ export default function EditHometownPage() {
             <AppText>.</AppText>
           </View>
 
-          <View style={styles.checkboxSection}>
-            <TouchableOpacity
-              style={styles.checkboxRow}
-              onPress={() => setShowOnProfile(!showOnProfile)}
-            >
-              <Checkbox
-                value={showOnProfile}
-                onValueChange={setShowOnProfile}
-                color={showOnProfile ? AppColors.accentDefault : undefined}
-              />
-              <AppText variant="body" style={styles.checkboxLabel}>
-                Show on my profile
-              </AppText>
-            </TouchableOpacity>
-          </View>
+          <ListItemWrapper>
+            <View style={styles.toggleContainer}>
+              <View style={styles.toggleLabel}>
+                <AppText variant="body">Show on profile</AppText>
+              </View>
+              <Toggle value={showOnProfile} onValueChange={setShowOnProfile} />
+            </View>
+          </ListItemWrapper>
 
           <FooterSpacer />
         </ScrollView>
@@ -207,17 +200,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  checkboxSection: {
-    marginTop: 24,
-    alignItems: 'center',
-  },
-  checkboxRow: {
-    display: 'flex',
+  toggleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: AppColors.backgroundDimmer,
+    borderRadius: 6,
+    marginTop: 24,
   },
-  checkboxLabel: {
-    textAlign: 'center',
+  toggleLabel: {
+    flex: 1,
   },
 });

@@ -6,7 +6,8 @@ import { AppColors } from '../AppColors';
 import AppText from './AppText';
 
 interface EmptyStateProps {
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  icons?: [LucideIcon, LucideIcon, LucideIcon];
   label: string;
   children?: React.ReactNode;
   triggerAnimation?: number;
@@ -14,10 +15,13 @@ interface EmptyStateProps {
 
 const EmptyState: React.FC<EmptyStateProps> = ({
   icon: Icon,
+  icons,
   label,
   children,
   triggerAnimation,
 }) => {
+  // Use icons array if provided, otherwise fallback to single icon
+  const [Icon1, Icon2, Icon3] = icons || [Icon, Icon, Icon];
   const { animationEnabled } = useMotion();
   const scaleAnim1 = useRef(new Animated.Value(0)).current;
   const scaleAnim2 = useRef(new Animated.Value(0)).current;
@@ -97,21 +101,21 @@ const EmptyState: React.FC<EmptyStateProps> = ({
             transform: [{ translateY: translateY1 }, { scale: scale1 }],
           }}
         >
-          <Icon size={24} color={AppColors.foregroundDimmer} />
+          {Icon1 && <Icon1 size={24} color={AppColors.foregroundDimmer} />}
         </Animated.View>
         <Animated.View
           style={{
             transform: [{ translateY: translateY2 }, { scale: scale2 }],
           }}
         >
-          <Icon size={32} color={AppColors.foregroundDimmer} />
+          {Icon2 && <Icon2 size={32} color={AppColors.foregroundDimmer} />}
         </Animated.View>
         <Animated.View
           style={{
             transform: [{ translateY: translateY3 }, { scale: scale3 }],
           }}
         >
-          <Icon size={24} color={AppColors.foregroundDimmer} />
+          {Icon3 && <Icon3 size={24} color={AppColors.foregroundDimmer} />}
         </Animated.View>
       </View>
       <AppText variant="body" color="dimmer" centered style={styles.label}>
