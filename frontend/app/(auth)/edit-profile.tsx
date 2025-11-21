@@ -136,7 +136,7 @@ function DraggablePromptItem({
             </View>
           </GestureDetector>
         }
-        right={<ChevronRight size={20} />}
+        right={<ChevronRight size={20} color={AppColors.foregroundDimmer} />}
         onPress={onPress}
       />
     </Animated.View>
@@ -639,14 +639,18 @@ export default function EditProfileScreen() {
             <ListItem
               title="Name"
               description={displayName}
-              right={<ChevronRight size={20} />}
+              right={
+                <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+              }
               onPress={() => router.push('/edit-name' as any)}
             />
 
             <ListItem
               title="Age"
               description={displayAge ? `${displayAge}` : 'Not set'}
-              right={<ChevronRight size={20} />}
+              right={
+                <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+              }
               onPress={() => router.push('/edit-age' as any)}
             />
 
@@ -658,21 +662,27 @@ export default function EditProfileScreen() {
                     profile.gender.slice(1)
                   : ''
               }
-              right={<ChevronRight size={20} />}
+              right={
+                <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+              }
               onPress={() => router.push('/edit-gender' as any)}
             />
 
             <ListItem
               title="Sexuality"
               description={profile?.sexualOrientation?.join(', ') || 'Not set'}
-              right={<ChevronRight size={20} />}
+              right={
+                <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+              }
               onPress={() => router.push('/edit-sexuality' as any)}
             />
 
             <ListItem
               title="Hometown"
               description={profile?.hometown || 'Not set'}
-              right={<ChevronRight size={20} />}
+              right={
+                <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+              }
               onPress={() => router.push('/edit-hometown' as any)}
             />
 
@@ -687,7 +697,9 @@ export default function EditProfileScreen() {
                   <AppText>{profile?.major?.join(', ')}</AppText>
                 </AppText>
               }
-              right={<ChevronRight size={20} />}
+              right={
+                <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+              }
               onPress={() => router.push('/edit-education' as any)}
             />
           </ListItemWrapper>
@@ -829,6 +841,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
+    backgroundColor: AppColors.backgroundDefault,
   },
   subtitle: {
     paddingLeft: 16,

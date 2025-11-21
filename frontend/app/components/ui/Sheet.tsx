@@ -187,7 +187,7 @@ export default function Sheet({
             style={[
               styles.overlay,
               {
-                backgroundColor: AppColors.foregroundDefault,
+                backgroundColor: '#000000',
                 opacity: overlayOpacity,
               },
             ]}

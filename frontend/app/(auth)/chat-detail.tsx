@@ -5,7 +5,7 @@ import IconButton from '@/app/components/ui/IconButton';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
-import { useThemeAware } from '@/app/contexts/ThemeContext';
+import { useTheme, useThemeAware } from '@/app/contexts/ThemeContext';
 import { useToast } from '@/app/contexts/ToastContext';
 import { ReportReason } from '@/types/report';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -23,7 +23,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   FlatList,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
@@ -60,6 +59,8 @@ const REPORT_REASONS: { value: ReportReason; label: string }[] = [
 
 export default function ChatDetailScreen() {
   useThemeAware();
+  const { themeMode } = useTheme();
+
   const { showToast } = useToast();
 
   const [showOptionsSheet, setShowOptionsSheet] = useState(false);
@@ -72,7 +73,6 @@ export default function ChatDetailScreen() {
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [blocking, setBlocking] = useState(false);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const {
     conversationId: routeConversationId,
@@ -111,23 +111,6 @@ export default function ChatDetailScreen() {
   const sendButtonAnim = useRef(new Animated.Value(0)).current;
 
   const { messages: firebaseMessages, loading } = useMessages(conversationId);
-
-  // Track keyboard visibility
-  useEffect(() => {
-    const keyboardWillShow = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      () => setKeyboardVisible(true)
-    );
-    const keyboardWillHide = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardVisible(false)
-    );
-
-    return () => {
-      keyboardWillShow.remove();
-      keyboardWillHide.remove();
-    };
-  }, []);
 
   // Animate send button in/out based on message input
   useEffect(() => {
@@ -696,17 +679,10 @@ export default function ChatDetailScreen() {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         style={styles.inputContainer}
       >
-        <View
-          style={[
-            styles.inputRow,
-            {
-              flex: 1,
-              marginBottom: keyboardVisible ? 20 : 8,
-            },
-          ]}
-        >
+        <View style={styles.inputRow}>
           <AppInput
             value={newMessage}
             onChangeText={setNewMessage}
@@ -786,14 +762,11 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDefault,
     borderTopWidth: 1,
     borderTopColor: AppColors.backgroundDimmest,
-    minHeight: 80,
-    flex: 1,
-    maxHeight: 80,
   },
   inputRow: {
     flexDirection: 'row',
     padding: 16,
-    paddingBottom: 48,
+    paddingBottom: 10,
     minHeight: 56,
     gap: 8,
     position: 'relative',

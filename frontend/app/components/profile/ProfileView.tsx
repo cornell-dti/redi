@@ -103,7 +103,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     ? ([
         'instagram' in profile &&
           profile.instagram && {
-            icon: <Instagram size={24} />,
+            icon: <Instagram size={24} color={AppColors.foregroundDefault} />,
             url: `https://instagram.com/${profile.instagram.replace(/^@/, '')}`,
           },
         'snapchat' in profile &&
