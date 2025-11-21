@@ -1,6 +1,12 @@
 import AppInput from '@/app/components/ui/AppInput';
 import { router } from 'expo-router';
-import { Check, Plus } from 'lucide-react-native';
+import {
+  Check,
+  Drama,
+  MessagesSquare,
+  Plus,
+  Trophy,
+} from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -17,6 +23,7 @@ import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
+import EmptyState from '../components/ui/EmptyState';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
@@ -33,6 +40,7 @@ export default function EditClubsPage() {
   const [sheetVisible, setSheetVisible] = useState(false);
   const [newClub, setNewClub] = useState('');
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
+  const [animationTrigger, setAnimationTrigger] = useState(0);
 
   useEffect(() => {
     fetchProfile();
@@ -143,26 +151,42 @@ export default function EditClubsPage() {
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={
+          clubs.length === 0 ? styles.emptyContainer : undefined
+        }
       >
-        <View style={styles.tagsContainer}>
-          {clubs.map((club) => (
-            <Tag
-              key={club}
-              label={club}
-              variant="gray"
-              dismissible
-              onDismiss={() => removeClub(club)}
-            />
-          ))}
-        </View>
+        {clubs.length === 0 ? (
+          <EmptyState
+            icons={[MessagesSquare, Trophy, Drama]}
+            label="No clubs yet - tap below to add some!"
+            triggerAnimation={animationTrigger}
+          />
+        ) : (
+          <View style={styles.tagsContainer}>
+            {clubs.map((club) => (
+              <Tag
+                key={club}
+                label={club}
+                variant="gray"
+                dismissible
+                onDismiss={() => removeClub(club)}
+              />
+            ))}
+          </View>
+        )}
+      </ScrollView>
 
+      <View style={styles.buttonContainer}>
         <Button
           title="Add club"
           iconLeft={Plus}
-          onPress={() => setSheetVisible(true)}
+          onPress={() => {
+            setSheetVisible(true);
+            setAnimationTrigger((prev) => prev + 1);
+          }}
           variant="secondary"
         />
-      </ScrollView>
+      </View>
 
       {/* Add Club Sheet */}
       <Sheet
@@ -179,7 +203,7 @@ export default function EditClubsPage() {
           style={styles.sheetContent}
         >
           <AppInput
-            placeholder="e.g., Debate Club, Chess Club, Dance Team"
+            placeholder="e.g., Debate, Sports, Drama"
             value={newClub}
             onChangeText={setNewClub}
             autoCapitalize="words"
@@ -216,11 +240,19 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  emptyContainer: {
+    flex: 1,
+  },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
     marginBottom: 24,
+  },
+  buttonContainer: {
+    padding: 16,
+    paddingBottom: 16,
+    backgroundColor: AppColors.backgroundDefault,
   },
   sheetContent: {
     gap: 16,
