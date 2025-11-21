@@ -38,6 +38,7 @@ const AppInput: React.FC<AppInputProps> = ({
   forceMinHeight = false,
   ...props
 }) => {
+  useThemeAware(); // Force re-render when theme changes
   const borderColorAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const previousValueRef = useRef('');

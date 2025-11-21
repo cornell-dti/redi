@@ -6,7 +6,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { AppColors, updateAccentColors, updateThemeColors } from '../components/AppColors';
+import { AppColors, updateAccentColors, updateNegativeColors, updateThemeColors } from '../components/AppColors';
 
 export type ThemeName =
   | 'default'
@@ -20,9 +20,22 @@ export type ThemeMode = 'light' | 'dark';
 
 export interface Theme {
   name: ThemeName;
-  accentDefault: string;
-  accentDimmer: string;
-  accentAlpha: string;
+  light: {
+    accentDefault: string;
+    accentDimmer: string;
+    accentAlpha: string;
+    negativeDefault: string;
+    negativeDimmer: string;
+    negativeDimmest: string;
+  };
+  dark: {
+    accentDefault: string;
+    accentDimmer: string;
+    accentAlpha: string;
+    negativeDefault: string;
+    negativeDimmer: string;
+    negativeDimmest: string;
+  };
 }
 
 // Dark mode color palette
@@ -54,39 +67,117 @@ const lightModeColors = {
 export const themes: Record<ThemeName, Theme> = {
   default: {
     name: 'default',
-    accentDefault: '#1B1B1B',
-    accentDimmer: '#505050',
-    accentAlpha: '#D9D9D9',
+    light: {
+      accentDefault: '#1B1B1B',
+      accentDimmer: '#505050',
+      accentAlpha: '#D9D9D9',
+      negativeDefault: '#DB0500',
+      negativeDimmer: '#FAD9D9',
+      negativeDimmest: '#FDEFEF',
+    },
+    dark: {
+      accentDefault: '#E5E5E5',
+      accentDimmer: '#B8B8B8',
+      accentAlpha: '#3A3A3A',
+      negativeDefault: '#FF6B6B',
+      negativeDimmer: '#4A2626',
+      negativeDimmest: '#2A1818',
+    },
   },
   pink: {
     name: 'pink',
-    accentDefault: '#E32CA2',
-    accentDimmer: '#C80C85',
-    accentAlpha: '#FCE9F5',
+    light: {
+      accentDefault: '#E32CA2',
+      accentDimmer: '#C80C85',
+      accentAlpha: '#FCE9F5',
+      negativeDefault: '#DB0500',
+      negativeDimmer: '#FAD9D9',
+      negativeDimmest: '#FDEFEF',
+    },
+    dark: {
+      accentDefault: '#FF6FD8',
+      accentDimmer: '#E854C0',
+      accentAlpha: '#3D1F34',
+      negativeDefault: '#FF6B6B',
+      negativeDimmer: '#4A2626',
+      negativeDimmest: '#2A1818',
+    },
   },
   blue: {
     name: 'blue',
-    accentDefault: '#009BFF',
-    accentDimmer: '#0681D1',
-    accentAlpha: '#E5F5FF',
+    light: {
+      accentDefault: '#009BFF',
+      accentDimmer: '#0681D1',
+      accentAlpha: '#E5F5FF',
+      negativeDefault: '#DB0500',
+      negativeDimmer: '#FAD9D9',
+      negativeDimmest: '#FDEFEF',
+    },
+    dark: {
+      accentDefault: '#4DB8FF',
+      accentDimmer: '#3AA0E6',
+      accentAlpha: '#1A3444',
+      negativeDefault: '#FF6B6B',
+      negativeDimmer: '#4A2626',
+      negativeDimmest: '#2A1818',
+    },
   },
   green: {
     name: 'green',
-    accentDefault: '#009D00',
-    accentDimmer: '#038703',
-    accentAlpha: '#E5F5E5',
+    light: {
+      accentDefault: '#009D00',
+      accentDimmer: '#038703',
+      accentAlpha: '#E5F5E5',
+      negativeDefault: '#DB0500',
+      negativeDimmer: '#FAD9D9',
+      negativeDimmest: '#FDEFEF',
+    },
+    dark: {
+      accentDefault: '#4ADE4A',
+      accentDimmer: '#3BC43B',
+      accentAlpha: '#1A3A1A',
+      negativeDefault: '#FF6B6B',
+      negativeDimmer: '#4A2626',
+      negativeDimmest: '#2A1818',
+    },
   },
   orange: {
     name: 'orange',
-    accentDefault: '#FF311E',
-    accentDimmer: '#DA1B0A',
-    accentAlpha: '#FFEAE8',
+    light: {
+      accentDefault: '#FF311E',
+      accentDimmer: '#DA1B0A',
+      accentAlpha: '#FFEAE8',
+      negativeDefault: '#DB0500',
+      negativeDimmer: '#FAD9D9',
+      negativeDimmest: '#FDEFEF',
+    },
+    dark: {
+      accentDefault: '#FF6B5A',
+      accentDimmer: '#E8543F',
+      accentAlpha: '#3D2420',
+      negativeDefault: '#FF6B6B',
+      negativeDimmer: '#4A2626',
+      negativeDimmest: '#2A1818',
+    },
   },
   purple: {
     name: 'purple',
-    accentDefault: '#5E007E',
-    accentDimmer: '#410157',
-    accentAlpha: '#EEE5F2',
+    light: {
+      accentDefault: '#5E007E',
+      accentDimmer: '#410157',
+      accentAlpha: '#EEE5F2',
+      negativeDefault: '#DB0500',
+      negativeDimmer: '#FAD9D9',
+      negativeDimmest: '#FDEFEF',
+    },
+    dark: {
+      accentDefault: '#C77FE0',
+      accentDimmer: '#B366CC',
+      accentAlpha: '#2F1A3A',
+      negativeDefault: '#FF6B6B',
+      negativeDimmer: '#4A2626',
+      negativeDimmest: '#2A1818',
+    },
   },
 };
 
@@ -120,11 +211,17 @@ export function ThemeProvider({ children }: { children: ReactNode}) {
     console.log('🌈 Mode colors:', modeColors);
     updateThemeColors(modeColors);
 
-    // Apply accent colors
+    // Apply accent and negative colors based on mode
+    const themeColors = mode === 'dark' ? theme.dark : theme.light;
     updateAccentColors(
-      theme.accentDefault,
-      theme.accentDimmer,
-      theme.accentAlpha
+      themeColors.accentDefault,
+      themeColors.accentDimmer,
+      themeColors.accentAlpha
+    );
+    updateNegativeColors(
+      themeColors.negativeDefault,
+      themeColors.negativeDimmer,
+      themeColors.negativeDimmest
     );
 
     console.log('✅ Theme applied. Background:', AppColors.backgroundDefault);

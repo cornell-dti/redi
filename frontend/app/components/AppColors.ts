@@ -50,6 +50,17 @@ export const updateAccentColors = (
   AppColors.accentAlpha = accentAlpha;
 };
 
+// Function to update negative colors (called by ThemeContext)
+export const updateNegativeColors = (
+  negativeDefault: string,
+  negativeDimmer: string,
+  negativeDimmest: string
+) => {
+  AppColors.negativeDefault = negativeDefault;
+  AppColors.negativeDimmer = negativeDimmer;
+  AppColors.negativeDimmest = negativeDimmest;
+};
+
 // Function to update all theme colors (light/dark mode)
 export const updateThemeColors = (colors: Partial<typeof AppColors>) => {
   // Update each property individually to avoid Reanimated issues

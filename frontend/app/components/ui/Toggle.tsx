@@ -12,11 +12,12 @@ interface ToggleProps {
 
 export default function Toggle({ value, onValueChange }: ToggleProps) {
   useThemeAware(); // Force re-render when theme changes
-  const { currentTheme } = useTheme();
+  const { currentTheme, themeMode } = useTheme();
   const { animationEnabled } = useMotion();
   const haptic = useHapticFeedback();
-  const baseTranslateX = React.useRef(new Animated.Value(value ? 24 : 0))
-    .current;
+  const baseTranslateX = React.useRef(
+    new Animated.Value(value ? 24 : 0)
+  ).current;
   const scaleX = React.useRef(new Animated.Value(1)).current;
   const colorAnim = React.useRef(new Animated.Value(value ? 1 : 0)).current;
   const [isPressed, setIsPressed] = React.useState(false);
@@ -70,10 +71,13 @@ export default function Toggle({ value, onValueChange }: ToggleProps) {
 
   const combinedTranslateX = Animated.add(baseTranslateX, pressOffset);
 
+  // Get the correct accent color based on theme mode
+  const accentColor = themeMode === 'dark' ? currentTheme.dark.accentDefault : currentTheme.light.accentDefault;
+
   // Interpolate background color for smooth transition
   const backgroundColor = colorAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [AppColors.backgroundDimmest, currentTheme.accentDefault],
+    outputRange: [AppColors.backgroundDimmest, accentColor],
   });
 
   return (
@@ -94,7 +98,7 @@ export default function Toggle({ value, onValueChange }: ToggleProps) {
             style={[
               styles.thumb,
               {
-                backgroundColor: AppColors.backgroundDefault,
+                backgroundColor: AppColors.surfaceWhite,
                 transform: [{ translateX: combinedTranslateX }, { scaleX }],
               },
             ]}

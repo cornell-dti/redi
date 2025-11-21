@@ -45,8 +45,15 @@ export default function AppearanceScreen() {
   const themeRows = chunk(themeOptions, 3);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: AppColors.backgroundDefault }]}>
-      <StatusBar barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'} />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar
+        barStyle={themeMode === 'dark' ? 'light-content' : 'dark-content'}
+      />
 
       <EditingHeader showSave={false} title="Appearance" />
 
@@ -64,7 +71,16 @@ export default function AppearanceScreen() {
           <ListItemWrapper>
             <ListItem
               title="Light mode"
-              left={<Sun size={20} color={AppColors.foregroundDefault} />}
+              left={
+                <Sun
+                  size={20}
+                  color={
+                    themeMode === 'light'
+                      ? AppColors.accentDefault
+                      : AppColors.foregroundDefault
+                  }
+                />
+              }
               right={
                 themeMode === 'light' ? (
                   <Check size={20} color={AppColors.accentDefault} />
@@ -76,7 +92,16 @@ export default function AppearanceScreen() {
 
             <ListItem
               title="Dark mode"
-              left={<Moon size={20} color={AppColors.foregroundDefault} />}
+              left={
+                <Moon
+                  size={20}
+                  color={
+                    themeMode === 'dark'
+                      ? AppColors.accentDefault
+                      : AppColors.foregroundDefault
+                  }
+                />
+              }
               right={
                 themeMode === 'dark' ? (
                   <Check size={20} color={AppColors.accentDefault} />
@@ -115,7 +140,10 @@ export default function AppearanceScreen() {
                         isSelected && {
                           backgroundColor: AppColors.accentAlpha,
                         },
-                        pressed && !isSelected && { backgroundColor: AppColors.backgroundDimmest },
+                        pressed &&
+                          !isSelected && {
+                            backgroundColor: AppColors.backgroundDimmest,
+                          },
                         isFirstRow &&
                           isFirstItem && { borderTopLeftRadius: 24 },
                         isFirstRow &&
@@ -130,7 +158,9 @@ export default function AppearanceScreen() {
                         style={[
                           styles.colorPreview,
                           {
-                            backgroundColor: themes[theme.name].accentDefault,
+                            backgroundColor: themeMode === 'dark'
+                              ? themes[theme.name].dark.accentDefault
+                              : themes[theme.name].light.accentDefault,
                           },
                         ]}
                       >
@@ -158,7 +188,12 @@ export default function AppearanceScreen() {
           </AppText>
 
           <ListItemWrapper>
-            <View style={[styles.optionContainer, { backgroundColor: AppColors.backgroundDimmer }]}>
+            <View
+              style={[
+                styles.optionContainer,
+                { backgroundColor: AppColors.backgroundDimmer },
+              ]}
+            >
               <View style={styles.optionLabel}>
                 <AppText variant="body">Animation</AppText>
                 <AppText color="dimmer">Enable motion effects</AppText>
@@ -169,7 +204,12 @@ export default function AppearanceScreen() {
               />
             </View>
 
-            <View style={[styles.optionContainer, { backgroundColor: AppColors.backgroundDimmer }]}>
+            <View
+              style={[
+                styles.optionContainer,
+                { backgroundColor: AppColors.backgroundDimmer },
+              ]}
+            >
               <View style={styles.optionLabel}>
                 <AppText variant="body">Haptics</AppText>
                 <AppText color="dimmer">Enable vibration feedback</AppText>

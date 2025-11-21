@@ -22,6 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AppInput from '../components/ui/AppInput';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Sheet from '../components/ui/Sheet';
+import { useThemeAware } from '../contexts/ThemeContext';
 
 /**
  * Profile Preview Page
@@ -209,7 +210,6 @@ export default function ProfilePreviewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
   },
   centerContent: {
     justifyContent: 'center',
