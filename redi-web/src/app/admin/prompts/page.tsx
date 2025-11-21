@@ -4,6 +4,7 @@ import { fetchAllPrompts } from '@/api/admin';
 import AdminProtectedRoute from '@/components/AdminProtectedRoute';
 import ManualMatchCreation from '@/components/ManualMatchCreation';
 import MatchesDashboard from '@/components/MatchesDashboard';
+import MatchReadinessCheck from '@/components/MatchReadinessCheck';
 import ProductionModeSection from '@/components/ProductionModeSection';
 import ReportsDashboard from '@/components/ReportsDashboard';
 import TestingSection from '@/components/TestingSection';
@@ -189,6 +190,9 @@ export default function AdminPromptsPage() {
           {/* Dashboard Content */}
           {!isLoading && !error && (
             <div className="space-y-8">
+              {/* Match Readiness Health Check */}
+              <MatchReadinessCheck onRefresh={loadPrompts} />
+
               {/* Production Mode Section */}
               <ProductionModeSection
                 prompts={prompts}
