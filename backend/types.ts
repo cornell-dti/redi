@@ -220,8 +220,8 @@ export interface PreferencesDoc {
     max: number; // Maximum age (e.g., 25)
   };
   years: Year[]; // Array of acceptable academic years
-  schools: School[]; // Array of acceptable schools (empty = all schools)
-  majors: string[]; // Array of acceptable majors (empty = all majors)
+  schools: School[]; // Array of EXCLUDED schools (empty = see all schools)
+  majors: string[]; // Array of EXCLUDED majors (empty = see all majors)
   genders: Gender[]; // Array of genders user is interested in dating
   createdAt: FirestoreTimestampType;
   updatedAt: FirestoreTimestampType;
