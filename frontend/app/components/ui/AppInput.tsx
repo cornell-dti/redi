@@ -170,7 +170,11 @@ const AppInput: React.FC<AppInputProps> = ({
           ]}
         >
           <TextInput
-            style={[styles.input, style]}
+            style={[
+              styles.input,
+              style,
+              { color: AppColors.foregroundDefault },
+            ]}
             onFocus={handleFocus}
             onBlur={handleBlur}
             onPressIn={handlePressIn}

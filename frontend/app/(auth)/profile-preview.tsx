@@ -30,6 +30,7 @@ import { useTheme, useThemeAware } from '../contexts/ThemeContext';
  */
 export default function ProfilePreviewScreen() {
   useThemeAware(); // Force re-render when theme changes
+  const { themeMode } = useTheme();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -145,8 +146,6 @@ export default function ProfilePreviewScreen() {
     );
   }
 
-  const { themeMode } = useTheme();
-
   // Main content
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -218,11 +217,13 @@ export default function ProfilePreviewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: AppColors.backgroundDefault,
   },
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
     gap: 16,
+    backgroundColor: AppColors.backgroundDefault,
   },
   content: {
     display: 'flex',
@@ -230,6 +231,7 @@ const styles = StyleSheet.create({
     gap: 16,
     padding: 16,
     alignItems: 'flex-start',
+    backgroundColor: AppColors.backgroundDefault,
   },
   backButton: {
     padding: 8,

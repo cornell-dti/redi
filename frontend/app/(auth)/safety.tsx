@@ -234,6 +234,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 8,
+    backgroundColor: AppColors.backgroundDefault,
   },
   description: {
     paddingLeft: 16,

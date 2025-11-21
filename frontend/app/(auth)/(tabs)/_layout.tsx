@@ -77,9 +77,7 @@ export default function TabLayout() {
   const navbarBg = isDark
     ? AppColors.backgroundDefault
     : AppColors.foregroundDefault;
-  const activeTint = isDark
-    ? AppColors.accentDefault
-    : AppColors.backgroundDefault;
+  const activeTint = AppColors.surfaceWhite;
   const inactiveTint = isDark
     ? AppColors.foregroundDimmer
     : AppColors.foregroundDimmer;

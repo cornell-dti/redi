@@ -1,3 +1,4 @@
+import { useTheme, useThemeAware } from '@/app/contexts/ThemeContext';
 import { LoaderCircle } from 'lucide-react-native';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View, ViewStyle } from 'react-native';
@@ -15,6 +16,9 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   style,
 }) => {
   const spinValue = useRef(new Animated.Value(0)).current;
+
+  useThemeAware(); // Force re-render when theme changes
+  const { themeMode } = useTheme();
 
   useEffect(() => {
     const spin = Animated.loop(
@@ -48,6 +52,7 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: AppColors.backgroundDefault,
   },
 });
 

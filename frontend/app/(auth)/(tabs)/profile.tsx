@@ -388,11 +388,13 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 24,
     paddingTop: 64,
+    backgroundColor: AppColors.backgroundDefault,
   },
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
     gap: 16,
+    backgroundColor: AppColors.backgroundDefault,
   },
   loadingText: {
     fontSize: 16,
