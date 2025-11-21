@@ -1,16 +1,10 @@
 import AppInput from '@/app/components/ui/AppInput';
 import { router } from 'expo-router';
-import {
-  Check,
-  ChevronRight,
-  Globe,
-  Instagram,
-  Plus,
-  Trash2,
-} from 'lucide-react-native';
+import { Check, ChevronRight, Plus, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -22,9 +16,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
-import GithubIcon from '../components/icons/GithubIcon';
-import LinkedinIcon from '../components/icons/LinkedinIcon';
-import SnapchatIcon from '../components/icons/SnapchatIcon';
 import Button from '../components/ui/Button';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItem from '../components/ui/ListItem';
@@ -43,6 +34,76 @@ interface SocialLinks {
   github: string;
   website: string;
 }
+
+// Utility functions to normalize social links
+const normalizeSocialLink = (value: string, type: SocialType): string => {
+  if (!value || !value.trim()) return '';
+
+  const trimmed = value.trim();
+
+  switch (type) {
+    case 'linkedin':
+      return normalizeLinkedIn(trimmed);
+    case 'website':
+      return normalizeWebsite(trimmed);
+    case 'instagram':
+    case 'snapchat':
+      return normalizeAtUsername(trimmed);
+    case 'github':
+      return normalizeAtUsername(trimmed);
+    default:
+      return trimmed;
+  }
+};
+
+const normalizeLinkedIn = (value: string): string => {
+  // Remove protocol and www
+  let cleaned = value.replace(/^https?:\/\/(www\.)?/i, '');
+
+  // Remove linkedin.com/ if present
+  cleaned = cleaned.replace(/^linkedin\.com\//i, '');
+
+  // Remove trailing slash
+  cleaned = cleaned.replace(/\/$/, '');
+
+  // If it starts with 'in/', keep as is
+  if (cleaned.startsWith('in/')) {
+    return cleaned;
+  }
+
+  // If it doesn't start with 'in/', add it
+  return `in/${cleaned}`;
+};
+
+const normalizeWebsite = (value: string): string => {
+  // Remove protocol
+  let cleaned = value.replace(/^https?:\/\/(www\.)?/i, '');
+
+  // Remove www if still present
+  cleaned = cleaned.replace(/^www\./i, '');
+
+  // Remove trailing slash
+  cleaned = cleaned.replace(/\/$/, '');
+
+  return cleaned;
+};
+
+const normalizeAtUsername = (value: string): string => {
+  // Remove protocol and www
+  let cleaned = value.replace(/^https?:\/\/(www\.)?/i, '');
+
+  // Remove common social media domains and paths
+  cleaned = cleaned.replace(/^(instagram\.com|snapchat\.com|github\.com)\//i, '');
+
+  // Remove @ if present at the start
+  cleaned = cleaned.replace(/^@/, '');
+
+  // Remove trailing slash
+  cleaned = cleaned.replace(/\/$/, '');
+
+  // Add @ at the beginning
+  return `@${cleaned}`;
+};
 
 export default function EditSocialsPage() {
   useThemeAware();
@@ -166,7 +227,8 @@ export default function EditSocialsPage() {
 
   const saveSocialLink = () => {
     if (selectedSocial) {
-      setSocials({ ...socials, [selectedSocial]: inputValue });
+      const normalizedValue = normalizeSocialLink(inputValue, selectedSocial);
+      setSocials({ ...socials, [selectedSocial]: normalizedValue });
     }
     setSheetVisible(false);
     setSelectedSocial(null);
@@ -185,43 +247,33 @@ export default function EditSocialsPage() {
   const socialButtons = [
     {
       type: 'instagram' as SocialType,
-      icon: Instagram,
+      image: require('../../assets/images/social-logos/instagram.png'),
       label: 'Instagram',
-      placeholder: 'instagram.com/username',
-      accentColor: '#E32B72',
-      backgroundColor: '#FCEAF1',
+      placeholder: '@username',
     },
     {
       type: 'snapchat' as SocialType,
-      icon: SnapchatIcon,
+      image: require('../../assets/images/social-logos/snapchat.png'),
       label: 'Snapchat',
-      placeholder: 'snapchat.com/username',
-      accentColor: '#C5C000',
-      backgroundColor: '#FFFEF5',
+      placeholder: '@username',
     },
     {
       type: 'linkedin' as SocialType,
-      icon: LinkedinIcon,
+      image: require('../../assets/images/social-logos/linkedin.png'),
       label: 'LinkedIn',
-      placeholder: 'linkedin.com/in/username',
-      accentColor: '#006FAA',
-      backgroundColor: '#F2F8FB',
+      placeholder: 'in/username',
     },
     {
       type: 'github' as SocialType,
-      icon: GithubIcon,
+      image: require('../../assets/images/social-logos/github.png'),
       label: 'GitHub',
-      placeholder: 'github.com/username',
-      accentColor: '#151513',
-      backgroundColor: '#F3F3F3',
+      placeholder: '@username',
     },
     {
       type: 'website' as SocialType,
-      icon: Globe,
+      image: require('../../assets/images/social-logos/website.png'),
       label: 'Website',
       placeholder: 'yourwebsite.com',
-      accentColor: '#4442F5',
-      backgroundColor: '#F6F6FE',
     },
   ];
 
@@ -242,14 +294,19 @@ export default function EditSocialsPage() {
       >
         <ListItemWrapper>
           {socialButtons.map((social) => {
-            const IconComp = social.icon;
             const socialValue = socials[social.type];
             return (
               <ListItem
                 key={social.type}
                 title={social.label}
                 description={socialValue || ''}
-                left={<IconComp size={24} color={social.accentColor} />}
+                left={
+                  <Image
+                    source={social.image}
+                    style={styles.socialIcon}
+                    resizeMode="contain"
+                  />
+                }
                 right={
                   <ChevronRight size={20} color={AppColors.foregroundDimmer} />
                 }
@@ -364,5 +421,9 @@ const styles = StyleSheet.create({
   buttonRow: {
     display: 'flex',
     gap: 12,
+  },
+  socialIcon: {
+    width: 32,
+    height: 32,
   },
 });
