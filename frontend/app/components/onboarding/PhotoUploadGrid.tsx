@@ -26,10 +26,17 @@ interface PhotoUploadGridProps {
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const GRID_GAP = 4;
-const GRID_PADDING = 0; // Adjust if you want padding around the grid
+
+// Grid configuration
+const NUM_COLUMNS = 3; // 3 columns for a 2x3 grid (6 items total)
+const GRID_GAP = 4; // Gap between items
+const HORIZONTAL_PADDING = 32; // Account for parent container padding (16 on each side)
+
+// Calculate item width: (available width - gaps between items) / number of columns
+// With 3 columns, there are 2 gaps between them
 const GRID_SLOT_SIZE =
-  (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * 2) / 3 - 14;
+  (SCREEN_WIDTH - HORIZONTAL_PADDING - (NUM_COLUMNS - 1) * GRID_GAP) /
+  NUM_COLUMNS;
 
 interface DraggablePhotoProps {
   photo: string;
