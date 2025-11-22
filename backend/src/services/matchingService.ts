@@ -478,7 +478,10 @@ export async function generateMatchesForPrompt(
           finalMatches.set(userB, userBFinal);
           mutualPairsFound++;
         } else {
-          console.log(`  ⚠️  Mutual but skipped (limit): ${userA} ↔ ${userB} (A has ${userAFinal.length}, B has ${userBFinal.length})`);
+          console.log(
+            `  ⚠️  Mutual but skipped (limit): ${userA} ↔ ${userB} ` +
+              `(A has ${userAFinal.length}, B has ${userBFinal.length})`
+          );
         }
 
         // Mark this pair as processed regardless (don't retry)
