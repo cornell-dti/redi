@@ -376,6 +376,65 @@ export async function generateMatchesForPrompt(
   console.log(`\n✓ Phase 1 complete. Processed ${userNetids.length - usersSkipped} users, skipped ${usersSkipped}\n`);
 
   // =============================================================================
+  // PHASE 1.5: Retry with relaxed criteria for users with 0 matches
+  // =============================================================================
+  console.log(`${'='.repeat(60)}`);
+  console.log('PHASE 1.5: Retrying with relaxed criteria for users with 0 matches...');
+  console.log(`${'='.repeat(60)}\n`);
+
+  let usersRetried = 0;
+  let usersFoundMatchesRelaxed = 0;
+
+  for (const netid of userNetids) {
+    const currentMatches = potentialMatches.get(netid) || [];
+
+    // Only retry if user got 0 matches in strict mode
+    if (currentMatches.length === 0) {
+      try {
+        const userData = userDataMap.get(netid);
+        if (!userData || !userData.profile || !userData.preferences) {
+          continue; // Already logged in Phase 1
+        }
+
+        usersRetried++;
+
+        // Use findMatchesForUser with relaxed=true
+        const relaxedMatches = findMatchesForUser(
+          netid,
+          userData,
+          userDataMap,
+          previousMatchesMap.get(netid) || new Set(),
+          blockedUsersMap.get(netid) || new Set(),
+          true // RELAXED MODE
+        );
+
+        // Filter out any empty strings, nulls, or invalid values
+        const validMatches = relaxedMatches.filter(
+          (m) =>
+            m && // Not null/undefined
+            typeof m === 'string' && // Is a string
+            m.trim() !== '' && // Not empty or whitespace
+            m !== netid // Not matching with self
+        );
+
+        if (validMatches.length > 0) {
+          potentialMatches.set(netid, validMatches);
+          usersFoundMatchesRelaxed++;
+          console.log(`  ♻️  ${netid}: Found ${validMatches.length} relaxed matches → [${validMatches.join(', ')}]`);
+        } else {
+          console.log(`  ⚠️  ${netid}: Still 0 matches even with relaxed criteria`);
+        }
+      } catch (error) {
+        console.error(`❌ Error finding relaxed matches for ${netid}:`, error);
+      }
+    }
+  }
+
+  console.log(`\n✓ Phase 1.5 complete.`);
+  console.log(`  Users retried with relaxed criteria: ${usersRetried}`);
+  console.log(`  Users who found matches via relaxed mode: ${usersFoundMatchesRelaxed}\n`);
+
+  // =============================================================================
   // PHASE 2: Create only mutual pairs
   // =============================================================================
   console.log(`${'='.repeat(60)}`);
@@ -407,25 +466,23 @@ export async function generateMatchesForPrompt(
 
       if (userBMatches.includes(userA)) {
         // MUTUAL MATCH FOUND!
-        console.log(`  ✓ Mutual match: ${userA} ↔ ${userB}`);
-
-        // Add to userA's final matches (if under limit)
         const userAFinal = finalMatches.get(userA) || [];
-        if (userAFinal.length < 3) {
-          userAFinal.push(userB);
-          finalMatches.set(userA, userAFinal);
-        }
-
-        // Add to userB's final matches (if under limit)
         const userBFinal = finalMatches.get(userB) || [];
-        if (userBFinal.length < 3) {
+
+        // CRITICAL: Only add match if BOTH users have room (guarantees mutuality)
+        if (userAFinal.length < 3 && userBFinal.length < 3) {
+          console.log(`  ✓ Mutual match: ${userA} ↔ ${userB}`);
+          userAFinal.push(userB);
           userBFinal.push(userA);
+          finalMatches.set(userA, userAFinal);
           finalMatches.set(userB, userBFinal);
+          mutualPairsFound++;
+        } else {
+          console.log(`  ⚠️  Mutual but skipped (limit): ${userA} ↔ ${userB} (A has ${userAFinal.length}, B has ${userBFinal.length})`);
         }
 
-        // Mark this pair as processed
+        // Mark this pair as processed regardless (don't retry)
         processedPairs.add(pairId);
-        mutualPairsFound++;
       } else {
         // Non-mutual pair - skip it
         console.log(`  ✗ Non-mutual: ${userA} → ${userB} (but ${userB} ↛ ${userA})`);
