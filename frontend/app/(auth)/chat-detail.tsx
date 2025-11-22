@@ -23,7 +23,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   FlatList,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
@@ -72,7 +71,6 @@ export default function ChatDetailScreen() {
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [blocking, setBlocking] = useState(false);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const {
     conversationId: routeConversationId,
@@ -111,23 +109,6 @@ export default function ChatDetailScreen() {
   const sendButtonAnim = useRef(new Animated.Value(0)).current;
 
   const { messages: firebaseMessages, loading } = useMessages(conversationId);
-
-  // Track keyboard visibility
-  useEffect(() => {
-    const keyboardWillShow = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      () => setKeyboardVisible(true)
-    );
-    const keyboardWillHide = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardVisible(false)
-    );
-
-    return () => {
-      keyboardWillShow.remove();
-      keyboardWillHide.remove();
-    };
-  }, []);
 
   // Animate send button in/out based on message input
   useEffect(() => {
@@ -382,8 +363,13 @@ export default function ChatDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: AppColors.backgroundDefault },
+      ]}
+    >
+      <StatusBar />
 
       <View style={styles.header}>
         <IconButton
@@ -459,8 +445,10 @@ export default function ChatDetailScreen() {
         {sheetView === 'menu' && (
           <ListItemWrapper>
             <ListItem
-              left={<User2 size={20} />}
-              right={<ChevronRight size={20} />}
+              left={<User2 size={20} color={AppColors.foregroundDefault} />}
+              right={
+                <ChevronRight size={20} color={AppColors.foregroundDimmer} />
+              }
               title="View profile"
               onPress={() => {
                 if (!netid) {
@@ -689,11 +677,10 @@ export default function ChatDetailScreen() {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         style={styles.inputContainer}
       >
-        <View
-          style={[styles.inputRow, { marginBottom: keyboardVisible ? 20 : 8 }]}
-        >
+        <View style={styles.inputRow}>
           <AppInput
             value={newMessage}
             onChangeText={setNewMessage}
@@ -706,50 +693,15 @@ export default function ChatDetailScreen() {
             returnKeyType="send"
             blurOnSubmit={true}
             forceMinHeight
+            fullWidth
           />
 
-          <Animated.View
-            style={[
-              styles.sendButtonContainer,
-              {
-                transform: [
-                  {
-                    translateX: sendButtonAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [80, -62], // Slide in from right (80px off-screen)
-                    }),
-                  },
-                  {
-                    rotate: sendButtonAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['15deg', '0deg'], // Slight rotation
-                    }),
-                  },
-                  {
-                    scale: sendButtonAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0.3, 1], // Scale up for bounce effect
-                    }),
-                  },
-                ],
-                opacity: sendButtonAnim.interpolate({
-                  inputRange: [0, 0.5, 1],
-                  outputRange: [0, 0.5, 1],
-                }),
-              },
-            ]}
-            pointerEvents={newMessage.trim() ? 'auto' : 'none'}
-          >
-            <IconButton
-              onPress={sendMessage}
-              disabled={sending}
-              icon={Send}
-              style={{
-                ...styles.sendButton,
-                top: keyboardVisible ? 3 : 25,
-              }}
-            />
-          </Animated.View>
+          <IconButton
+            onPress={sendMessage}
+            disabled={sending}
+            icon={Send}
+            style={styles.sendButton}
+          />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -759,7 +711,6 @@ export default function ChatDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
   },
   header: {
     display: 'flex',
@@ -809,36 +760,38 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDefault,
     borderTopWidth: 1,
     borderTopColor: AppColors.backgroundDimmest,
-    minHeight: 80,
   },
   inputRow: {
     flexDirection: 'row',
     padding: 16,
-    paddingBottom: 48,
-    flex: 1,
+    paddingBottom: 10,
     minHeight: 56,
     gap: 8,
+    position: 'relative',
   },
   textInputContainer: {
     minHeight: 80,
     flex: 1,
   },
   messageInput: {
-    minHeight: 54,
+    height: 32,
     paddingTop: 17,
     paddingLeft: 20,
     paddingRight: 64,
     borderRadius: 24,
     fontSize: 16,
-    width: 390,
+    flex: 1,
   },
   sendButtonContainer: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   sendButton: {
-    width: 50,
-    height: 50,
+    width: 45,
+    height: 45,
+    position: 'absolute',
+    top: 5.5,
+    right: 13.5,
   },
   sendButtonActive: {
     backgroundColor: AppColors.accentDefault,
