@@ -1,15 +1,15 @@
+import { FieldValue } from 'firebase-admin/firestore';
 import { db } from '../../firebaseAdmin';
 import {
+  ProfileDoc,
   WeeklyMatchDoc,
   WeeklyMatchDocWrite,
   WeeklyMatchResponse,
-  ProfileDoc,
 } from '../../types';
-import { FieldValue } from 'firebase-admin/firestore';
-import { getUsersWhoAnswered } from './promptsService';
-import { getPreferences } from './preferencesService';
-import { UserData, findMatchesForUser } from './matchingAlgorithm';
 import { getBlockedUsersMap } from './blockingService';
+import { UserData, findMatchesForUser } from './matchingAlgorithm';
+import { getPreferences } from './preferencesService';
+import { getUsersWhoAnswered } from './promptsService';
 
 const MATCHES_COLLECTION = 'weeklyMatches';
 const PROFILES_COLLECTION = 'profiles';
@@ -315,7 +315,7 @@ export async function generateMatchesForPrompt(
   // Get profiles and preferences for all users
   const userDataMap = await getUserDataMap(userNetids);
 
-  // Track previous matches to avoid duplicates (excluding current prompt)
+  // Track previous matches to avoid duplicates across ALL prompts (excluding current prompt)
   const previousMatchesMap = await getPreviousMatchesMap(userNetids, promptId);
 
   // Get blocked users map (bidirectional blocking)
@@ -712,10 +712,11 @@ async function getUserDataMap(
 }
 
 /**
- * Get previous matches for multiple users (excluding current prompt)
+ * Get ALL previous matches for multiple users across all prompts
+ * This prevents users from ever matching with the same person twice
  * @param netids - Array of netids
- * @param currentPromptId - Current prompt ID to exclude from previous matches
- * @returns Map of netid to set of previously matched netids (excluding current prompt)
+ * @param currentPromptId - Current prompt ID to exclude (in case of regeneration)
+ * @returns Map of netid to set of ALL previously matched netids (across all prompts)
  */
 async function getPreviousMatchesMap(
   netids: string[],
@@ -724,16 +725,25 @@ async function getPreviousMatchesMap(
   const previousMatchesMap = new Map<string, Set<string>>();
 
   for (const netid of netids) {
-    const matches = await getUserMatchHistory(netid, 20); // Check last 20 weeks
     const matchedNetids = new Set<string>();
 
-    matches.forEach((match) => {
-      // ONLY include matches from the CURRENT prompt (prevents within-prompt duplicates)
-      // Exclude matches from OTHER prompts (allows same users to match across different prompts)
-      if (match.promptId !== currentPromptId) {
-        return;
+    // Fetch ALL match documents for this user (including expired ones)
+    // This ensures we never match the same people twice, even across different weeks
+    const allMatchesSnapshot = await db
+      .collection(MATCHES_COLLECTION)
+      .where('netid', '==', netid)
+      .get();
+
+    allMatchesSnapshot.docs.forEach((doc) => {
+      const match = doc.data() as WeeklyMatchDoc;
+
+      // Exclude matches from the CURRENT prompt (in case we're regenerating)
+      // Include matches from ALL OTHER prompts (prevents cross-prompt duplicates)
+      if (match.promptId === currentPromptId) {
+        return; // Skip current prompt matches (we're regenerating these)
       }
 
+      // Add all matched netids from this prompt to the exclusion set
       match.matches.forEach((matchedNetid) => {
         matchedNetids.add(matchedNetid);
       });
