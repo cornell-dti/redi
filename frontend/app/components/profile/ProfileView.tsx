@@ -11,7 +11,7 @@ import {
   Magnet,
   MessageCircle,
 } from 'lucide-react-native';
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
   Animated,
   Dimensions,
@@ -62,10 +62,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   const age = getProfileAge(profile);
   const [activeImageIndex, setActiveImageIndex] = React.useState(0);
 
-  // Create animated values for each pagination dot
-  const dotAnimations = useRef(
-    (profile.pictures || []).map(() => new Animated.Value(0))
-  ).current;
+  // Track scroll position for real-time dot animation
+  const scrollX = useRef(new Animated.Value(0)).current;
 
   type SocialItem = {
     icon: React.ReactNode;
@@ -75,76 +73,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   // Social media fields are only available for own profile and matched profiles
   // Check if profile has these fields before accessing them
   const hasSocials = 'instagram' in profile || 'snapchat' in profile;
-
-  // Helper function to normalize Instagram URL
-  const normalizeInstagramUrl = (input: string): string => {
-    if (!input) return '';
-
-    // Remove any leading/trailing whitespace
-    const trimmed = input.trim();
-
-    // If it's already a full URL, return it
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return trimmed;
-    }
-
-    // If it starts with instagram.com, add protocol
-    if (trimmed.startsWith('instagram.com/')) {
-      return `https://${trimmed}`;
-    }
-
-    // Remove @ if present and construct URL
-    const username = trimmed.replace(/^@/, '');
-    return `https://instagram.com/${username}`;
-  };
-
-  // Helper function to normalize LinkedIn URL
-  const normalizeLinkedInUrl = (input: string): string => {
-    if (!input) return '';
-
-    // Remove any leading/trailing whitespace
-    const trimmed = input.trim();
-
-    // If it's already a full URL, return it
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return trimmed;
-    }
-
-    // If it starts with linkedin.com, add protocol
-    if (trimmed.startsWith('linkedin.com/')) {
-      return `https://${trimmed}`;
-    }
-
-    // If it starts with "in/" (like "in/clementroze"), add base domain
-    if (trimmed.startsWith('in/')) {
-      return `https://linkedin.com/${trimmed}`;
-    }
-
-    // Otherwise assume it's a path and add base domain
-    return `https://linkedin.com/${trimmed}`;
-  };
-
-  // Helper function to normalize Snapchat URL
-  const normalizeSnapchatUrl = (input: string): string => {
-    if (!input) return '';
-
-    // Remove any leading/trailing whitespace
-    const trimmed = input.trim();
-
-    // If it's already a full URL, return it
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return trimmed;
-    }
-
-    // If it starts with snapchat.com, add protocol
-    if (trimmed.startsWith('snapchat.com/')) {
-      return `https://${trimmed}`;
-    }
-
-    // Remove @ if present and construct URL
-    const username = trimmed.replace(/^@/, '');
-    return `https://snapchat.com/add/${username}`;
-  };
 
   // Helper function to ensure URL has protocol
   const ensureProtocol = (url: string): string => {
@@ -172,27 +100,29 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     ? ([
         'instagram' in profile &&
           profile.instagram && {
-            icon: <Instagram size={24} />,
-            url: normalizeInstagramUrl(profile.instagram),
+            icon: <Instagram size={24} color={AppColors.foregroundDefault} />,
+            url: `https://instagram.com/${profile.instagram.replace(/^@/, '')}`,
           },
         'snapchat' in profile &&
           profile.snapchat && {
             icon: (
               <SnapchatIcon size={24} color={AppColors.foregroundDefault} />
             ),
-            url: normalizeSnapchatUrl(profile.snapchat),
+            url: `https://snapchat.com/add/${profile.snapchat.replace(/^@/, '')}`,
           },
         'linkedIn' in profile &&
           profile.linkedIn && {
             icon: (
               <LinkedinIcon size={24} color={AppColors.foregroundDefault} />
             ),
-            url: normalizeLinkedInUrl(profile.linkedIn),
+            url: profile.linkedIn.startsWith('in/')
+              ? `https://linkedin.com/${profile.linkedIn}`
+              : ensureProtocol(profile.linkedIn),
           },
         'github' in profile &&
           profile.github && {
             icon: <GithubIcon size={24} color={AppColors.foregroundDefault} />,
-            url: ensureProtocol(profile.github),
+            url: `https://github.com/${profile.github.replace(/^@/, '')}`,
           },
         'website' in profile &&
           profile.website && {
@@ -208,18 +138,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     setActiveImageIndex(index);
   };
 
-  // Animate dots when active index changes
-  useEffect(() => {
-    dotAnimations.forEach((animation, index) => {
-      Animated.spring(animation, {
-        toValue: index === activeImageIndex ? 1 : 0,
-        useNativeDriver: false,
-        friction: 8,
-        tension: 80,
-      }).start();
-    });
-  }, [activeImageIndex]);
-
   return (
     <ScrollView style={styles.container}>
       {/* Image carousel */}
@@ -230,7 +148,13 @@ const ProfileView: React.FC<ProfileViewProps> = ({
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             style={styles.imageCarousel}
-            onScroll={handleScroll}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+              {
+                useNativeDriver: false,
+                listener: handleScroll,
+              }
+            )}
             scrollEventThrottle={16}
           >
             {profile.pictures.map((picture, index) => (
@@ -247,18 +171,29 @@ const ProfileView: React.FC<ProfileViewProps> = ({
           {profile.pictures.length > 1 && (
             <View style={styles.paginationContainer}>
               {profile.pictures.map((_, index) => {
-                const animation = dotAnimations[index];
-                const width = animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [8, 20],
+                // Create input range for smooth transitions between dots
+                const inputRange = [
+                  (index - 1) * screenWidth,
+                  index * screenWidth,
+                  (index + 1) * screenWidth,
+                ];
+
+                const width = scrollX.interpolate({
+                  inputRange,
+                  outputRange: [8, 20, 8],
+                  extrapolate: 'clamp',
                 });
-                const height = animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [8, 10],
+
+                const height = scrollX.interpolate({
+                  inputRange,
+                  outputRange: [8, 10, 8],
+                  extrapolate: 'clamp',
                 });
-                const opacity = animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0.5, 1],
+
+                const opacity = scrollX.interpolate({
+                  inputRange,
+                  outputRange: [0.5, 1, 0.5],
+                  extrapolate: 'clamp',
                 });
 
                 return (
@@ -281,7 +216,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
       )}
 
       <View style={styles.contentContainer}>
-        <AppText variant="title" indented style={{ marginBottom: -32 }}>
+        <AppText variant="title" style={{ marginBottom: -32 }}>
           {profile.firstName}
         </AppText>
 
@@ -323,7 +258,11 @@ const ProfileView: React.FC<ProfileViewProps> = ({
 
               {profile.showGenderOnProfile && profile.gender && (
                 <View style={styles.subSection}>
-                  <GenderIcon gender={profile.gender} size={20} />
+                  <GenderIcon
+                    gender={profile.gender}
+                    size={20}
+                    color={AppColors.foregroundDefault}
+                  />
                   <AppText>
                     {profile.gender
                       ? profile.gender.charAt(0).toUpperCase() +
@@ -337,7 +276,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                 profile.sexualOrientation &&
                 profile.sexualOrientation.length > 0 && (
                   <View style={styles.subSection}>
-                    <Magnet size={20} />
+                    <Magnet size={20} color={AppColors.foregroundDefault} />
                     <AppText>{profile.sexualOrientation[0]}</AppText>
                   </View>
                 )}
@@ -345,14 +284,14 @@ const ProfileView: React.FC<ProfileViewProps> = ({
 
             {profile.showHometownOnProfile && profile.hometown && (
               <View style={styles.subSection}>
-                <Home size={20} />
+                <Home size={20} color={AppColors.foregroundDefault} />
                 <AppText>{profile.hometown}</AppText>
               </View>
             )}
 
             {profile.showCollegeOnProfile && profile.school && (
               <View style={styles.subSection}>
-                <GraduationCap size={20} />
+                <GraduationCap size={20} color={AppColors.foregroundDefault} />
                 <AppText>{`${profile.year} in ${profile.school} studying ${profile.major?.join(', ')}`}</AppText>
               </View>
             )}
@@ -371,6 +310,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                 const isLast = index === socialItems.length - 1;
                 return (
                   <Pressable
+                    fullWidth
                     key={index}
                     style={[
                       styles.socialItem,
@@ -471,12 +411,14 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 24,
+    backgroundColor: AppColors.backgroundDefault,
   },
   buttonCont: {
     display: 'flex',
     flexDirection: 'row',
     flex: 1,
     gap: 16,
+    marginTop: 24,
   },
   section: {
     display: 'flex',
@@ -515,6 +457,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     flex: 1,
+    borderRadius: 4,
   },
   firstItem: {
     borderTopLeftRadius: 24,
@@ -558,7 +501,15 @@ const styles = StyleSheet.create({
   },
   paginationDot: {
     borderRadius: 5,
-    backgroundColor: 'rgba(255, 255, 255, 1)',
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+    elevation: 5, // For Android
   },
   promptQuestion: {
     padding: 16,
