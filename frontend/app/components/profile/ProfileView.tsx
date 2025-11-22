@@ -76,6 +76,76 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   // Check if profile has these fields before accessing them
   const hasSocials = 'instagram' in profile || 'snapchat' in profile;
 
+  // Helper function to normalize Instagram URL
+  const normalizeInstagramUrl = (input: string): string => {
+    if (!input) return '';
+
+    // Remove any leading/trailing whitespace
+    const trimmed = input.trim();
+
+    // If it's already a full URL, return it
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+
+    // If it starts with instagram.com, add protocol
+    if (trimmed.startsWith('instagram.com/')) {
+      return `https://${trimmed}`;
+    }
+
+    // Remove @ if present and construct URL
+    const username = trimmed.replace(/^@/, '');
+    return `https://instagram.com/${username}`;
+  };
+
+  // Helper function to normalize LinkedIn URL
+  const normalizeLinkedInUrl = (input: string): string => {
+    if (!input) return '';
+
+    // Remove any leading/trailing whitespace
+    const trimmed = input.trim();
+
+    // If it's already a full URL, return it
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+
+    // If it starts with linkedin.com, add protocol
+    if (trimmed.startsWith('linkedin.com/')) {
+      return `https://${trimmed}`;
+    }
+
+    // If it starts with "in/" (like "in/clementroze"), add base domain
+    if (trimmed.startsWith('in/')) {
+      return `https://linkedin.com/${trimmed}`;
+    }
+
+    // Otherwise assume it's a path and add base domain
+    return `https://linkedin.com/${trimmed}`;
+  };
+
+  // Helper function to normalize Snapchat URL
+  const normalizeSnapchatUrl = (input: string): string => {
+    if (!input) return '';
+
+    // Remove any leading/trailing whitespace
+    const trimmed = input.trim();
+
+    // If it's already a full URL, return it
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+
+    // If it starts with snapchat.com, add protocol
+    if (trimmed.startsWith('snapchat.com/')) {
+      return `https://${trimmed}`;
+    }
+
+    // Remove @ if present and construct URL
+    const username = trimmed.replace(/^@/, '');
+    return `https://snapchat.com/add/${username}`;
+  };
+
   // Helper function to ensure URL has protocol
   const ensureProtocol = (url: string): string => {
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -103,21 +173,21 @@ const ProfileView: React.FC<ProfileViewProps> = ({
         'instagram' in profile &&
           profile.instagram && {
             icon: <Instagram size={24} />,
-            url: `https://instagram.com/${profile.instagram.replace(/^@/, '')}`,
+            url: normalizeInstagramUrl(profile.instagram),
           },
         'snapchat' in profile &&
           profile.snapchat && {
             icon: (
               <SnapchatIcon size={24} color={AppColors.foregroundDefault} />
             ),
-            url: `https://snapchat.com/add/${profile.snapchat.replace(/^@/, '')}`,
+            url: normalizeSnapchatUrl(profile.snapchat),
           },
         'linkedIn' in profile &&
           profile.linkedIn && {
             icon: (
               <LinkedinIcon size={24} color={AppColors.foregroundDefault} />
             ),
-            url: ensureProtocol(profile.linkedIn),
+            url: normalizeLinkedInUrl(profile.linkedIn),
           },
         'github' in profile &&
           profile.github && {
