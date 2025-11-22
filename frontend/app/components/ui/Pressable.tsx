@@ -9,11 +9,13 @@ import { useHapticFeedback } from '../../hooks/useHapticFeedback';
 interface AnimatedPressableProps extends PressableProps {
   children: React.ReactNode;
   scaleTo?: number;
+  fullWidth?: boolean;
 }
 
 export default function Pressable({
   children,
   scaleTo = 0.97,
+  fullWidth,
   onPressIn,
   onPressOut,
   ...props
@@ -39,7 +41,12 @@ export default function Pressable({
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View
+      style={{
+        transform: [{ scale: scaleAnim }],
+        flex: fullWidth ? 1 : undefined,
+      }}
+    >
       <RNPressable
         {...props}
         onPressIn={handlePressIn}
