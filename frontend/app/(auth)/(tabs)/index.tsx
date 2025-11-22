@@ -19,8 +19,8 @@ import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
 import { useDebouncedCallback } from '@/app/hooks/useDebounce';
 import {
-  shouldShowCountdown,
   getMatchDropDescription,
+  shouldShowCountdown,
 } from '@/app/utils/dateUtils';
 import {
   cacheMatchData,
@@ -76,28 +76,8 @@ export default function MatchesScreen() {
   // Track local nudges for immediate UI feedback
   const [localNudges, setLocalNudges] = useState<Set<string>>(new Set());
 
-  // Create animated values for each pagination dot
-  const dotAnimationsRef = useRef<Animated.Value[]>([]);
-
-  // Initialize dot animations when currentMatches changes
-  useEffect(() => {
-    dotAnimationsRef.current = currentMatches.map(
-      (_, i) =>
-        dotAnimationsRef.current[i] || new Animated.Value(i === 0 ? 1 : 0)
-    );
-  }, [currentMatches.length]);
-
-  // Animate dots when active index changes
-  useEffect(() => {
-    dotAnimationsRef.current.forEach((animation, index) => {
-      Animated.spring(animation, {
-        toValue: index === currentMatchIndex ? 1 : 0,
-        useNativeDriver: false,
-        friction: 8,
-        tension: 80,
-      }).start();
-    });
-  }, [currentMatchIndex]);
+  // Track scroll position for real-time dot animation
+  const scrollX = useRef(new Animated.Value(0)).current;
 
   // Debounced data loading to prevent excessive API calls
   const loadDataDebounced = useDebouncedCallback(() => {
@@ -275,11 +255,18 @@ export default function MatchesScreen() {
   const renderCountdownPeriod = () => (
     <>
       <CountdownTimer
-        targetDate={activePrompt ? new Date(activePrompt.matchDate) : new Date()}
+        targetDate={
+          activePrompt ? new Date(activePrompt.matchDate) : new Date()
+        }
       />
       {activePrompt && (
         <ListItemWrapper style={styles.promptSection}>
-          <View style={styles.promptQuestion}>
+          <View
+            style={[
+              styles.promptQuestion,
+              { backgroundColor: AppColors.backgroundDimmer },
+            ]}
+          >
             <AppText color="dimmer"> Weekly Prompt: </AppText>
 
             <AppText variant="subtitle">{activePrompt.question}</AppText>
@@ -303,7 +290,12 @@ export default function MatchesScreen() {
     <>
       {activePrompt && (
         <ListItemWrapper style={styles.promptSection}>
-          <View style={styles.promptQuestion}>
+          <View
+            style={[
+              styles.promptQuestion,
+              { backgroundColor: AppColors.backgroundDimmer },
+            ]}
+          >
             <AppText color="dimmer"> Weekly Prompt: </AppText>
 
             <AppText variant="subtitle">{activePrompt.question}</AppText>
@@ -348,12 +340,19 @@ export default function MatchesScreen() {
           decelerationRate="fast"
           snapToInterval={width - 60}
           showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(event) => {
-            const index = Math.round(
-              event.nativeEvent.contentOffset.x / (width - 60)
-            );
-            setCurrentMatchIndex(index);
-          }}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+            {
+              useNativeDriver: false,
+              listener: (event: any) => {
+                const index = Math.round(
+                  event.nativeEvent.contentOffset.x / (width - 60)
+                );
+                setCurrentMatchIndex(index);
+              },
+            }
+          )}
+          scrollEventThrottle={16}
           style={{ paddingLeft: 16 }}
         >
           {currentMatches.map((m, matchIndex) => {
@@ -425,18 +424,30 @@ export default function MatchesScreen() {
         {currentMatches.length > 1 && (
           <View style={styles.pagination}>
             {currentMatches.map((_, index) => {
-              const animation = dotAnimationsRef.current[index];
-              const width = animation?.interpolate({
-                inputRange: [0, 1],
-                outputRange: [8, 20],
+              const cardWidth = width - 60;
+              // Create input range for smooth transitions between cards
+              const inputRange = [
+                (index - 1) * cardWidth,
+                index * cardWidth,
+                (index + 1) * cardWidth,
+              ];
+
+              const dotWidth = scrollX.interpolate({
+                inputRange,
+                outputRange: [8, 20, 8],
+                extrapolate: 'clamp',
               });
-              const height = animation?.interpolate({
-                inputRange: [0, 1],
-                outputRange: [8, 10],
+
+              const dotHeight = scrollX.interpolate({
+                inputRange,
+                outputRange: [8, 10, 8],
+                extrapolate: 'clamp',
               });
-              const opacity = animation?.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.5, 1],
+
+              const opacity = scrollX.interpolate({
+                inputRange,
+                outputRange: [0.2, 1, 0.2],
+                extrapolate: 'clamp',
               });
 
               return (
@@ -445,8 +456,9 @@ export default function MatchesScreen() {
                   style={[
                     styles.paginationDot,
                     {
-                      width,
-                      height,
+                      backgroundColor: AppColors.foregroundDefault,
+                      width: dotWidth,
+                      height: dotHeight,
                       opacity,
                     },
                   ]}
@@ -524,7 +536,6 @@ export default function MatchesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
     paddingTop: 64,
   },
   scrollView: {
@@ -539,7 +550,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   countdownSection: {
-    backgroundColor: AppColors.backgroundDefault,
     borderRadius: 12,
     padding: 24,
     alignItems: 'center',
@@ -561,8 +571,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   promptCard: {
-    backgroundColor: AppColors.accentAlpha,
-    borderColor: AppColors.accentDefault,
     borderWidth: 1,
     borderRadius: 4,
     gap: 4,
@@ -573,10 +581,8 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 8,
     borderRadius: 4,
-    backgroundColor: AppColors.backgroundDimmer,
   },
   answerCard: {
-    backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 4,
     padding: 16,
   },
@@ -598,10 +604,8 @@ const styles = StyleSheet.create({
   },
   paginationDot: {
     borderRadius: 5,
-    backgroundColor: AppColors.foregroundDefault,
   },
   emptyState: {
-    backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 24,
     padding: 40,
     alignItems: 'center',
