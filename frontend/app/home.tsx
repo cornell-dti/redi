@@ -321,7 +321,7 @@ export default function HomePage() {
       <View style={{ position: 'absolute', top: 48, right: 0, width: 200 }}>
         <Button
           title="TESTING LOGIN"
-          onPress={() => handleModeChange('signup')}
+          onPress={() => handleModeChange('login')}
           variant="negative"
           fullWidth
         />

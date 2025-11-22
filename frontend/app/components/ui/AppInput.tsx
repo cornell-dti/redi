@@ -21,6 +21,7 @@ interface AppInputProps extends TextInputProps {
   bottomBorderRound?: boolean;
   disabled?: boolean;
   forceMinHeight?: boolean;
+  fullWidth?: boolean;
 }
 
 const AppInput: React.FC<AppInputProps> = ({
@@ -35,6 +36,7 @@ const AppInput: React.FC<AppInputProps> = ({
   bottomBorderRound,
   disabled = false,
   forceMinHeight = false,
+  fullWidth,
   ...props
 }) => {
   const borderColorAnim = useRef(new Animated.Value(0)).current;
@@ -135,7 +137,7 @@ const AppInput: React.FC<AppInputProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, fullWidth && { flex: 1 }]}>
       {label && (
         <AppText color="dimmer" style={styles.label}>
           {label}
@@ -166,7 +168,11 @@ const AppInput: React.FC<AppInputProps> = ({
           ]}
         >
           <TextInput
-            style={[styles.input, style]}
+            style={[
+              styles.input,
+              style,
+              { color: AppColors.foregroundDefault },
+            ]}
             onFocus={handleFocus}
             onBlur={handleBlur}
             onPressIn={handlePressIn}
