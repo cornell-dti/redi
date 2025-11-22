@@ -7,8 +7,12 @@ module.exports = {
   roots: ['<rootDir>/src'],
   testMatch: [
     '**/__tests__/**/*.test.ts',
-    '!**/__tests__/integration/**', // Exclude integration tests (they use real Firebase)
     '**/?(*.)+(spec|test).ts',
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/__tests__/integration/', // Exclude integration tests (they use real Firebase)
+    'integration\\.test\\.ts$', // Exclude integration.test.ts (uses real Firebase)
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   collectCoverageFrom: [
