@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 import {
   getCurrentUser,
+  sendPasswordlessSignInLink,
   signInUser,
   signInWithGoogle,
   signUpUser,
@@ -36,7 +37,7 @@ import Button from './components/ui/Button';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import Sheet from './components/ui/Sheet';
 
-type AuthMode = 'splash' | 'welcome' | 'signup' | 'login';
+type AuthMode = 'splash' | 'welcome' | 'signup' | 'login' | 'passwordless';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -98,7 +99,7 @@ export default function HomePage() {
           useNativeDriver: true,
         }),
       ]).start();
-    } else if (mode === 'signup' || mode === 'login') {
+    } else if (mode === 'signup' || mode === 'login' || mode === 'passwordless') {
       // Animate auth form screens
       slideAnim.setValue(
         direction === 'forward' ? SCREEN_WIDTH : -SCREEN_WIDTH
@@ -261,6 +262,39 @@ export default function HomePage() {
     }
   };
 
+  const handleSendPasswordlessLink = async () => {
+    if (!email) {
+      Alert.alert('Missing Information', 'Please enter your email address');
+      return;
+    }
+
+    if (!validateCornellEmail(email)) {
+      Alert.alert(
+        'Invalid Email',
+        'Please use your Cornell email address (@cornell.edu)'
+      );
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sendPasswordlessSignInLink(email);
+      Alert.alert(
+        'Check Your Email',
+        'We sent you a sign-in link. Click the link in your email to continue.',
+        [{ text: 'OK' }]
+      );
+      // Keep the email in case user needs to resend
+    } catch (error) {
+      Alert.alert(
+        'Failed to Send Link',
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderSplashScreen = () => (
     <View style={{ flex: 1, gap: 24 }}>
       <View style={styles.logoContainerAlt}>
@@ -360,6 +394,13 @@ export default function HomePage() {
         />
 
         <Button
+          title="Sign in with Email Link"
+          onPress={() => handleModeChange('passwordless')}
+          variant="secondary"
+          fullWidth
+        />
+
+        <Button
           title="Back"
           onPress={handleBack}
           variant="secondary"
@@ -395,6 +436,78 @@ export default function HomePage() {
         </AppText>
       </Animated.View>
     </View>
+  );
+
+  const renderPasswordlessScreen = () => (
+    <Animated.View
+      style={[
+        styles.screenContainer,
+        {
+          opacity: fadeAnim,
+          transform: [{ translateX: slideAnim }],
+        },
+      ]}
+    >
+      {/* Flexible top area - scrollable form */}
+      <View style={styles.topSection}>
+        <ScrollView
+          style={styles.formScrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.formScrollContent}
+        >
+          <View style={styles.formContainer}>
+            <AppText variant="title" style={styles.formTitle}>
+              Sign in with Email Link
+            </AppText>
+            <AppText variant="subtitle" style={styles.formSubtitle}>
+              Enter your Cornell email and we&apos;ll send you a sign-in link
+            </AppText>
+
+            <View style={styles.inputContainer}>
+              <AppInput
+                label="Cornell email"
+                placeholder="netid@cornell.edu"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                editable={!loading}
+                required
+              />
+
+              <TouchableOpacity
+                onPress={() => setShowInfoSheet(true)}
+                style={styles.infoIcon}
+              >
+                <Info size={16} color={AppColors.foregroundDimmer} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+
+      {/* Fixed bottom area - buttons stack vertically */}
+      <View style={styles.bottomFixedSection}>
+        {loading ? (
+          <LoadingSpinner style={styles.loader} />
+        ) : (
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Send Sign-In Link"
+              onPress={handleSendPasswordlessLink}
+              variant="primary"
+            />
+
+            <Button
+              title="Back"
+              onPress={handleBack}
+              variant="secondary"
+              iconLeft={ArrowLeft}
+            />
+          </View>
+        )}
+      </View>
+    </Animated.View>
   );
 
   const renderAuthForm = () => (
@@ -508,6 +621,7 @@ export default function HomePage() {
 
       {mode === 'splash' && renderSplashScreen()}
       {mode === 'welcome' && renderWelcomeScreen()}
+      {mode === 'passwordless' && renderPasswordlessScreen()}
       {(mode === 'signup' || mode === 'login') && renderAuthForm()}
 
       {/* Onboarding Video Modal */}

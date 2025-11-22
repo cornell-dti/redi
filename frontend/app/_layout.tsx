@@ -2,12 +2,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import auth from '@react-native-firebase/auth';
+import * as Linking from 'expo-linking';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { APIError } from './api/apiClient';
-import { onAuthStateChanged } from './api/authService';
+import { onAuthStateChanged, signInWithEmailLink } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
 import OnboardingVideo, {
   hasShownOnboardingVideo,
@@ -55,6 +56,61 @@ function RootNavigator() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(handleAuthStateChanged);
     return unsubscribe;
+  }, []);
+
+  // Handle passwordless email link sign-in via deep link
+  useEffect(() => {
+    const handleDeepLink = async (event: { url: string }) => {
+      const url = event.url;
+
+      // Parse the URL to check if it contains Firebase auth parameters
+      const parsedUrl = Linking.parse(url);
+      const { apiKey, oobCode, mode, email } = parsedUrl.queryParams || {};
+
+      if (apiKey && oobCode) {
+        try {
+          const params = new URLSearchParams({
+            apiKey: apiKey as string,
+            oobCode: oobCode as string,
+            mode: (mode as string) || 'signIn',
+          });
+
+          if (email) {
+            params.append('email', email as string);
+          }
+
+          // Reconstruct the Firebase email link
+          const firebaseEmailLink = `https://redi.love/auth-redirect?${params.toString()}`;
+
+          await signInWithEmailLink(firebaseEmailLink, email as string | undefined);
+          Alert.alert(
+            'Success',
+            'You have been signed in successfully!',
+            [{ text: 'OK' }]
+          );
+        } catch (error) {
+          console.error('Passwordless sign-in error:', error);
+          Alert.alert(
+            'Sign In Failed',
+            error instanceof Error ? error.message : 'Failed to sign in with email link'
+          );
+        }
+      }
+    };
+
+    // Check for initial URL when app is opened from a link
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        handleDeepLink({ url });
+      }
+    });
+
+    // Listen for deep links while app is running
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   // Check if onboarding video should be shown on first launch

@@ -333,6 +333,7 @@ export interface WeeklyPromptAnswerDoc {
   promptId: string; // Reference to the prompt (e.g., "2025-W42")
   answer: string; // User's answer text (max 500 characters)
   createdAt: FirestoreTimestampType;
+  updatedAt?: FirestoreTimestampType;
 }
 
 // Weekly prompt answer document when writing to Firestore
