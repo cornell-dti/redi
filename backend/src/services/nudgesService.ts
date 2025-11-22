@@ -75,6 +75,27 @@ export async function createNudge(
     await unlockChatForMatch(fromNetid, toNetid, promptId);
     await unlockChatForMatch(toNetid, fromNetid, promptId);
 
+    // Create or get conversation between the two users
+    const conversationId = await createOrGetConversation(fromNetid, toNetid);
+
+    // Get user names for notification metadata
+    const [fromFirebaseUid, toFirebaseUid] = await Promise.all([
+      getFirebaseUidFromNetid(fromNetid),
+      getFirebaseUidFromNetid(toNetid),
+    ]);
+
+    const [fromUserProfile, toUserProfile] = await Promise.all([
+      fromFirebaseUid ? getUserProfile(fromFirebaseUid) : null,
+      toFirebaseUid ? getUserProfile(toFirebaseUid) : null,
+    ]);
+
+    // Create notifications for BOTH users with conversationId
+    await createNotification(
+      fromNetid,
+      'mutual_nudge',
+      'You both nudged each other! 🎉',
+      'Start chatting now',
+      {
         promptId,
         matchNetid: toNetid,
         conversationId: conversationId || undefined,
