@@ -19,9 +19,13 @@ router.post(
     }
 
     try {
+      // Get redirect URL from environment variable or use production default
+      // For local development, set WEB_REDIRECT_URL=http://localhost:3000
+      const webRedirectUrl = process.env.WEB_REDIRECT_URL || 'https://redi.love';
+
       // Generate Firebase sign-in link using Admin SDK (without sending email)
       const actionCodeSettings = {
-        url: `https://redi.love/auth-redirect?email=${encodeURIComponent(email)}`,
+        url: `${webRedirectUrl}/auth-redirect?email=${encodeURIComponent(email)}`,
         handleCodeInApp: true,
         iOS: {
           bundleId: 'com.incubator.redi',
