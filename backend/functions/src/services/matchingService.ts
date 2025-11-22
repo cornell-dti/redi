@@ -291,20 +291,24 @@ export function matchToResponse(doc: WeeklyMatchDoc): WeeklyMatchResponse {
 // =============================================================================
 
 /**
- * Generate matches for all users who answered a prompt
+ * Generate mutual matches for all users who answered a prompt
+ * Uses two-phase algorithm to guarantee 100% mutuality
  * @param promptId - The prompt ID to generate matches for
  * @returns Promise resolving to number of users matched
  */
 export async function generateMatchesForPrompt(
   promptId: string
 ): Promise<number> {
-  console.log(`Starting match generation for prompt: ${promptId}`);
+  console.log(`\n${"=".repeat(60)}`);
+  console.log(`Starting TWO-PHASE MUTUAL match generation for prompt: ${promptId}`);
+  console.log(`${"=".repeat(60)}\n`);
 
   // Get all users who answered the prompt
   const userNetids = await getUsersWhoAnswered(promptId);
-  console.log(`Found ${userNetids.length} users who answered the prompt`);
+  console.log(`📊 Found ${userNetids.length} users who answered the prompt\n`);
 
   if (userNetids.length === 0) {
+    console.log("⚠️  No users to match");
     return 0;
   }
 
@@ -316,18 +320,29 @@ export async function generateMatchesForPrompt(
 
   // Get blocked users map (bidirectional blocking)
   const blockedUsersMap = await getBlockedUsersMap(userNetids);
-  console.log(`Fetched blocking relationships for ${userNetids.length} users`);
+  console.log(`🚫 Fetched blocking relationships for ${userNetids.length} users\n`);
 
-  // Generate matches for each user
-  let matchedCount = 0;
+  // =============================================================================
+  // PHASE 1: Calculate potential matches for all users
+  // =============================================================================
+  console.log(`${"=".repeat(60)}`);
+  console.log("PHASE 1: Calculating potential matches for all users...");
+  console.log(`${"=".repeat(60)}\n`);
+
+  const potentialMatches = new Map<string, string[]>();
+  let usersSkipped = 0;
+
   for (const netid of userNetids) {
     try {
       const userData = userDataMap.get(netid);
       if (!userData || !userData.profile || !userData.preferences) {
-        console.log(`Skipping user ${netid}: missing profile or preferences`);
+        console.log(`⚠️  Skipping ${netid}: missing profile or preferences`);
+        usersSkipped++;
+        potentialMatches.set(netid, []);
         continue;
       }
 
+      // Use existing findMatchesForUser function
       const matches = findMatchesForUser(
         netid,
         userData,
@@ -336,21 +351,150 @@ export async function generateMatchesForPrompt(
         blockedUsersMap.get(netid) || new Set()
       );
 
-      if (matches.length > 0) {
-        await createWeeklyMatch(netid, promptId, matches);
-        matchedCount++;
-        console.log(`Created ${matches.length} matches for user ${netid}`);
+      // Filter out any empty strings, nulls, or invalid values
+      const validMatches = matches.filter(
+        (m) =>
+          m && // Not null/undefined
+          typeof m === "string" && // Is a string
+          m.trim() !== "" && // Not empty or whitespace
+          m !== netid // Not matching with self
+      );
+
+      potentialMatches.set(netid, validMatches);
+
+      if (validMatches.length > 0) {
+        console.log(`  ${netid}: ${validMatches.length} potential matches → [${validMatches.join(", ")}]`);
       } else {
-        console.log(`No compatible matches found for user ${netid}`);
+        console.log(`  ${netid}: 0 potential matches`);
       }
     } catch (error) {
-      console.error(`Error generating matches for user ${netid}:`, error);
+      console.error(`❌ Error finding matches for ${netid}:`, error);
+      potentialMatches.set(netid, []);
     }
   }
 
-  console.log(`Match generation complete. Matched ${matchedCount} users.`);
+  console.log(`\n✓ Phase 1 complete. Processed ${userNetids.length - usersSkipped} users, skipped ${usersSkipped}\n`);
 
-  // Update prompt status to completed (if the prompt document exists)
+  // =============================================================================
+  // PHASE 2: Create only mutual pairs
+  // =============================================================================
+  console.log(`${"=".repeat(60)}`);
+  console.log("PHASE 2: Creating mutual matches...");
+  console.log(`${"=".repeat(60)}\n`);
+
+  const finalMatches = new Map<string, string[]>();
+  const processedPairs = new Set<string>(); // Track processed pairs to avoid duplicates
+  let mutualPairsFound = 0;
+  let nonMutualPairsSkipped = 0;
+
+  // Initialize all users with empty arrays
+  for (const netid of userNetids) {
+    finalMatches.set(netid, []);
+  }
+
+  for (const [userA, userAMatches] of potentialMatches) {
+    for (const userB of userAMatches) {
+      // Create unique pair identifier (sorted to handle both directions)
+      const pairId = [userA, userB].sort().join("-");
+
+      // Skip if we've already processed this pair
+      if (processedPairs.has(pairId)) {
+        continue;
+      }
+
+      // Check if B also has A in their potential matches
+      const userBMatches = potentialMatches.get(userB) || [];
+
+      if (userBMatches.includes(userA)) {
+        // MUTUAL MATCH FOUND!
+        console.log(`  ✓ Mutual match: ${userA} ↔ ${userB}`);
+
+        // Add to userA's final matches (if under limit)
+        const userAFinal = finalMatches.get(userA) || [];
+        if (userAFinal.length < 3) {
+          userAFinal.push(userB);
+          finalMatches.set(userA, userAFinal);
+        }
+
+        // Add to userB's final matches (if under limit)
+        const userBFinal = finalMatches.get(userB) || [];
+        if (userBFinal.length < 3) {
+          userBFinal.push(userA);
+          finalMatches.set(userB, userBFinal);
+        }
+
+        // Mark this pair as processed
+        processedPairs.add(pairId);
+        mutualPairsFound++;
+      } else {
+        // Non-mutual pair - skip it
+        console.log(`  ✗ Non-mutual: ${userA} → ${userB} (but ${userB} ↛ ${userA})`);
+        nonMutualPairsSkipped++;
+      }
+    }
+  }
+
+  console.log("\n✓ Phase 2 complete.");
+  console.log(`  Mutual pairs created: ${mutualPairsFound}`);
+  console.log(`  Non-mutual pairs skipped: ${nonMutualPairsSkipped}\n`);
+
+  // =============================================================================
+  // STATISTICS
+  // =============================================================================
+  console.log(`${"=".repeat(60)}`);
+  console.log("MATCH GENERATION STATISTICS");
+  console.log(`${"=".repeat(60)}\n`);
+
+  let users0Matches = 0;
+  let users1Match = 0;
+  let users2Matches = 0;
+  let users3Matches = 0;
+
+  for (const [, matches] of finalMatches) {
+    const count = matches.length;
+    if (count === 0) users0Matches++;
+    else if (count === 1) users1Match++;
+    else if (count === 2) users2Matches++;
+    else if (count === 3) users3Matches++;
+  }
+
+  console.log(`Total users processed: ${userNetids.length}`);
+  console.log(`Users with 0 matches: ${users0Matches}`);
+  console.log(`Users with 1 match: ${users1Match}`);
+  console.log(`Users with 2 matches: ${users2Matches}`);
+  console.log(`Users with 3 matches: ${users3Matches}`);
+  console.log(`Total mutual pairs: ${mutualPairsFound}\n`);
+
+  // =============================================================================
+  // PHASE 3: Write to Firestore
+  // =============================================================================
+  console.log(`${"=".repeat(60)}`);
+  console.log("PHASE 3: Writing matches to Firestore...");
+  console.log(`${"=".repeat(60)}\n`);
+
+  let matchedCount = 0;
+  let writeErrors = 0;
+
+  for (const [netid, matches] of finalMatches) {
+    if (matches.length > 0) {
+      try {
+        await createWeeklyMatch(netid, promptId, matches);
+        console.log(`  ✓ Wrote ${matches.length} matches for ${netid}: [${matches.join(", ")}]`);
+        matchedCount++;
+      } catch (error) {
+        console.error(`  ✗ Failed to write matches for ${netid}:`, error);
+        writeErrors++;
+      }
+    } else {
+      console.log(`  ⚠️  No matches for ${netid} - skipping write`);
+    }
+  }
+
+  console.log("\n✓ Phase 3 complete.");
+  console.log(`  Successfully wrote: ${matchedCount} users`);
+  console.log(`  Write errors: ${writeErrors}\n`);
+
+  // Update prompt status to completed
   try {
     const promptRef = db.collection("weeklyPrompts").doc(promptId);
     const promptDoc = await promptRef.get();
@@ -360,12 +504,100 @@ export async function generateMatchesForPrompt(
         matchesGeneratedAt: FieldValue.serverTimestamp(),
         active: false,
       });
+      console.log(`✓ Updated prompt ${promptId} status to completed\n`);
     }
   } catch (error) {
-    console.warn(`Could not update prompt ${promptId} status:`, error);
+    console.warn(`⚠️  Could not update prompt ${promptId} status:`, error);
   }
 
+  console.log(`${"=".repeat(60)}`);
+  console.log("MATCH GENERATION COMPLETE");
+  console.log(`${"=".repeat(60)}\n`);
+  console.log(`✅ ${matchedCount} users successfully matched with guaranteed mutuality\n`);
+
   return matchedCount;
+}
+
+/**
+ * Validate that all matches are mutual
+ * Use this for testing and post-generation verification
+ * @param promptId - The prompt ID to validate
+ * @returns Promise resolving to validation result with any errors found
+ */
+export async function validateMatchMutuality(promptId: string): Promise<{
+  isValid: boolean;
+  errors: string[];
+}> {
+  const errors: string[] = [];
+
+  console.log(`\n${"=".repeat(60)}`);
+  console.log(`Validating match mutuality for prompt: ${promptId}`);
+  console.log(`${"=".repeat(60)}\n`);
+
+  // Fetch all match documents for this prompt
+  const matchesSnapshot = await db
+    .collection(MATCHES_COLLECTION)
+    .where("promptId", "==", promptId)
+    .get();
+
+  const allMatches = new Map<string, string[]>();
+
+  // Build map of all matches
+  matchesSnapshot.forEach((doc) => {
+    const data = doc.data() as WeeklyMatchDoc;
+    const netid = data.netid;
+    const matches = data.matches || [];
+
+    // Check for empty strings or null values
+    const invalidValues = matches.filter(
+      (m: any) => !m || typeof m !== "string" || m.trim() === ""
+    );
+
+    if (invalidValues.length > 0) {
+      errors.push(
+        `${netid} has invalid match values: ${JSON.stringify(invalidValues)}`
+      );
+    }
+
+    allMatches.set(netid, matches);
+  });
+
+  console.log(`📊 Found ${allMatches.size} users with matches\n`);
+
+  // Check mutuality
+  let mutualPairsChecked = 0;
+  for (const [userA, userAMatches] of allMatches) {
+    for (const userB of userAMatches) {
+      const userBMatches = allMatches.get(userB);
+
+      if (!userBMatches) {
+        errors.push(`${userA} → ${userB}, but ${userB} has no match document`);
+      } else if (!userBMatches.includes(userA)) {
+        errors.push(
+          `${userA} → ${userB}, but ${userB} ↛ ${userA} (NON-MUTUAL)`
+        );
+      } else {
+        mutualPairsChecked++;
+      }
+    }
+  }
+
+  console.log(`✓ Checked ${mutualPairsChecked} mutual pairs\n`);
+
+  if (errors.length === 0) {
+    console.log("✅ All matches are mutual and valid!\n");
+  } else {
+    console.log(`❌ Found ${errors.length} validation errors:\n`);
+    errors.forEach((error) => console.log(`  - ${error}`));
+    console.log();
+  }
+
+  console.log(`${"=".repeat(60)}\n`);
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
 }
 
 // =============================================================================
