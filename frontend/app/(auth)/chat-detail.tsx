@@ -42,6 +42,7 @@ import { AppColors } from '../components/AppColors';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Pressable from '../components/ui/Pressable';
 import { useMessages } from '../hooks/useMessages';
+import { isMessageValid } from '../utils/chatUtils';
 
 interface Message {
   id: string;
@@ -185,6 +186,15 @@ export default function ChatDetailScreen() {
   const sendMessage = async () => {
     if (newMessage.trim() && conversationId) {
       const messageText = newMessage.trim();
+
+      if (!isMessageValid(messageText)) {
+        showToast({
+          icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+          label: 'Message contains inappropriate content',
+        });
+        return;
+      }
+
       setNewMessage('');
       setSending(true);
 
@@ -238,7 +248,7 @@ export default function ChatDetailScreen() {
       Math.abs(
         currentMessage.timestamp.getTime() - prevMessage.timestamp.getTime()
       ) <=
-        5 * 60 * 1000;
+      5 * 60 * 1000;
 
     const isGroupedWithNext =
       nextMessage &&
@@ -246,7 +256,7 @@ export default function ChatDetailScreen() {
       Math.abs(
         nextMessage.timestamp.getTime() - currentMessage.timestamp.getTime()
       ) <=
-        5 * 60 * 1000;
+      5 * 60 * 1000;
 
     if (!isGroupedWithPrev && !isGroupedWithNext) return 'single';
     if (!isGroupedWithPrev && isGroupedWithNext) return 'first';
