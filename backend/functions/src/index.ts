@@ -16,12 +16,9 @@ export const activateWeeklyPrompt = onSchedule(
   },
   async () => {
     try {
-      console.log("Starting weekly prompt activation");
 
       const today = new Date();
       const promptId = generatePromptId(today);
-
-      console.log(`Looking for prompt with ID: ${promptId}`);
 
       // Get the prompt for this week
       const promptDoc = await db
