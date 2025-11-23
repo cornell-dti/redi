@@ -161,13 +161,34 @@ export const sendMessage = async (
 
     if (!response.ok) {
       const errorData = await response.json();
+
+      // Handle blocking errors gracefully (don't trigger debug error screen)
+      const isBlockingError =
+        response.status === 403 &&
+        (errorData.error === 'Cannot send message to this user' ||
+          errorData.error === 'Cannot create conversation');
+
+      if (isBlockingError) {
+        console.log(`Message blocked (${response.status}):`, errorData);
+        throw new Error(errorData.error);
+      }
+
+      // Log other errors normally (including non-blocking 403s)
       console.error(`❌ Failed to send message (${response.status}):`, errorData);
       throw new Error(errorData.error || 'Failed to send message');
     }
 
-    const result = await response.json();
+    return await response.json();
   } catch (error) {
-    console.error('❌ Error sending message:', error);
+    // Only log as error if it's not a blocking error
+    const isBlockingError =
+      error instanceof Error &&
+      (error.message === 'Cannot send message to this user' ||
+        error.message === 'Cannot create conversation');
+
+    if (!isBlockingError) {
+      console.error('❌ Error sending message:', error);
+    }
     throw error;
   }
 };
