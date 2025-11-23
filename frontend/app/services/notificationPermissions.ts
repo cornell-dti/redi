@@ -8,7 +8,6 @@ import { Platform } from 'react-native';
 import { registerPushToken, removePushToken } from '../api/pushTokenApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const PERMISSION_ASKED_KEY = '@notification_permission_asked';
 const TOKEN_REGISTERED_KEY = '@notification_token_registered';
 
 // Configure how notifications appear when app is in foreground
@@ -17,6 +16,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -26,21 +27,15 @@ Notifications.setNotificationHandler({
  */
 export async function requestNotificationPermissions(): Promise<boolean> {
   try {
-    // Check if we've already asked for permissions
-    const hasAsked = await AsyncStorage.getItem(PERMISSION_ASKED_KEY);
-
     // Get current permission status
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
 
     let finalStatus = existingStatus;
 
-    // If not determined yet and we haven't asked, request permissions
-    if (existingStatus !== 'granted' && !hasAsked) {
+    // Always request permissions if not granted (iOS will handle not asking twice)
+    if (existingStatus !== 'granted') {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
-
-      // Mark that we've asked
-      await AsyncStorage.setItem(PERMISSION_ASKED_KEY, 'true');
     }
 
     if (finalStatus !== 'granted') {
@@ -61,9 +56,6 @@ export async function requestNotificationPermissions(): Promise<boolean> {
  */
 export async function registerForPushNotifications(): Promise<boolean> {
   try {
-    // Check if we've already registered a token
-    const tokenRegistered = await AsyncStorage.getItem(TOKEN_REGISTERED_KEY);
-
     // Request permissions
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
@@ -79,11 +71,16 @@ export async function registerForPushNotifications(): Promise<boolean> {
     const pushToken = tokenData.data;
     console.log('Expo push token:', pushToken);
 
+    // Check if we've already registered this exact token
+    const tokenRegistered = await AsyncStorage.getItem(TOKEN_REGISTERED_KEY);
+
     // Register token with backend if not already registered or if it's different
     if (!tokenRegistered || tokenRegistered !== pushToken) {
       await registerPushToken(pushToken);
       await AsyncStorage.setItem(TOKEN_REGISTERED_KEY, pushToken);
       console.log('✅ Push token registered with backend');
+    } else {
+      console.log('✅ Push token already registered');
     }
 
     return true;

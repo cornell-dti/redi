@@ -5,6 +5,7 @@
  */
 
 import express from 'express';
+import { db } from '../../firebaseAdmin';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import {
   registerPushToken,
@@ -45,7 +46,7 @@ router.post(
       }
 
       // Get user's netid from Firebase UID
-      const userSnapshot = await req.app.locals.db
+      const userSnapshot = await db
         .collection('users')
         .where('firebaseUid', '==', req.user.uid)
         .limit(1)
@@ -100,7 +101,7 @@ router.delete(
       }
 
       // Get user's netid from Firebase UID
-      const userSnapshot = await req.app.locals.db
+      const userSnapshot = await db
         .collection('users')
         .where('firebaseUid', '==', req.user.uid)
         .limit(1)
@@ -148,7 +149,7 @@ router.get(
       }
 
       // Get user's netid from Firebase UID
-      const userSnapshot = await req.app.locals.db
+      const userSnapshot = await db
         .collection('users')
         .where('firebaseUid', '==', req.user.uid)
         .limit(1)
@@ -222,7 +223,7 @@ router.put(
       }
 
       // Get user's netid from Firebase UID
-      const userSnapshot = await req.app.locals.db
+      const userSnapshot = await db
         .collection('users')
         .where('firebaseUid', '==', req.user.uid)
         .limit(1)
