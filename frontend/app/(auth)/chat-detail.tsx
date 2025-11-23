@@ -193,9 +193,30 @@ export default function ChatDetailScreen() {
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
-      } catch (error) {
-        console.error('Error sending message:', error);
+      } catch (error: any) {
+        // Restore the message text
         setNewMessage(messageText);
+
+        // This is a very hacky way to do error-handling (probably should fix soon...)
+        const isBlockingError =
+          error.response?.status === 403 ||
+          error.message === 'Cannot send message to this user' ||
+          error.message === 'Cannot access this conversation';
+
+        if (isBlockingError) {
+          console.log('Message blocked due to user blocking:', error.message);
+          showToast({
+            icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+            label: 'Cannot send message to this user',
+          });
+        } else {
+          // Should we log all other errors with toasts?
+          console.error('Error sending message:', error);
+          showToast({
+            icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+            label: 'Failed to send message. Please try again.',
+          });
+        }
       } finally {
         setSending(false);
       }
@@ -453,7 +474,9 @@ export default function ChatDetailScreen() {
             ? 'More options'
             : sheetView === 'report'
               ? 'Report user'
-              : 'Block user'
+              : isBlocked
+                ? 'Unblock user'
+                : 'Block user'
         }
       >
         {sheetView === 'menu' && (
@@ -489,7 +512,7 @@ export default function ChatDetailScreen() {
 
             <ListItem
               left={<Ban color={AppColors.negativeDefault} size={20} />}
-              title="Block"
+              title={isBlocked ? 'Unblock' : 'Block'}
               destructive
               onPress={() => {
                 setSheetView('block');

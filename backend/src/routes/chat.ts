@@ -3,12 +3,12 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { db } from '../../firebaseAdmin';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import { chatRateLimit } from '../middleware/rateLimiting';
-import {
-  sendPushNotification,
-  checkNotificationPreference,
-} from '../services/pushNotificationService';
+import { areUsersBlocked, isUserBlocked } from '../services/blockingService';
 import { createNotification } from '../services/notificationsService';
-import { isUserBlocked } from '../services/blockingService';
+import {
+  checkNotificationPreference,
+  sendPushNotification,
+} from '../services/pushNotificationService';
 
 const router = express.Router();
 
@@ -132,6 +132,19 @@ router.post(
           currentUserProfile: !!currentUserProfile,
           otherUserProfile: !!otherUserProfile,
         });
+        return res.status(403).json({ error: 'Cannot create conversation' });
+      }
+
+      // Check if users have blocked each other
+      const blocked = await areUsersBlocked(
+        currentUserProfile.netid,
+        otherUserProfile.netid
+      );
+
+      if (blocked) {
+        console.log(
+          `❌ Cannot create conversation - users are blocked: ${currentUserProfile.netid} and ${otherUserProfile.netid}`
+        );
         return res.status(403).json({ error: 'Cannot create conversation' });
       }
 
@@ -264,6 +277,37 @@ router.post(
         return res
           .status(403)
           .json({ error: 'Cannot access this conversation' });
+      }
+
+      // Get netids from participant info to check blocking
+      const senderInfo = conversationData.participants[userId];
+      const recipientId = conversationData.participantIds.find(
+        (id: string) => id !== userId
+      );
+      const recipientInfo = recipientId
+        ? conversationData.participants[recipientId]
+        : null;
+
+      if (!senderInfo?.netid || !recipientInfo?.netid) {
+        console.error(`❌ Missing participant netids in conversation ${conversationId}`);
+        return res
+          .status(403)
+          .json({ error: 'Cannot send message to this conversation' });
+      }
+
+      // Check if users have blocked each other
+      const blocked = await areUsersBlocked(
+        senderInfo.netid,
+        recipientInfo.netid
+      );
+
+      if (blocked) {
+        console.log(
+          `❌ Cannot send message - users are blocked: ${senderInfo.netid} and ${recipientInfo.netid}`
+        );
+        return res
+          .status(403)
+          .json({ error: 'Cannot send message to this user' });
       }
 
       // Create message
@@ -419,6 +463,39 @@ router.get(
 
       const conversationData = conversationDoc.data();
       if (!conversationData?.participantIds.includes(userId)) {
+        return res
+          .status(403)
+          .json({ error: 'Cannot access this conversation' });
+      }
+
+      // Get netids from participant info to check blocking
+      const currentUserInfo = conversationData.participants[userId];
+      const otherUserId = conversationData.participantIds.find(
+        (id: string) => id !== userId
+      );
+      const otherUserInfo = otherUserId
+        ? conversationData.participants[otherUserId]
+        : null;
+
+      if (!currentUserInfo?.netid || !otherUserInfo?.netid) {
+        console.error(
+          `❌ Missing participant netids in conversation ${conversationId}`
+        );
+        return res
+          .status(403)
+          .json({ error: 'Cannot access this conversation' });
+      }
+
+      // Check if users have blocked each other
+      const blocked = await areUsersBlocked(
+        currentUserInfo.netid,
+        otherUserInfo.netid
+      );
+
+      if (blocked) {
+        console.log(
+          `❌ Cannot fetch messages - users are blocked: ${currentUserInfo.netid} and ${otherUserInfo.netid}`
+        );
         return res
           .status(403)
           .json({ error: 'Cannot access this conversation' });
