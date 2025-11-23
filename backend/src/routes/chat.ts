@@ -468,39 +468,6 @@ router.get(
           .json({ error: 'Cannot access this conversation' });
       }
 
-      // Get netids from participant info to check blocking
-      const currentUserInfo = conversationData.participants[userId];
-      const otherUserId = conversationData.participantIds.find(
-        (id: string) => id !== userId
-      );
-      const otherUserInfo = otherUserId
-        ? conversationData.participants[otherUserId]
-        : null;
-
-      if (!currentUserInfo?.netid || !otherUserInfo?.netid) {
-        console.error(
-          `❌ Missing participant netids in conversation ${conversationId}`
-        );
-        return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
-      }
-
-      // Check if users have blocked each other
-      const blocked = await areUsersBlocked(
-        currentUserInfo.netid,
-        otherUserInfo.netid
-      );
-
-      if (blocked) {
-        console.log(
-          `❌ Cannot fetch messages - users are blocked: ${currentUserInfo.netid} and ${otherUserInfo.netid}`
-        );
-        return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
-      }
-
       // Get messages
       const messagesSnapshot = await conversationRef
         .collection('messages')
