@@ -27,6 +27,7 @@ export interface UserData {
  * @param allUsersMap - Map of all users' data
  * @param previousMatches - Set of netids the user has been matched with before
  * @param blockedUsers - Set of netids that user has blocked or been blocked by (bidirectional)
+ * @param relaxed - If true, use relaxed criteria (wider age range, ignore year/school/major)
  * @returns Array of up to 3 matched netids
  */
 export function findMatchesForUser(
@@ -34,7 +35,8 @@ export function findMatchesForUser(
   userData: UserData,
   allUsersMap: Map<string, UserData>,
   previousMatches: Set<string>,
-  blockedUsers: Set<string> = new Set()
+  blockedUsers: Set<string> = new Set(),
+  relaxed: boolean = false
 ): string[] {
   const { profile, preferences } = userData;
 
@@ -61,7 +63,8 @@ export function findMatchesForUser(
       profile,
       preferences,
       candidateData.profile,
-      candidateData.preferences
+      candidateData.preferences,
+      relaxed
     );
 
     if (!isCompatible) continue;
@@ -81,39 +84,170 @@ export function findMatchesForUser(
 }
 
 /**
+ * Calculate mutual compatibility score between two users (0-100)
+ * Instead of requiring perfect mutual match, we use weighted scoring
+ * @param profileA - First user's profile
+ * @param preferencesA - First user's preferences
+ * @param profileB - Second user's profile
+ * @param preferencesB - Second user's preferences
+ * @param relaxed - If true, use relaxed compatibility criteria
+ * @returns Compatibility score (0-100), 0 means incompatible
+ */
+export function calculateMutualCompatibilityScore(
+  profileA: ProfileDoc,
+  preferencesA: PreferencesDoc,
+  profileB: ProfileDoc,
+  preferencesB: PreferencesDoc,
+  relaxed: boolean = false
+): number {
+  // Calculate individual compatibility scores (0-100 each)
+  const aLikesBScore = calculatePreferenceMatchScore(profileB, preferencesA, relaxed);
+  const bLikesAScore = calculatePreferenceMatchScore(profileA, preferencesB, relaxed);
+
+  // If either user has 0 score (fails hard requirements like gender), return 0
+  if (aLikesBScore === 0 || bLikesAScore === 0) {
+    return 0;
+  }
+
+  // Calculate weighted average
+  // If both like each other equally (100, 100), score is 100
+  // If one likes more than other (100, 50), score is 75
+  // This encourages mutual interest but allows asymmetric matches
+  const mutualScore = (aLikesBScore + bLikesAScore) / 2;
+
+  // Apply bonus for strong mutual interest (both > 70)
+  if (aLikesBScore > 70 && bLikesAScore > 70) {
+    return Math.min(100, mutualScore * 1.1); // 10% bonus for mutual strong interest
+  }
+
+  return mutualScore;
+}
+
+/**
  * Check if two users are mutually compatible based on preferences
  * @param profileA - First user's profile
  * @param preferencesA - First user's preferences
  * @param profileB - Second user's profile
  * @param preferencesB - Second user's preferences
+ * @param relaxed - If true, use relaxed compatibility criteria
  * @returns true if mutually compatible, false otherwise
  */
 export function checkMutualCompatibility(
   profileA: ProfileDoc,
   preferencesA: PreferencesDoc,
   profileB: ProfileDoc,
-  preferencesB: PreferencesDoc
+  preferencesB: PreferencesDoc,
+  relaxed: boolean = false
 ): boolean {
-  // Check A's preferences against B's profile
-  const aLikesB = checkCompatibility(profileB, preferencesA);
+  // Use soft compatibility: allow match if score > 40 (at least moderate compatibility)
+  const score = calculateMutualCompatibilityScore(
+    profileA,
+    preferencesA,
+    profileB,
+    preferencesB,
+    relaxed
+  );
 
-  // Check B's preferences against A's profile
-  const bLikesA = checkCompatibility(profileA, preferencesB);
+  return score > 40; // Allow match if combined compatibility > 40%
+}
 
-  return aLikesB && bLikesA;
+/**
+ * Calculate how well a profile matches user's preferences (0-100)
+ * 0 means fails hard requirements, 100 means perfect match
+ * @param profile - The profile to check
+ * @param preferences - User's preferences
+ * @param relaxed - If true, use relaxed criteria
+ * @returns Score from 0-100
+ */
+export function calculatePreferenceMatchScore(
+  profile: ProfileDoc,
+  preferences: PreferencesDoc,
+  relaxed: boolean = false
+): number {
+  let score = 100;
+
+  // Gender preference (HARD REQUIREMENT - return 0 if fails)
+  if (
+    preferences.genders.length > 0 &&
+    !preferences.genders.includes(profile.gender)
+  ) {
+    return 0; // Hard fail
+  }
+
+  // Age range
+  const age = calculateAge(profile.birthdate);
+  if (relaxed) {
+    const relaxedMin = Math.max(18, preferences.ageRange.min - 2);
+    const relaxedMax = Math.min(100, preferences.ageRange.max + 2);
+    if (age < relaxedMin || age > relaxedMax) {
+      return 0; // Hard fail even in relaxed mode
+    }
+    // Soft penalty for being outside original range but within relaxed range
+    if (age < preferences.ageRange.min || age > preferences.ageRange.max) {
+      score -= 15; // 15 point penalty for age mismatch
+    }
+  } else {
+    if (age < preferences.ageRange.min || age > preferences.ageRange.max) {
+      score -= 30; // 30 point penalty for age mismatch in strict mode
+    }
+  }
+
+  // Year preference (soft in relaxed mode, moderate penalty in strict mode)
+  if (!relaxed) {
+    if (
+      preferences.years.length > 0 &&
+      !preferences.years.includes(profile.year)
+    ) {
+      score -= 20; // 20 point penalty for year mismatch
+    }
+  }
+  // In relaxed mode, year is completely ignored (no penalty)
+
+  // School exclusions (soft in relaxed mode, moderate penalty in strict mode)
+  if (!relaxed) {
+    if (
+      preferences.schools.length > 0 &&
+      preferences.schools.length < CORNELL_SCHOOLS.length
+    ) {
+      if (preferences.schools.includes(profile.school)) {
+        score -= 25; // 25 point penalty for excluded school
+      }
+    }
+  }
+  // In relaxed mode, school exclusions are ignored
+
+  // Major exclusions (soft in relaxed mode, moderate penalty in strict mode)
+  if (!relaxed) {
+    if (
+      preferences.majors.length > 0 &&
+      preferences.majors.length < ALL_MAJORS.length
+    ) {
+      const hasExcludedMajor = profile.major.some((userMajor: string) =>
+        preferences.majors.includes(userMajor)
+      );
+      if (hasExcludedMajor) {
+        score -= 25; // 25 point penalty for excluded major
+      }
+    }
+  }
+  // In relaxed mode, major exclusions are ignored
+
+  return Math.max(0, score); // Ensure score doesn't go below 0
 }
 
 /**
  * Check if a profile matches user's preferences
  * @param profile - The profile to check
  * @param preferences - User's preferences
+ * @param relaxed - If true, use relaxed criteria (±2 age, ignore year/school/major)
  * @returns true if compatible, false otherwise
  */
 export function checkCompatibility(
   profile: ProfileDoc,
-  preferences: PreferencesDoc
+  preferences: PreferencesDoc,
+  relaxed: boolean = false
 ): boolean {
-  // Check gender preference
+  // Check gender preference (ALWAYS enforced, even in relaxed mode)
   if (
     preferences.genders.length > 0 &&
     !preferences.genders.includes(profile.gender)
@@ -123,42 +257,54 @@ export function checkCompatibility(
 
   // Check age range
   const age = calculateAge(profile.birthdate);
-  if (age < preferences.ageRange.min || age > preferences.ageRange.max) {
-    return false;
-  }
-
-  // Check year preference
-  if (
-    preferences.years.length > 0 &&
-    !preferences.years.includes(profile.year)
-  ) {
-    return false;
-  }
-
-  // Check school preference as EXCLUSION filter
-  // Empty array means all schools accepted
-  // If all schools are excluded, treat as empty (soft filter)
-  if (
-    preferences.schools.length > 0 &&
-    preferences.schools.length < CORNELL_SCHOOLS.length
-  ) {
-    if (preferences.schools.includes(profile.school)) {
-      return false; // Reject if school is in exclusion list
+  if (relaxed) {
+    // Relaxed mode: expand age range by ±2 years
+    const relaxedMin = Math.max(18, preferences.ageRange.min - 2);
+    const relaxedMax = Math.min(100, preferences.ageRange.max + 2);
+    if (age < relaxedMin || age > relaxedMax) {
+      return false;
+    }
+  } else {
+    // Strict mode: use exact age range
+    if (age < preferences.ageRange.min || age > preferences.ageRange.max) {
+      return false;
     }
   }
 
-  // Check major preference as EXCLUSION filter
-  // Empty array means all majors accepted
-  // If all majors are excluded, treat as empty (soft filter)
-  if (
-    preferences.majors.length > 0 &&
-    preferences.majors.length < ALL_MAJORS.length
-  ) {
-    const hasExcludedMajor = profile.major.some((userMajor: string) =>
-      preferences.majors.includes(userMajor)
-    );
-    if (hasExcludedMajor) {
-      return false; // Reject if user has an excluded major
+  // Check year preference (IGNORED in relaxed mode)
+  if (!relaxed) {
+    if (
+      preferences.years.length > 0 &&
+      !preferences.years.includes(profile.year)
+    ) {
+      return false;
+    }
+  }
+
+  // Check school preference as EXCLUSION filter (IGNORED in relaxed mode)
+  if (!relaxed) {
+    if (
+      preferences.schools.length > 0 &&
+      preferences.schools.length < CORNELL_SCHOOLS.length
+    ) {
+      if (preferences.schools.includes(profile.school)) {
+        return false; // Reject if school is in exclusion list
+      }
+    }
+  }
+
+  // Check major preference as EXCLUSION filter (IGNORED in relaxed mode)
+  if (!relaxed) {
+    if (
+      preferences.majors.length > 0 &&
+      preferences.majors.length < ALL_MAJORS.length
+    ) {
+      const hasExcludedMajor = profile.major.some((userMajor: string) =>
+        preferences.majors.includes(userMajor)
+      );
+      if (hasExcludedMajor) {
+        return false; // Reject if user has an excluded major
+      }
     }
   }
 
