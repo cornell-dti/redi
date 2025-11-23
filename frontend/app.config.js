@@ -45,6 +45,12 @@ export default {
         },
       ],
       [
+        'expo-notifications',
+        {
+          mode: 'production',
+        },
+      ],
+      [
         'expo-build-properties',
         {
           ios: {

@@ -1,6 +1,7 @@
 import * as admin from "firebase-admin";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { generateMatchesForPrompt } from "./services/matchingService";
+import { sendMatchDropNotifications } from "./services/notificationHelpers";
 
 // Firebase Admin is initialized in firebaseAdmin.ts (imported by services)
 const db = admin.firestore();
@@ -137,6 +138,18 @@ export const generateWeeklyMatches = onSchedule(
       console.log(
         `Match generation complete. Created matches for ${matchedCount} users.`
       );
+
+      // Send push notifications for match drops
+      console.log("📱 Sending match drop notifications...");
+      try {
+        const notificationCount = await sendMatchDropNotifications(promptId);
+        console.log(
+          `✅ Successfully sent ${notificationCount} match drop notifications`
+        );
+      } catch (notifError) {
+        console.error("❌ Error sending match drop notifications:", notifError);
+        // Don't throw - notification failure shouldn't fail match generation
+      }
     } catch (error) {
       console.error("Error generating weekly matches:", error);
       throw error;
