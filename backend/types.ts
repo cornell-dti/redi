@@ -516,7 +516,11 @@ export interface NudgeStatusResponse {
 // NOTIFICATIONS MODELS
 // =============================================================================
 
-export type NotificationType = 'mutual_nudge' | 'new_message' | 'match_drop';
+export type NotificationType =
+  | 'mutual_nudge'
+  | 'new_message'
+  | 'match_drop'
+  | 'admin_broadcast';
 
 // Notification document in Firestore (notifications collection)
 export interface NotificationDoc {

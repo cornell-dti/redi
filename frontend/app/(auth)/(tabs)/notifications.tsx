@@ -21,6 +21,8 @@ const getNotificationIcon = (type: string): LucideIcon => {
       return Heart;
     case 'new_message':
       return MessageCircle;
+    case 'admin_broadcast':
+      return Bell;
     default:
       return Bell;
   }
@@ -107,6 +109,9 @@ export default function NotificationsScreen() {
         }
 
         router.push(chatUrl as any);
+      } else if (type === 'admin_broadcast') {
+        // Admin broadcasts don't have any navigation - just mark as read
+        console.log('Admin broadcast notification marked as read');
       }
     } catch (err) {
       console.error('Error handling notification press:', err);

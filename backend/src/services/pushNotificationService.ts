@@ -1,6 +1,7 @@
 import { Expo, ExpoPushMessage } from 'expo-server-sdk';
 import { db } from '../../firebaseAdmin';
 import { UserDoc } from '../../types';
+import { FieldValue } from 'firebase-admin/firestore';
 
 // Create a new Expo SDK client
 const expo = new Expo({
@@ -299,6 +300,7 @@ export async function removePushToken(netid: string): Promise<boolean> {
 
 /**
  * Send a broadcast notification to all users with valid push tokens
+ * AND create in-app notifications in Firestore
  * @param title - Notification title
  * @param body - Notification body
  * @returns Promise resolving to result with success count, total count, and errors
@@ -326,6 +328,45 @@ export async function sendBroadcastNotification(
       console.log('No users with push tokens found');
       return { successCount: 0, totalUsers: 0, errors: [] };
     }
+
+    // Create in-app notifications in Firestore for all users
+    // Use batch writes for efficiency (max 500 per batch)
+    const BATCH_SIZE = 500;
+    const allUsers: UserDoc[] = usersSnapshot.docs.map((doc) =>
+      doc.data() as UserDoc
+    );
+
+    console.log(
+      `💾 Creating ${allUsers.length} in-app notifications in Firestore...`
+    );
+
+    // Split into batches and write to Firestore
+    for (let i = 0; i < allUsers.length; i += BATCH_SIZE) {
+      const batch = db.batch();
+      const batchUsers = allUsers.slice(i, i + BATCH_SIZE);
+
+      batchUsers.forEach((userData) => {
+        const notificationRef = db.collection('notifications').doc();
+        batch.set(notificationRef, {
+          netid: userData.netid,
+          type: 'admin_broadcast',
+          title,
+          message: body,
+          read: false,
+          metadata: {},
+          createdAt: FieldValue.serverTimestamp(),
+        });
+      });
+
+      await batch.commit();
+      console.log(
+        `✅ Batch ${Math.floor(i / BATCH_SIZE) + 1}: Created ${batchUsers.length} in-app notifications`
+      );
+    }
+
+    console.log(
+      `✅ All in-app notifications created in Firestore. Now sending push notifications...`
+    );
 
     // Construct push notification messages
     const messages: ExpoPushMessage[] = [];
