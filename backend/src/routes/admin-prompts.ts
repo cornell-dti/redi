@@ -1045,7 +1045,8 @@ router.get(
               firstName: 'Invalid User',
               profilePicture: undefined,
               revealed: Boolean(revealed[i]),
-              nudged: false,
+              nudgedByUser: false,
+              nudgedByMatch: false,
             });
             continue;
           }
