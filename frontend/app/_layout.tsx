@@ -4,8 +4,8 @@ import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import auth from '@react-native-firebase/auth';
 import * as Linking from 'expo-linking';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Alert, View } from 'react-native';
+import { useEffect, useState, useRef } from 'react';
+import { Alert, View, AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { APIError } from './api/apiClient';
 import { onAuthStateChanged, signInWithEmailLink } from './api/authService';
@@ -19,6 +19,7 @@ import { HapticsProvider } from './contexts/HapticsContext';
 import { MotionProvider } from './contexts/MotionContext';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { clearBadgeCount } from './services/notificationPermissions';
 
 /**
  * Token Refresh Configuration
@@ -46,6 +47,7 @@ function RootNavigator() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const router = useRouter();
   const segments = useSegments();
+  const appState = useRef(AppState.currentState);
 
   const handleAuthStateChanged = (user: FirebaseAuthTypes.User | null) => {
     console.log('Auth state changed:', user?.email || 'No user');
@@ -122,6 +124,27 @@ function RootNavigator() {
       }
     };
     checkOnboarding();
+  }, []);
+
+  // Clear badge when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        // App has come to the foreground - clear badge
+        clearBadgeCount();
+      }
+      appState.current = nextAppState;
+    });
+
+    // Also clear badge on initial mount when app opens
+    clearBadgeCount();
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   // Automatic token refresh to maintain authentication

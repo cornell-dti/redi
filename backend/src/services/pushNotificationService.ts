@@ -64,6 +64,7 @@ export async function sendPushNotification(
       body,
       data: data || {},
       priority: 'high',
+      badge: 1, // Show red badge on app icon
     };
 
     // Send the push notification
@@ -162,6 +163,7 @@ export async function sendBulkPushNotifications(
         body: notification.body,
         data: notification.data || {},
         priority: 'high',
+        badge: 1, // Show red badge on app icon
       });
 
       messageToUserMap.set(messages.length - 1, notification.netid);
@@ -361,6 +363,7 @@ export async function sendBroadcastNotification(
           timestamp: new Date().toISOString(),
         },
         priority: 'high',
+        badge: 1, // Show red badge on app icon
       });
 
       userTokenMap.set(messageIndex, {
