@@ -176,6 +176,15 @@ export default function ChatDetailScreen() {
         return;
       }
 
+      // We check locally to see if the recepient is blocked or not
+      if (isBlocked) {
+        showToast({
+          icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+          label: 'Cannot send message to blocked user',
+        });
+        return;
+      }
+
       setNewMessage('');
       setSending(true);
 
@@ -198,7 +207,7 @@ export default function ChatDetailScreen() {
           console.log('Message blocked due to user blocking:', error.message);
           showToast({
             icon: <Ban size={20} color={AppColors.backgroundDefault} />,
-            label: 'Cannot send message to blocked user',
+            label: 'You have been blocked by this user',
           });
         } else {
           // Should we log all other errors with toasts?
