@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
 import adminAnalyticsRouter from './routes/admin-analytics';
+import adminBroadcastRouter from './routes/admin-broadcast';
 import adminMatchesRouter from './routes/admin-matches';
 import adminPromptsRouter from './routes/admin-prompts';
 import adminReportsRouter from './routes/admin-reports';
@@ -112,6 +113,7 @@ app.use(pushTokensRouter); // /api/users/push-token, /api/users/notification-pre
 app.use(chatRouter); // /api/chat
 app.use(reportsRouter); // /api/reports
 app.use(adminAnalyticsRouter); // /api/admin/analytics
+app.use(adminBroadcastRouter); // /api/admin/broadcast
 app.use(adminMatchesRouter); // /api/admin/matches, /api/admin/users
 app.use(adminPromptsRouter); // /api/admin/prompts
 app.use(adminReportsRouter); // /api/admin/reports

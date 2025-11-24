@@ -941,3 +941,76 @@ export const fetchMutualNudgeStats =
 
     return res.json();
   };
+
+// =============================================================================
+// BROADCAST NOTIFICATIONS API
+// =============================================================================
+
+/**
+ * Broadcast notification response
+ */
+export interface BroadcastNotificationResponse {
+  message: string;
+  successCount: number;
+  totalUsers: number;
+  errors: Array<{ netid: string; error: string }>;
+}
+
+/**
+ * User count response
+ */
+export interface UserCountResponse {
+  count: number;
+}
+
+/**
+ * Send a broadcast notification to all users
+ */
+export const sendBroadcastNotification = async (
+  title: string,
+  body: string
+): Promise<BroadcastNotificationResponse> => {
+  console.log('Sending broadcast notification:', { title, body });
+
+  const token = await getAuthToken();
+
+  const res = await fetch(`${API_BASE_URL}/api/admin/broadcast`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ title, body }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to send broadcast notification');
+  }
+
+  return res.json();
+};
+
+/**
+ * Get count of users with valid push tokens
+ */
+export const getUserCount = async (): Promise<number> => {
+  console.log('Fetching user count for broadcast');
+
+  const token = await getAuthToken();
+
+  const res = await fetch(`${API_BASE_URL}/api/admin/broadcast/user-count`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to fetch user count');
+  }
+
+  const data: UserCountResponse = await res.json();
+  return data.count;
+};
