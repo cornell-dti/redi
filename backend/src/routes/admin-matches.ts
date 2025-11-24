@@ -100,7 +100,7 @@ router.get('/api/admin/users/:netId/details', async (req: AdminRequest, res) => 
 
     // Fetch prompt answer if promptId provided
     let promptAnswer = null;
-    if (promptId && typeof promptId === 'string') {
+    if (promptId && typeof promptId === 'string' && promptId.trim() !== '' && netId.trim() !== '') {
       const answerDoc = await db
         .collection('weeklyPromptAnswers')
         .doc(`${netId}_${promptId}`)
