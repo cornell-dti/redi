@@ -8,6 +8,10 @@ import {
 import { FieldValue } from 'firebase-admin/firestore';
 import { createNotification } from './notificationsService';
 import { getFirebaseUidFromNetid } from '../middleware/authorization';
+import {
+  sendPushNotification,
+  checkNotificationPreference,
+} from './pushNotificationService';
 
 const NUDGES_COLLECTION = 'nudges';
 const MATCHES_COLLECTION = 'weeklyMatches';
@@ -117,6 +121,66 @@ export async function createNudge(
         matchFirebaseUid: fromFirebaseUid || undefined,
       }
     );
+
+    // Send push notifications for BOTH users (async, don't block)
+    setImmediate(async () => {
+      try {
+        // Check notification preferences and send to fromNetid
+        const fromPrefEnabled = await checkNotificationPreference(
+          fromNetid,
+          'mutualNudges'
+        );
+        if (fromPrefEnabled) {
+          await sendPushNotification(
+            fromNetid,
+            'You both nudged each other! 🎉',
+            toUserProfile?.name
+              ? `You and ${toUserProfile.name} can now chat!`
+              : 'Start chatting now',
+            {
+              type: 'mutual_nudge',
+              promptId,
+              matchNetid: toNetid,
+              conversationId: conversationId || undefined,
+              matchName: toUserProfile?.name,
+              matchFirebaseUid: toFirebaseUid || undefined,
+            }
+          );
+          console.log(
+            `✅ Mutual nudge push notification sent to ${fromNetid}`
+          );
+        }
+
+        // Check notification preferences and send to toNetid
+        const toPrefEnabled = await checkNotificationPreference(
+          toNetid,
+          'mutualNudges'
+        );
+        if (toPrefEnabled) {
+          await sendPushNotification(
+            toNetid,
+            'You both nudged each other! 🎉',
+            fromUserProfile?.name
+              ? `You and ${fromUserProfile.name} can now chat!`
+              : 'Start chatting now',
+            {
+              type: 'mutual_nudge',
+              promptId,
+              matchNetid: fromNetid,
+              conversationId: conversationId || undefined,
+              matchName: fromUserProfile?.name,
+              matchFirebaseUid: fromFirebaseUid || undefined,
+            }
+          );
+          console.log(
+            `✅ Mutual nudge push notification sent to ${toNetid}`
+          );
+        }
+      } catch (notifError) {
+        console.error('Error sending mutual nudge push notifications:', notifError);
+        // Don't throw - notification failure shouldn't affect nudge creation
+      }
+    });
   }
 
   // Return the created nudge
