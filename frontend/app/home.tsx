@@ -29,7 +29,6 @@ import {
 } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
 import { AppColors } from './components/AppColors';
-import GoogleIcon from './components/icons/GoogleIcon';
 import OnboardingVideo from './components/onboarding/OnboardingVideo';
 import AppInput from './components/ui/AppInput';
 import AppText from './components/ui/AppText';
@@ -384,19 +383,19 @@ export default function HomePage() {
           transform: [{ translateX: buttonsSlideAnim }],
         }}
       >
-        <Button
+        {/* <Button
           title="Continue with Google"
           onPress={handleGoogleSignIn}
           variant="primary"
           fullWidth
           disabled={loading}
           iconLeft={GoogleIcon}
-        />
+        /> */}
 
         <Button
-          title="Sign in with Email Link"
+          title="Sign in / Sign up with Email"
           onPress={() => handleModeChange('passwordless')}
-          variant="secondary"
+          variant="primary"
           fullWidth
         />
 
