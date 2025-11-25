@@ -1,6 +1,7 @@
 import { Expo, ExpoPushMessage } from 'expo-server-sdk';
 import { db } from '../../firebaseAdmin';
 import { UserDoc } from '../../types';
+import { FieldValue } from 'firebase-admin/firestore';
 
 // Create a new Expo SDK client
 const expo = new Expo({
@@ -64,6 +65,7 @@ export async function sendPushNotification(
       body,
       data: data || {},
       priority: 'high',
+      badge: 1, // Show red badge on app icon
     };
 
     // Send the push notification
@@ -162,6 +164,7 @@ export async function sendBulkPushNotifications(
         body: notification.body,
         data: notification.data || {},
         priority: 'high',
+        badge: 1, // Show red badge on app icon
       });
 
       messageToUserMap.set(messages.length - 1, notification.netid);
@@ -292,5 +295,205 @@ export async function removePushToken(netid: string): Promise<boolean> {
   } catch (error) {
     console.error(`Error removing push token for ${netid}:`, error);
     return false;
+  }
+}
+
+/**
+ * Send a broadcast notification to all users with valid push tokens
+ * AND create in-app notifications in Firestore
+ * @param title - Notification title
+ * @param body - Notification body
+ * @returns Promise resolving to result with success count, total count, and errors
+ */
+export async function sendBroadcastNotification(
+  title: string,
+  body: string
+): Promise<{
+  successCount: number;
+  totalUsers: number;
+  errors: Array<{ netid: string; error: string }>;
+}> {
+  try {
+    // Get all users with push tokens
+    const usersSnapshot = await db
+      .collection('users')
+      .where('pushToken', '!=', null)
+      .get();
+
+    console.log(
+      `📡 Broadcasting notification to ${usersSnapshot.size} users with push tokens`
+    );
+
+    if (usersSnapshot.empty) {
+      console.log('No users with push tokens found');
+      return { successCount: 0, totalUsers: 0, errors: [] };
+    }
+
+    // Create in-app notifications in Firestore for all users
+    // Use batch writes for efficiency (max 500 per batch)
+    const BATCH_SIZE = 500;
+    const allUsers: UserDoc[] = usersSnapshot.docs.map((doc) =>
+      doc.data() as UserDoc
+    );
+
+    console.log(
+      `💾 Creating ${allUsers.length} in-app notifications in Firestore...`
+    );
+
+    // Split into batches and write to Firestore
+    for (let i = 0; i < allUsers.length; i += BATCH_SIZE) {
+      const batch = db.batch();
+      const batchUsers = allUsers.slice(i, i + BATCH_SIZE);
+
+      batchUsers.forEach((userData) => {
+        const notificationRef = db.collection('notifications').doc();
+        batch.set(notificationRef, {
+          netid: userData.netid,
+          type: 'admin_broadcast',
+          title,
+          message: body,
+          read: false,
+          metadata: {},
+          createdAt: FieldValue.serverTimestamp(),
+        });
+      });
+
+      await batch.commit();
+      console.log(
+        `✅ Batch ${Math.floor(i / BATCH_SIZE) + 1}: Created ${batchUsers.length} in-app notifications`
+      );
+    }
+
+    console.log(
+      `✅ All in-app notifications created in Firestore. Now sending push notifications...`
+    );
+
+    // Construct push notification messages
+    const messages: ExpoPushMessage[] = [];
+    const userTokenMap = new Map<number, { netid: string; docRef: any }>();
+
+    usersSnapshot.docs.forEach((doc) => {
+      const userData = doc.data() as UserDoc;
+      const pushToken = userData.pushToken;
+
+      if (!pushToken) {
+        return;
+      }
+
+      // Validate the push token
+      if (!Expo.isExpoPushToken(pushToken)) {
+        console.error(
+          `Invalid push token for user ${userData.netid}: ${pushToken}`
+        );
+        // Remove invalid token
+        doc.ref.update({
+          pushToken: null,
+          pushTokenUpdatedAt: null,
+        });
+        return;
+      }
+
+      const messageIndex = messages.length;
+      messages.push({
+        to: pushToken,
+        sound: 'default',
+        title,
+        body,
+        data: {
+          type: 'admin_broadcast',
+          timestamp: new Date().toISOString(),
+        },
+        priority: 'high',
+        badge: 1, // Show red badge on app icon
+      });
+
+      userTokenMap.set(messageIndex, {
+        netid: userData.netid,
+        docRef: doc.ref,
+      });
+    });
+
+    if (messages.length === 0) {
+      console.log('No valid push tokens found after validation');
+      return { successCount: 0, totalUsers: usersSnapshot.size, errors: [] };
+    }
+
+    console.log(`✅ Prepared ${messages.length} valid messages for sending`);
+
+    // Send push notifications in chunks (Expo recommends max 100 per request)
+    const chunks = expo.chunkPushNotifications(messages);
+    let successCount = 0;
+    let messageIndex = 0;
+    const errors: Array<{ netid: string; error: string }> = [];
+
+    for (const chunk of chunks) {
+      try {
+        console.log(`📤 Sending chunk of ${chunk.length} notifications...`);
+        const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+
+        // Check for errors in this chunk
+        ticketChunk.forEach((ticket, ticketIndex) => {
+          const globalIndex = messageIndex + ticketIndex;
+          const userInfo = userTokenMap.get(globalIndex);
+
+          if (!userInfo) {
+            console.error(`No user info found for message index ${globalIndex}`);
+            return;
+          }
+
+          if (ticket.status === 'ok') {
+            successCount++;
+            console.log(`✅ Broadcast notification sent to ${userInfo.netid}`);
+          } else if (ticket.status === 'error') {
+            const errorMsg = ticket.message || 'Unknown error';
+            console.error(
+              `❌ Error sending broadcast notification to ${userInfo.netid}:`,
+              errorMsg
+            );
+            errors.push({ netid: userInfo.netid, error: errorMsg });
+
+            // If the token is invalid, remove it
+            if (
+              ticket.details?.error === 'DeviceNotRegistered' ||
+              ticket.message?.includes('not registered')
+            ) {
+              userInfo.docRef.update({
+                pushToken: null,
+                pushTokenUpdatedAt: null,
+              });
+            }
+          }
+        });
+
+        messageIndex += chunk.length;
+      } catch (error) {
+        console.error('Error sending push notification chunk:', error);
+        // Mark all messages in this chunk as failed
+        chunk.forEach((_, ticketIndex) => {
+          const globalIndex = messageIndex + ticketIndex;
+          const userInfo = userTokenMap.get(globalIndex);
+          if (userInfo) {
+            errors.push({
+              netid: userInfo.netid,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            });
+          }
+        });
+        messageIndex += chunk.length;
+      }
+    }
+
+    console.log(
+      `📊 Broadcast complete: ${successCount}/${messages.length} notifications sent successfully`
+    );
+
+    return {
+      successCount,
+      totalUsers: messages.length,
+      errors,
+    };
+  } catch (error) {
+    console.error('Error sending broadcast notification:', error);
+    throw error;
   }
 }

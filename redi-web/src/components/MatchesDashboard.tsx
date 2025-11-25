@@ -137,14 +137,14 @@ export default function MatchesDashboard() {
             </div>
 
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <div className="text-sm text-gray-600 mb-1">Reveal Rate</div>
+              <div className="text-sm text-gray-600 mb-1">Nudge Rate</div>
               <div className="text-3xl font-bold text-black">
-                {stats.revealRate.toFixed(1)}%
+                {stats.nudgeRate.toFixed(1)}%
               </div>
               <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
                 <div
                   className="bg-black h-2 rounded-full transition-all"
-                  style={{ width: `${Math.min(stats.revealRate, 100)}%` }}
+                  style={{ width: `${Math.min(stats.nudgeRate, 100)}%` }}
                 />
               </div>
             </div>
@@ -201,10 +201,10 @@ export default function MatchesDashboard() {
                         Users Matched
                       </th>
                       <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">
-                        Reveals
+                        Nudges
                       </th>
                       <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">
-                        Reveal Rate
+                        Nudge Rate
                       </th>
                       <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">
                         Actions
@@ -232,19 +232,19 @@ export default function MatchesDashboard() {
                           {promptStat.totalUsersMatched}
                         </td>
                         <td className="py-4 px-4 text-center text-gray-600">
-                          {promptStat.totalReveals} /{' '}
+                          {promptStat.totalNudges} /{' '}
                           {promptStat.totalMatchDocuments * 3}
                         </td>
                         <td className="py-4 px-4 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <span className="text-black font-medium">
-                              {promptStat.revealRate.toFixed(1)}%
+                              {promptStat.nudgeRate.toFixed(1)}%
                             </span>
                             <div className="w-16 bg-gray-200 rounded-full h-1.5">
                               <div
                                 className="bg-black h-1.5 rounded-full transition-all"
                                 style={{
-                                  width: `${Math.min(promptStat.revealRate, 100)}%`,
+                                  width: `${Math.min(promptStat.nudgeRate, 100)}%`,
                                 }}
                               />
                             </div>

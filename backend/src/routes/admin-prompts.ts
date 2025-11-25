@@ -770,42 +770,82 @@ router.get('/api/admin/matches/stats', async (req: AdminRequest, res) => {
   try {
     // Fetch all match documents
     const matchesSnapshot = await db.collection('weeklyMatches').get();
+    // Fetch all nudges
+    const nudgesSnapshot = await db.collection('nudges').get();
+
+    // Build nudge map for quick lookup
+    const nudgeMap = new Map<string, Set<string>>(); // netid_promptId -> Set of toNetids
+    nudgesSnapshot.docs.forEach((doc) => {
+      const nudgeData = doc.data();
+      const key = `${nudgeData.fromNetid}_${nudgeData.promptId}`;
+      if (!nudgeMap.has(key)) {
+        nudgeMap.set(key, new Set());
+      }
+      nudgeMap.get(key)!.add(nudgeData.toNetid);
+    });
 
     const totalMatches = matchesSnapshot.size;
     const uniqueUsers = new Set<string>();
-    let totalReveals = 0;
+    let totalNudges = 0;
     const promptMatchCounts: {
-      [promptId: string]: { count: number; reveals: number };
+      [promptId: string]: { count: number; nudges: number };
     } = {};
 
     // Calculate stats
     for (const matchDoc of matchesSnapshot.docs) {
       const matchData = matchDoc.data();
-      uniqueUsers.add(matchData.netid);
-
-      // Count reveals (true values in revealed array) - DEFENSIVE PROGRAMMING
-      const revealed = Array.isArray(matchData.revealed)
-        ? matchData.revealed
-        : [];
-      const revealsForThisMatch = revealed.filter(
-        (r: boolean) => r === true
-      ).length;
-      totalReveals += revealsForThisMatch;
-
-      // Track per-prompt stats
+      const netid = matchData.netid;
       const promptId = matchData.promptId;
-      if (!promptMatchCounts[promptId]) {
-        promptMatchCounts[promptId] = { count: 0, reveals: 0 };
+      const matchedNetids = Array.isArray(matchData.matches)
+        ? matchData.matches
+        : [];
+
+      // Skip matches with invalid netid
+      if (netid && typeof netid === 'string' && netid.trim() !== '') {
+        uniqueUsers.add(netid);
+      } else {
+        console.warn(`Match document ${matchDoc.id} has invalid netid:`, netid);
       }
-      promptMatchCounts[promptId].count++;
-      promptMatchCounts[promptId].reveals += revealsForThisMatch;
+
+      // Count nudges for this match
+      let nudgesForThisMatch = 0;
+      if (promptId && typeof promptId === 'string' && promptId.trim() !== '') {
+        const nudgeKey = `${netid}_${promptId}`;
+        const nudgedUsers = nudgeMap.get(nudgeKey) || new Set();
+
+        // Count how many of the matched users were nudged
+        matchedNetids.forEach((matchedNetid: string) => {
+          if (nudgedUsers.has(matchedNetid)) {
+            nudgesForThisMatch++;
+          }
+          // Also check if the matched user nudged back
+          const reverseKey = `${matchedNetid}_${promptId}`;
+          const reverseNudgedUsers = nudgeMap.get(reverseKey) || new Set();
+          if (reverseNudgedUsers.has(netid) && !nudgedUsers.has(matchedNetid)) {
+            nudgesForThisMatch++;
+          }
+        });
+      }
+
+      totalNudges += nudgesForThisMatch;
+
+      // Track per-prompt stats - skip if promptId is invalid
+      if (promptId && typeof promptId === 'string' && promptId.trim() !== '') {
+        if (!promptMatchCounts[promptId]) {
+          promptMatchCounts[promptId] = { count: 0, nudges: 0 };
+        }
+        promptMatchCounts[promptId].count++;
+        promptMatchCounts[promptId].nudges += nudgesForThisMatch;
+      } else {
+        console.warn(`Match document ${matchDoc.id} has invalid promptId:`, promptId);
+      }
     }
 
     const totalUsersMatched = uniqueUsers.size;
-    const totalPossibleReveals = totalMatches * 3; // Each match has 3 potential reveals
-    const revealRate =
-      totalPossibleReveals > 0
-        ? (totalReveals / totalPossibleReveals) * 100
+    const totalPossibleNudges = totalMatches * 3; // Each match has 3 potential nudges
+    const nudgeRate =
+      totalPossibleNudges > 0
+        ? (totalNudges / totalPossibleNudges) * 100
         : 0;
     const averageMatchesPerPrompt =
       Object.keys(promptMatchCounts).length > 0
@@ -815,16 +855,22 @@ router.get('/api/admin/matches/stats', async (req: AdminRequest, res) => {
     // Build prompt-specific stats
     const promptStats: MatchStatsResponse['promptStats'] = [];
     for (const [promptId, stats] of Object.entries(promptMatchCounts)) {
+      // Skip if promptId is invalid
+      if (!promptId || typeof promptId !== 'string' || promptId.trim() === '') {
+        console.warn(`Skipping invalid promptId in match stats:`, promptId);
+        continue;
+      }
+
       const promptDoc = await db
         .collection('weeklyPrompts')
         .doc(promptId)
         .get();
       const promptData = promptDoc.data();
 
-      const totalPossibleRevealsForPrompt: number = stats.count * 3;
-      const promptRevealRate =
-        totalPossibleRevealsForPrompt > 0
-          ? (stats.reveals / totalPossibleRevealsForPrompt) * 100
+      const totalPossibleNudgesForPrompt: number = stats.count * 3;
+      const promptNudgeRate =
+        totalPossibleNudgesForPrompt > 0
+          ? (stats.nudges / totalPossibleNudgesForPrompt) * 100
           : 0;
 
       promptStats.push({
@@ -835,8 +881,8 @@ router.get('/api/admin/matches/stats', async (req: AdminRequest, res) => {
           : '',
         totalMatchDocuments: stats.count,
         totalUsersMatched: stats.count, // Each match doc is for one user
-        totalReveals: stats.reveals,
-        revealRate: Math.round(promptRevealRate * 100) / 100,
+        totalNudges: stats.nudges,
+        nudgeRate: Math.round(promptNudgeRate * 100) / 100,
       });
     }
 
@@ -850,8 +896,8 @@ router.get('/api/admin/matches/stats', async (req: AdminRequest, res) => {
       totalMatches,
       totalUsersMatched,
       averageMatchesPerPrompt: Math.round(averageMatchesPerPrompt * 100) / 100,
-      totalReveals,
-      revealRate: Math.round(revealRate * 100) / 100,
+      totalNudges,
+      nudgeRate: Math.round(nudgeRate * 100) / 100,
       promptStats,
     };
 
@@ -938,8 +984,24 @@ router.get(
           .get();
       }
 
+      // Fetch nudges for this prompt
+      const nudgesSnapshot = await db
+        .collection('nudges')
+        .where('promptId', '==', promptId)
+        .get();
+
+      // Build nudge map for quick lookup
+      const nudgeMap = new Map<string, Set<string>>(); // fromNetid -> Set of toNetids
+      nudgesSnapshot.docs.forEach((doc) => {
+        const nudgeData = doc.data();
+        if (!nudgeMap.has(nudgeData.fromNetid)) {
+          nudgeMap.set(nudgeData.fromNetid, new Set());
+        }
+        nudgeMap.get(nudgeData.fromNetid)!.add(nudgeData.toNetid);
+      });
+
       const totalMatchDocuments = matchesSnapshot.size;
-      let totalReveals = 0;
+      let totalNudges = 0;
       const matchesWithProfiles: MatchWithProfile[] = [];
 
       // Build matches array with profile data
@@ -953,31 +1015,72 @@ router.get(
           ? matchData.revealed
           : [];
 
-        // Count reveals for this match
-        totalReveals += revealed.filter((r: boolean) => r === true).length;
+        // Skip if userNetid is invalid
+        if (!userNetid || typeof userNetid !== 'string' || userNetid.trim() === '') {
+          console.warn(`Invalid userNetid for match document ${matchDoc.id}:`, userNetid);
+          continue; // Skip this entire match document
+        }
 
-        // Fetch user profile
-        const userProfileDoc = await db
+        // Fetch user profile by querying netid field (profiles use auto-generated IDs)
+        const userProfileSnapshot = await db
           .collection('profiles')
-          .doc(userNetid)
+          .where('netid', '==', userNetid)
+          .limit(1)
           .get();
-        const userProfileData = userProfileDoc.data();
+
+        const userProfileData = !userProfileSnapshot.empty
+          ? userProfileSnapshot.docs[0].data()
+          : null;
 
         // Fetch matched users' profiles
         const matchedProfiles = [];
         for (let i = 0; i < matchedNetids.length; i++) {
           const matchedNetid = matchedNetids[i];
-          const matchedProfileDoc = await db
+
+          // Skip if matchedNetid is empty, null, or undefined
+          if (!matchedNetid || typeof matchedNetid !== 'string' || matchedNetid.trim() === '') {
+            console.warn(`Invalid matchedNetid at index ${i} for user ${userNetid}:`, matchedNetid);
+            matchedProfiles.push({
+              netid: matchedNetid || 'invalid',
+              firstName: 'Invalid User',
+              profilePicture: undefined,
+              revealed: Boolean(revealed[i]),
+              nudgedByUser: false,
+              nudgedByMatch: false,
+            });
+            continue;
+          }
+
+          // Fetch matched user profile by querying netid field (profiles use auto-generated IDs)
+          const matchedProfileSnapshot = await db
             .collection('profiles')
-            .doc(matchedNetid)
+            .where('netid', '==', matchedNetid)
+            .limit(1)
             .get();
-          const matchedProfileData = matchedProfileDoc.data();
+
+          const matchedProfileData = !matchedProfileSnapshot.empty
+            ? matchedProfileSnapshot.docs[0].data()
+            : null;
+
+          // Check nudge status in both directions
+          const nudgedByUser = nudgeMap.get(userNetid)?.has(matchedNetid) || false;
+          const nudgedByMatch = nudgeMap.get(matchedNetid)?.has(userNetid) || false;
+
+          // Count total nudges (count each direction once)
+          if (nudgedByUser) {
+            totalNudges++;
+          }
+          if (nudgedByMatch && !nudgedByUser) {
+            totalNudges++;
+          }
 
           matchedProfiles.push({
             netid: matchedNetid,
             firstName: matchedProfileData?.firstName || 'Unknown',
             profilePicture: matchedProfileData?.pictures?.[0],
             revealed: Boolean(revealed[i]), // Ensure it's a boolean
+            nudgedByUser,
+            nudgedByMatch,
           });
         }
 
@@ -992,10 +1095,10 @@ router.get(
         });
       }
 
-      const totalPossibleReveals = totalMatchDocuments * 3;
-      const revealRate =
-        totalPossibleReveals > 0
-          ? (totalReveals / totalPossibleReveals) * 100
+      const totalPossibleNudges = totalMatchDocuments * 3;
+      const nudgeRate =
+        totalPossibleNudges > 0
+          ? (totalNudges / totalPossibleNudges) * 100
           : 0;
 
       const response: PromptMatchDetailResponse = {
@@ -1003,9 +1106,9 @@ router.get(
         question: existingPrompt.question,
         totalMatchDocuments,
         totalUsersMatched: totalMatchDocuments, // Each match doc is for one user
-        totalPossibleReveals,
-        totalReveals,
-        revealRate: Math.round(revealRate * 100) / 100,
+        totalPossibleNudges,
+        totalNudges,
+        nudgeRate: Math.round(nudgeRate * 100) / 100,
         matches: matchesWithProfiles,
       };
 
@@ -1016,7 +1119,7 @@ router.get(
         req.user!.email,
         'prompt',
         promptId,
-        { totalMatchDocuments, totalReveals },
+        { totalMatchDocuments, totalNudges },
         getIpAddress(req),
         getUserAgent(req)
       );

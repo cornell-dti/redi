@@ -57,14 +57,14 @@ export default function PromptMatchDetailsViewer({
 
     let filtered = data.matches;
 
-    // Apply reveal filter
+    // Apply nudge filter
     if (filter === 'revealed') {
       filtered = filtered.filter((match) =>
-        match.matches.some((m) => m.revealed)
+        match.matches.some((m) => m.nudgedByUser)
       );
     } else if (filter === 'unrevealed') {
       filtered = filtered.filter((match) =>
-        match.matches.every((m) => !m.revealed)
+        match.matches.every((m) => !m.nudgedByUser)
       );
     }
 
@@ -133,15 +133,15 @@ export default function PromptMatchDetailsViewer({
                 </div>
               </div>
               <div className="bg-gray-50 rounded p-3">
-                <div className="text-xs text-gray-600">Total Reveals</div>
+                <div className="text-xs text-gray-600">Total Nudges</div>
                 <div className="text-xl font-bold text-black">
-                  {data.totalReveals} / {data.totalPossibleReveals}
+                  {data.totalNudges} / {data.totalPossibleNudges}
                 </div>
               </div>
               <div className="bg-gray-50 rounded p-3">
-                <div className="text-xs text-gray-600">Reveal Rate</div>
+                <div className="text-xs text-gray-600">Nudge Rate</div>
                 <div className="text-xl font-bold text-black">
-                  {data.revealRate.toFixed(1)}%
+                  {data.nudgeRate.toFixed(1)}%
                 </div>
               </div>
               <div className="bg-gray-50 rounded p-3">
@@ -174,7 +174,7 @@ export default function PromptMatchDetailsViewer({
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                With Reveals
+                With Nudges
               </button>
               <button
                 onClick={() => setFilter('unrevealed')}
@@ -184,7 +184,7 @@ export default function PromptMatchDetailsViewer({
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                No Reveals
+                No Nudges
               </button>
             </div>
 
@@ -311,9 +311,9 @@ export default function PromptMatchDetailsViewer({
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm text-gray-600">Reveals</div>
+                      <div className="text-sm text-gray-600">Nudges</div>
                       <div className="text-lg font-bold text-black">
-                        {match.matches.filter((m) => m.revealed).length} / 3
+                        {match.matches.filter((m) => m.nudgedByUser).length} / 3
                       </div>
                     </div>
                   </div>
@@ -323,77 +323,98 @@ export default function PromptMatchDetailsViewer({
                     <div className="text-sm font-semibold text-gray-600 mb-2">
                       Their Matches:
                     </div>
-                    {match.matches.map((matchedUser, matchIndex) => (
-                      <div
-                        key={`${matchedUser.netid}-${matchIndex}`}
-                        className={`flex items-center gap-3 p-3 rounded transition ${
-                          matchedUser.revealed
-                            ? 'bg-green-50 border border-green-200'
-                            : 'bg-white border border-gray-200'
-                        }`}
-                      >
-                        {matchedUser.profilePicture ? (
-                          <img
-                            src={matchedUser.profilePicture}
-                            alt={matchedUser.firstName}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white text-sm font-semibold">
-                            {matchedUser.firstName.charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <div className="text-black font-medium">
-                            {matchedUser.firstName}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {matchedUser.netid}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {matchedUser.revealed ? (
-                            <div className="flex items-center gap-1 text-green-600 text-sm">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                                <circle cx="12" cy="12" r="3" />
-                              </svg>
-                              <span className="font-medium">Revealed</span>
-                            </div>
+                    {match.matches.map((matchedUser, matchIndex) => {
+                      const isMutual = matchedUser.nudgedByUser && matchedUser.nudgedByMatch;
+                      const isNudged = matchedUser.nudgedByUser && !matchedUser.nudgedByMatch;
+
+                      return (
+                        <div
+                          key={`${matchedUser.netid}-${matchIndex}`}
+                          className={`flex items-center gap-3 p-3 rounded transition ${
+                            isMutual
+                              ? 'bg-purple-50 border border-purple-300'
+                              : isNudged
+                              ? 'bg-green-50 border border-green-200'
+                              : 'bg-white border border-gray-200'
+                          }`}
+                        >
+                          {matchedUser.profilePicture ? (
+                            <img
+                              src={matchedUser.profilePicture}
+                              alt={matchedUser.firstName}
+                              className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+                            />
                           ) : (
-                            <div className="flex items-center gap-1 text-gray-400 text-sm">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                                <line x1="2" x2="22" y1="2" y2="22" />
-                              </svg>
-                              <span>Not Revealed</span>
+                            <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white text-sm font-semibold">
+                              {matchedUser.firstName.charAt(0).toUpperCase()}
                             </div>
                           )}
+                          <div className="flex-1">
+                            <div className="text-black font-medium">
+                              {matchedUser.firstName}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {matchedUser.netid}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {isMutual ? (
+                              <div className="flex items-center gap-1 text-purple-600 text-sm">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="currentColor"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                                </svg>
+                                <span className="font-medium">Mutual</span>
+                              </div>
+                            ) : isNudged ? (
+                              <div className="flex items-center gap-1 text-green-600 text-sm">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                                </svg>
+                                <span className="font-medium">Nudged</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 text-gray-400 text-sm">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                                  <line x1="2" x2="22" y1="2" y2="22" />
+                                </svg>
+                                <span>Not Nudged</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))}

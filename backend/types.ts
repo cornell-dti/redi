@@ -434,6 +434,8 @@ export interface MatchWithProfile {
     firstName: string;
     profilePicture?: string;
     revealed: boolean;
+    nudgedByUser: boolean; // True if the user nudged this match
+    nudgedByMatch: boolean; // True if this match nudged the user
   }>;
   createdAt: string; // ISO string format
 }
@@ -443,16 +445,16 @@ export interface MatchStatsResponse {
   totalMatches: number; // Total match documents created
   totalUsersMatched: number; // Unique users who received matches
   averageMatchesPerPrompt: number;
-  totalReveals: number; // Total individual matches revealed
-  revealRate: number; // Percentage (0-100)
+  totalNudges: number; // Total individual matches nudged
+  nudgeRate: number; // Percentage (0-100)
   promptStats: Array<{
     promptId: string;
     question: string;
     matchDate: string; // ISO string
     totalMatchDocuments: number;
     totalUsersMatched: number;
-    totalReveals: number;
-    revealRate: number;
+    totalNudges: number;
+    nudgeRate: number;
   }>;
 }
 
@@ -462,9 +464,9 @@ export interface PromptMatchDetailResponse {
   question: string;
   totalMatchDocuments: number;
   totalUsersMatched: number;
-  totalPossibleReveals: number; // totalMatchDocuments * 3
-  totalReveals: number;
-  revealRate: number;
+  totalPossibleNudges: number; // totalMatchDocuments * 3
+  totalNudges: number;
+  nudgeRate: number;
   matches: MatchWithProfile[];
 }
 
@@ -514,7 +516,11 @@ export interface NudgeStatusResponse {
 // NOTIFICATIONS MODELS
 // =============================================================================
 
-export type NotificationType = 'mutual_nudge' | 'new_message' | 'match_drop';
+export type NotificationType =
+  | 'mutual_nudge'
+  | 'new_message'
+  | 'match_drop'
+  | 'admin_broadcast';
 
 // Notification document in Firestore (notifications collection)
 export interface NotificationDoc {

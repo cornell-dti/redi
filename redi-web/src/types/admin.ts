@@ -188,6 +188,8 @@ export interface MatchWithProfile {
     firstName: string;
     profilePicture?: string;
     revealed: boolean;
+    nudgedByUser: boolean; // True if the user nudged this match
+    nudgedByMatch: boolean; // True if this match nudged the user
   }>;
   createdAt: string;
 }
@@ -199,16 +201,16 @@ export interface MatchStatsResponse {
   totalMatches: number;
   totalUsersMatched: number;
   averageMatchesPerPrompt: number;
-  totalReveals: number;
-  revealRate: number;
+  totalNudges: number;
+  nudgeRate: number;
   promptStats: Array<{
     promptId: string;
     question: string;
     matchDate: string;
     totalMatchDocuments: number;
     totalUsersMatched: number;
-    totalReveals: number;
-    revealRate: number;
+    totalNudges: number;
+    nudgeRate: number;
   }>;
 }
 
@@ -220,9 +222,9 @@ export interface PromptMatchDetailResponse {
   question: string;
   totalMatchDocuments: number;
   totalUsersMatched: number;
-  totalPossibleReveals: number;
-  totalReveals: number;
-  revealRate: number;
+  totalPossibleNudges: number;
+  totalNudges: number;
+  nudgeRate: number;
   matches: MatchWithProfile[];
 }
 

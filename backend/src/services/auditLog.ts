@@ -22,6 +22,7 @@ export type AuditResourceType =
   | 'admin'
   | 'report'
   | 'analytics'
+  | 'notifications'
   | 'system';
 
 /**
@@ -57,6 +58,8 @@ export type AuditAction =
   | 'VIEW_COMPATIBILITY_ANALYTICS'
   | 'VIEW_ENGAGEMENT_ANALYTICS'
   | 'VIEW_NUDGE_ANALYTICS'
+  // Notification actions
+  | 'SEND_BROADCAST_NOTIFICATION'
   // System actions
   | 'ADMIN_LOGIN'
   | 'ADMIN_LOGOUT'

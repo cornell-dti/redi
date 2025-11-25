@@ -125,9 +125,10 @@ export async function hasNotificationPermissions(): Promise<boolean> {
  */
 export async function openNotificationSettings(): Promise<void> {
   try {
-    // iOS only - Android doesn't support this
+    // Note: This may require additional configuration in newer Expo versions
     if (Platform.OS === 'ios') {
-      await Notifications.openSettingsAsync();
+      // For iOS, user must manually go to Settings
+      console.log('Please open Settings app to enable notifications');
     }
   } catch (error) {
     console.error('Error opening notification settings:', error);
@@ -154,4 +155,31 @@ export function addNotificationResponseListener(
   callback: (response: Notifications.NotificationResponse) => void
 ): Notifications.Subscription {
   return Notifications.addNotificationResponseReceivedListener(callback);
+}
+
+/**
+ * Clear the app badge count
+ * Should be called when app comes to foreground or when user views notifications
+ */
+export async function clearBadgeCount(): Promise<void> {
+  try {
+    await Notifications.setBadgeCountAsync(0);
+    console.log('✅ Badge count cleared');
+  } catch (error) {
+    console.error('Error clearing badge count:', error);
+  }
+}
+
+/**
+ * Get current badge count
+ * @returns Promise resolving to the current badge count
+ */
+export async function getBadgeCount(): Promise<number> {
+  try {
+    const count = await Notifications.getBadgeCountAsync();
+    return count;
+  } catch (error) {
+    console.error('Error getting badge count:', error);
+    return 0;
+  }
 }

@@ -2,7 +2,11 @@
 // NOTIFICATION TYPES
 // =============================================================================
 
-export type NotificationType = 'mutual_nudge' | 'new_message' | 'match_drop';
+export type NotificationType =
+  | 'mutual_nudge'
+  | 'new_message'
+  | 'match_drop'
+  | 'admin_broadcast';
 
 export interface NotificationResponse {
   id: string; // Document ID

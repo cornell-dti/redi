@@ -148,6 +148,12 @@ export default function AdminAnalyticsPage() {
               </div>
               <div className="flex items-center gap-3">
                 <Link
+                  href="/admin/broadcast"
+                  className="px-4 py-2 bg-gray-100 text-black rounded-full hover:bg-gray-200 transition border border-gray-300"
+                >
+                  Broadcast
+                </Link>
+                <Link
                   href="/admin/prompts"
                   className="px-4 py-2 bg-gray-100 text-black rounded-full hover:bg-gray-200 transition border border-gray-300"
                 >
