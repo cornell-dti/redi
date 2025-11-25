@@ -7,7 +7,6 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
 } from 'firebase/auth';
-import { isAdmin } from '@/utils/auth';
 import { FIREBASE_APP } from '../../firebase';
 
 interface AdminSignInProps {
@@ -27,7 +26,18 @@ export default function AdminSignIn({ onSignInSuccess }: AdminSignInProps) {
 
     try {
       const auth = getAuth(FIREBASE_APP);
-      await signInWithEmailAndPassword(auth, email, password);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+
+      // Check if user has admin custom claim
+      const tokenResult = await result.user.getIdTokenResult(true);
+      if (tokenResult.claims.admin !== true) {
+        console.warn('⛔ User does not have admin custom claim, signing out');
+        await auth.signOut();
+        setError('Access Denied: Your account does not have admin privileges.');
+        setIsLoading(false);
+        return;
+      }
+
       onSignInSuccess();
     } catch (err) {
       console.error('Sign in error:', err);
@@ -77,16 +87,17 @@ export default function AdminSignIn({ onSignInSuccess }: AdminSignInProps) {
       console.log('✅ Google Sign-In successful:', user.uid);
       console.log('   Email:', user.email);
 
-      // Check if user is admin (UID matches)
-      if (!isAdmin(user.uid)) {
-        console.warn('⛔ User is not an admin, signing out');
+      // Check if user has admin custom claim
+      const tokenResult = await user.getIdTokenResult(true);
+      if (tokenResult.claims.admin !== true) {
+        console.warn('⛔ User does not have admin custom claim, signing out');
         await auth.signOut();
         setError('Access Denied: Your account does not have admin privileges.');
         setIsLoading(false);
         return;
       }
 
-      console.log('✅ Admin verified, proceeding...');
+      console.log('✅ Admin custom claim verified, proceeding...');
       onSignInSuccess();
     } catch (err) {
       console.error('❌ Google Sign-In error:', err);
