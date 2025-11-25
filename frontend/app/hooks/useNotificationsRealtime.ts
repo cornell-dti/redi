@@ -12,6 +12,7 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '../api/notificationsApi';
+import { setBadgeCount, clearBadge } from '../utils/badgeManager';
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 const POLLING_INTERVAL = 30000; // 30 seconds fallback polling
@@ -90,6 +91,9 @@ export const useNotificationsRealtime = () => {
         setError(null);
         setLoading(false);
 
+        // Update badge count
+        setBadgeCount(unread);
+
         console.log(
           `✅ Notifications polled: ${notifs.length} total, ${unread} unread`
         );
@@ -163,6 +167,9 @@ export const useNotificationsRealtime = () => {
               setLoading(false);
               setUsingFallback(false);
 
+              // Update badge count
+              setBadgeCount(unread);
+
               console.log(
                 `✅ Notifications updated: ${notifs.length} total, ${unread} unread`
               );
@@ -220,7 +227,11 @@ export const useNotificationsRealtime = () => {
       setNotifications((prev) =>
         prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
       );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      const newUnreadCount = Math.max(0, unreadCount - 1);
+      setUnreadCount(newUnreadCount);
+
+      // Update badge count
+      setBadgeCount(newUnreadCount);
 
       // Update via API
       await markNotificationAsRead(notificationId);
@@ -242,6 +253,9 @@ export const useNotificationsRealtime = () => {
       // Optimistically update local state
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);
+
+      // Clear badge
+      clearBadge();
 
       // Update via API
       await markAllNotificationsAsRead();
