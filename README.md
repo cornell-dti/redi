@@ -106,6 +106,11 @@ node scripts/clean-emails.js
 
 # Then upload to Firebase
 npx tsx scripts/upload-emails.ts
+
+# Run this command from the root of project to add admin:
+
+  cd backend
+  ADMIN_EMAIL=jlc565@cornell.edu npx ts-node scripts/setAdminByEmail.ts
 ```
 
 **Requirements:**
