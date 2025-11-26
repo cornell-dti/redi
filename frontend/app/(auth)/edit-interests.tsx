@@ -11,6 +11,13 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
@@ -23,10 +30,148 @@ import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
+import { useHapticFeedback } from '../hooks/useHapticFeedback';
+
+interface DraggableTagProps {
+  interest: string;
+  index: number;
+  isDragging: boolean;
+  onRemove: () => void;
+  onDragStart: () => void;
+  onDragEnd: (toIndex: number) => void;
+  onHoverChange: (toIndex: number | null) => void;
+  totalInterests: number;
+  onHaptic: () => void;
+  allInterests: string[];
+}
+
+function DraggableTag({
+  interest,
+  index,
+  isDragging,
+  onRemove,
+  onDragStart,
+  onDragEnd,
+  onHoverChange,
+  totalInterests,
+  onHaptic,
+  allInterests,
+}: DraggableTagProps) {
+  useThemeAware();
+
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const zIndex = useSharedValue(0);
+  const lastTargetIndex = useSharedValue(index);
+
+  const gesture = Gesture.Pan()
+    .onStart(() => {
+      runOnJS(onDragStart)();
+      scale.value = withSpring(1.1);
+      zIndex.value = 1000;
+      lastTargetIndex.value = index;
+    })
+    .onUpdate((event) => {
+      translateX.value = event.translationX;
+      translateY.value = event.translationY;
+
+      // Find the target index based on position
+      // This is simplified - we check which tag center is closest to drag position
+      let closestIndex = index;
+      let closestDistance = Infinity;
+
+      for (let i = 0; i < totalInterests; i++) {
+        if (i === index) continue;
+
+        // Rough estimation based on translation
+        // For a flexWrap layout, we estimate based on both X and Y translation
+        const distance = Math.sqrt(
+          Math.pow(event.translationX, 2) + Math.pow(event.translationY, 2)
+        );
+
+        // Simple heuristic: if we've moved significantly, target the adjacent index
+        const horizontalMove = Math.round(event.translationX / 100); // ~100px per tag
+        const verticalMove = Math.round(event.translationY / 50); // ~50px per row
+
+        const estimatedOffset = horizontalMove + verticalMove * 3; // Assume ~3 tags per row
+        const estimatedIndex = Math.max(
+          0,
+          Math.min(index + estimatedOffset, totalInterests - 1)
+        );
+
+        if (estimatedIndex !== lastTargetIndex.value) {
+          closestIndex = estimatedIndex;
+          break;
+        }
+      }
+
+      const targetIndex = closestIndex;
+
+      // Trigger haptic feedback when crossing to a new position
+      if (targetIndex !== lastTargetIndex.value) {
+        runOnJS(onHaptic)();
+        lastTargetIndex.value = targetIndex;
+      }
+
+      runOnJS(onHoverChange)(targetIndex);
+    })
+    .onEnd((event) => {
+      // Calculate final drop position
+      const horizontalMove = Math.round(event.translationX / 100);
+      const verticalMove = Math.round(event.translationY / 50);
+      const estimatedOffset = horizontalMove + verticalMove * 3;
+      const toIndex = Math.max(
+        0,
+        Math.min(index + estimatedOffset, totalInterests - 1)
+      );
+
+      runOnJS(onDragEnd)(toIndex);
+      runOnJS(onHoverChange)(null);
+
+      // Reset position and scale
+      translateX.value = withSpring(0, { damping: 20, stiffness: 200 });
+      translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
+      scale.value = withSpring(1, { damping: 20, stiffness: 150 });
+      zIndex.value = 0;
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+    zIndex: zIndex.value,
+    opacity: isDragging ? 0.8 : 1,
+    shadowColor: isDragging ? '#000' : 'transparent',
+    shadowOffset: {
+      width: 0,
+      height: isDragging ? 4 : 0,
+    },
+    shadowOpacity: isDragging ? 0.3 : 0,
+    shadowRadius: isDragging ? 4.65 : 0,
+    elevation: isDragging ? 8 : 0,
+  }));
+
+  return (
+    <GestureDetector gesture={gesture}>
+      <Animated.View style={animatedStyle}>
+        <Tag
+          label={interest}
+          variant="gray"
+          dismissible
+          onDismiss={onRemove}
+        />
+      </Animated.View>
+    </GestureDetector>
+  );
+}
 
 export default function EditInterestsPage() {
   useThemeAware();
   const { showToast } = useToast();
+  const haptic = useHapticFeedback();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [interests, setInterests] = useState<string[]>([]);
@@ -35,6 +180,8 @@ export default function EditInterestsPage() {
   const [newInterest, setNewInterest] = useState('');
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
   const [animationTrigger, setAnimationTrigger] = useState(0);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetchProfile();
@@ -131,6 +278,15 @@ export default function EditInterestsPage() {
     setInterests(interests.filter((interest) => interest !== interestToRemove));
   };
 
+  const reorderInterests = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || toIndex >= interests.length) return;
+
+    const newInterests = [...interests];
+    const [movedInterest] = newInterests.splice(fromIndex, 1);
+    newInterests.splice(toIndex, 0, movedInterest);
+    setInterests(newInterests);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -157,15 +313,29 @@ export default function EditInterestsPage() {
           />
         ) : (
           <View style={styles.tagsContainer}>
-            {interests.map((interest) => (
-              <Tag
-                key={interest}
-                label={interest}
-                variant="gray"
-                dismissible
-                onDismiss={() => removeInterest(interest)}
-              />
-            ))}
+            {interests.map((interest, index) => {
+              const isDragging = draggingIndex === index;
+
+              return (
+                <DraggableTag
+                  key={interest}
+                  interest={interest}
+                  index={index}
+                  isDragging={isDragging}
+                  onRemove={() => removeInterest(interest)}
+                  onDragStart={() => setDraggingIndex(index)}
+                  onDragEnd={(toIndex) => {
+                    reorderInterests(index, toIndex);
+                    setDraggingIndex(null);
+                    setHoverIndex(null);
+                  }}
+                  onHoverChange={setHoverIndex}
+                  totalInterests={interests.length}
+                  onHaptic={() => haptic.medium()}
+                  allInterests={interests}
+                />
+              );
+            })}
           </View>
         )}
       </ScrollView>

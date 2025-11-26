@@ -1,6 +1,12 @@
 import AppInput from '@/app/components/ui/AppInput';
 import { router } from 'expo-router';
-import { Check, ChevronRight, Plus, Trash2 } from 'lucide-react-native';
+import {
+  Check,
+  ChevronRight,
+  GripVertical,
+  Plus,
+  Trash2,
+} from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -12,6 +18,13 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
@@ -24,8 +37,122 @@ import Sheet from '../components/ui/Sheet';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
+import { useHapticFeedback } from '../hooks/useHapticFeedback';
 
 type SocialType = 'instagram' | 'snapchat' | 'linkedin' | 'github' | 'website';
+
+// Constants for drag calculations
+const SOCIAL_ITEM_HEIGHT = 72; // Approximate height of a ListItem
+
+interface DraggableSocialItemProps {
+  socialType: SocialType;
+  socialLabel: string;
+  socialValue: string;
+  socialImage: any;
+  index: number;
+  isDragging: boolean;
+  onDragStart: () => void;
+  onDragEnd: (toIndex: number) => void;
+  onHoverChange: (toIndex: number | null) => void;
+  onPress: () => void;
+  totalSocials: number;
+  onHaptic: () => void;
+}
+
+function DraggableSocialItem({
+  socialType,
+  socialLabel,
+  socialValue,
+  socialImage,
+  index,
+  isDragging,
+  onDragStart,
+  onDragEnd,
+  onHoverChange,
+  onPress,
+  totalSocials,
+  onHaptic,
+}: DraggableSocialItemProps) {
+  const translateY = useSharedValue(0);
+  const zIndex = useSharedValue(0);
+  const lastTargetIndex = useSharedValue(index);
+
+  const handleGesture = Gesture.Pan()
+    .onStart(() => {
+      runOnJS(onDragStart)();
+      zIndex.value = 1000;
+      lastTargetIndex.value = index;
+    })
+    .onUpdate((event) => {
+      translateY.value = event.translationY;
+
+      // Calculate hover position while dragging
+      const offset = Math.round(event.translationY / SOCIAL_ITEM_HEIGHT);
+      const targetIndex = Math.max(
+        0,
+        Math.min(index + offset, totalSocials - 1)
+      );
+
+      // Trigger haptic feedback when crossing to a new position
+      if (targetIndex !== lastTargetIndex.value) {
+        runOnJS(onHaptic)();
+        lastTargetIndex.value = targetIndex;
+      }
+
+      runOnJS(onHoverChange)(targetIndex);
+    })
+    .onEnd((event) => {
+      // Calculate which position the social was dropped on
+      const offset = Math.round(event.translationY / SOCIAL_ITEM_HEIGHT);
+      const toIndex = Math.max(0, Math.min(index + offset, totalSocials - 1));
+
+      runOnJS(onDragEnd)(toIndex);
+      runOnJS(onHoverChange)(null);
+
+      // Reset position with reduced bounce
+      translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
+      zIndex.value = 0;
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+    zIndex: zIndex.value,
+    opacity: isDragging ? 0.8 : 1,
+    shadowColor: isDragging ? '#000' : 'transparent',
+    shadowOffset: {
+      width: 0,
+      height: isDragging ? 4 : 0,
+    },
+    shadowOpacity: isDragging ? 0.3 : 0,
+    shadowRadius: isDragging ? 4.65 : 0,
+    elevation: isDragging ? 8 : 0,
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <ListItem
+        title={socialLabel}
+        description={socialValue || ''}
+        left={
+          <View style={styles.leftContainer}>
+            <GestureDetector gesture={handleGesture}>
+              <View style={styles.dragHandle}>
+                <GripVertical size={20} color={AppColors.foregroundDimmer} />
+              </View>
+            </GestureDetector>
+            <Image
+              source={socialImage}
+              style={styles.socialIcon}
+              resizeMode="contain"
+            />
+          </View>
+        }
+        right={<ChevronRight size={20} color={AppColors.foregroundDimmer} />}
+        onPress={onPress}
+      />
+    </Animated.View>
+  );
+}
 
 interface SocialLinks {
   instagram: string;
@@ -114,6 +241,7 @@ const normalizeAtUsername = (value: string): string => {
 export default function EditSocialsPage() {
   useThemeAware();
   const { showToast } = useToast();
+  const haptic = useHapticFeedback();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [socials, setSocials] = useState<SocialLinks>({
@@ -130,10 +258,22 @@ export default function EditSocialsPage() {
     github: '',
     website: '',
   });
+  const [socialsOrder, setSocialsOrder] = useState<SocialType[]>([
+    'instagram',
+    'snapchat',
+    'linkedin',
+    'github',
+    'website',
+  ]);
+  const [originalSocialsOrder, setOriginalSocialsOrder] = useState<
+    SocialType[]
+  >(['instagram', 'snapchat', 'linkedin', 'github', 'website']);
   const [sheetVisible, setSheetVisible] = useState(false);
   const [selectedSocial, setSelectedSocial] = useState<SocialType | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetchProfile();
@@ -161,6 +301,18 @@ export default function EditSocialsPage() {
         };
         setSocials(socialData);
         setOriginalSocials(socialData);
+
+        // Load socialsOrder if it exists, otherwise use default
+        const loadedSocialsOrder = (profileData.socialsOrder ||
+          [
+            'instagram',
+            'snapchat',
+            'linkedin',
+            'github',
+            'website',
+          ]) as SocialType[];
+        setSocialsOrder(loadedSocialsOrder);
+        setOriginalSocialsOrder(loadedSocialsOrder);
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -185,9 +337,11 @@ export default function EditSocialsPage() {
         linkedIn: socials.linkedin,
         github: socials.github,
         website: socials.website,
+        socialsOrder: socialsOrder,
       });
 
       setOriginalSocials(socials);
+      setOriginalSocialsOrder(socialsOrder);
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
@@ -204,7 +358,19 @@ export default function EditSocialsPage() {
   };
 
   const hasUnsavedChanges = () => {
-    return JSON.stringify(socials) !== JSON.stringify(originalSocials);
+    return (
+      JSON.stringify(socials) !== JSON.stringify(originalSocials) ||
+      JSON.stringify(socialsOrder) !== JSON.stringify(originalSocialsOrder)
+    );
+  };
+
+  const reorderSocials = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || toIndex >= socialsOrder.length) return;
+
+    const newOrder = [...socialsOrder];
+    const [movedSocial] = newOrder.splice(fromIndex, 1);
+    newOrder.splice(toIndex, 0, movedSocial);
+    setSocialsOrder(newOrder);
   };
 
   const handleBack = () => {
@@ -299,24 +465,32 @@ export default function EditSocialsPage() {
         showsVerticalScrollIndicator={false}
       >
         <ListItemWrapper>
-          {socialButtons.map((social) => {
+          {socialsOrder.map((socialType, index) => {
+            const social = socialButtons.find((s) => s.type === socialType);
+            if (!social) return null;
+
             const socialValue = socials[social.type];
+            const isDragging = draggingIndex === index;
+
             return (
-              <ListItem
+              <DraggableSocialItem
                 key={social.type}
-                title={social.label}
-                description={socialValue || ''}
-                left={
-                  <Image
-                    source={social.image}
-                    style={styles.socialIcon}
-                    resizeMode="contain"
-                  />
-                }
-                right={
-                  <ChevronRight size={20} color={AppColors.foregroundDimmer} />
-                }
+                socialType={social.type}
+                socialLabel={social.label}
+                socialValue={socialValue}
+                socialImage={social.image}
+                index={index}
+                isDragging={isDragging}
+                onDragStart={() => setDraggingIndex(index)}
+                onDragEnd={(toIndex) => {
+                  reorderSocials(index, toIndex);
+                  setDraggingIndex(null);
+                  setHoverIndex(null);
+                }}
+                onHoverChange={setHoverIndex}
                 onPress={() => openSocialSheet(social.type)}
+                totalSocials={socialsOrder.length}
+                onHaptic={() => haptic.medium()}
               />
             );
           })}
@@ -431,5 +605,13 @@ const styles = StyleSheet.create({
   socialIcon: {
     width: 32,
     height: 32,
+  },
+  leftContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  dragHandle: {
+    padding: 4,
   },
 });
