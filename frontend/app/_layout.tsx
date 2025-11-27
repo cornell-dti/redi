@@ -17,6 +17,7 @@ import OnboardingVideo, {
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import { HapticsProvider } from './contexts/HapticsContext';
 import { MotionProvider } from './contexts/MotionContext';
+import { ProfileProvider } from './contexts/ProfileContext';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { clearBadgeCount } from './services/notificationPermissions';
@@ -376,7 +377,9 @@ export default function RootLayout() {
         <MotionProvider>
           <HapticsProvider>
             <ToastProvider>
-              <RootNavigator />
+              <ProfileProvider>
+                <RootNavigator />
+              </ProfileProvider>
             </ToastProvider>
           </HapticsProvider>
         </MotionProvider>

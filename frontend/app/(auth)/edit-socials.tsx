@@ -31,6 +31,7 @@ import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Sheet from '../components/ui/Sheet';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
+import { useProfile } from '../contexts/ProfileContext';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
@@ -192,6 +193,7 @@ const normalizeAtUsername = (value: string): string => {
 export default function EditSocialsPage() {
   useThemeAware();
   const { showToast } = useToast();
+  const { refreshProfile, updateProfileData } = useProfile();
   const haptic = useHapticFeedback();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -282,17 +284,25 @@ export default function EditSocialsPage() {
 
     setSaving(true);
     try {
-      await updateProfile({
+      const updateData = {
         instagram: socials.instagram,
         snapchat: socials.snapchat,
         linkedIn: socials.linkedin,
         github: socials.github,
         website: socials.website,
         socialsOrder: socialsOrder,
-      });
+      };
+
+      await updateProfile(updateData);
+
+      // Update context with new values
+      updateProfileData(updateData);
 
       setOriginalSocials(socials);
       setOriginalSocialsOrder(socialsOrder);
+
+      // Refresh profile from server in background
+      refreshProfile();
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,

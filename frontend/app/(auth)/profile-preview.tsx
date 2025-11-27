@@ -1,5 +1,4 @@
 import { getCurrentUser } from '@/app/api/authService';
-import { getCurrentUserProfile } from '@/app/api/profileApi';
 import {
   getActivePrompt,
   getPromptAnswer,
@@ -10,7 +9,6 @@ import ProfileView from '@/app/components/profile/ProfileView';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import {
-  ProfileResponse,
   WeeklyPromptAnswerResponse,
   WeeklyPromptResponse,
 } from '@/types';
@@ -20,17 +18,15 @@ import React, { useEffect, useState } from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppInput from '../components/ui/AppInput';
-import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Sheet from '../components/ui/Sheet';
+import { useProfile } from '../contexts/ProfileContext';
 
 /**
  * Profile Preview Page
  * Shows how your profile appears to other users
  */
 export default function ProfilePreviewScreen() {
-  const [profile, setProfile] = useState<ProfileResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { profile } = useProfile();
   const [activePrompt, setActivePrompt] = useState<WeeklyPromptResponse | null>(
     null
   );
@@ -39,36 +35,8 @@ export default function ProfilePreviewScreen() {
   const [tempAnswer, setTempAnswer] = useState('');
 
   useEffect(() => {
-    fetchProfile();
     fetchWeeklyPrompt();
   }, []);
-
-  const fetchProfile = async () => {
-    const user = getCurrentUser();
-
-    if (!user?.uid) {
-      setError('User not authenticated');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const profileData = await getCurrentUserProfile();
-
-      if (profileData) {
-        setProfile(profileData);
-        setError(null);
-      } else {
-        setError('Profile not found. Please complete your profile.');
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchWeeklyPrompt = async () => {
     try {
@@ -104,41 +72,6 @@ export default function ProfilePreviewScreen() {
     }
   };
 
-  // Loading state
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <StatusBar barStyle="dark-content" />
-        <LoadingSpinner />
-        <AppText style={styles.loadingText}>Loading profile...</AppText>
-      </SafeAreaView>
-    );
-  }
-
-  // Error state
-  if (error || !profile) {
-    return (
-      <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <StatusBar barStyle="dark-content" />
-        <AppText style={styles.errorText}>
-          {error || 'Failed to load profile'}
-        </AppText>
-        <Button
-          title="Go Back"
-          onPress={() => router.back()}
-          variant="secondary"
-          fullWidth={false}
-        />
-        <Button
-          title="Retry"
-          onPress={fetchProfile}
-          variant="primary"
-          fullWidth={false}
-        />
-      </SafeAreaView>
-    );
-  }
-
   // Main content
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -156,15 +89,17 @@ export default function ProfilePreviewScreen() {
       </View>
 
       {/* Profile view */}
-      <ProfileView
-        profile={profile}
-        weeklyPrompt={activePrompt}
-        weeklyPromptAnswer={userAnswer}
-        onEditWeeklyPrompt={() => {
-          setTempAnswer(userAnswer);
-          setShowPromptSheet(true);
-        }}
-      />
+      {profile && (
+        <ProfileView
+          profile={profile}
+          weeklyPrompt={activePrompt}
+          weeklyPromptAnswer={userAnswer}
+          onEditWeeklyPrompt={() => {
+            setTempAnswer(userAnswer);
+            setShowPromptSheet(true);
+          }}
+        />
+      )}
 
       {/* Weekly Prompt Sheet */}
       <Sheet

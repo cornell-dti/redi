@@ -17,10 +17,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
+import { updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
+import { useProfile } from '../contexts/ProfileContext';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 import { calculateAge } from '../utils/profileUtils';
@@ -32,12 +33,13 @@ const VISIBLE_ITEMS = 9;
 export default function EditAgePage() {
   useThemeAware();
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const { profile, refreshProfile, updateProfileData } = useProfile();
   const [saving, setSaving] = useState(false);
   const [birthdate, setBirthdate] = useState<Date>(new Date());
   const [originalBirthdate, setOriginalBirthdate] = useState<Date>(new Date());
   const [selectedAge, setSelectedAge] = useState<number>(18);
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const lastHapticIndex = useRef<number>(-1);
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -46,12 +48,19 @@ export default function EditAgePage() {
   const ages = Array.from({ length: 82 }, (_, i) => i + 18);
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    if (profile && hasBirthdate(profile) && !hasInitialized) {
+      const birthdateDate = new Date(profile.birthdate);
+      setBirthdate(birthdateDate);
+      setOriginalBirthdate(birthdateDate);
+      const currentAge = calculateAge(profile.birthdate);
+      setSelectedAge(Math.max(18, Math.min(99, currentAge)));
+      setHasInitialized(true);
+    }
+  }, [profile, hasInitialized]);
 
   useEffect(() => {
-    // Scroll to initial age position after loading
-    if (!loading && scrollViewRef.current) {
+    // Scroll to initial age position after initialization
+    if (hasInitialized && scrollViewRef.current) {
       const index = ages.indexOf(selectedAge);
       if (index !== -1) {
         setTimeout(() => {
@@ -62,39 +71,7 @@ export default function EditAgePage() {
         }, 100);
       }
     }
-  }, [loading]);
-
-  const fetchProfile = async () => {
-    const user = getCurrentUser();
-    if (!user?.uid) {
-      Alert.alert('Error', 'User not authenticated');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const profileData = await getCurrentUserProfile();
-
-      if (profileData) {
-        // getCurrentUserProfile should return OwnProfileResponse with birthdate
-        if (hasBirthdate(profileData)) {
-          const birthdateDate = new Date(profileData.birthdate);
-          setBirthdate(birthdateDate);
-          setOriginalBirthdate(birthdateDate);
-          const currentAge = calculateAge(profileData.birthdate);
-          setSelectedAge(Math.max(18, Math.min(99, currentAge)));
-        } else {
-          Alert.alert('Error', 'Birthdate not available');
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      Alert.alert('Error', 'Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [hasInitialized, selectedAge]);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
@@ -155,7 +132,15 @@ export default function EditAgePage() {
         birthdate: birthdate.toISOString(),
       });
 
+      // Update context with new value
+      updateProfileData({
+        birthdate: birthdate.toISOString(),
+      });
+
       setOriginalBirthdate(birthdate);
+
+      // Refresh profile from server in background
+      refreshProfile();
 
       // Show toast and navigate back
       showToast({
@@ -232,28 +217,6 @@ export default function EditAgePage() {
       </Animated.View>
     );
   };
-
-  if (loading) {
-    return (
-      <SafeAreaView
-        style={[
-          styles.container,
-          { backgroundColor: AppColors.backgroundDefault },
-        ]}
-      >
-        <StatusBar barStyle={'light-content'} />
-        <EditingHeader
-          title="Edit Age"
-          onSave={handleSave}
-          onBack={handleBack}
-          isSaving={saving}
-        />
-        <View style={styles.loadingContainer}>
-          <AppText>Loading...</AppText>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView
@@ -432,7 +395,7 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
     justifyContent: 'center',
-    marginVertical: -20,
+    marginTop: 8,
   },
   scrollView: {
     flex: 1,
@@ -451,15 +414,14 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
     textAlign: 'center',
     includeFontPadding: false,
-    lineHeight: 100,
+    lineHeight: ITEM_HEIGHT,
   },
   selectionIndicator: {
     position: 'absolute',
-    top: '50%',
+    top: ITEM_HEIGHT * Math.floor(VISIBLE_ITEMS / 2),
     left: 0,
     right: 0,
     height: ITEM_HEIGHT,
-    transform: [{ translateY: -ITEM_HEIGHT / 2 }],
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,
@@ -469,7 +431,6 @@ const styles = StyleSheet.create({
     height: ITEM_HEIGHT,
     borderWidth: 2.5,
     borderRadius: 16,
-    top: -28,
   },
   fadeTop: {
     position: 'absolute',

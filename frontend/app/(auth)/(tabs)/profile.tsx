@@ -5,11 +5,9 @@ import EmptyState from '@/app/components/ui/EmptyState';
 import FooterSpacer from '@/app/components/ui/FooterSpacer';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
-import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
 import Pressable from '@/app/components/ui/Pressable';
 import Sheet from '@/app/components/ui/Sheet';
 import SignOutSheet from '@/app/components/ui/SignOutSheet';
-import { ProfileResponse } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect } from 'expo-router';
 import {
@@ -38,10 +36,9 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser, signOutUser } from '../../api/authService';
-import { getCurrentUserProfile } from '../../api/profileApi';
 import { AppColors } from '../../components/AppColors';
+import { useProfile } from '../../contexts/ProfileContext';
 import { useThemeAware } from '../../contexts/ThemeContext';
 
 // Mock fallback data for fields not in API
@@ -55,46 +52,16 @@ export default function ProfileScreen() {
   const [animationTrigger, setAnimationTrigger] = useState(0);
 
   useThemeAware(); // Force re-render when theme changes
-  const [profile, setProfile] = useState<ProfileResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { profile, loading } = useProfile();
   const [showSignOutSheet, setShowSignOutSheet] = useState(false);
   const [showRatingSheet, setShowRatingSheet] = useState(false);
   const [showOnboardingVideo, setShowOnboardingVideo] = useState(false);
 
-  const fetchProfile = useCallback(async () => {
-    const user = getCurrentUser();
-
-    if (!user?.uid) {
-      setError('User not authenticated');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const profileData = await getCurrentUserProfile();
-
-      if (profileData) {
-        setProfile(profileData);
-        setError(null);
-      } else {
-        setError('Profile not found. Please complete your profile.');
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Fetch profile data when screen is focused (including returning from edit screen)
+  // Trigger animation when screen is focused
   useFocusEffect(
     useCallback(() => {
-      fetchProfile();
       setAnimationTrigger((prev) => prev + 1);
-    }, [fetchProfile])
+    }, [])
   );
 
   const confirmSignOut = async () => {
@@ -153,31 +120,6 @@ export default function ProfileScreen() {
 
     return 'Recently';
   };
-
-  // Show loading spinner while fetching
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <LoadingSpinner />
-        <AppText style={styles.loadingText}>Loading profile...</AppText>
-      </SafeAreaView>
-    );
-  }
-
-  // Show error message if failed to load
-  if (error && !profile) {
-    return (
-      <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <AppText style={styles.errorText}>{error}</AppText>
-        <Button
-          title="Retry"
-          onPress={fetchProfile}
-          variant="primary"
-          fullWidth={false}
-        />
-      </SafeAreaView>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -365,6 +307,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     padding: 16,
+    paddingTop: 12,
   },
   sectionsWrapper: {
     display: 'flex',

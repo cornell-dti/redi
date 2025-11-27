@@ -90,6 +90,7 @@ export default function AppearanceScreen() {
                         isLastRow &&
                           isLastItem && { borderBottomRightRadius: 24 },
                       ]}
+                      fullWidth
                     >
                       <View
                         style={[
@@ -171,6 +172,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
     gap: 4,
+    flex: 1,
   },
   colorGridRow: {
     display: 'flex',
@@ -188,8 +190,6 @@ const styles = StyleSheet.create({
   },
   colorOption: {
     flex: 1,
-    width: 130,
-    minHeight: 100,
     padding: 16,
     flexDirection: 'column',
     justifyContent: 'center',

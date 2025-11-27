@@ -17,17 +17,19 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
+import { updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
+import { useProfile } from '../contexts/ProfileContext';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 
 export default function EditPromptPage() {
   useThemeAware(); // Force re-render when theme changes
   const { showToast } = useToast();
+  const { profile, refreshProfile, updateProfileData } = useProfile();
   const params = useLocalSearchParams();
   const promptId = params.promptId as string;
   const initialQuestion = params.question as string | undefined;
@@ -38,7 +40,6 @@ export default function EditPromptPage() {
   const [showPromptsSheet, setShowPromptsSheet] = useState(false);
   const [showDeleteSheet, setShowDeleteSheet] = useState(false);
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [currentPrompts, setCurrentPrompts] = useState<
     { question: string; answer: string }[]
@@ -47,29 +48,10 @@ export default function EditPromptPage() {
   const isNewPrompt = promptId?.startsWith('new-');
 
   useEffect(() => {
-    fetchPrompts();
-  }, []);
-
-  const fetchPrompts = async () => {
-    const user = getCurrentUser();
-    if (!user?.uid) {
-      setLoading(false);
-      return;
+    if (profile) {
+      setCurrentPrompts(profile.prompts || []);
     }
-
-    try {
-      setLoading(true);
-      const profileData = await getCurrentUserProfile();
-
-      if (profileData) {
-        setCurrentPrompts(profileData.prompts || []);
-      }
-    } catch (err) {
-      console.error('Error fetching prompts:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [profile]);
 
   const handleSave = async () => {
     const user = getCurrentUser();
@@ -110,6 +92,14 @@ export default function EditPromptPage() {
       await updateProfile({
         prompts: updatedPrompts,
       });
+
+      // Update context with new prompts
+      updateProfileData({
+        prompts: updatedPrompts,
+      });
+
+      // Refresh profile from server in background
+      refreshProfile();
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
@@ -171,6 +161,14 @@ export default function EditPromptPage() {
       await updateProfile({
         prompts: updatedPrompts,
       });
+
+      // Update context with new prompts
+      updateProfileData({
+        prompts: updatedPrompts,
+      });
+
+      // Refresh profile from server in background
+      refreshProfile();
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,

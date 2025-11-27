@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
+import { updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import AppText from '../components/ui/AppText';
 import EditingHeader from '../components/ui/EditingHeader';
@@ -15,13 +15,14 @@ import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Toggle from '../components/ui/Toggle';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
+import { useProfile } from '../contexts/ProfileContext';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 
 export default function EditGenderPage() {
   useThemeAware();
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const { profile, refreshProfile, updateProfileData } = useProfile();
   const [saving, setSaving] = useState(false);
   const [selectedGender, setSelectedGender] = useState<Gender | null>(null);
   const [originalGender, setOriginalGender] = useState<Gender | null>(null);
@@ -30,35 +31,14 @@ export default function EditGenderPage() {
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    const user = getCurrentUser();
-    if (!user?.uid) {
-      Alert.alert('Error', 'User not authenticated');
-      setLoading(false);
-      return;
+    if (profile) {
+      setSelectedGender(profile.gender);
+      setOriginalGender(profile.gender);
+      const showGenderValue = profile.showGenderOnProfile ?? true;
+      setShowOnProfile(showGenderValue);
+      setOriginalShowOnProfile(showGenderValue);
     }
-
-    try {
-      setLoading(true);
-      const profileData = await getCurrentUserProfile();
-
-      if (profileData) {
-        setSelectedGender(profileData.gender);
-        setOriginalGender(profileData.gender);
-        const showGenderValue = profileData.showGenderOnProfile ?? true;
-        setShowOnProfile(showGenderValue);
-        setOriginalShowOnProfile(showGenderValue);
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      Alert.alert('Error', 'Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [profile]);
 
   const handleSave = async () => {
     const user = getCurrentUser();
@@ -79,8 +59,17 @@ export default function EditGenderPage() {
         showGenderOnProfile: showOnProfile,
       });
 
+      // Update context with new values
+      updateProfileData({
+        gender: selectedGender,
+        showGenderOnProfile: showOnProfile,
+      });
+
       setOriginalGender(selectedGender);
       setOriginalShowOnProfile(showOnProfile);
+
+      // Refresh profile from server in background
+      refreshProfile();
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
