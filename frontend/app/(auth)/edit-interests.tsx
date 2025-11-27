@@ -1,12 +1,20 @@
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import { router } from 'expo-router';
-import { Camera, Check, Gamepad2, Music, Plus } from 'lucide-react-native';
+import {
+  Camera,
+  Check,
+  Gamepad2,
+  Music,
+  Plus,
+  Trash2,
+} from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -38,6 +46,7 @@ interface DraggableTagProps {
   index: number;
   isDragging: boolean;
   onRemove: () => void;
+  onPress: () => void;
   onDragStart: () => void;
   onDragEnd: (toIndex: number) => void;
   onHoverChange: (toIndex: number | null) => void;
@@ -51,6 +60,7 @@ function DraggableTag({
   index,
   isDragging,
   onRemove,
+  onPress,
   onDragStart,
   onDragEnd,
   onHoverChange,
@@ -139,12 +149,14 @@ function DraggableTag({
   return (
     <GestureDetector gesture={gesture}>
       <Animated.View style={animatedStyle}>
-        <Tag
-          label={interest}
-          variant="gray"
-          dismissible
-          onDismiss={onRemove}
-        />
+        <Pressable onPress={onPress}>
+          <Tag
+            label={interest}
+            variant="gray"
+            dismissible
+            onDismiss={onRemove}
+          />
+        </Pressable>
       </Animated.View>
     </GestureDetector>
   );
@@ -164,6 +176,8 @@ export default function EditInterestsPage() {
   const [animationTrigger, setAnimationTrigger] = useState(0);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [editingInterest, setEditingInterest] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
 
   useEffect(() => {
     fetchProfile();
@@ -269,6 +283,37 @@ export default function EditInterestsPage() {
     setInterests(newInterests);
   };
 
+  const handleEditInterest = (interest: string) => {
+    setEditingInterest(interest);
+    setEditValue(interest);
+  };
+
+  const handleSaveEdit = () => {
+    if (editValue.trim() && editingInterest) {
+      if (
+        !interests.includes(editValue.trim()) ||
+        editValue.trim() === editingInterest
+      ) {
+        const updatedInterests = interests.map((interest) =>
+          interest === editingInterest ? editValue.trim() : interest
+        );
+        setInterests(updatedInterests);
+        setEditingInterest(null);
+        setEditValue('');
+      } else {
+        Alert.alert('Duplicate', 'This interest already exists');
+      }
+    }
+  };
+
+  const handleRemoveFromEdit = () => {
+    if (editingInterest) {
+      removeInterest(editingInterest);
+      setEditingInterest(null);
+      setEditValue('');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -316,7 +361,10 @@ export default function EditInterestsPage() {
                     >
                       <AppText
                         variant="bodySmall"
-                        style={{ opacity: 0.3, color: AppColors.foregroundDefault }}
+                        style={{
+                          opacity: 0.3,
+                          color: AppColors.foregroundDefault,
+                        }}
                       >
                         {interests[draggingIndex]}
                       </AppText>
@@ -327,6 +375,7 @@ export default function EditInterestsPage() {
                     index={index}
                     isDragging={isDragging}
                     onRemove={() => removeInterest(interest)}
+                    onPress={() => handleEditInterest(interest)}
                     onDragStart={() => setDraggingIndex(index)}
                     onDragEnd={(toIndex) => {
                       reorderInterests(index, toIndex);
@@ -378,6 +427,8 @@ export default function EditInterestsPage() {
             autoCapitalize="words"
             autoCorrect={false}
             autoFocus={true}
+            returnKeyType="done"
+            onSubmitEditing={addInterest}
           />
           <Button
             title="Add"
@@ -385,6 +436,46 @@ export default function EditInterestsPage() {
             variant="primary"
             iconLeft={Plus}
             disabled={!newInterest.trim()}
+          />
+        </KeyboardAvoidingView>
+      </Sheet>
+
+      {/* Edit Interest Sheet */}
+      <Sheet
+        visible={editingInterest !== null}
+        onDismiss={() => {
+          setEditingInterest(null);
+          setEditValue('');
+        }}
+        title="Edit interest"
+        bottomRound={false}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.sheetContent}
+        >
+          <AppInput
+            placeholder="e.g., Music, Photography, Gaming"
+            value={editValue}
+            onChangeText={setEditValue}
+            autoCapitalize="words"
+            autoCorrect={false}
+            autoFocus={true}
+            returnKeyType="done"
+            onSubmitEditing={handleSaveEdit}
+          />
+          <Button
+            title="Save"
+            onPress={handleSaveEdit}
+            variant="primary"
+            iconLeft={Check}
+            disabled={!editValue.trim()}
+          />
+          <Button
+            title="Remove"
+            onPress={handleRemoveFromEdit}
+            variant="negative"
+            iconLeft={Trash2}
           />
         </KeyboardAvoidingView>
       </Sheet>

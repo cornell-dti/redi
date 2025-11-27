@@ -6,6 +6,7 @@ import {
   Drama,
   MessagesSquare,
   Plus,
+  Trash2,
   Trophy,
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -13,6 +14,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -44,6 +46,7 @@ interface DraggableTagProps {
   index: number;
   isDragging: boolean;
   onRemove: () => void;
+  onPress: () => void;
   onDragStart: () => void;
   onDragEnd: (toIndex: number) => void;
   onHoverChange: (toIndex: number | null) => void;
@@ -57,6 +60,7 @@ function DraggableTag({
   index,
   isDragging,
   onRemove,
+  onPress,
   onDragStart,
   onDragEnd,
   onHoverChange,
@@ -145,7 +149,9 @@ function DraggableTag({
   return (
     <GestureDetector gesture={gesture}>
       <Animated.View style={animatedStyle}>
-        <Tag label={club} variant="gray" dismissible onDismiss={onRemove} />
+        <Pressable onPress={onPress}>
+          <Tag label={club} variant="gray" dismissible onDismiss={onRemove} />
+        </Pressable>
       </Animated.View>
     </GestureDetector>
   );
@@ -165,6 +171,8 @@ export default function EditClubsPage() {
   const [animationTrigger, setAnimationTrigger] = useState(0);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [editingClub, setEditingClub] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
 
   useEffect(() => {
     fetchProfile();
@@ -270,6 +278,34 @@ export default function EditClubsPage() {
     setClubs(newClubs);
   };
 
+  const handleEditClub = (club: string) => {
+    setEditingClub(club);
+    setEditValue(club);
+  };
+
+  const handleSaveEdit = () => {
+    if (editValue.trim() && editingClub) {
+      if (!clubs.includes(editValue.trim()) || editValue.trim() === editingClub) {
+        const updatedClubs = clubs.map((club) =>
+          club === editingClub ? editValue.trim() : club
+        );
+        setClubs(updatedClubs);
+        setEditingClub(null);
+        setEditValue('');
+      } else {
+        Alert.alert('Duplicate', 'This club already exists');
+      }
+    }
+  };
+
+  const handleRemoveFromEdit = () => {
+    if (editingClub) {
+      removeClub(editingClub);
+      setEditingClub(null);
+      setEditValue('');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -328,6 +364,7 @@ export default function EditClubsPage() {
                     index={index}
                     isDragging={isDragging}
                     onRemove={() => removeClub(club)}
+                    onPress={() => handleEditClub(club)}
                     onDragStart={() => setDraggingIndex(index)}
                     onDragEnd={(toIndex) => {
                       reorderClubs(index, toIndex);
@@ -379,6 +416,8 @@ export default function EditClubsPage() {
             autoCapitalize="words"
             autoCorrect={false}
             autoFocus={true}
+            returnKeyType="done"
+            onSubmitEditing={addClub}
           />
           <Button
             title="Add"
@@ -386,6 +425,46 @@ export default function EditClubsPage() {
             variant="primary"
             iconLeft={Plus}
             disabled={!newClub.trim()}
+          />
+        </KeyboardAvoidingView>
+      </Sheet>
+
+      {/* Edit Club Sheet */}
+      <Sheet
+        visible={editingClub !== null}
+        onDismiss={() => {
+          setEditingClub(null);
+          setEditValue('');
+        }}
+        title="Edit club"
+        bottomRound={false}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.sheetContent}
+        >
+          <AppInput
+            placeholder="e.g., Debate, Sports, Drama"
+            value={editValue}
+            onChangeText={setEditValue}
+            autoCapitalize="words"
+            autoCorrect={false}
+            autoFocus={true}
+            returnKeyType="done"
+            onSubmitEditing={handleSaveEdit}
+          />
+          <Button
+            title="Save"
+            onPress={handleSaveEdit}
+            variant="primary"
+            iconLeft={Check}
+            disabled={!editValue.trim()}
+          />
+          <Button
+            title="Remove"
+            onPress={handleRemoveFromEdit}
+            variant="negative"
+            iconLeft={Trash2}
           />
         </KeyboardAvoidingView>
       </Sheet>
