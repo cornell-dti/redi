@@ -22,6 +22,7 @@ interface AppInputProps extends TextInputProps {
   disabled?: boolean;
   forceMinHeight?: boolean;
   fullWidth?: boolean;
+  maxHeight?: number;
 }
 
 const AppInput: React.FC<AppInputProps> = ({
@@ -37,6 +38,7 @@ const AppInput: React.FC<AppInputProps> = ({
   disabled = false,
   forceMinHeight = false,
   fullWidth,
+  maxHeight,
   ...props
 }) => {
   const borderColorAnim = useRef(new Animated.Value(0)).current;
@@ -172,6 +174,7 @@ const AppInput: React.FC<AppInputProps> = ({
               styles.input,
               style,
               { color: AppColors.foregroundDefault },
+              maxHeight ? { maxHeight } : {},
             ]}
             onFocus={handleFocus}
             onBlur={handleBlur}

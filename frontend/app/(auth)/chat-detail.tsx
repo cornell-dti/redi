@@ -259,7 +259,7 @@ export default function ChatDetailScreen() {
       Math.abs(
         currentMessage.timestamp.getTime() - prevMessage.timestamp.getTime()
       ) <=
-      5 * 60 * 1000;
+        5 * 60 * 1000;
 
     const isGroupedWithNext =
       nextMessage &&
@@ -267,7 +267,7 @@ export default function ChatDetailScreen() {
       Math.abs(
         nextMessage.timestamp.getTime() - currentMessage.timestamp.getTime()
       ) <=
-      5 * 60 * 1000;
+        5 * 60 * 1000;
 
     if (!isGroupedWithPrev && !isGroupedWithNext) return 'single';
     if (!isGroupedWithPrev && isGroupedWithNext) return 'first';
@@ -728,12 +728,12 @@ export default function ChatDetailScreen() {
             onChangeText={setNewMessage}
             placeholder="Send a message..."
             placeholderTextColor={AppColors.foregroundDimmer}
-            multiline
             fullRound
             style={styles.messageInput}
             onSubmitEditing={sendMessage}
             returnKeyType="send"
-            blurOnSubmit={true}
+            blurOnSubmit={false}
+            enablesReturnKeyAutomatically
             forceMinHeight
             fullWidth
           />
