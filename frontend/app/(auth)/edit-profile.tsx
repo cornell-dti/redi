@@ -18,13 +18,8 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { deleteImage, uploadImages } from '../api/imageApi';
@@ -41,10 +36,8 @@ import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
+import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { useHapticFeedback } from '../hooks/useHapticFeedback';
-
-// Constants for drag calculations
-const PROMPT_ITEM_HEIGHT = 72; // Approximate height of a ListItem
 
 interface DraggablePromptItemProps {
   prompt: PromptData;
@@ -69,60 +62,17 @@ function DraggablePromptItem({
   totalPrompts,
   onHaptic,
 }: DraggablePromptItemProps) {
-  const translateY = useSharedValue(0);
-  const zIndex = useSharedValue(0);
-  const lastTargetIndex = useSharedValue(index);
-
-  const handleGesture = Gesture.Pan()
-    .onStart(() => {
-      runOnJS(onDragStart)();
-      zIndex.value = 1000;
-      lastTargetIndex.value = index;
-    })
-    .onUpdate((event) => {
-      translateY.value = event.translationY;
-
-      // Calculate hover position while dragging
-      const offset = Math.round(event.translationY / PROMPT_ITEM_HEIGHT);
-      const targetIndex = Math.max(
-        0,
-        Math.min(index + offset, totalPrompts - 1)
-      );
-
-      // Trigger haptic feedback when crossing to a new position
-      if (targetIndex !== lastTargetIndex.value) {
-        runOnJS(onHaptic)();
-        lastTargetIndex.value = targetIndex;
-      }
-
-      runOnJS(onHoverChange)(targetIndex);
-    })
-    .onEnd((event) => {
-      // Calculate which position the prompt was dropped on
-      const offset = Math.round(event.translationY / PROMPT_ITEM_HEIGHT);
-      const toIndex = Math.max(0, Math.min(index + offset, totalPrompts - 1));
-
-      runOnJS(onDragEnd)(toIndex);
-      runOnJS(onHoverChange)(null);
-
-      // Reset position with reduced bounce
-      translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
-      zIndex.value = 0;
-    });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-    zIndex: zIndex.value,
-    opacity: isDragging ? 0.8 : 1,
-    shadowColor: isDragging ? '#000' : 'transparent',
-    shadowOffset: {
-      width: 0,
-      height: isDragging ? 4 : 0,
-    },
-    shadowOpacity: isDragging ? 0.3 : 0,
-    shadowRadius: isDragging ? 4.65 : 0,
-    elevation: isDragging ? 8 : 0,
-  }));
+  const { gesture: handleGesture, animatedStyle } = useDragAndDrop({
+    type: 'list',
+    index,
+    totalItems: totalPrompts,
+    onDragStart,
+    onDragEnd,
+    onHoverChange,
+    onHaptic,
+    isDragging,
+    listItemHeight: 72,
+  });
 
   return (
     <Animated.View style={animatedStyle}>
