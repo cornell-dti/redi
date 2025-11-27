@@ -169,6 +169,7 @@ export interface ProfileResponse {
   website?: string;
   clubs?: string[];
   interests?: string[];
+  socialsOrder?: string[]; // Order of social media platforms
   year: Year;
   school: School;
   major: string[];
