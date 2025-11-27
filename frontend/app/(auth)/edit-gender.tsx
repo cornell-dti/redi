@@ -151,14 +151,16 @@ export default function EditGenderPage() {
           ))}
         </ListItemWrapper>
 
-        <ListItemWrapper>
-          <View style={styles.toggleContainer}>
-            <View style={styles.toggleLabel}>
-              <AppText variant="body">Show on profile</AppText>
+        {!loading && (
+          <ListItemWrapper>
+            <View style={styles.toggleContainer}>
+              <View style={styles.toggleLabel}>
+                <AppText variant="body">Show on profile</AppText>
+              </View>
+              <Toggle value={showOnProfile} onValueChange={setShowOnProfile} />
             </View>
-            <Toggle value={showOnProfile} onValueChange={setShowOnProfile} />
-          </View>
-        </ListItemWrapper>
+          </ListItemWrapper>
+        )}
 
         <FooterSpacer />
       </ScrollView>
