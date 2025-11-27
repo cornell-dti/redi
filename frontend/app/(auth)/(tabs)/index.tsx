@@ -613,6 +613,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     padding: 16,
+    paddingTop: 3,
   },
   skeletonWrapper: {
     padding: 16,

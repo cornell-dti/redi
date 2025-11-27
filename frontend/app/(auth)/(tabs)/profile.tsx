@@ -5,11 +5,9 @@ import EmptyState from '@/app/components/ui/EmptyState';
 import FooterSpacer from '@/app/components/ui/FooterSpacer';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
-import LoadingSpinner from '@/app/components/ui/LoadingSpinner';
 import Pressable from '@/app/components/ui/Pressable';
 import Sheet from '@/app/components/ui/Sheet';
 import SignOutSheet from '@/app/components/ui/SignOutSheet';
-import { ProfileResponse } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect } from 'expo-router';
 import {
@@ -38,7 +36,6 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser, signOutUser } from '../../api/authService';
 import { AppColors } from '../../components/AppColors';
 import { useProfile } from '../../contexts/ProfileContext';
@@ -310,6 +307,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     padding: 16,
+    paddingTop: 12,
   },
   sectionsWrapper: {
     display: 'flex',
