@@ -20,13 +20,8 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
@@ -39,6 +34,7 @@ import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
+import { useDragAndDrop } from '../hooks/useDragAndDrop';
 import { useHapticFeedback } from '../hooks/useHapticFeedback';
 
 interface DraggableTagProps {
@@ -70,81 +66,19 @@ function DraggableTag({
 }: DraggableTagProps) {
   useThemeAware();
 
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const scale = useSharedValue(1);
-  const zIndex = useSharedValue(0);
-  const lastTargetIndex = useSharedValue(index);
-
-  const gesture = Gesture.Pan()
-    .onStart(() => {
-      runOnJS(onDragStart)();
-      scale.value = withSpring(1.1);
-      zIndex.value = 1000;
-      lastTargetIndex.value = index;
-    })
-    .onUpdate((event) => {
-      translateX.value = event.translationX;
-      translateY.value = event.translationY;
-
-      // Improved calculation for flexWrap layout
-      // Use smaller thresholds for more responsive dragging
-      const horizontalMove = Math.round(event.translationX / 60); // ~60px per tag (more responsive)
-      const verticalMove = Math.round(event.translationY / 40); // ~40px per row (more responsive)
-
-      // Estimate offset based on both axes
-      // Assume ~3 tags per row in most cases
-      const estimatedOffset = horizontalMove + verticalMove * 3;
-      const targetIndex = Math.max(
-        0,
-        Math.min(index + estimatedOffset, totalClubs - 1)
-      );
-
-      // Trigger haptic feedback when crossing to a new position
-      if (targetIndex !== lastTargetIndex.value) {
-        runOnJS(onHaptic)();
-        lastTargetIndex.value = targetIndex;
-      }
-
-      runOnJS(onHoverChange)(targetIndex);
-    })
-    .onEnd((event) => {
-      // Calculate final drop position using same logic as onUpdate
-      const horizontalMove = Math.round(event.translationX / 60);
-      const verticalMove = Math.round(event.translationY / 40);
-      const estimatedOffset = horizontalMove + verticalMove * 3;
-      const toIndex = Math.max(
-        0,
-        Math.min(index + estimatedOffset, totalClubs - 1)
-      );
-
-      runOnJS(onDragEnd)(toIndex);
-      runOnJS(onHoverChange)(null);
-
-      // Reset position and scale
-      translateX.value = withSpring(0, { damping: 20, stiffness: 200 });
-      translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
-      scale.value = withSpring(1, { damping: 20, stiffness: 150 });
-      zIndex.value = 0;
-    });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
-    zIndex: zIndex.value,
-    opacity: isDragging ? 0.8 : 1,
-    shadowColor: isDragging ? '#000' : 'transparent',
-    shadowOffset: {
-      width: 0,
-      height: isDragging ? 4 : 0,
-    },
-    shadowOpacity: isDragging ? 0.3 : 0,
-    shadowRadius: isDragging ? 4.65 : 0,
-    elevation: isDragging ? 8 : 0,
-  }));
+  const { gesture, animatedStyle } = useDragAndDrop({
+    type: 'tag',
+    index,
+    totalItems: totalClubs,
+    onDragStart,
+    onDragEnd,
+    onHoverChange,
+    onHaptic,
+    isDragging,
+    tagHorizontalThreshold: 60,
+    tagVerticalThreshold: 40,
+    tagsPerRow: 3,
+  });
 
   return (
     <GestureDetector gesture={gesture}>
@@ -161,7 +95,6 @@ export default function EditClubsPage() {
   useThemeAware();
   const { showToast } = useToast();
   const haptic = useHapticFeedback();
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [clubs, setClubs] = useState<string[]>([]);
   const [originalClubs, setOriginalClubs] = useState<string[]>([]);
@@ -182,12 +115,10 @@ export default function EditClubsPage() {
     const user = getCurrentUser();
     if (!user?.uid) {
       Alert.alert('Error', 'User not authenticated');
-      setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
       const profileData = await getCurrentUserProfile();
 
       if (profileData) {
@@ -198,8 +129,6 @@ export default function EditClubsPage() {
     } catch (err) {
       console.error('Error fetching profile:', err);
       Alert.alert('Error', 'Failed to load profile');
-    } finally {
-      setLoading(false);
     }
   };
 
