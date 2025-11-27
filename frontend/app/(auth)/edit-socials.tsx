@@ -1,4 +1,5 @@
 import AppInput from '@/app/components/ui/AppInput';
+import AppText from '@/app/components/ui/AppText';
 import { router } from 'expo-router';
 import {
   Check,
@@ -471,27 +472,62 @@ export default function EditSocialsPage() {
 
             const socialValue = socials[social.type];
             const isDragging = draggingIndex === index;
+            const shouldShowGhost =
+              hoverIndex === index &&
+              draggingIndex !== null &&
+              draggingIndex !== hoverIndex;
 
             return (
-              <DraggableSocialItem
-                key={social.type}
-                socialType={social.type}
-                socialLabel={social.label}
-                socialValue={socialValue}
-                socialImage={social.image}
-                index={index}
-                isDragging={isDragging}
-                onDragStart={() => setDraggingIndex(index)}
-                onDragEnd={(toIndex) => {
-                  reorderSocials(index, toIndex);
-                  setDraggingIndex(null);
-                  setHoverIndex(null);
-                }}
-                onHoverChange={setHoverIndex}
-                onPress={() => openSocialSheet(social.type)}
-                totalSocials={socialsOrder.length}
-                onHaptic={() => haptic.medium()}
-              />
+              <View key={social.type} style={styles.listItemWrapper}>
+                {shouldShowGhost && draggingIndex !== null && (
+                  <View
+                    style={[
+                      styles.ghostPlaceholder,
+                      {
+                        backgroundColor: AppColors.backgroundDimmer,
+                        borderColor: AppColors.accentDefault,
+                      },
+                    ]}
+                  >
+                    <View style={styles.ghostContent}>
+                      <Image
+                        source={
+                          socialButtons.find(
+                            (s) => s.type === socialsOrder[draggingIndex]
+                          )?.image
+                        }
+                        style={[styles.socialIcon, { opacity: 0.3 }]}
+                        resizeMode="contain"
+                      />
+                      <AppText style={{ opacity: 0.3 }}>
+                        {
+                          socialButtons.find(
+                            (s) => s.type === socialsOrder[draggingIndex]
+                          )?.label
+                        }
+                      </AppText>
+                    </View>
+                  </View>
+                )}
+                <DraggableSocialItem
+                  socialType={social.type}
+                  socialLabel={social.label}
+                  socialValue={socialValue}
+                  socialImage={social.image}
+                  index={index}
+                  isDragging={isDragging}
+                  onDragStart={() => setDraggingIndex(index)}
+                  onDragEnd={(toIndex) => {
+                    reorderSocials(index, toIndex);
+                    setDraggingIndex(null);
+                    setHoverIndex(null);
+                  }}
+                  onHoverChange={setHoverIndex}
+                  onPress={() => openSocialSheet(social.type)}
+                  totalSocials={socialsOrder.length}
+                  onHaptic={() => haptic.medium()}
+                />
+              </View>
             );
           })}
         </ListItemWrapper>
@@ -613,5 +649,26 @@ const styles = StyleSheet.create({
   },
   dragHandle: {
     padding: 4,
+  },
+  listItemWrapper: {
+    position: 'relative',
+  },
+  ghostPlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  ghostContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
 });

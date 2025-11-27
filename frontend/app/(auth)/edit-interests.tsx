@@ -1,4 +1,5 @@
 import AppInput from '@/app/components/ui/AppInput';
+import AppText from '@/app/components/ui/AppText';
 import { router } from 'expo-router';
 import { Camera, Check, Gamepad2, Music, Plus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -76,37 +77,18 @@ function DraggableTag({
       translateX.value = event.translationX;
       translateY.value = event.translationY;
 
-      // Find the target index based on position
-      // This is simplified - we check which tag center is closest to drag position
-      let closestIndex = index;
-      let closestDistance = Infinity;
+      // Improved calculation for flexWrap layout
+      // Use smaller thresholds for more responsive dragging
+      const horizontalMove = Math.round(event.translationX / 60); // ~60px per tag (more responsive)
+      const verticalMove = Math.round(event.translationY / 40); // ~40px per row (more responsive)
 
-      for (let i = 0; i < totalInterests; i++) {
-        if (i === index) continue;
-
-        // Rough estimation based on translation
-        // For a flexWrap layout, we estimate based on both X and Y translation
-        const distance = Math.sqrt(
-          Math.pow(event.translationX, 2) + Math.pow(event.translationY, 2)
-        );
-
-        // Simple heuristic: if we've moved significantly, target the adjacent index
-        const horizontalMove = Math.round(event.translationX / 100); // ~100px per tag
-        const verticalMove = Math.round(event.translationY / 50); // ~50px per row
-
-        const estimatedOffset = horizontalMove + verticalMove * 3; // Assume ~3 tags per row
-        const estimatedIndex = Math.max(
-          0,
-          Math.min(index + estimatedOffset, totalInterests - 1)
-        );
-
-        if (estimatedIndex !== lastTargetIndex.value) {
-          closestIndex = estimatedIndex;
-          break;
-        }
-      }
-
-      const targetIndex = closestIndex;
+      // Estimate offset based on both axes
+      // Assume ~3 tags per row in most cases
+      const estimatedOffset = horizontalMove + verticalMove * 3;
+      const targetIndex = Math.max(
+        0,
+        Math.min(index + estimatedOffset, totalInterests - 1)
+      );
 
       // Trigger haptic feedback when crossing to a new position
       if (targetIndex !== lastTargetIndex.value) {
@@ -117,9 +99,9 @@ function DraggableTag({
       runOnJS(onHoverChange)(targetIndex);
     })
     .onEnd((event) => {
-      // Calculate final drop position
-      const horizontalMove = Math.round(event.translationX / 100);
-      const verticalMove = Math.round(event.translationY / 50);
+      // Calculate final drop position using same logic as onUpdate
+      const horizontalMove = Math.round(event.translationX / 60);
+      const verticalMove = Math.round(event.translationY / 40);
       const estimatedOffset = horizontalMove + verticalMove * 3;
       const toIndex = Math.max(
         0,
@@ -315,25 +297,48 @@ export default function EditInterestsPage() {
           <View style={styles.tagsContainer}>
             {interests.map((interest, index) => {
               const isDragging = draggingIndex === index;
+              const shouldShowGhost =
+                hoverIndex === index &&
+                draggingIndex !== null &&
+                draggingIndex !== hoverIndex;
 
               return (
-                <DraggableTag
-                  key={interest}
-                  interest={interest}
-                  index={index}
-                  isDragging={isDragging}
-                  onRemove={() => removeInterest(interest)}
-                  onDragStart={() => setDraggingIndex(index)}
-                  onDragEnd={(toIndex) => {
-                    reorderInterests(index, toIndex);
-                    setDraggingIndex(null);
-                    setHoverIndex(null);
-                  }}
-                  onHoverChange={setHoverIndex}
-                  totalInterests={interests.length}
-                  onHaptic={() => haptic.medium()}
-                  allInterests={interests}
-                />
+                <View key={interest} style={styles.tagWrapper}>
+                  {shouldShowGhost && draggingIndex !== null && (
+                    <View
+                      style={[
+                        styles.ghostPlaceholder,
+                        {
+                          backgroundColor: AppColors.backgroundDimmer,
+                          borderColor: AppColors.accentDefault,
+                        },
+                      ]}
+                    >
+                      <AppText
+                        variant="bodySmall"
+                        style={{ opacity: 0.3, color: AppColors.foregroundDefault }}
+                      >
+                        {interests[draggingIndex]}
+                      </AppText>
+                    </View>
+                  )}
+                  <DraggableTag
+                    interest={interest}
+                    index={index}
+                    isDragging={isDragging}
+                    onRemove={() => removeInterest(interest)}
+                    onDragStart={() => setDraggingIndex(index)}
+                    onDragEnd={(toIndex) => {
+                      reorderInterests(index, toIndex);
+                      setDraggingIndex(null);
+                      setHoverIndex(null);
+                    }}
+                    onHoverChange={setHoverIndex}
+                    totalInterests={interests.length}
+                    onHaptic={() => haptic.medium()}
+                    allInterests={interests}
+                  />
+                </View>
               );
             })}
           </View>
@@ -412,6 +417,24 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 12,
     marginBottom: 24,
+  },
+  tagWrapper: {
+    position: 'relative',
+  },
+  ghostPlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   buttonContainer: {
     padding: 16,

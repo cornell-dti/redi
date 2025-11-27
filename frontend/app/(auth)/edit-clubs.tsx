@@ -1,4 +1,5 @@
 import AppInput from '@/app/components/ui/AppInput';
+import AppText from '@/app/components/ui/AppText';
 import { router } from 'expo-router';
 import {
   Check,
@@ -82,11 +83,14 @@ function DraggableTag({
       translateX.value = event.translationX;
       translateY.value = event.translationY;
 
-      // Find the target index based on position
-      const horizontalMove = Math.round(event.translationX / 100); // ~100px per tag
-      const verticalMove = Math.round(event.translationY / 50); // ~50px per row
+      // Improved calculation for flexWrap layout
+      // Use smaller thresholds for more responsive dragging
+      const horizontalMove = Math.round(event.translationX / 60); // ~60px per tag (more responsive)
+      const verticalMove = Math.round(event.translationY / 40); // ~40px per row (more responsive)
 
-      const estimatedOffset = horizontalMove + verticalMove * 3; // Assume ~3 tags per row
+      // Estimate offset based on both axes
+      // Assume ~3 tags per row in most cases
+      const estimatedOffset = horizontalMove + verticalMove * 3;
       const targetIndex = Math.max(
         0,
         Math.min(index + estimatedOffset, totalClubs - 1)
@@ -101,9 +105,9 @@ function DraggableTag({
       runOnJS(onHoverChange)(targetIndex);
     })
     .onEnd((event) => {
-      // Calculate final drop position
-      const horizontalMove = Math.round(event.translationX / 100);
-      const verticalMove = Math.round(event.translationY / 50);
+      // Calculate final drop position using same logic as onUpdate
+      const horizontalMove = Math.round(event.translationX / 60);
+      const verticalMove = Math.round(event.translationY / 40);
       const estimatedOffset = horizontalMove + verticalMove * 3;
       const toIndex = Math.max(
         0,
@@ -294,25 +298,48 @@ export default function EditClubsPage() {
           <View style={styles.tagsContainer}>
             {clubs.map((club, index) => {
               const isDragging = draggingIndex === index;
+              const shouldShowGhost =
+                hoverIndex === index &&
+                draggingIndex !== null &&
+                draggingIndex !== hoverIndex;
 
               return (
-                <DraggableTag
-                  key={club}
-                  club={club}
-                  index={index}
-                  isDragging={isDragging}
-                  onRemove={() => removeClub(club)}
-                  onDragStart={() => setDraggingIndex(index)}
-                  onDragEnd={(toIndex) => {
-                    reorderClubs(index, toIndex);
-                    setDraggingIndex(null);
-                    setHoverIndex(null);
-                  }}
-                  onHoverChange={setHoverIndex}
-                  totalClubs={clubs.length}
-                  onHaptic={() => haptic.medium()}
-                  allClubs={clubs}
-                />
+                <View key={club} style={styles.tagWrapper}>
+                  {shouldShowGhost && draggingIndex !== null && (
+                    <View
+                      style={[
+                        styles.ghostPlaceholder,
+                        {
+                          backgroundColor: AppColors.backgroundDimmer,
+                          borderColor: AppColors.accentDefault,
+                        },
+                      ]}
+                    >
+                      <AppText
+                        variant="bodySmall"
+                        style={{ opacity: 0.3, color: AppColors.foregroundDefault }}
+                      >
+                        {clubs[draggingIndex]}
+                      </AppText>
+                    </View>
+                  )}
+                  <DraggableTag
+                    club={club}
+                    index={index}
+                    isDragging={isDragging}
+                    onRemove={() => removeClub(club)}
+                    onDragStart={() => setDraggingIndex(index)}
+                    onDragEnd={(toIndex) => {
+                      reorderClubs(index, toIndex);
+                      setDraggingIndex(null);
+                      setHoverIndex(null);
+                    }}
+                    onHoverChange={setHoverIndex}
+                    totalClubs={clubs.length}
+                    onHaptic={() => haptic.medium()}
+                    allClubs={clubs}
+                  />
+                </View>
               );
             })}
           </View>
@@ -391,6 +418,24 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 12,
     marginBottom: 24,
+  },
+  tagWrapper: {
+    position: 'relative',
+  },
+  ghostPlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   buttonContainer: {
     padding: 16,
