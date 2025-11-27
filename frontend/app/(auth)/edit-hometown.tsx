@@ -27,7 +27,6 @@ import { useToast } from '../contexts/ToastContext';
 export default function EditHometownPage() {
   useThemeAware();
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hometown, setHometown] = useState('');
   const [originalHometown, setOriginalHometown] = useState('');
@@ -43,12 +42,10 @@ export default function EditHometownPage() {
     const user = getCurrentUser();
     if (!user?.uid) {
       Alert.alert('Error', 'User not authenticated');
-      setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
       const profileData = await getCurrentUserProfile();
 
       if (profileData) {
@@ -62,8 +59,6 @@ export default function EditHometownPage() {
     } catch (err) {
       console.error('Error fetching profile:', err);
       Alert.alert('Error', 'Failed to load profile');
-    } finally {
-      setLoading(false);
     }
   };
 

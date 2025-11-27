@@ -100,7 +100,6 @@ export default function EditInterestsPage() {
   useThemeAware();
   const { showToast } = useToast();
   const haptic = useHapticFeedback();
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [interests, setInterests] = useState<string[]>([]);
   const [originalInterests, setOriginalInterests] = useState<string[]>([]);
@@ -121,12 +120,10 @@ export default function EditInterestsPage() {
     const user = getCurrentUser();
     if (!user?.uid) {
       Alert.alert('Error', 'User not authenticated');
-      setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
       const profileData = await getCurrentUserProfile();
 
       if (profileData) {
@@ -137,8 +134,6 @@ export default function EditInterestsPage() {
     } catch (err) {
       console.error('Error fetching profile:', err);
       Alert.alert('Error', 'Failed to load profile');
-    } finally {
-      setLoading(false);
     }
   };
 

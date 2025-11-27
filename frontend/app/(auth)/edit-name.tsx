@@ -25,7 +25,6 @@ import { useToast } from '../contexts/ToastContext';
 export default function EditNamePage() {
   useThemeAware();
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [originalFirstName, setOriginalFirstName] = useState('');
@@ -39,12 +38,10 @@ export default function EditNamePage() {
     const user = getCurrentUser();
     if (!user?.uid) {
       Alert.alert('Error', 'User not authenticated');
-      setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
       const profileData = await getCurrentUserProfile();
 
       if (profileData) {
@@ -55,8 +52,6 @@ export default function EditNamePage() {
     } catch (err) {
       console.error('Error fetching profile:', err);
       Alert.alert('Error', 'Failed to load profile');
-    } finally {
-      setLoading(false);
     }
   };
 
