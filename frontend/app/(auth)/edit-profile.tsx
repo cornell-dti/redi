@@ -393,7 +393,7 @@ export default function EditProfileScreen() {
 
   // Get display data - use profile data if available, otherwise fallback
   const displayName = profileData?.firstName || 'User';
-  const displayAge = profileData ? getProfileAge(profileData) : null;
+  const displayAge = profileData ? `${getProfileAge(profileData)}` : 'Not set';
   const displayBio = profileData?.bio || 'No bio yet';
   const displaySchool = profileData?.school || 'School not set';
   const displayMajor =
@@ -577,7 +577,7 @@ export default function EditProfileScreen() {
 
             <ListItem
               title="Age"
-              description={displayAge ? `${displayAge}` : 'Not set'}
+              description={displayAge}
               right={<ChevronRight size={20} />}
               onPress={() => router.push('/edit-age' as any)}
             />
