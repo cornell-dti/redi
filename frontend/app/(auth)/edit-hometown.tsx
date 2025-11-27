@@ -14,20 +14,21 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
+import { updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import EditingHeader from '../components/ui/EditingHeader';
 import FooterSpacer from '../components/ui/FooterSpacer';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
 import Toggle from '../components/ui/Toggle';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
+import { useProfile } from '../contexts/ProfileContext';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 
 export default function EditHometownPage() {
   useThemeAware();
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const { profile, refreshProfile, updateProfileData } = useProfile();
   const [saving, setSaving] = useState(false);
   const [hometown, setHometown] = useState('');
   const [originalHometown, setOriginalHometown] = useState('');
@@ -36,36 +37,15 @@ export default function EditHometownPage() {
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    const user = getCurrentUser();
-    if (!user?.uid) {
-      Alert.alert('Error', 'User not authenticated');
-      setLoading(false);
-      return;
+    if (profile) {
+      const hometownValue = profile.hometown || '';
+      setHometown(hometownValue);
+      setOriginalHometown(hometownValue);
+      const showHometownValue = profile.showHometownOnProfile ?? true;
+      setShowOnProfile(showHometownValue);
+      setOriginalShowOnProfile(showHometownValue);
     }
-
-    try {
-      setLoading(true);
-      const profileData = await getCurrentUserProfile();
-
-      if (profileData) {
-        const hometownValue = profileData.hometown || '';
-        setHometown(hometownValue);
-        setOriginalHometown(hometownValue);
-        const showHometownValue = profileData.showHometownOnProfile ?? true;
-        setShowOnProfile(showHometownValue);
-        setOriginalShowOnProfile(showHometownValue);
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      Alert.alert('Error', 'Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [profile]);
 
   const handleSave = async () => {
     const user = getCurrentUser();
@@ -86,8 +66,17 @@ export default function EditHometownPage() {
         showHometownOnProfile: showOnProfile,
       });
 
+      // Update context with new values
+      updateProfileData({
+        hometown: hometown.trim(),
+        showHometownOnProfile: showOnProfile,
+      });
+
       setOriginalHometown(hometown);
       setOriginalShowOnProfile(showOnProfile);
+
+      // Refresh profile from server in background
+      refreshProfile();
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
@@ -158,16 +147,14 @@ export default function EditHometownPage() {
             <AppText>.</AppText>
           </View>
 
-          {!loading && (
-            <ListItemWrapper>
-              <View style={styles.toggleContainer}>
-                <View style={styles.toggleLabel}>
-                  <AppText variant="body">Show on profile</AppText>
-                </View>
-                <Toggle value={showOnProfile} onValueChange={setShowOnProfile} />
+          <ListItemWrapper>
+            <View style={styles.toggleContainer}>
+              <View style={styles.toggleLabel}>
+                <AppText variant="body">Show on profile</AppText>
               </View>
-            </ListItemWrapper>
-          )}
+              <Toggle value={showOnProfile} onValueChange={setShowOnProfile} />
+            </View>
+          </ListItemWrapper>
 
           <FooterSpacer />
         </ScrollView>

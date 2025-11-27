@@ -12,7 +12,7 @@ import {
   YEARS,
 } from '../../constants/cornell';
 import { getCurrentUser } from '../api/authService';
-import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
+import { updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import AppInput from '../components/ui/AppInput';
 import Button from '../components/ui/Button';
@@ -20,18 +20,18 @@ import EditingHeader from '../components/ui/EditingHeader';
 import FooterSpacer from '../components/ui/FooterSpacer';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
-import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import Toggle from '../components/ui/Toggle';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
+import { useProfile } from '../contexts/ProfileContext';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 
 export default function EditEducationPage() {
   useThemeAware();
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const { profile, refreshProfile, updateProfileData } = useProfile();
   const [saving, setSaving] = useState(false);
 
   // Current values
@@ -56,41 +56,20 @@ export default function EditEducationPage() {
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    if (profile) {
+      setSchool(profile.school);
+      setMajors(profile.major);
+      setYear(profile.year);
 
-  const fetchProfile = async () => {
-    const user = getCurrentUser();
-    if (!user?.uid) {
-      Alert.alert('Error', 'User not authenticated');
-      setLoading(false);
-      return;
+      setOriginalSchool(profile.school);
+      setOriginalMajors(profile.major);
+      setOriginalYear(profile.year);
+
+      const showCollegeValue = profile.showCollegeOnProfile ?? true;
+      setShowOnProfile(showCollegeValue);
+      setOriginalShowOnProfile(showCollegeValue);
     }
-
-    try {
-      setLoading(true);
-      const profileData = await getCurrentUserProfile();
-
-      if (profileData) {
-        setSchool(profileData.school);
-        setMajors(profileData.major);
-        setYear(profileData.year);
-
-        setOriginalSchool(profileData.school);
-        setOriginalMajors(profileData.major);
-        setOriginalYear(profileData.year);
-
-        const showCollegeValue = profileData.showCollegeOnProfile ?? true;
-        setShowOnProfile(showCollegeValue);
-        setOriginalShowOnProfile(showCollegeValue);
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      Alert.alert('Error', 'Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [profile]);
 
   const handleSave = async () => {
     const user = getCurrentUser();
@@ -121,10 +100,21 @@ export default function EditEducationPage() {
         showCollegeOnProfile: showOnProfile,
       });
 
+      // Update context with new values
+      updateProfileData({
+        school,
+        major: majors,
+        year,
+        showCollegeOnProfile: showOnProfile,
+      });
+
       setOriginalSchool(school);
       setOriginalMajors(majors);
       setOriginalYear(year);
       setOriginalShowOnProfile(showOnProfile);
+
+      // Refresh profile from server in background
+      refreshProfile();
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
@@ -169,15 +159,6 @@ export default function EditEducationPage() {
   const removeMajor = (index: number) => {
     setMajors((prev) => prev.filter((_, i) => i !== index));
   };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <LoadingSpinner />
-        <AppText style={styles.loadingText}>Loading...</AppText>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -250,16 +231,14 @@ export default function EditEducationPage() {
           </View>
 
           {/* Visibility Toggle */}
-          {!loading && (
-            <ListItemWrapper>
-              <View style={styles.toggleContainer}>
-                <View style={styles.toggleLabel}>
-                  <AppText variant="body">Show on profile</AppText>
-                </View>
-                <Toggle value={showOnProfile} onValueChange={setShowOnProfile} />
+          <ListItemWrapper>
+            <View style={styles.toggleContainer}>
+              <View style={styles.toggleLabel}>
+                <AppText variant="body">Show on profile</AppText>
               </View>
-            </ListItemWrapper>
-          )}
+              <Toggle value={showOnProfile} onValueChange={setShowOnProfile} />
+            </View>
+          </ListItemWrapper>
 
           <FooterSpacer />
         </View>
