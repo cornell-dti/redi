@@ -371,8 +371,8 @@ export default function EditProfileScreen() {
 
   // Get socials order from profile, or use default order
   const socialsOrder =
-    profile && 'socialsOrder' in profile && profile.socialsOrder
-      ? profile.socialsOrder
+    profileData && 'socialsOrder' in profileData && profileData.socialsOrder
+      ? profileData.socialsOrder
       : ['instagram', 'snapchat', 'linkedin', 'github', 'website'];
 
   // Map social types to their display values and labels

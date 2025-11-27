@@ -37,32 +37,15 @@ export default function EditHometownPage() {
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    const user = getCurrentUser();
-    if (!user?.uid) {
-      Alert.alert('Error', 'User not authenticated');
-      return;
+    if (profile) {
+      const hometownValue = profile.hometown || '';
+      setHometown(hometownValue);
+      setOriginalHometown(hometownValue);
+      const showHometownValue = profile.showHometownOnProfile ?? true;
+      setShowOnProfile(showHometownValue);
+      setOriginalShowOnProfile(showHometownValue);
     }
-
-    try {
-      const profileData = await getCurrentUserProfile();
-
-      if (profileData) {
-        const hometownValue = profileData.hometown || '';
-        setHometown(hometownValue);
-        setOriginalHometown(hometownValue);
-        const showHometownValue = profileData.showHometownOnProfile ?? true;
-        setShowOnProfile(showHometownValue);
-        setOriginalShowOnProfile(showHometownValue);
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      Alert.alert('Error', 'Failed to load profile');
-    }
-  };
+  }, [profile]);
 
   const handleSave = async () => {
     const user = getCurrentUser();
