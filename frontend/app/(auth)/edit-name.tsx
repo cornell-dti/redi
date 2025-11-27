@@ -142,6 +142,8 @@ export default function EditNamePage() {
               onChangeText={setFirstName}
               autoCapitalize="words"
               style={{ width: 200 }}
+              returnKeyType="done"
+              onSubmitEditing={handleSave}
             />
             <AppText>.</AppText>
           </View>

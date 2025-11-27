@@ -154,6 +154,8 @@ export default function EditHometownPage() {
               onChangeText={setHometown}
               autoCapitalize="words"
               style={{ width: 200 }}
+              returnKeyType="done"
+              onSubmitEditing={handleSave}
             />
             <AppText>.</AppText>
           </View>
