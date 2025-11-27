@@ -28,7 +28,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { deleteImage, uploadImages } from '../api/imageApi';
-import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
+import { updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import PhotoUploadGrid from '../components/onboarding/PhotoUploadGrid';
 import Button from '../components/ui/Button';
@@ -36,9 +36,9 @@ import EditingHeader from '../components/ui/EditingHeader';
 import FooterSpacer from '../components/ui/FooterSpacer';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
-import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
+import { useProfile } from '../contexts/ProfileContext';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useHapticFeedback } from '../hooks/useHapticFeedback';
 import { useToast } from '../contexts/ToastContext';
@@ -147,9 +147,7 @@ export default function EditProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
   const { showToast } = useToast();
   const haptic = useHapticFeedback();
-  const [profile, setProfile] = useState<ProfileResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { profile: profileData, loading, refreshProfile, updateProfileData } = useProfile();
   const [prompts, setPrompts] = useState<PromptData[]>([]);
   const [showUnsavedSheet, setShowUnsavedSheet] = useState(false);
   const [originalPrompts, setOriginalPrompts] = useState<PromptData[]>([]);
@@ -168,83 +166,37 @@ export default function EditProfileScreen() {
   // Scroll position preservation
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollPositionRef = useRef(0);
-  const isInitialMountRef = useRef(true);
 
-  // Fetch profile data whenever screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      fetchProfile();
-    }, [])
-  );
-
-  // Restore scroll position after loading completes (but not on initial mount)
+  // Initialize data from profile context
   useEffect(() => {
-    if (!loading && !isInitialMountRef.current) {
-      // Use a small delay to ensure the ScrollView has rendered with new content
-      const timer = setTimeout(() => {
-        scrollViewRef.current?.scrollTo({
-          y: scrollPositionRef.current,
-          animated: false,
-        });
-      }, 50);
-      return () => clearTimeout(timer);
-    }
-    if (!loading && isInitialMountRef.current) {
-      isInitialMountRef.current = false;
-    }
-  }, [loading]);
-
-  const fetchProfile = async () => {
-    const user = getCurrentUser();
-
-    if (!user?.uid) {
-      setError('User not authenticated');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const profileData = await getCurrentUserProfile();
-
-      if (profileData) {
-        setProfile(profileData);
-        // Initialize prompts from profile data
-        if (profileData.prompts && profileData.prompts.length > 0) {
-          const initialPrompts = profileData.prompts.map((p, index) => ({
-            id: index.toString(),
-            question: p.question,
-            answer: p.answer,
-          }));
-          setPrompts(initialPrompts);
-          setOriginalPrompts(initialPrompts);
-        } else {
-          // Initialize with at least one empty prompt
-          const emptyPrompt = [
-            {
-              id: Date.now().toString(),
-              question: '',
-              answer: '',
-            },
-          ];
-          setPrompts(emptyPrompt);
-          setOriginalPrompts(emptyPrompt);
-        }
-        // Initialize photos from profile data
-        const photosData = profileData.pictures || [];
-        setPhotos(photosData);
-        setOriginalPhotos(photosData);
-        setError(null);
+    if (profileData) {
+      // Initialize prompts from profile data
+      if (profileData.prompts && profileData.prompts.length > 0) {
+        const initialPrompts = profileData.prompts.map((p, index) => ({
+          id: index.toString(),
+          question: p.question,
+          answer: p.answer,
+        }));
+        setPrompts(initialPrompts);
+        setOriginalPrompts(initialPrompts);
       } else {
-        setError('Profile not found. Please complete your profile.');
+        // Initialize with at least one empty prompt
+        const emptyPrompt = [
+          {
+            id: Date.now().toString(),
+            question: '',
+            answer: '',
+          },
+        ];
+        setPrompts(emptyPrompt);
+        setOriginalPrompts(emptyPrompt);
       }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load profile');
-    } finally {
-      setLoading(false);
+      // Initialize photos from profile data
+      const photosData = profileData.pictures || [];
+      setPhotos(photosData);
+      setOriginalPhotos(photosData);
     }
-  };
+  }, [profileData]);
 
   const openURL = async (url: string) => {
     try {
@@ -337,16 +289,24 @@ export default function EditProfileScreen() {
       }
 
       // Step 5: Update profile with final image URLs and prompts
-      await updateProfile({
+      const updateData = {
         pictures: finalImageUrls,
         prompts: prompts
           .filter((p) => p.question && p.answer)
           .map((p) => ({ question: p.question, answer: p.answer })),
-      });
+      };
+
+      await updateProfile(updateData);
+
+      // Update context with new values
+      updateProfileData(updateData);
 
       setOriginalPrompts(prompts);
       setOriginalPhotos(finalImageUrls);
       setPhotos(finalImageUrls); // Update local state with remote URLs
+
+      // Refresh profile from server in background
+      refreshProfile();
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
@@ -432,31 +392,31 @@ export default function EditProfileScreen() {
   };
 
   // Get display data - use profile data if available, otherwise fallback
-  const displayName = profile?.firstName || 'User';
-  const displayAge = profile ? getProfileAge(profile) : null;
-  const displayBio = profile?.bio || 'No bio yet';
-  const displaySchool = profile?.school || 'School not set';
+  const displayName = profileData?.firstName || 'User';
+  const displayAge = profileData ? getProfileAge(profileData) : null;
+  const displayBio = profileData?.bio || 'No bio yet';
+  const displaySchool = profileData?.school || 'School not set';
   const displayMajor =
-    profile?.major && profile.major.length > 0
-      ? profile.major.join(', ')
+    profileData?.major && profileData.major.length > 0
+      ? profileData.major.join(', ')
       : 'Major not set';
-  const displayYear = profile?.year || 'Year not set';
+  const displayYear = profileData?.year || 'Year not set';
   // Social fields are only available on OwnProfileResponse
   const displayInstagram =
-    profile && 'instagram' in profile ? profile.instagram || null : null;
+    profileData && 'instagram' in profileData ? profileData.instagram || null : null;
   const displaySnapchat =
-    profile && 'snapchat' in profile ? profile.snapchat || null : null;
+    profileData && 'snapchat' in profileData ? profileData.snapchat || null : null;
   const displayLinkedIn =
-    profile && 'linkedIn' in profile ? profile.linkedIn || null : null;
+    profileData && 'linkedIn' in profileData ? profileData.linkedIn || null : null;
   const displayGithub =
-    profile && 'github' in profile ? profile.github || null : null;
+    profileData && 'github' in profileData ? profileData.github || null : null;
   const displayWebsite =
-    profile && 'website' in profile ? profile.website || null : null;
-  const displayClubs = profile?.clubs || [];
-  const displayInterests = profile?.interests || [];
+    profileData && 'website' in profileData ? profileData.website || null : null;
+  const displayClubs = profileData?.clubs || [];
+  const displayInterests = profileData?.interests || [];
   const displayEthnicity =
-    profile?.ethnicity && profile.ethnicity.length > 0
-      ? profile.ethnicity.join(', ')
+    profileData?.ethnicity && profileData.ethnicity.length > 0
+      ? profileData.ethnicity.join(', ')
       : null;
 
   // Check if user has any social links
@@ -467,25 +427,6 @@ export default function EditProfileScreen() {
     displayGithub ||
     displayWebsite
   );
-
-  // Show loading spinner while fetching
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <LoadingSpinner />
-        <AppText style={styles.loadingText}>Loading profile...</AppText>
-      </SafeAreaView>
-    );
-  }
-
-  // Show error message if failed to load
-  if (error && !profile) {
-    return (
-      <SafeAreaView style={[styles.container, styles.centerContent]}>
-        <AppText style={styles.errorText}>{error}</AppText>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -644,9 +585,9 @@ export default function EditProfileScreen() {
             <ListItem
               title="Gender"
               description={
-                profile?.gender
-                  ? profile.gender.charAt(0).toUpperCase() +
-                    profile.gender.slice(1)
+                profileData?.gender
+                  ? profileData.gender.charAt(0).toUpperCase() +
+                    profileData.gender.slice(1)
                   : ''
               }
               right={<ChevronRight size={20} />}
@@ -655,14 +596,14 @@ export default function EditProfileScreen() {
 
             <ListItem
               title="Sexuality"
-              description={profile?.sexualOrientation?.join(', ') || 'Not set'}
+              description={profileData?.sexualOrientation?.join(', ') || 'Not set'}
               right={<ChevronRight size={20} />}
               onPress={() => router.push('/edit-sexuality' as any)}
             />
 
             <ListItem
               title="Hometown"
-              description={profile?.hometown || 'Not set'}
+              description={profileData?.hometown || 'Not set'}
               right={<ChevronRight size={20} />}
               onPress={() => router.push('/edit-hometown' as any)}
             />
@@ -671,11 +612,11 @@ export default function EditProfileScreen() {
               title="Education"
               description={
                 <AppText color="dimmer">
-                  <AppText>{profile?.year}</AppText>
+                  <AppText>{profileData?.year}</AppText>
                   {' in '}
-                  <AppText>{profile?.school}</AppText>
+                  <AppText>{profileData?.school}</AppText>
                   {' studying '}
-                  <AppText>{profile?.major?.join(', ')}</AppText>
+                  <AppText>{profileData?.major?.join(', ')}</AppText>
                 </AppText>
               }
               right={<ChevronRight size={20} />}
