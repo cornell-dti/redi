@@ -37,15 +37,32 @@ export default function EditHometownPage() {
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
-    if (profile) {
-      const hometownValue = profile.hometown || '';
-      setHometown(hometownValue);
-      setOriginalHometown(hometownValue);
-      const showHometownValue = profile.showHometownOnProfile ?? true;
-      setShowOnProfile(showHometownValue);
-      setOriginalShowOnProfile(showHometownValue);
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    const user = getCurrentUser();
+    if (!user?.uid) {
+      Alert.alert('Error', 'User not authenticated');
+      return;
     }
-  }, [profile]);
+
+    try {
+      const profileData = await getCurrentUserProfile();
+
+      if (profileData) {
+        const hometownValue = profileData.hometown || '';
+        setHometown(hometownValue);
+        setOriginalHometown(hometownValue);
+        const showHometownValue = profileData.showHometownOnProfile ?? true;
+        setShowOnProfile(showHometownValue);
+        setOriginalShowOnProfile(showHometownValue);
+      }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      Alert.alert('Error', 'Failed to load profile');
+    }
+  };
 
   const handleSave = async () => {
     const user = getCurrentUser();
@@ -143,6 +160,8 @@ export default function EditHometownPage() {
               onChangeText={setHometown}
               autoCapitalize="words"
               style={{ width: 200 }}
+              returnKeyType="done"
+              onSubmitEditing={handleSave}
             />
             <AppText>.</AppText>
           </View>

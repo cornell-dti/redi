@@ -1,10 +1,12 @@
 import AppInput from '@/app/components/ui/AppInput';
+import AppText from '@/app/components/ui/AppText';
 import { router } from 'expo-router';
 import {
   Check,
   Drama,
   MessagesSquare,
   Plus,
+  Trash2,
   Trophy,
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -12,11 +14,14 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StatusBar,
   StyleSheet,
   View,
 } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
@@ -29,11 +34,67 @@ import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
+import { useDragAndDrop } from '../hooks/useDragAndDrop';
+import { useHapticFeedback } from '../hooks/useHapticFeedback';
+
+interface DraggableTagProps {
+  club: string;
+  index: number;
+  isDragging: boolean;
+  onRemove: () => void;
+  onPress: () => void;
+  onDragStart: () => void;
+  onDragEnd: (toIndex: number) => void;
+  onHoverChange: (toIndex: number | null) => void;
+  totalClubs: number;
+  onHaptic: () => void;
+  allClubs: string[];
+}
+
+function DraggableTag({
+  club,
+  index,
+  isDragging,
+  onRemove,
+  onPress,
+  onDragStart,
+  onDragEnd,
+  onHoverChange,
+  totalClubs,
+  onHaptic,
+  allClubs,
+}: DraggableTagProps) {
+  useThemeAware();
+
+  const { gesture, animatedStyle } = useDragAndDrop({
+    type: 'tag',
+    index,
+    totalItems: totalClubs,
+    onDragStart,
+    onDragEnd,
+    onHoverChange,
+    onHaptic,
+    isDragging,
+    tagHorizontalThreshold: 60,
+    tagVerticalThreshold: 40,
+    tagsPerRow: 3,
+  });
+
+  return (
+    <GestureDetector gesture={gesture}>
+      <Animated.View style={animatedStyle}>
+        <Pressable onPress={onPress}>
+          <Tag label={club} variant="gray" dismissible onDismiss={onRemove} />
+        </Pressable>
+      </Animated.View>
+    </GestureDetector>
+  );
+}
 
 export default function EditClubsPage() {
   useThemeAware();
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const haptic = useHapticFeedback();
   const [saving, setSaving] = useState(false);
   const [clubs, setClubs] = useState<string[]>([]);
   const [originalClubs, setOriginalClubs] = useState<string[]>([]);
@@ -41,6 +102,10 @@ export default function EditClubsPage() {
   const [newClub, setNewClub] = useState('');
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
   const [animationTrigger, setAnimationTrigger] = useState(0);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [editingClub, setEditingClub] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
 
   useEffect(() => {
     fetchProfile();
@@ -50,12 +115,10 @@ export default function EditClubsPage() {
     const user = getCurrentUser();
     if (!user?.uid) {
       Alert.alert('Error', 'User not authenticated');
-      setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
       const profileData = await getCurrentUserProfile();
 
       if (profileData) {
@@ -66,8 +129,6 @@ export default function EditClubsPage() {
     } catch (err) {
       console.error('Error fetching profile:', err);
       Alert.alert('Error', 'Failed to load profile');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -137,6 +198,43 @@ export default function EditClubsPage() {
     setClubs(clubs.filter((club) => club !== clubToRemove));
   };
 
+  const reorderClubs = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || toIndex >= clubs.length) return;
+
+    const newClubs = [...clubs];
+    const [movedClub] = newClubs.splice(fromIndex, 1);
+    newClubs.splice(toIndex, 0, movedClub);
+    setClubs(newClubs);
+  };
+
+  const handleEditClub = (club: string) => {
+    setEditingClub(club);
+    setEditValue(club);
+  };
+
+  const handleSaveEdit = () => {
+    if (editValue.trim() && editingClub) {
+      if (!clubs.includes(editValue.trim()) || editValue.trim() === editingClub) {
+        const updatedClubs = clubs.map((club) =>
+          club === editingClub ? editValue.trim() : club
+        );
+        setClubs(updatedClubs);
+        setEditingClub(null);
+        setEditValue('');
+      } else {
+        Alert.alert('Duplicate', 'This club already exists');
+      }
+    }
+  };
+
+  const handleRemoveFromEdit = () => {
+    if (editingClub) {
+      removeClub(editingClub);
+      setEditingClub(null);
+      setEditValue('');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -163,15 +261,53 @@ export default function EditClubsPage() {
           />
         ) : (
           <View style={styles.tagsContainer}>
-            {clubs.map((club) => (
-              <Tag
-                key={club}
-                label={club}
-                variant="gray"
-                dismissible
-                onDismiss={() => removeClub(club)}
-              />
-            ))}
+            {clubs.map((club, index) => {
+              const isDragging = draggingIndex === index;
+              const shouldShowGhost =
+                hoverIndex === index &&
+                draggingIndex !== null &&
+                draggingIndex !== hoverIndex;
+
+              return (
+                <View key={club} style={styles.tagWrapper}>
+                  {shouldShowGhost && draggingIndex !== null && (
+                    <View
+                      style={[
+                        styles.ghostPlaceholder,
+                        {
+                          backgroundColor: AppColors.backgroundDimmer,
+                          borderColor: AppColors.accentDefault,
+                        },
+                      ]}
+                    >
+                      <AppText
+                        variant="bodySmall"
+                        style={{ opacity: 0.3, color: AppColors.foregroundDefault }}
+                      >
+                        {clubs[draggingIndex]}
+                      </AppText>
+                    </View>
+                  )}
+                  <DraggableTag
+                    club={club}
+                    index={index}
+                    isDragging={isDragging}
+                    onRemove={() => removeClub(club)}
+                    onPress={() => handleEditClub(club)}
+                    onDragStart={() => setDraggingIndex(index)}
+                    onDragEnd={(toIndex) => {
+                      reorderClubs(index, toIndex);
+                      setDraggingIndex(null);
+                      setHoverIndex(null);
+                    }}
+                    onHoverChange={setHoverIndex}
+                    totalClubs={clubs.length}
+                    onHaptic={() => haptic.medium()}
+                    allClubs={clubs}
+                  />
+                </View>
+              );
+            })}
           </View>
         )}
       </ScrollView>
@@ -209,6 +345,8 @@ export default function EditClubsPage() {
             autoCapitalize="words"
             autoCorrect={false}
             autoFocus={true}
+            returnKeyType="done"
+            onSubmitEditing={addClub}
           />
           <Button
             title="Add"
@@ -216,6 +354,46 @@ export default function EditClubsPage() {
             variant="primary"
             iconLeft={Plus}
             disabled={!newClub.trim()}
+          />
+        </KeyboardAvoidingView>
+      </Sheet>
+
+      {/* Edit Club Sheet */}
+      <Sheet
+        visible={editingClub !== null}
+        onDismiss={() => {
+          setEditingClub(null);
+          setEditValue('');
+        }}
+        title="Edit club"
+        bottomRound={false}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.sheetContent}
+        >
+          <AppInput
+            placeholder="e.g., Debate, Sports, Drama"
+            value={editValue}
+            onChangeText={setEditValue}
+            autoCapitalize="words"
+            autoCorrect={false}
+            autoFocus={true}
+            returnKeyType="done"
+            onSubmitEditing={handleSaveEdit}
+          />
+          <Button
+            title="Save"
+            onPress={handleSaveEdit}
+            variant="primary"
+            iconLeft={Check}
+            disabled={!editValue.trim()}
+          />
+          <Button
+            title="Remove"
+            onPress={handleRemoveFromEdit}
+            variant="negative"
+            iconLeft={Trash2}
           />
         </KeyboardAvoidingView>
       </Sheet>
@@ -248,6 +426,24 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 12,
     marginBottom: 24,
+  },
+  tagWrapper: {
+    position: 'relative',
+  },
+  ghostPlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   buttonContainer: {
     padding: 16,

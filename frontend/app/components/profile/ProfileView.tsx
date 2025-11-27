@@ -96,40 +96,62 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     }
   };
 
-  const socialItems: SocialItem[] = hasSocials
-    ? ([
-        'instagram' in profile &&
-          profile.instagram && {
+  // Get socials order from profile, or use default order
+  const socialsOrder =
+    'socialsOrder' in profile && profile.socialsOrder
+      ? profile.socialsOrder
+      : ['instagram', 'snapchat', 'linkedin', 'github', 'website'];
+
+  // Create a map of social types to their data
+  const socialMap: Record<string, SocialItem | null> = {
+    instagram:
+      'instagram' in profile && profile.instagram
+        ? {
             icon: <Instagram size={24} color={AppColors.foregroundDefault} />,
             url: `https://instagram.com/${profile.instagram.replace(/^@/, '')}`,
-          },
-        'snapchat' in profile &&
-          profile.snapchat && {
+          }
+        : null,
+    snapchat:
+      'snapchat' in profile && profile.snapchat
+        ? {
             icon: (
               <SnapchatIcon size={24} color={AppColors.foregroundDefault} />
             ),
             url: `https://snapchat.com/add/${profile.snapchat.replace(/^@/, '')}`,
-          },
-        'linkedIn' in profile &&
-          profile.linkedIn && {
+          }
+        : null,
+    linkedin:
+      'linkedIn' in profile && profile.linkedIn
+        ? {
             icon: (
               <LinkedinIcon size={24} color={AppColors.foregroundDefault} />
             ),
             url: profile.linkedIn.startsWith('in/')
               ? `https://linkedin.com/${profile.linkedIn}`
               : ensureProtocol(profile.linkedIn),
-          },
-        'github' in profile &&
-          profile.github && {
+          }
+        : null,
+    github:
+      'github' in profile && profile.github
+        ? {
             icon: <GithubIcon size={24} color={AppColors.foregroundDefault} />,
             url: `https://github.com/${profile.github.replace(/^@/, '')}`,
-          },
-        'website' in profile &&
-          profile.website && {
+          }
+        : null,
+    website:
+      'website' in profile && profile.website
+        ? {
             icon: <Globe size={24} color={AppColors.foregroundDefault} />,
             url: ensureProtocol(profile.website),
-          },
-      ].filter(Boolean) as SocialItem[])
+          }
+        : null,
+  };
+
+  // Build socialItems array in the order specified by socialsOrder
+  const socialItems: SocialItem[] = hasSocials
+    ? (socialsOrder
+        .map((socialType) => socialMap[socialType])
+        .filter(Boolean) as SocialItem[])
     : [];
 
   const handleScroll = (event: any) => {
@@ -439,7 +461,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexWrap: 'wrap',
     flexDirection: 'row',
-    gap: 8,
+    gap: 12,
     padding: 16,
     borderRadius: 24,
     backgroundColor: AppColors.backgroundDimmer,

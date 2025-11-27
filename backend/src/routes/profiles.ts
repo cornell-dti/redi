@@ -77,6 +77,7 @@ const profileDocToResponse = (
   website: doc.website,
   clubs: doc.clubs,
   interests: doc.interests,
+  socialsOrder: doc.socialsOrder,
   year: doc.year,
   school: doc.school,
   major: doc.major,

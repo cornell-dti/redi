@@ -1,17 +1,13 @@
 import { useThemeAware } from '@/app/contexts/ThemeContext';
+import { useDragAndDrop } from '@/app/hooks/useDragAndDrop';
 import { useHapticFeedback } from '@/app/hooks/useHapticFeedback';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Star, X } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Alert, Dimensions, Image, StyleSheet, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { AppColors } from '../AppColors';
 import AppText from '../ui/AppText';
 import IconButton from '../ui/IconButton';
@@ -67,76 +63,18 @@ function DraggablePhoto({
 }: DraggablePhotoProps) {
   useThemeAware(); // Force re-render when theme changes
 
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const scale = useSharedValue(1);
-  const zIndex = useSharedValue(0);
-  const lastTargetIndex = useSharedValue(index);
-
-  const gesture = Gesture.Pan()
-    .onStart(() => {
-      runOnJS(onDragStart)();
-      scale.value = withSpring(1.1);
-      zIndex.value = 1000;
-      lastTargetIndex.value = index;
-    })
-    .onUpdate((event) => {
-      translateX.value = event.translationX;
-      translateY.value = event.translationY;
-
-      // Calculate hover position while dragging
-      const col = Math.round(event.translationX / (GRID_SLOT_SIZE + GRID_GAP));
-      const row = Math.round(event.translationY / (GRID_SLOT_SIZE + GRID_GAP));
-      const offset = row * 3 + col;
-      const targetIndex = Math.max(
-        0,
-        Math.min(index + offset, totalPhotos - 1)
-      );
-
-      // Trigger haptic feedback when crossing to a new position
-      if (targetIndex !== lastTargetIndex.value) {
-        runOnJS(onHaptic)();
-        lastTargetIndex.value = targetIndex;
-      }
-
-      runOnJS(onHoverChange)(targetIndex);
-    })
-    .onEnd((event) => {
-      // Calculate which grid position the photo was dropped on
-      const col = Math.round(event.translationX / (GRID_SLOT_SIZE + GRID_GAP));
-      const row = Math.round(event.translationY / (GRID_SLOT_SIZE + GRID_GAP));
-      const offset = row * 3 + col;
-      const toIndex = Math.max(0, Math.min(index + offset, totalPhotos - 1));
-
-      runOnJS(onDragEnd)(toIndex);
-      runOnJS(onHoverChange)(null);
-
-      // Reset position and scale with reduced bounce
-      translateX.value = withSpring(0, { damping: 20, stiffness: 200 });
-      translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
-      scale.value = withSpring(1, { damping: 20, stiffness: 150 });
-      zIndex.value = 0;
-    });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    width: GRID_SLOT_SIZE,
-    height: GRID_SLOT_SIZE,
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
-    zIndex: zIndex.value,
-    opacity: isDragging ? 0.8 : 1,
-    shadowColor: isDragging ? '#000' : 'transparent',
-    shadowOffset: {
-      width: 0,
-      height: isDragging ? 4 : 0,
-    },
-    shadowOpacity: isDragging ? 0.3 : 0,
-    shadowRadius: isDragging ? 4.65 : 0,
-    elevation: isDragging ? 8 : 0,
-  }));
+  const { gesture, animatedStyle } = useDragAndDrop({
+    type: 'grid',
+    index,
+    totalItems: totalPhotos,
+    onDragStart,
+    onDragEnd,
+    onHoverChange,
+    onHaptic,
+    isDragging,
+    gridSlotSize: GRID_SLOT_SIZE,
+    gridGap: GRID_GAP,
+  });
 
   return (
     <GestureDetector gesture={gesture}>

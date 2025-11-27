@@ -17,7 +17,6 @@ import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
 import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
-import { useDebouncedCallback } from '@/app/hooks/useDebounce';
 import {
   getMatchDropDescription,
   shouldShowCountdown,
@@ -62,14 +61,12 @@ export default function MatchesScreen() {
   useThemeAware();
 
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
   const [showCountdown, setShowCountdown] = useState(false);
   const [activePrompt, setActivePrompt] = useState<WeeklyPromptResponse | null>(
     null
   );
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [currentMatches, setCurrentMatches] = useState<MatchWithProfile[]>([]);
-  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [showPromptSheet, setShowPromptSheet] = useState(false);
   const [tempAnswer, setTempAnswer] = useState('');
   const lastLoadTime = useRef<number>(0);
@@ -78,26 +75,6 @@ export default function MatchesScreen() {
 
   // Track scroll position for real-time dot animation
   const scrollX = useRef(new Animated.Value(0)).current;
-
-  // Debounced data loading to prevent excessive API calls
-  const loadDataDebounced = useDebouncedCallback(() => {
-    loadData();
-  }, 500); // 500ms debounce
-
-  useEffect(() => {
-    loadData();
-
-    // Update countdown state every minute
-    const interval = setInterval(() => {
-      if (activePrompt) {
-        setShowCountdown(shouldShowCountdown(activePrompt.matchDate));
-      } else {
-        setShowCountdown(false);
-      }
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, [activePrompt]); // Update when activePrompt changes
 
   const loadData = useCallback(async () => {
     // Prevent rapid successive calls (rate limiting on client side)
@@ -113,7 +90,6 @@ export default function MatchesScreen() {
     lastLoadTime.current = now;
 
     try {
-      setLoading(true);
       let prompt: WeeklyPromptResponse | null = null;
 
       // Get active prompt (optional - matches can exist without an active prompt)
@@ -224,11 +200,25 @@ export default function MatchesScreen() {
         console.error('Error details:', error.message);
       }
     } finally {
-      setLoading(false);
       // Clear local nudges after data reload since server state is now current
       setLocalNudges(new Set());
     }
   }, []); // Empty dependency array since we use refs for state that shouldn't trigger re-renders
+
+  useEffect(() => {
+    loadData();
+
+    // Update countdown state every minute
+    const interval = setInterval(() => {
+      if (activePrompt) {
+        setShowCountdown(shouldShowCountdown(activePrompt.matchDate));
+      } else {
+        setShowCountdown(false);
+      }
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [activePrompt, loadData]); // Update when activePrompt changes or loadData changes
 
   const handleSubmitAnswer = async () => {
     if (!activePrompt || !tempAnswer.trim()) return;
@@ -344,12 +334,6 @@ export default function MatchesScreen() {
             [{ nativeEvent: { contentOffset: { x: scrollX } } }],
             {
               useNativeDriver: false,
-              listener: (event: any) => {
-                const index = Math.round(
-                  event.nativeEvent.contentOffset.x / (width - 60)
-                );
-                setCurrentMatchIndex(index);
-              },
             }
           )}
           scrollEventThrottle={16}
@@ -537,6 +521,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 64,
+    backgroundColor: AppColors.backgroundDefault,
   },
   scrollView: {
     flex: 1,
