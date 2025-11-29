@@ -29,14 +29,15 @@
         "REACT_APP_API_BASE_URL": "https://redi-app-8ea0a6e9c3d9.herokuapp.com"
       },
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "image": "latest"
       }
     }
   },
   "submit": {
     "production": {
       "android": {
-        "serviceAccountKeyPath": "./service-account-key.json",
+        "serviceAccountKeyPath": "./firebase-service-account.json",
         "track": "internal"
       }
     }
