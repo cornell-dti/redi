@@ -55,3 +55,4 @@ android/
 
 *.tmp
 *.backup
+frontend/firebase-service-account.json
