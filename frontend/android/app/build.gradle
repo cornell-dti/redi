@@ -102,15 +102,23 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            // Use environment variables for credentials (managed by EAS)
+            if (System.getenv("REDI_RELEASE_STORE_FILE")) {
+                storeFile file(System.getenv("REDI_RELEASE_STORE_FILE"))
+                storePassword System.getenv("REDI_RELEASE_STORE_PASSWORD")
+                keyAlias System.getenv("REDI_RELEASE_KEY_ALIAS")
+                keyPassword System.getenv("REDI_RELEASE_KEY_PASSWORD")
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            // Use production signing config for release builds
+            signingConfig signingConfigs.release
             shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"

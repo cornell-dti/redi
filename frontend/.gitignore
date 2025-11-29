@@ -16,3 +16,6 @@ expo-env.d.ts
 # Uncomment below to ignore them if needed
 # GoogleService-Info.plist
 # google-services.json
+
+# Google Play Console service account key
+service-account-key.json
