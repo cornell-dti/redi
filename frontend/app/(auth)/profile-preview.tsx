@@ -1,4 +1,3 @@
-import { getCurrentUser } from '@/app/api/authService';
 import {
   getActivePrompt,
   getPromptAnswer,
@@ -98,6 +97,7 @@ export default function ProfilePreviewScreen() {
             setTempAnswer(userAnswer);
             setShowPromptSheet(true);
           }}
+          isOwnProfile={true}
         />
       )}
 

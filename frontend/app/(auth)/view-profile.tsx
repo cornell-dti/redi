@@ -1,5 +1,9 @@
 import { getNudgeStatus, sendNudge } from '@/app/api/nudgesApi';
 import { getProfileByNetid } from '@/app/api/profileApi';
+import {
+  getPromptAnswerByNetid,
+  getPromptById,
+} from '@/app/api/promptsApi';
 import { createReport } from '@/app/api/reportsApi';
 import { AppColors } from '@/app/components/AppColors';
 import ProfileView from '@/app/components/profile/ProfileView';
@@ -9,7 +13,12 @@ import Button from '@/app/components/ui/Button';
 import ListItem from '@/app/components/ui/ListItem';
 import Sheet from '@/app/components/ui/Sheet';
 import { useToast } from '@/app/contexts/ToastContext';
-import { NudgeStatusResponse, ProfileResponse, ReportReason } from '@/types';
+import {
+  NudgeStatusResponse,
+  ProfileResponse,
+  ReportReason,
+  WeeklyPromptResponse,
+} from '@/types';
 import auth from '@react-native-firebase/auth';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Ban, Check, Flag, MoreVertical } from 'lucide-react-native';
@@ -58,6 +67,10 @@ export default function ViewProfileScreen() {
   );
   const [isNudging, setIsNudging] = useState(false);
   const [isOpeningChat, setIsOpeningChat] = useState(false);
+  const [activePrompt, setActivePrompt] = useState<WeeklyPromptResponse | null>(
+    null
+  );
+  const [matchAnswer, setMatchAnswer] = useState<string>('');
 
   const user = auth().currentUser;
   const currentNetid = user?.email?.split('@')[0] || '';
@@ -69,12 +82,35 @@ export default function ViewProfileScreen() {
       checkIfBlocked();
       if (promptId) {
         fetchNudgeStatus();
+        fetchPromptData();
       }
     } else {
       setError('No user specified');
       setLoading(false);
     }
   }, [netid, promptId]);
+
+  const fetchPromptData = async () => {
+    if (!netid || !promptId) return;
+
+    try {
+      // Fetch the prompt question
+      const prompt = await getPromptById(promptId);
+      setActivePrompt(prompt);
+
+      // Fetch the match's answer to the prompt
+      try {
+        const answer = await getPromptAnswerByNetid(promptId, netid);
+        setMatchAnswer(answer?.answer || '');
+      } catch (error) {
+        console.error('Error fetching match answer:', error);
+        setMatchAnswer('');
+      }
+    } catch (error) {
+      console.error('Error fetching prompt data:', error);
+      setActivePrompt(null);
+    }
+  };
 
   const checkIfBlocked = async () => {
     if (!netid || !currentNetid) return;
@@ -241,6 +277,8 @@ export default function ViewProfileScreen() {
         nudgeDisabled={nudgeStatus?.mutual || isNudging}
         showOpenChatButton={nudgeStatus?.mutual || false}
         onOpenChat={handleOpenChat}
+        weeklyPrompt={activePrompt}
+        weeklyPromptAnswer={matchAnswer}
       />
 
       {/* More Options Sheet */}

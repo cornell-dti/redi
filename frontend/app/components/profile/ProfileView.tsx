@@ -44,6 +44,7 @@ interface ProfileViewProps {
   weeklyPrompt?: WeeklyPromptResponse | null;
   weeklyPromptAnswer?: string;
   onEditWeeklyPrompt?: () => void;
+  isOwnProfile?: boolean; // True when viewing own profile in preview mode
 }
 
 const ProfileView: React.FC<ProfileViewProps> = ({
@@ -57,6 +58,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   weeklyPrompt,
   weeklyPromptAnswer,
   onEditWeeklyPrompt,
+  isOwnProfile = false,
 }) => {
   const screenWidth = Dimensions.get('window').width;
   const age = getProfileAge(profile);
@@ -266,6 +268,26 @@ const ProfileView: React.FC<ProfileViewProps> = ({
           )}
         </View>
 
+        {/* Weekly Prompt Section - Show when viewing match OR when viewing own profile */}
+        {(weeklyPrompt || isOwnProfile) && (
+          <View style={styles.section}>
+            <AppText variant="subtitle" indented>
+              Weekly Prompt
+            </AppText>
+
+            <ListItemWrapper>
+              <View style={styles.promptQuestion}>
+                <AppText color="dimmer">
+                  {weeklyPrompt ? weeklyPrompt.question : 'No active prompt'}
+                </AppText>
+                <AppText variant="subtitle">
+                  {weeklyPromptAnswer || 'No comment.'}
+                </AppText>
+              </View>
+            </ListItemWrapper>
+          </View>
+        )}
+
         <View style={styles.section}>
           <AppText variant="subtitle" indented>
             Details
@@ -393,21 +415,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                 </View>
               ))}
             </View>
-          </View>
-        )}
-
-        {weeklyPrompt && weeklyPromptAnswer && (
-          <View style={styles.section}>
-            <AppText variant="subtitle" indented>
-              Weekly Prompt
-            </AppText>
-
-            <ListItemWrapper>
-              <View style={styles.promptQuestion}>
-                <AppText color="dimmer">{weeklyPrompt.question}</AppText>
-                <AppText variant="subtitle">{weeklyPromptAnswer}</AppText>
-              </View>
-            </ListItemWrapper>
           </View>
         )}
       </View>

@@ -77,6 +77,25 @@ export async function getPromptAnswer(
   );
 }
 
+/**
+ * Get a specific user's answer to a prompt
+ * Only works if the user is in your matches for this prompt
+ * SECURITY: firebaseUid is now extracted from Bearer token on backend
+ *
+ * @param promptId - The prompt ID to fetch answer for
+ * @param netid - The netid of the user whose answer to fetch
+ * @returns Promise resolving to user's answer or null if no answer
+ * @throws APIError if fetch fails or user is not in matches
+ */
+export async function getPromptAnswerByNetid(
+  promptId: string,
+  netid: string
+): Promise<WeeklyPromptAnswerResponse | null> {
+  return apiClient.get<WeeklyPromptAnswerResponse | null>(
+    `/api/prompts/${promptId}/answers/${netid}`
+  );
+}
+
 // =============================================================================
 // MATCHES API
 // =============================================================================

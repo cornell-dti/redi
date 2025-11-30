@@ -265,6 +265,50 @@ router.get(
   }
 );
 
+/**
+ * GET /api/prompts/:promptId/answers/:netid
+ * Get a specific user's answer to a prompt (requires authentication)
+ * Only accessible if the requested user is in your matches for this prompt
+ */
+router.get(
+  '/api/prompts/:promptId/answers/:netid',
+  authenticatedRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      const { promptId, netid: targetNetid } = req.params;
+
+      // Get netid from authenticated user
+      const viewerNetid = await getNetidFromAuth(req.user!.uid);
+      if (!viewerNetid) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Security: Verify that targetNetid is in the viewer's matches for this prompt
+      const viewerMatches = await getWeeklyMatch(viewerNetid, promptId);
+      if (!viewerMatches || !viewerMatches.matches.includes(targetNetid)) {
+        return res.status(403).json({
+          error: 'You can only view answers from your matches',
+        });
+      }
+
+      // Fetch the target user's answer
+      const answer = await getPromptAnswer(targetNetid, promptId);
+
+      if (!answer) {
+        // Return null/empty response instead of 404 when there's no answer
+        return res.status(200).json(null);
+      }
+
+      const response = answerToResponse(answer);
+      res.status(200).json(response);
+    } catch (error) {
+      console.error('Error fetching answer:', error);
+      res.status(500).json({ error: 'Failed to fetch answer' });
+    }
+  }
+);
+
 // =============================================================================
 // MATCH ENDPOINTS
 // =============================================================================
