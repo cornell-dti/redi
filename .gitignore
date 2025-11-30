@@ -50,7 +50,6 @@ npm-debug.*
 *.mobileprovision
 *.orig.*
 web-build/
-android/
 *SPECS.md
 
 *.tmp

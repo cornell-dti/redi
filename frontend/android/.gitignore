@@ -14,3 +14,7 @@ local.properties
 
 # Bundle artifacts
 *.jsbundle
+
+# Keystore files (should be managed via EAS secrets)
+*.keystore
+*.jks
