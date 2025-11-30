@@ -199,7 +199,7 @@ export default function Button({
     <Animated.View
       style={[
         { transform: [{ scale: scaleAnim }] },
-        fullWidth && { flex: 1, minHeight: 48 },
+        fullWidth && { alignSelf: 'stretch' },
       ]}
     >
       <TouchableOpacity

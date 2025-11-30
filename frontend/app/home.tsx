@@ -728,8 +728,7 @@ const styles = StyleSheet.create({
   },
   // Button container - stacks buttons with gap
   buttonContainer: {
-    // gap: 12,
-    // marginBottom: 20,
+    gap: 12,
   },
   // Footer container - separate, below buttons
   footerContainer: {
