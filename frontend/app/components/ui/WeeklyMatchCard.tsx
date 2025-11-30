@@ -161,6 +161,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 16,
     flex: 1,
     // width: '50%',
