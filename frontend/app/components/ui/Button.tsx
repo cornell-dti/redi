@@ -215,7 +215,14 @@ export default function Button({
             size: 20,
             color: getIconColor(),
           })}
-        <Text style={[getTextStyle(), textStyle]}>{title}</Text>
+        <Text
+          style={[getTextStyle(), textStyle]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
+        >
+          {title}
+        </Text>
         {iconRight &&
           React.createElement(iconRight, {
             size: 20,

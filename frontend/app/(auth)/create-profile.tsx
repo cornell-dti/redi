@@ -12,11 +12,11 @@ import { Check, ChevronDown, GripVertical, Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
-  Animated as RNAnimated,
   Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
+  Animated as RNAnimated,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -810,8 +810,8 @@ export default function CreateProfileScreen() {
                           >
                             <PromptSelector
                               prompt={data.prompts[draggingPromptIndex]}
-                              onUpdate={() => {}}
-                              onRemove={() => {}}
+                              onUpdate={() => { }}
+                              onRemove={() => { }}
                               canRemove={true}
                             />
                           </View>
@@ -858,7 +858,7 @@ export default function CreateProfileScreen() {
           <View style={styles.stepContainer}>
             <OnboardingTitle
               title="What clubs are you in?"
-              subtitle="Optional - Add any Cornell clubs or organizations you're part of."
+              subtitle="Optional - Add any Cornell clubs or organizations you're a part of."
             />
 
             {data.clubs.length > 0 && (
