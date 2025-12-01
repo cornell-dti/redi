@@ -82,7 +82,7 @@ export default function ProfileScreen() {
       Alert.alert(
         'Error',
         'Failed to sign out: ' +
-          (error instanceof Error ? error.message : 'Unknown error')
+        (error instanceof Error ? error.message : 'Unknown error')
       );
     }
   };
@@ -135,7 +135,7 @@ export default function ProfileScreen() {
           </Pressable>
 
           <View style={styles.nameContainer}>
-            <AppText variant="title">{displayName}</AppText>
+            <AppText variant="title" numberOfLines={2}>{displayName}</AppText>
             <AppText variant="body" color="dimmer">
               Member since {getMemberSinceText()}
             </AppText>
@@ -328,7 +328,8 @@ const styles = StyleSheet.create({
     borderRadius: 64,
   },
   nameContainer: {
-    display: 'flex',
+    flex: 1,
+    flexShrink: 1,
     flexDirection: 'column',
   },
   buttonRow: {

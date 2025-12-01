@@ -46,6 +46,7 @@ function RootNavigator() {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isCheckingProfile, setIsCheckingProfile] = useState(false);
   const router = useRouter();
   const segments = useSegments();
   const appState = useRef(AppState.currentState);
@@ -226,6 +227,7 @@ function RootNavigator() {
       if (user && !inAuthGroup) {
         // User is signed in but not in auth group
         // Check if user has a profile to determine where to redirect
+        setIsCheckingProfile(true);
         try {
           const profile = await getCurrentUserProfile();
 
@@ -362,10 +364,12 @@ function RootNavigator() {
           }}
         />
       </Stack>
-      <OnboardingVideo
-        visible={showOnboarding}
-        onFinish={handleOnboardingFinish}
-      />
+      {showOnboarding && (
+        <OnboardingVideo
+          visible={showOnboarding}
+          onFinish={handleOnboardingFinish}
+        />
+      )}
     </>
   );
 }

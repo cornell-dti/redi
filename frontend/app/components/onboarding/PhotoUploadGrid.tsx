@@ -26,7 +26,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // Grid configuration
 const NUM_COLUMNS = 3; // 3 columns for a 2x3 grid (6 items total)
 const GRID_GAP = 4; // Gap between items
-const HORIZONTAL_PADDING = 32; // Account for parent container padding (16 on each side)
+const HORIZONTAL_PADDING = 40; // Account for parent container padding (20 on each side)
 
 // Calculate item width: (available width - gaps between items) / number of columns
 // With 3 columns, there are 2 gaps between them
