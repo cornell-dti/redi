@@ -392,11 +392,23 @@ export default function MatchesScreen() {
                     'https://via.placeholder.com/400'
                   }
                   onNudge={handleNudge}
-                  onViewProfile={() =>
-                    router.push(
-                      `/view-profile?netid=${matchProfile.netid}&promptId=${m.promptId}` as any
-                    )
-                  }
+                  onViewProfile={() => {
+                    // Pass activePrompt and nudgeStatus to avoid re-fetching
+                    const params = new URLSearchParams({
+                      netid: matchProfile.netid,
+                      promptId: m.promptId,
+                    });
+
+                    // Serialize prompt and nudge status as JSON
+                    if (activePrompt) {
+                      params.append('promptData', JSON.stringify(activePrompt));
+                    }
+                    if (m.nudgeStatus) {
+                      params.append('nudgeData', JSON.stringify(m.nudgeStatus));
+                    }
+
+                    router.push(`/view-profile?${params.toString()}` as any);
+                  }}
                   nudgeSent={m.nudgeStatus?.sent || hasLocalNudge}
                   nudgeDisabled={m.nudgeStatus?.mutual || false}
                 />

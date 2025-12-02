@@ -34,6 +34,11 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 /**
  * View Profile Page
  * Shows another user's profile by their netid
+ *
+ * Performance Optimization:
+ * Accepts optional promptData and nudgeData params to avoid re-fetching
+ * data that was already loaded on the matches screen. Falls back to fetching
+ * if data is not provided (e.g., when accessing via deep link).
  */
 type SheetView = 'menu' | 'report' | 'block';
 
@@ -47,10 +52,21 @@ const REPORT_REASONS: { value: ReportReason; label: string }[] = [
 
 export default function ViewProfileScreen() {
   const { showToast } = useToast();
-  const { netid, promptId } = useLocalSearchParams<{
+  const { netid, promptId, promptData, nudgeData } = useLocalSearchParams<{
     netid: string;
     promptId?: string;
+    promptData?: string;
+    nudgeData?: string;
   }>();
+
+  // Parse passed data if available
+  const passedPrompt = promptData
+    ? (JSON.parse(promptData) as WeeklyPromptResponse)
+    : null;
+  const passedNudgeStatus = nudgeData
+    ? (JSON.parse(nudgeData) as NudgeStatusResponse)
+    : null;
+
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,12 +79,12 @@ export default function ViewProfileScreen() {
   const [isBlocked, setIsBlocked] = useState(false);
   const [blocking, setBlocking] = useState(false);
   const [nudgeStatus, setNudgeStatus] = useState<NudgeStatusResponse | null>(
-    null
+    passedNudgeStatus
   );
   const [isNudging, setIsNudging] = useState(false);
   const [isOpeningChat, setIsOpeningChat] = useState(false);
   const [activePrompt, setActivePrompt] = useState<WeeklyPromptResponse | null>(
-    null
+    passedPrompt
   );
   const [matchAnswer, setMatchAnswer] = useState<string>('');
 
@@ -81,14 +97,35 @@ export default function ViewProfileScreen() {
       fetchProfile();
       checkIfBlocked();
       if (promptId) {
-        fetchNudgeStatus();
-        fetchPromptData();
+        // Only fetch nudge status if not passed from previous screen
+        if (!passedNudgeStatus) {
+          fetchNudgeStatus();
+        }
+        // Only fetch prompt data if not passed from previous screen
+        if (!passedPrompt) {
+          fetchPromptData();
+        } else {
+          // Still need to fetch the match's answer even if prompt was passed
+          fetchMatchAnswer();
+        }
       }
     } else {
       setError('No user specified');
       setLoading(false);
     }
   }, [netid, promptId]);
+
+  const fetchMatchAnswer = async () => {
+    if (!netid || !promptId) return;
+
+    try {
+      const answer = await getPromptAnswerByNetid(promptId, netid);
+      setMatchAnswer(answer?.answer || '');
+    } catch (error) {
+      console.error('Error fetching match answer:', error);
+      setMatchAnswer('');
+    }
+  };
 
   const fetchPromptData = async () => {
     if (!netid || !promptId) return;
@@ -99,13 +136,7 @@ export default function ViewProfileScreen() {
       setActivePrompt(prompt);
 
       // Fetch the match's answer to the prompt
-      try {
-        const answer = await getPromptAnswerByNetid(promptId, netid);
-        setMatchAnswer(answer?.answer || '');
-      } catch (error) {
-        console.error('Error fetching match answer:', error);
-        setMatchAnswer('');
-      }
+      await fetchMatchAnswer();
     } catch (error) {
       console.error('Error fetching prompt data:', error);
       setActivePrompt(null);

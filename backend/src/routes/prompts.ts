@@ -296,8 +296,8 @@ router.get(
       const answer = await getPromptAnswer(targetNetid, promptId);
 
       if (!answer) {
-        // Return null/empty response instead of 404 when there's no answer
-        return res.status(200).json(null);
+        // Return empty string instead of null when there's no answer
+        return res.status(200).json({ answer: '' });
       }
 
       const response = answerToResponse(answer);
