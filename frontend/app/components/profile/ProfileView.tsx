@@ -281,7 +281,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                   {weeklyPrompt ? weeklyPrompt.question : 'No active prompt'}
                 </AppText>
                 <AppText variant="subtitle">
-                  {weeklyPromptAnswer || 'No comment.'}
+                  {weeklyPromptAnswer || 'No comment'}
                 </AppText>
               </View>
             </ListItemWrapper>
