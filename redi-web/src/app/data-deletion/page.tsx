@@ -45,7 +45,7 @@ export default function DataDeletionPage() {
                   </a>
                 </li>
                 <li>
-                  Use the subject line: <span className="italic">"Account Deletion Request"</span>
+                  Use the subject line: <span className="italic">&quot;Account Deletion Request&quot;</span>
                 </li>
                 <li>
                   Include the email address associated with your Redi account
