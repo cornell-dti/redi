@@ -120,7 +120,7 @@ export default function ViewProfileScreen() {
 
     try {
       const answer = await getPromptAnswerByNetid(promptId, netid);
-      setMatchAnswer(answer?.answer || '');
+      setMatchAnswer(answer.answer);
     } catch (error) {
       console.error('Error fetching match answer:', error);
       setMatchAnswer('');

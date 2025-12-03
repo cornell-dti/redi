@@ -296,8 +296,12 @@ router.get(
       const answer = await getPromptAnswer(targetNetid, promptId);
 
       if (!answer) {
-        // Return empty string instead of null when there's no answer
-        return res.status(200).json({ answer: '' });
+        return res.status(200).json({
+          netid: targetNetid,
+          promptId,
+          answer: '',
+          createdAt: new Date().toISOString(),
+        });
       }
 
       const response = answerToResponse(answer);

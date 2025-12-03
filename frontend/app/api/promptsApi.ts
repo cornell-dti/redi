@@ -84,14 +84,14 @@ export async function getPromptAnswer(
  *
  * @param promptId - The prompt ID to fetch answer for
  * @param netid - The netid of the user whose answer to fetch
- * @returns Promise resolving to user's answer or null if no answer
+ * @returns Promise resolving to user's answer (answer field will be empty string if no answer submitted)
  * @throws APIError if fetch fails or user is not in matches
  */
 export async function getPromptAnswerByNetid(
   promptId: string,
   netid: string
-): Promise<WeeklyPromptAnswerResponse | null> {
-  return apiClient.get<WeeklyPromptAnswerResponse | null>(
+): Promise<WeeklyPromptAnswerResponse> {
+  return apiClient.get<WeeklyPromptAnswerResponse>(
     `/api/prompts/${promptId}/answers/${netid}`
   );
 }
