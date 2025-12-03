@@ -1014,7 +1014,7 @@ export default function CreateProfileScreen() {
         return (
           <View style={styles.stepContainer}>
             <AppText variant="title" style={{ textAlign: 'center' }}>
-              And now, {data.firstName}, you're redi!
+              And now, {data.firstName}, you&apos;re redi!
             </AppText>
             <View style={styles.welcomeContainer}>
               {data.pictures[0] && (
