@@ -305,7 +305,7 @@ export default function MatchesScreen() {
       {currentMatches.length > 0 && (
         <View style={[styles.section, styles.sectionPadding]}>
           <AppText variant="subtitle" style={styles.sectionTitle}>
-            Your Matches
+            Your Connections
           </AppText>
         </View>
       )}
@@ -317,7 +317,7 @@ export default function MatchesScreen() {
       return (
         <EmptyState
           icon={Heart}
-          label="No matches available yet. Check back after submitting your answer!"
+          label="No connections available yet. Check back after submitting your answer!"
           triggerAnimation={animationTrigger}
         />
       );
@@ -472,11 +472,11 @@ export default function MatchesScreen() {
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.headerContainer}>
-        <AppText variant="title">Matches</AppText>
+        <AppText variant="title">Connections</AppText>
         <AppText variant="subtitle" color="dimmer">
           {activePrompt
             ? getMatchDropDescription(activePrompt.matchDate)
-            : 'Check back soon for new matches'}
+            : 'Check back soon for new connections'}
         </AppText>
       </View>
 

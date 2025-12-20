@@ -163,7 +163,7 @@ export default function DatingPreferencesPage() {
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
-        label: 'Dating preferences updated',
+        label: 'Connection preferences updated',
       });
       router.back();
     } catch (error) {
@@ -253,7 +253,7 @@ export default function DatingPreferencesPage() {
         onSave={handleSave}
         onBack={handleBack}
         isSaving={saving}
-        title="Dating preferences"
+        title="Connection Preferences"
       />
 
       <Animated.ScrollView
@@ -374,7 +374,7 @@ export default function DatingPreferencesPage() {
               setSelectedSchools(selected as School[])
             }
             label="Schools"
-            description="Leave empty to see all schools or select specific ones to not get matched with."
+            description="Leave empty to see all schools or select specific ones to filter out."
             placeholder="Search for schools"
             emptyText="Select specific schools"
           />
@@ -388,7 +388,7 @@ export default function DatingPreferencesPage() {
             onChange={setSelectedMajors}
             label="Majors"
             placeholder="Search for majors"
-            description="Leave empty to see all majors, or select specific ones to not get matched with."
+            description="Leave empty to see all majors, or select specific ones to filter out."
             emptyText="Select specific majors"
           />
         </View>
@@ -396,7 +396,7 @@ export default function DatingPreferencesPage() {
         {/* Interested In (Gender) */}
         <View style={[styles.section, { paddingBottom: 128 }]}>
           <AppText variant="subtitle" style={styles.sectionTitle}>
-            Interested in
+            I want to connect with...
           </AppText>
           <ListItemWrapper>
             <ListItem

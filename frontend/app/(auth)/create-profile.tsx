@@ -12,11 +12,11 @@ import { Check, ChevronDown, GripVertical, Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
-  Animated as RNAnimated,
   Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
+  Animated as RNAnimated,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -745,8 +745,8 @@ export default function CreateProfileScreen() {
         return (
           <View style={styles.stepContainer}>
             <OnboardingTitle
-              title="Who are you interested in seeing?"
-              subtitle="Select all that help us find the right people for you."
+              title="Who would you like to connect with?"
+              subtitle="Select all preferences to help us find great connections for you."
             />
             <ListItemWrapper>
               {INTERESTED_IN_OPTIONS.map((option) => (
@@ -1024,8 +1024,8 @@ export default function CreateProfileScreen() {
                 />
               )}
               <AppText variant="body" style={styles.welcomeText}>
-                Matches drop every Friday at 12:00 AM. Send a nudge to show
-                interest, and if they nudge back, you&apos;ll unlock chat!
+                New connections arrive every Friday at 9:00 AM. Send a connect
+                request to show interest, and if they connect back, you&apos;ll unlock chat!
               </AppText>
             </View>
           </View>

@@ -199,13 +199,13 @@ export default function ViewProfileScreen() {
 
       showToast({
         icon: <Check size={20} color={AppColors.backgroundDefault} />,
-        label: `Nudged ${profile?.firstName}!`,
+        label: `Connected with ${profile?.firstName}!`,
       });
     } catch (error: any) {
       console.error('Error sending nudge:', error);
       showToast({
         icon: <Ban size={20} color={AppColors.backgroundDefault} />,
-        label: error.message || 'Failed to send nudge. Please try again.',
+        label: error.message || 'Failed to send request. Please try again.',
       });
     } finally {
       setIsNudging(false);
@@ -219,7 +219,7 @@ export default function ViewProfileScreen() {
     if (!nudgeStatus?.mutual) {
       showToast({
         icon: <Ban size={20} color={AppColors.backgroundDefault} />,
-        label: 'You can only chat after both of you have nudged each other.',
+        label: 'You can only chat after both of you have connected.',
       });
       return;
     }

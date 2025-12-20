@@ -10,10 +10,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { APIError } from './api/apiClient';
 import { onAuthStateChanged, signInWithEmailLink } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
-import OnboardingVideo, {
-  hasShownOnboardingVideo,
-  markOnboardingVideoAsShown,
-} from './components/onboarding/OnboardingVideo';
+// import OnboardingVideo, {
+//   hasShownOnboardingVideo,
+//   markOnboardingVideoAsShown,
+// } from './components/onboarding/OnboardingVideo';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import { HapticsProvider } from './contexts/HapticsContext';
 import { MotionProvider } from './contexts/MotionContext';
@@ -45,7 +45,7 @@ function RootNavigator() {
   useThemeAware(); // This makes all screens theme-aware
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  // const [showOnboarding, setShowOnboarding] = useState(false); // Commented out - video references dating
   const router = useRouter();
   const segments = useSegments();
   const appState = useRef(AppState.currentState);
@@ -117,15 +117,16 @@ function RootNavigator() {
   }, []);
 
   // Check if onboarding video should be shown on first launch
-  useEffect(() => {
-    const checkOnboarding = async () => {
-      const hasShown = await hasShownOnboardingVideo();
-      if (!hasShown) {
-        setShowOnboarding(true);
-      }
-    };
-    checkOnboarding();
-  }, []);
+  // Commented out - video references dating
+  // useEffect(() => {
+  //   const checkOnboarding = async () => {
+  //     const hasShown = await hasShownOnboardingVideo();
+  //     if (!hasShown) {
+  //       setShowOnboarding(true);
+  //     }
+  //   };
+  //   checkOnboarding();
+  // }, []);
 
   // Clear badge when app comes to foreground
   useEffect(() => {
@@ -337,10 +338,10 @@ function RootNavigator() {
     checkAndRedirect();
   }, [user, initializing]);
 
-  const handleOnboardingFinish = async () => {
-    await markOnboardingVideoAsShown();
-    setShowOnboarding(false);
-  };
+  // const handleOnboardingFinish = async () => {
+  //   await markOnboardingVideoAsShown();
+  //   setShowOnboarding(false);
+  // };
 
   if (initializing) {
     return (
@@ -362,10 +363,11 @@ function RootNavigator() {
           }}
         />
       </Stack>
-      <OnboardingVideo
+      {/* Onboarding video commented out - references dating */}
+      {/* <OnboardingVideo
         visible={showOnboarding}
         onFinish={handleOnboardingFinish}
-      />
+      /> */}
     </>
   );
 }

@@ -41,12 +41,12 @@ export default function WeeklyMatchCard({
       await onNudge();
       setSheetVisible(false);
       Alert.alert(
-        'Nudge sent!',
-        `You've nudged ${name}. If they nudge you back, you'll both get a notification!`
+        'Connection request sent!',
+        `You've sent a request to ${name}. If they connect back, you'll both get a notification!`
       );
     } catch (error: any) {
       setSheetVisible(false);
-      const errorMessage = error?.message || 'Failed to send nudge';
+      const errorMessage = error?.message || 'Failed to send request';
       Alert.alert('Error', errorMessage);
     } finally {
       setIsSending(false);
@@ -73,7 +73,7 @@ export default function WeeklyMatchCard({
 
           <View style={styles.buttonContainer}>
             <Button
-              title={nudgeSent ? 'Nudged' : 'Nudge'}
+              title={nudgeSent ? 'Connected' : 'Connect'}
               onPress={() => setSheetVisible(true)}
               variant="primary"
               iconLeft={nudgeSent ? Check : Bell}
@@ -92,23 +92,23 @@ export default function WeeklyMatchCard({
         <Sheet
           visible={isSheetVisible}
           onDismiss={() => !isSending && setSheetVisible(false)}
-          title="Send Nudge"
+          title="Send Connection Request"
         >
           <View style={styles.sheetContent}>
             {!nudgeSent && (
-              <AppText>Are you sure you want to nudge {name}?</AppText>
+              <AppText>Are you sure you want to connect with {name}?</AppText>
             )}
 
             <AppText>
               {nudgeSent
-                ? `You've already nudged ${name}.`
-                : "They won't know you nudged them unless they nudge you back. If both of you nudge each other, you'll both get a notification!"}
+                ? `You've already sent a request to ${name}.`
+                : "They won't know you sent a request unless they connect back. If both of you connect, you'll both get a notification and can start chatting!"}
             </AppText>
 
             <View style={styles.buttonRow}>
               {!nudgeSent && (
                 <Button
-                  title={isSending ? 'Sending...' : 'Nudge'}
+                  title={isSending ? 'Sending...' : 'Connect'}
                   onPress={handleNudgeConfirm}
                   iconLeft={Bell}
                   fullWidth

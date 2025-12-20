@@ -29,7 +29,7 @@ import {
 } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
 import { AppColors } from './components/AppColors';
-import OnboardingVideo from './components/onboarding/OnboardingVideo';
+// import OnboardingVideo from './components/onboarding/OnboardingVideo';
 import AppInput from './components/ui/AppInput';
 import AppText from './components/ui/AppText';
 import Button from './components/ui/Button';
@@ -47,7 +47,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [showInfoSheet, setShowInfoSheet] = useState(false);
   const [showGoogleErrorSheet, setShowGoogleErrorSheet] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
+  // const [showVideo, setShowVideo] = useState(false); // Commented out - video references dating
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
 
   // Animation refs for splash/welcome elements
@@ -225,13 +225,13 @@ export default function HomePage() {
     setMode('welcome');
   };
 
-  const handleReplayVideo = () => {
-    setShowVideo(true);
-  };
+  // const handleReplayVideo = () => {
+  //   setShowVideo(true);
+  // };
 
-  const handleVideoFinish = () => {
-    setShowVideo(false);
-  };
+  // const handleVideoFinish = () => {
+  //   setShowVideo(false);
+  // };
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -307,7 +307,7 @@ export default function HomePage() {
           redi
         </AppText>
         <AppText variant="subtitle" color="dimmer">
-          Cornell&apos;s first dating app
+          Cornell&apos;s professional networking app
         </AppText>
       </View>
 
@@ -328,12 +328,13 @@ export default function HomePage() {
           iconRight={ArrowRight}
         />
 
-        <Button
+        {/* Replay Video button commented out - video references dating */}
+        {/* <Button
           title="Replay Video"
           onPress={handleReplayVideo}
           variant="secondary"
           iconLeft={Play}
-        />
+        /> */}
       </Animated.View>
 
       <Animated.View
@@ -371,7 +372,7 @@ export default function HomePage() {
           redi
         </AppText>
         <AppText variant="subtitle" color="dimmer">
-          Cornell&apos;s first dating app
+          Cornell&apos;s professional networking app
         </AppText>
       </View>
 
@@ -623,8 +624,8 @@ export default function HomePage() {
       {mode === 'passwordless' && renderPasswordlessScreen()}
       {(mode === 'signup' || mode === 'login') && renderAuthForm()}
 
-      {/* Onboarding Video Modal */}
-      <OnboardingVideo visible={showVideo} onFinish={handleVideoFinish} />
+      {/* Onboarding Video Modal - commented out, references dating */}
+      {/* <OnboardingVideo visible={showVideo} onFinish={handleVideoFinish} /> */}
 
       <Sheet
         visible={showInfoSheet}

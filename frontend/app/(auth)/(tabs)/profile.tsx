@@ -1,4 +1,4 @@
-import OnboardingVideo from '@/app/components/onboarding/OnboardingVideo';
+// import OnboardingVideo from '@/app/components/onboarding/OnboardingVideo';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import EmptyState from '@/app/components/ui/EmptyState';
@@ -13,9 +13,9 @@ import { router, useFocusEffect } from 'expo-router';
 import {
   ChevronRight,
   ClipboardList,
+  Coffee,
   ExternalLink,
   Eye,
-  Heart,
   Lock,
   LogOut,
   MailIcon,
@@ -55,7 +55,7 @@ export default function ProfileScreen() {
   const { profile, loading } = useProfile();
   const [showSignOutSheet, setShowSignOutSheet] = useState(false);
   const [showRatingSheet, setShowRatingSheet] = useState(false);
-  const [showOnboardingVideo, setShowOnboardingVideo] = useState(false);
+  // const [showOnboardingVideo, setShowOnboardingVideo] = useState(false); // Commented out - video references dating
 
   // Trigger animation when screen is focused
   useFocusEffect(
@@ -163,9 +163,9 @@ export default function ProfileScreen() {
           <ListItemWrapper>
             <ListItem
               onPress={() => router.push('/preferences' as any)}
-              title="Dating Preferences"
+              title="Connection Preferences"
               right={<ChevronRight size={20} />}
-              left={<Heart size={20} />}
+              left={<Coffee size={20} />}
             />
 
             <ListItem
@@ -191,12 +191,13 @@ export default function ProfileScreen() {
           </ListItemWrapper>
 
           <ListItemWrapper>
-            <ListItem
+            {/* Show Onboarding Video - commented out, references dating */}
+            {/* <ListItem
               onPress={() => setShowOnboardingVideo(true)}
               title="Show Onboarding Video"
               right={<ChevronRight size={20} />}
               left={<Play size={20} />}
-            />
+            /> */}
 
             <ListItem
               onPress={() => router.push('/terms-and-conditions' as any)}
@@ -270,11 +271,11 @@ export default function ProfileScreen() {
         </View>
       </Sheet>
 
-      {/* Onboarding Video */}
-      <OnboardingVideo
+      {/* Onboarding Video - commented out, references dating */}
+      {/* <OnboardingVideo
         visible={showOnboardingVideo}
         onFinish={() => setShowOnboardingVideo(false)}
-      />
+      /> */}
     </View>
   );
 }
