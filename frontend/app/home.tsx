@@ -584,8 +584,8 @@ export default function HomePage() {
               iconLeft={mode === 'signup' ? Plus : LogIn}
             />
 
-            {/* Toggle between signup and login */}
-            <TouchableOpacity
+            {/* Toggle between signup and login - COMMENTED OUT for TestFlight */}
+            {/* <TouchableOpacity
               onPress={() => {
                 setDirection('forward');
                 setMode(mode === 'signup' ? 'login' : 'signup');
@@ -600,7 +600,7 @@ export default function HomePage() {
                   {mode === 'signup' ? 'Log in' : 'Create account'}
                 </AppText>
               </AppText>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <Button
               title="Back"
