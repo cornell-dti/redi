@@ -58,7 +58,7 @@ import {
   validateProfilePayload,
 } from '../utils/onboardingTransform';
 
-const TOTAL_STEPS = 15; // Steps 2-16 (Step 1 is in home.tsx)
+const TOTAL_STEPS = 13; // Steps 2-16, skipping 8 & 9 (Step 1 is in home.tsx)
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const PROMPT_ITEM_HEIGHT = 120; // Approximate height of a prompt selector
 
@@ -221,7 +221,12 @@ export default function CreateProfileScreen() {
 
     if (currentStep < 16) {
       setDirection('forward');
-      setCurrentStep(currentStep + 1);
+      // Skip steps 8 (sexual orientation) and 9 (ethnicity)
+      if (currentStep === 7) {
+        setCurrentStep(10);
+      } else {
+        setCurrentStep(currentStep + 1);
+      }
     } else {
       handleSubmit();
     }
@@ -230,7 +235,12 @@ export default function CreateProfileScreen() {
   const handleBack = () => {
     if (currentStep > 2) {
       setDirection('backward');
-      setCurrentStep(currentStep - 1);
+      // Skip steps 8 (sexual orientation) and 9 (ethnicity) when going back
+      if (currentStep === 10) {
+        setCurrentStep(7);
+      } else {
+        setCurrentStep(currentStep - 1);
+      }
     } else if (currentStep === 2) {
       // Go back to home/signup screen
       router.replace('/home' as any);
@@ -655,91 +665,93 @@ export default function CreateProfileScreen() {
           </View>
         );
 
-      case 8:
-        return (
-          <View style={styles.stepContainer}>
-            <OnboardingTitle
-              title="What's your sexual orientation?"
-              subtitle="Select the option that best describes you to help us show your profile to the right people."
-            />
-            <ListItemWrapper>
-              {SEXUAL_ORIENTATION_OPTIONS.map((orientation) => (
-                <ListItem
-                  key={orientation}
-                  title={orientation}
-                  selected={data.sexualOrientation.includes(orientation)}
-                  onPress={() =>
-                    updateField('sexualOrientation', [orientation])
-                  }
-                  right={
-                    data.sexualOrientation.includes(orientation) ? (
-                      <Check size={20} color={AppColors.accentDefault} />
-                    ) : null
-                  }
-                />
-              ))}
-            </ListItemWrapper>
-          </View>
-        );
+      // Step 8: Sexual Orientation - COMMENTED OUT for professional networking focus
+      // case 8:
+      //   return (
+      //     <View style={styles.stepContainer}>
+      //       <OnboardingTitle
+      //         title="What's your sexual orientation?"
+      //         subtitle="Select the option that best describes you to help us show your profile to the right people."
+      //       />
+      //       <ListItemWrapper>
+      //         {SEXUAL_ORIENTATION_OPTIONS.map((orientation) => (
+      //           <ListItem
+      //             key={orientation}
+      //             title={orientation}
+      //             selected={data.sexualOrientation.includes(orientation)}
+      //             onPress={() =>
+      //               updateField('sexualOrientation', [orientation])
+      //             }
+      //             right={
+      //               data.sexualOrientation.includes(orientation) ? (
+      //                 <Check size={20} color={AppColors.accentDefault} />
+      //               ) : null
+      //             }
+      //           />
+      //         ))}
+      //       </ListItemWrapper>
+      //     </View>
+      //   );
 
-      case 9:
-        return (
-          <View style={styles.stepContainer}>
-            <OnboardingTitle
-              title="What's your ethnicity?"
-              subtitle="Optional - this helps you connect with people who share similar cultural backgrounds."
-            />
-            <ListItemWrapper>
-              {ETHNICITY_OPTIONS.map((ethnicity) => {
-                const isPreferNotToSay = ethnicity === 'Prefer not to say';
-                const hasPreferNotToSay =
-                  data.ethnicity?.includes('Prefer not to say');
-                const hasOtherEthnicity =
-                  data.ethnicity &&
-                  data.ethnicity.some((e) => e !== 'Prefer not to say');
+      // Step 9: Ethnicity - COMMENTED OUT for professional networking focus
+      // case 9:
+      //   return (
+      //     <View style={styles.stepContainer}>
+      //       <OnboardingTitle
+      //         title="What's your ethnicity?"
+      //         subtitle="Optional - this helps you connect with people who share similar cultural backgrounds."
+      //       />
+      //       <ListItemWrapper>
+      //         {ETHNICITY_OPTIONS.map((ethnicity) => {
+      //           const isPreferNotToSay = ethnicity === 'Prefer not to say';
+      //           const hasPreferNotToSay =
+      //             data.ethnicity?.includes('Prefer not to say');
+      //           const hasOtherEthnicity =
+      //             data.ethnicity &&
+      //             data.ethnicity.some((e) => e !== 'Prefer not to say');
 
-                // Disable "Prefer not to say" if other ethnicities are selected
-                // Disable other ethnicities if "Prefer not to say" is selected
-                const isDisabled = isPreferNotToSay
-                  ? hasOtherEthnicity
-                  : hasPreferNotToSay;
+      //           // Disable "Prefer not to say" if other ethnicities are selected
+      //           // Disable other ethnicities if "Prefer not to say" is selected
+      //           const isDisabled = isPreferNotToSay
+      //             ? hasOtherEthnicity
+      //             : hasPreferNotToSay;
 
-                return (
-                  <ListItem
-                    key={ethnicity}
-                    title={ethnicity}
-                    selected={data.ethnicity?.includes(ethnicity)}
-                    disabled={isDisabled}
-                    onPress={() => {
-                      if (isPreferNotToSay) {
-                        // If clicking "Prefer not to say", toggle it exclusively
-                        if (hasPreferNotToSay) {
-                          // Already selected, unselect it
-                          updateField('ethnicity', []);
-                        } else {
-                          // Not selected, set it exclusively
-                          updateField('ethnicity', ['Prefer not to say']);
-                        }
-                      } else {
-                        // If clicking other ethnicity and "Prefer not to say" is selected, remove it first
-                        if (hasPreferNotToSay) {
-                          updateField('ethnicity', [ethnicity]);
-                        } else {
-                          toggleArrayItem('ethnicity', ethnicity);
-                        }
-                      }
-                    }}
-                    right={
-                      data.ethnicity?.includes(ethnicity) ? (
-                        <Check size={20} color={AppColors.accentDefault} />
-                      ) : null
-                    }
-                  />
-                );
-              })}
-            </ListItemWrapper>
-          </View>
-        );
+      //           return (
+      //             <ListItem
+      //               key={ethnicity}
+      //               title={ethnicity}
+      //               selected={data.ethnicity?.includes(ethnicity)}
+      //               disabled={isDisabled}
+      //               onPress={() => {
+      //                 if (isPreferNotToSay) {
+      //                   // If clicking "Prefer not to say", toggle it exclusively
+      //                   if (hasPreferNotToSay) {
+      //                     // Already selected, unselect it
+      //                     updateField('ethnicity', []);
+      //                   } else {
+      //                     // Not selected, set it exclusively
+      //                     updateField('ethnicity', ['Prefer not to say']);
+      //                   }
+      //                 } else {
+      //                   // If clicking other ethnicity and "Prefer not to say" is selected, remove it first
+      //                   if (hasPreferNotToSay) {
+      //                     updateField('ethnicity', [ethnicity]);
+      //                   } else {
+      //                     toggleArrayItem('ethnicity', ethnicity);
+      //                   }
+      //                 }
+      //               }}
+      //               right={
+      //                 data.ethnicity?.includes(ethnicity) ? (
+      //                   <Check size={20} color={AppColors.accentDefault} />
+      //                 ) : null
+      //               }
+      //             />
+      //           );
+      //         })}
+      //       </ListItemWrapper>
+      //     </View>
+      //   );
 
       case 10:
         return (

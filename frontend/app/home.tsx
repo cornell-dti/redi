@@ -4,7 +4,6 @@ import {
   ArrowRight,
   Info,
   LogIn,
-  Play,
   Plus,
 } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
@@ -593,14 +592,14 @@ export default function HomePage() {
               }}
               style={styles.toggleAuthMode}
             >
-              {/* <AppText variant="body" style={styles.toggleAuthModeText}>
+              <AppText variant="body" style={styles.toggleAuthModeText}>
                 {mode === 'signup'
                   ? 'Already have an account? '
                   : "Don't have an account? "}
                 <AppText variant="body" style={styles.toggleAuthModeTextBold}>
                   {mode === 'signup' ? 'Log in' : 'Create account'}
                 </AppText>
-              </AppText> */}
+              </AppText>
             </TouchableOpacity>
 
             <Button

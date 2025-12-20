@@ -36,7 +36,7 @@ import {
 } from '@/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { Check, Heart, Pencil } from 'lucide-react-native';
+import { Check, Coffee, Heart, Pencil } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -316,7 +316,7 @@ export default function MatchesScreen() {
     if (currentMatches.length === 0) {
       return (
         <EmptyState
-          icon={Heart}
+          icon={Coffee}
           label="No connections available yet. Check back after submitting your answer!"
           triggerAnimation={animationTrigger}
         />

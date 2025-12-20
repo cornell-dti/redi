@@ -1,11 +1,11 @@
 import FilledBellIcon from '@/app/components/icons/FilledBellIcon';
 import FilledChatIcon from '@/app/components/icons/FilledChatIcon';
-import FilledHeartIcon from '@/app/components/icons/FilledHeartIcon';
+import FilledCoffeeIcon from '@/app/components/icons/FilledCoffeeIcon';
 import FilledProfileIcon from '@/app/components/icons/FilledProfileIcon';
 import { useNotifications } from '@/app/contexts/NotificationsContext';
 import { useHapticFeedback } from '@/app/hooks/useHapticFeedback';
 import { Tabs } from 'expo-router';
-import { Bell, Heart, MessageCircle, User } from 'lucide-react-native';
+import { Bell, Coffee, MessageCircle, User } from 'lucide-react-native';
 import { useRef } from 'react';
 import { Animated, Pressable } from 'react-native';
 import { AppColors } from '../../components/AppColors';
@@ -90,12 +90,12 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Matches',
+          title: 'Connections',
           tabBarIcon: ({ color, size, focused }) =>
             focused ? (
-              <FilledHeartIcon size={size} color={color} />
+              <FilledCoffeeIcon size={size} color={color} />
             ) : (
-              <Heart size={size} color={color} />
+              <Coffee size={size} color={color} />
             ),
           tabBarButton: (props) => <AnimatedTabButton {...props} />,
         }}
