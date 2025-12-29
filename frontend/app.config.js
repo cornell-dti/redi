@@ -17,7 +17,7 @@ export default {
       googleServicesFile: './GoogleService-Info.plist',
       buildNumber: '3',
       infoPlist: {
-        UIRequiredDeviceCapabilities: ['armv7', 'telephony'],
+        UIRequiredDeviceCapabilities: ['armv7'],
       },
     },
     android: {
