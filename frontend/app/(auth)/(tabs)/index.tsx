@@ -14,6 +14,7 @@ import Button from '@/app/components/ui/Button';
 import CountdownTimer from '@/app/components/ui/CountdownTimer';
 import EmptyState from '@/app/components/ui/EmptyState';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
+import MatchPauseBanner from '@/app/components/ui/MatchPauseBanner';
 import Sheet from '@/app/components/ui/Sheet';
 import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
@@ -479,6 +480,8 @@ export default function MatchesScreen() {
             : 'Check back soon for new connections'}
         </AppText>
       </View>
+
+      <MatchPauseBanner />
 
       <ScrollView
         style={styles.scrollView}
