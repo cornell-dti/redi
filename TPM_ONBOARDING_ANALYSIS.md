@@ -1,4 +1,4 @@
-# REDI TPM Onboarding - Complete Codebase Analysis
+# redi TPM Onboarding - Complete Codebase Analysis
 
 **Generated:** January 31, 2026
 **Repository:** cornell-dti/redi
@@ -22,23 +22,23 @@
 
 ## 1. Executive Summary
 
-### What is REDI?
+### What is redi?
 
 REDI is a **mentorship/dating platform for Cornell University students**. It's a full-stack mobile and web application that matches Cornell students weekly based on compatibility scoring, facilitates conversations through in-app messaging, and provides an admin dashboard for managing the platform.
 
 ### Technology Stack Overview
 
-| Component | Technology | Version |
-|-----------|------------|---------|
-| **Mobile App** | React Native + Expo | Expo 53.0, RN 0.79.6, React 19 |
-| **Web App/Admin** | Next.js | 15.5.2 with React 19 |
-| **Backend API** | Express.js + TypeScript | Express 5.1.0 |
-| **Database** | Firebase Firestore | Firebase Admin 13.5.0 |
-| **Authentication** | Firebase Auth | Passwordless email links |
-| **Cloud Functions** | Firebase Functions | Node 22 |
-| **Push Notifications** | Expo Push + FCM | Expo Server SDK 4.0.0 |
-| **Hosting** | Heroku (backend), Netlify (web) | - |
-| **Mobile Distribution** | EAS Build | iOS App Store, Google Play |
+| Component               | Technology                      | Version                        |
+| ----------------------- | ------------------------------- | ------------------------------ |
+| **Mobile App**          | React Native + Expo             | Expo 53.0, RN 0.79.6, React 19 |
+| **Web App/Admin**       | Next.js                         | 15.5.2 with React 19           |
+| **Backend API**         | Express.js + TypeScript         | Express 5.1.0                  |
+| **Database**            | Firebase Firestore              | Firebase Admin 13.5.0          |
+| **Authentication**      | Firebase Auth                   | Passwordless email links       |
+| **Cloud Functions**     | Firebase Functions              | Node 22                        |
+| **Push Notifications**  | Expo Push + FCM                 | Expo Server SDK 4.0.0          |
+| **Hosting**             | Heroku (backend), Netlify (web) | -                              |
+| **Mobile Distribution** | EAS Build                       | iOS App Store, Google Play     |
 
 ### Repository Structure
 
@@ -75,6 +75,7 @@ redi/
    - Download service account credentials
 
 3. **Get Heroku Access**
+   NOTE: Should be under DTI account
    - App: `redi-app-8ea0a6e9c3d9`
    - View environment variables
    - Access logs and metrics
@@ -87,6 +88,7 @@ redi/
    - Run frontend in Expo
 
 5. **Get App Store Access**
+   NOTE: Should be under DTI account
    - Apple Developer Account (iOS distribution)
    - Google Play Console (Android distribution)
    - App Store Connect for iOS submissions
@@ -101,56 +103,56 @@ redi/
 
 ### Development & Code
 
-| Access | Purpose | Priority |
-|--------|---------|----------|
+| Access                    | Purpose                      | Priority     |
+| ------------------------- | ---------------------------- | ------------ |
 | GitHub (cornell-dti/redi) | Code repository, PRs, issues | **Critical** |
-| VS Code / IDE | Development environment | **Critical** |
-| Node.js 22.x | Runtime environment | **Critical** |
-| npm | Package management | **Critical** |
+| VS Code / IDE             | Development environment      | **Critical** |
+| Node.js 22.x              | Runtime environment          | **Critical** |
+| npm                       | Package management           | **Critical** |
 
 ### Firebase Services
 
-| Access | Purpose | Priority |
-|--------|---------|----------|
+| Access                        | Purpose                   | Priority     |
+| ----------------------------- | ------------------------- | ------------ |
 | Firebase Console (redi-1c25e) | Database, auth, functions | **Critical** |
-| Service Account JSON | Backend authentication | **Critical** |
-| Firestore Database | Data storage | **Critical** |
-| Firebase Authentication | User management | **Critical** |
-| Cloud Functions | Scheduled jobs | **Critical** |
-| Firebase Storage | Image storage | High |
+| Service Account JSON          | Backend authentication    | **Critical** |
+| Firestore Database            | Data storage              | **Critical** |
+| Firebase Authentication       | User management           | **Critical** |
+| Cloud Functions               | Scheduled jobs            | **Critical** |
+| Firebase Storage              | Image storage             | High         |
 
 ### Deployment Platforms
 
-| Access | Purpose | Priority |
-|--------|---------|----------|
+| Access                      | Purpose            | Priority     |
+| --------------------------- | ------------------ | ------------ |
 | Heroku Dashboard (redi-app) | Backend deployment | **Critical** |
-| Heroku Redis addon | Rate limiting | High |
-| Netlify (redi-web) | Web app deployment | High |
-| EAS (Expo) | Mobile builds | **Critical** |
+| Heroku Redis addon          | Rate limiting      | High         |
+| Netlify (redi-web)          | Web app deployment | High         |
+| EAS (Expo)                  | Mobile builds      | **Critical** |
 
 ### App Stores
 
-| Access | Purpose | Priority |
-|--------|---------|----------|
-| Apple Developer Account | iOS distribution | **Critical** |
-| App Store Connect | iOS app management | **Critical** |
-| Google Play Console | Android distribution | **Critical** |
-| Firebase App Distribution | Internal testing | Medium |
+| Access                    | Purpose              | Priority     |
+| ------------------------- | -------------------- | ------------ |
+| Apple Developer Account   | iOS distribution     | **Critical** |
+| App Store Connect         | iOS app management   | **Critical** |
+| Google Play Console       | Android distribution | **Critical** |
+| Firebase App Distribution | Internal testing     | Medium       |
 
 ### Communication & Email
 
-| Access | Purpose | Priority |
-|--------|---------|----------|
+| Access                        | Purpose              | Priority     |
+| ----------------------------- | -------------------- | ------------ |
 | Gmail (redicornell@gmail.com) | Transactional emails | **Critical** |
-| Gmail App Password | Nodemailer auth | **Critical** |
+| Gmail App Password            | Nodemailer auth      | **Critical** |
 
 ### Optional/Analytics
 
-| Access | Purpose | Priority |
-|--------|---------|----------|
-| Firebase Analytics | Usage tracking | Medium |
-| Expo Push Dashboard | Notification monitoring | Medium |
-| Domain registrar (redi.love) | DNS management | Low |
+| Access                       | Purpose                 | Priority |
+| ---------------------------- | ----------------------- | -------- |
+| Firebase Analytics           | Usage tracking          | Medium   |
+| Expo Push Dashboard          | Notification monitoring | Medium   |
+| Domain registrar (redi.love) | DNS management          | Low      |
 
 ---
 
@@ -190,11 +192,13 @@ EXPO_ACCESS_TOKEN=<expo-access-token>
 ### Frontend Environment Variables
 
 Create `/frontend/.env` (development):
+
 ```env
 REACT_APP_API_BASE_URL=http://localhost:3001
 ```
 
 Create `/frontend/.env.production`:
+
 ```env
 REACT_APP_API_BASE_URL=https://redi-app-8ea0a6e9c3d9.herokuapp.com
 ```
@@ -202,12 +206,14 @@ REACT_APP_API_BASE_URL=https://redi-app-8ea0a6e9c3d9.herokuapp.com
 ### Web App Environment Variables
 
 Create `/redi-web/.env`:
+
 ```env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 NEXT_PUBLIC_ADMIN_UID=<same-as-backend-ADMIN_UID>
 ```
 
 Create `/redi-web/.env.production`:
+
 ```env
 NEXT_PUBLIC_API_BASE_URL=https://redi-app-8ea0a6e9c3d9.herokuapp.com
 NEXT_PUBLIC_ADMIN_UID=<same-as-backend-ADMIN_UID>
@@ -215,13 +221,13 @@ NEXT_PUBLIC_ADMIN_UID=<same-as-backend-ADMIN_UID>
 
 ### Where to Get Secrets
 
-| Variable | Source |
-|----------|--------|
+| Variable                 | Source                                                                            |
+| ------------------------ | --------------------------------------------------------------------------------- |
 | `FIREBASE_*` credentials | Firebase Console > Project Settings > Service Accounts > Generate new private key |
-| `ADMIN_UID` | Firebase Console > Authentication > Find admin user > Copy UID |
-| `EMAIL_PASSWORD` | Google Account > Security > App Passwords > Generate for "Mail" |
-| `REDIS_URL` | Heroku Dashboard > redi-app > Resources > Heroku Redis > View Credentials |
-| `EXPO_ACCESS_TOKEN` | Expo Dashboard > Account Settings > Access Tokens |
+| `ADMIN_UID`              | Firebase Console > Authentication > Find admin user > Copy UID                    |
+| `EMAIL_PASSWORD`         | Google Account > Security > App Passwords > Generate for "Mail"                   |
+| `REDIS_URL`              | Heroku Dashboard > redi-app > Resources > Heroku Redis > View Credentials         |
+| `EXPO_ACCESS_TOKEN`      | Expo Dashboard > Account Settings > Access Tokens                                 |
 
 ---
 
@@ -276,6 +282,7 @@ npm run dev
 ```
 
 Backend should be running at `http://localhost:3001`. Test with:
+
 ```bash
 curl http://localhost:3001/ping
 # Should return: {"message":"pong","timestamp":"..."}
@@ -294,6 +301,7 @@ npm start
 ```
 
 Options:
+
 - Press `i` for iOS Simulator
 - Press `a` for Android Emulator
 - Scan QR code with Expo Go app on physical device
@@ -325,6 +333,7 @@ open redi.xcworkspace
 ```
 
 Requirements:
+
 - Xcode 15+ (macOS only)
 - iOS Simulator or physical device
 - Apple Developer account for device testing
@@ -340,6 +349,7 @@ cd frontend/android
 ```
 
 Requirements:
+
 - Android Studio with SDK
 - Android Emulator or physical device (USB debugging enabled)
 
@@ -391,27 +401,28 @@ Requirements:
 
 ### Database Schema (Firestore Collections)
 
-| Collection | Purpose | Key Fields |
-|------------|---------|------------|
-| `users` | User accounts | netid, email, firebaseUid, pushToken |
-| `profiles` | User profiles | netid, firstName, bio, gender, pictures, clubs, interests |
-| `preferences` | Match preferences | ageRange, genders, years, schools, majors |
-| `weeklyPrompts` | Weekly questions | question, releaseDate, active, status |
-| `weeklyPromptAnswers` | User answers | netid, promptId, answer |
-| `weeklyMatches` | Generated matches | netid, promptId, matches[], revealed[] |
-| `nudges` | Like/nudge system | fromNetid, toNetid, mutual |
-| `conversations` | Chat threads | participantIds, messages (subcollection) |
-| `notifications` | In-app notifications | netid, type, title, body, read |
-| `blockedUsers` | Block relationships | blockerNetid, blockedNetid |
-| `reports` | User reports | reporterNetid, reportedNetid, status |
-| `admins` | Admin users | email, disabled |
-| `adminAuditLogs` | Audit trail | action, adminUid, timestamp |
+| Collection            | Purpose              | Key Fields                                                |
+| --------------------- | -------------------- | --------------------------------------------------------- |
+| `users`               | User accounts        | netid, email, firebaseUid, pushToken                      |
+| `profiles`            | User profiles        | netid, firstName, bio, gender, pictures, clubs, interests |
+| `preferences`         | Match preferences    | ageRange, genders, years, schools, majors                 |
+| `weeklyPrompts`       | Weekly questions     | question, releaseDate, active, status                     |
+| `weeklyPromptAnswers` | User answers         | netid, promptId, answer                                   |
+| `weeklyMatches`       | Generated matches    | netid, promptId, matches[], revealed[]                    |
+| `nudges`              | Like/nudge system    | fromNetid, toNetid, mutual                                |
+| `conversations`       | Chat threads         | participantIds, messages (subcollection)                  |
+| `notifications`       | In-app notifications | netid, type, title, body, read                            |
+| `blockedUsers`        | Block relationships  | blockerNetid, blockedNetid                                |
+| `reports`             | User reports         | reporterNetid, reportedNetid, status                      |
+| `admins`              | Admin users          | email, disabled                                           |
+| `adminAuditLogs`      | Audit trail          | action, adminUid, timestamp                               |
 
 ### Matching Algorithm Overview
 
 **Location:** `backend/src/services/matchingAlgorithm.ts`
 
 **Scoring Factors (0-100 points):**
+
 - School match: 20 points
 - Major overlap: 15 points
 - Year proximity: 15 points
@@ -420,6 +431,7 @@ Requirements:
 - Club overlap: 15 points
 
 **Process:**
+
 1. Get all users who answered this week's prompt
 2. For each user, find compatible candidates (mutual preference matching)
 3. Score each candidate pair
@@ -427,6 +439,7 @@ Requirements:
 5. Return top 3 matches per user
 
 **Schedule:**
+
 - Monday 12:01 AM ET: Activate weekly prompt
 - Friday 9:01 AM ET: Generate matches for all users
 
@@ -445,19 +458,19 @@ Requirements:
 
 ### API Endpoints Overview
 
-| Prefix | Purpose | Auth Required |
-|--------|---------|---------------|
-| `/api/auth` | Sign-in link generation | No (rate limited) |
-| `/api/users` | User CRUD | Yes |
-| `/api/profiles` | Profile management | Yes |
-| `/api/preferences` | Match preferences | Yes |
-| `/api/prompts` | Weekly prompts & answers | Yes |
-| `/api/images` | Image upload | Yes |
-| `/api/nudges` | Like/nudge system | Yes |
-| `/api/chat` | Messaging | Yes |
-| `/api/notifications` | In-app notifications | Yes |
-| `/api/reports` | User reporting | Yes |
-| `/api/admin/*` | Admin operations | Admin only |
+| Prefix               | Purpose                  | Auth Required     |
+| -------------------- | ------------------------ | ----------------- |
+| `/api/auth`          | Sign-in link generation  | No (rate limited) |
+| `/api/users`         | User CRUD                | Yes               |
+| `/api/profiles`      | Profile management       | Yes               |
+| `/api/preferences`   | Match preferences        | Yes               |
+| `/api/prompts`       | Weekly prompts & answers | Yes               |
+| `/api/images`        | Image upload             | Yes               |
+| `/api/nudges`        | Like/nudge system        | Yes               |
+| `/api/chat`          | Messaging                | Yes               |
+| `/api/notifications` | In-app notifications     | Yes               |
+| `/api/reports`       | User reporting           | Yes               |
+| `/api/admin/*`       | Admin operations         | Admin only        |
 
 ---
 
@@ -465,29 +478,29 @@ Requirements:
 
 ### Critical Issues
 
-| Issue | Location | Impact |
-|-------|----------|--------|
-| Password update not implemented | `frontend/app/(auth)/edit-password.tsx:47` | Users cannot change passwords |
-| Preference filters missing in matching | `backend/src/routes/profiles.ts:661-666` | Matching ignores some preferences |
-| Extensive `as any` type assertions | Throughout frontend | Type safety compromised |
+| Issue                                  | Location                                   | Impact                            |
+| -------------------------------------- | ------------------------------------------ | --------------------------------- |
+| Password update not implemented        | `frontend/app/(auth)/edit-password.tsx:47` | Users cannot change passwords     |
+| Preference filters missing in matching | `backend/src/routes/profiles.ts:661-666`   | Matching ignores some preferences |
+| Extensive `as any` type assertions     | Throughout frontend                        | Type safety compromised           |
 
 ### High Priority
 
-| Issue | Location | Impact |
-|-------|----------|--------|
-| Deprecated dependencies | `glob`, `inflight`, `rimraf` | Security/stability risk |
-| In-memory rate limiting fallback | When Redis unavailable | Won't work across dynos |
-| Hardcoded Firebase config | `frontend/firebase.ts`, `redi-web/firebase.ts` | Should use env vars |
-| Image cleanup on profile delete | `backend/src/routes/profiles.ts:609` | Storage bloat |
+| Issue                            | Location                                       | Impact                  |
+| -------------------------------- | ---------------------------------------------- | ----------------------- |
+| Deprecated dependencies          | `glob`, `inflight`, `rimraf`                   | Security/stability risk |
+| In-memory rate limiting fallback | When Redis unavailable                         | Won't work across dynos |
+| Hardcoded Firebase config        | `frontend/firebase.ts`, `redi-web/firebase.ts` | Should use env vars     |
+| Image cleanup on profile delete  | `backend/src/routes/profiles.ts:609`           | Storage bloat           |
 
 ### Medium Priority
 
-| Issue | Location | Impact |
-|-------|----------|--------|
-| Deprecated type definitions | `redi-web/src/types/admin.ts` | Code confusion |
-| Deprecated `calculateAge()` | `frontend/app/utils/profileUtils.ts:8` | Should use `getProfileAge()` |
-| Debug logging in production | `redi-web/src/api/api.ts:29` | Information leak |
-| ImageManipulator API may be deprecated | `PhotoUploadGrid.tsx:164` | Future breakage |
+| Issue                                  | Location                               | Impact                       |
+| -------------------------------------- | -------------------------------------- | ---------------------------- |
+| Deprecated type definitions            | `redi-web/src/types/admin.ts`          | Code confusion               |
+| Deprecated `calculateAge()`            | `frontend/app/utils/profileUtils.ts:8` | Should use `getProfileAge()` |
+| Debug logging in production            | `redi-web/src/api/api.ts:29`           | Information leak             |
+| ImageManipulator API may be deprecated | `PhotoUploadGrid.tsx:164`              | Future breakage              |
 
 ### TODO Comments Found
 
@@ -506,27 +519,27 @@ Requirements:
 
 ### Documentation That Should Exist
 
-| Document | Purpose | Priority |
-|----------|---------|----------|
+| Document             | Purpose                        | Priority     |
+| -------------------- | ------------------------------ | ------------ |
 | `.env.example` files | Template for environment setup | **Critical** |
-| `DEPLOYMENT.md` | Step-by-step deployment guide | **Critical** |
-| `CONTRIBUTING.md` | Contribution guidelines | High |
-| `ARCHITECTURE.md` | System design overview | High |
-| `DATABASE_SCHEMA.md` | Detailed Firestore schema | High |
-| `SECURITY.md` | Security practices | Medium |
-| `TROUBLESHOOTING.md` | Common issues and fixes | Medium |
+| `DEPLOYMENT.md`      | Step-by-step deployment guide  | **Critical** |
+| `CONTRIBUTING.md`    | Contribution guidelines        | High         |
+| `ARCHITECTURE.md`    | System design overview         | High         |
+| `DATABASE_SCHEMA.md` | Detailed Firestore schema      | High         |
+| `SECURITY.md`        | Security practices             | Medium       |
+| `TROUBLESHOOTING.md` | Common issues and fixes        | Medium       |
 
 ### Existing Documentation (Good Coverage)
 
-| Document | Location | Quality |
-|----------|----------|---------|
-| API Documentation | `/API_DOCUMENTATION.md` | Excellent |
+| Document                 | Location                               | Quality   |
+| ------------------------ | -------------------------------------- | --------- |
+| API Documentation        | `/API_DOCUMENTATION.md`                | Excellent |
 | Matching Algorithm Guide | `/backend/MATCHING_ALGORITHM_GUIDE.md` | Excellent |
-| Testing Guide | `/backend/TESTING_GUIDE.md` | Excellent |
-| Rate Limiting Guide | `/backend/RATE_LIMITING_GUIDE.md` | Very Good |
-| Testing README | `/backend/TESTING_README.md` | Very Good |
-| Cloud Functions Testing | `/TESTING_CLOUD_FUNCTIONS.md` | Good |
-| Main README | `/README.md` | Good |
+| Testing Guide            | `/backend/TESTING_GUIDE.md`            | Excellent |
+| Rate Limiting Guide      | `/backend/RATE_LIMITING_GUIDE.md`      | Very Good |
+| Testing README           | `/backend/TESTING_README.md`           | Very Good |
+| Cloud Functions Testing  | `/TESTING_CLOUD_FUNCTIONS.md`          | Good      |
+| Main README              | `/README.md`                           | Good      |
 
 ---
 
@@ -538,18 +551,21 @@ Requirements:
 # REDI Platform - TPM Handoff Document
 
 ## Part 1: Getting Started (Week 1)
+
 1.1 Access Checklist (with confirmation checkboxes)
 1.2 Local Development Setup
 1.3 Understanding the Codebase
 1.4 Key Contacts and Resources
 
 ## Part 2: Platform Overview
+
 2.1 What is REDI?
 2.2 User Journey (with screenshots)
 2.3 Admin Dashboard Overview
 2.4 Weekly Matching Cycle
 
 ## Part 3: Technical Architecture
+
 3.1 System Architecture Diagram
 3.2 Technology Stack Details
 3.3 Database Schema
@@ -558,6 +574,7 @@ Requirements:
 3.6 Matching Algorithm Explanation
 
 ## Part 4: Development Workflow
+
 4.1 Git Branching Strategy
 4.2 Pull Request Process
 4.3 Code Review Guidelines
@@ -565,6 +582,7 @@ Requirements:
 4.5 CI/CD Pipeline
 
 ## Part 5: Deployment Guide
+
 5.1 Backend Deployment (Heroku)
 5.2 Web App Deployment (Netlify)
 5.3 Mobile App Builds (EAS)
@@ -573,6 +591,7 @@ Requirements:
 5.6 Rollback Procedures
 
 ## Part 6: Operations
+
 6.1 Monitoring and Alerts
 6.2 Common Issues and Troubleshooting
 6.3 Weekly Maintenance Tasks
@@ -580,12 +599,14 @@ Requirements:
 6.5 Admin Operations
 
 ## Part 7: Known Issues & Roadmap
+
 7.1 Current Technical Debt
 7.2 Planned Features
 7.3 Performance Considerations
 7.4 Security Considerations
 
 ## Appendices
+
 A. Environment Variables Reference
 B. Firebase Collections Reference
 C. API Endpoints Reference
@@ -599,41 +620,41 @@ E. Glossary of Terms
 
 ### Configuration Files
 
-| File | Purpose |
-|------|---------|
-| `/Procfile` | Heroku web process |
-| `/netlify.toml` | Netlify deployment config |
-| `/frontend/app.config.js` | Expo app configuration |
-| `/frontend/eas.json` | EAS build profiles |
-| `/backend/firebase.json` | Firebase project config |
-| `/backend/firestore.rules` | Database security rules |
-| `/backend/firestore.indexes.json` | Database indexes |
+| File                              | Purpose                   |
+| --------------------------------- | ------------------------- |
+| `/Procfile`                       | Heroku web process        |
+| `/netlify.toml`                   | Netlify deployment config |
+| `/frontend/app.config.js`         | Expo app configuration    |
+| `/frontend/eas.json`              | EAS build profiles        |
+| `/backend/firebase.json`          | Firebase project config   |
+| `/backend/firestore.rules`        | Database security rules   |
+| `/backend/firestore.indexes.json` | Database indexes          |
 
 ### Core Business Logic
 
-| File | Purpose |
-|------|---------|
-| `/backend/src/services/matchingAlgorithm.ts` | Matching algorithm |
-| `/backend/src/services/matchingService.ts` | Match generation service |
-| `/backend/src/services/pushNotificationService.ts` | Push notifications |
-| `/backend/src/services/emailService.ts` | Email sending |
-| `/backend/src/middleware/auth.ts` | Authentication |
-| `/backend/src/middleware/rateLimiting.ts` | Rate limiting |
+| File                                               | Purpose                  |
+| -------------------------------------------------- | ------------------------ |
+| `/backend/src/services/matchingAlgorithm.ts`       | Matching algorithm       |
+| `/backend/src/services/matchingService.ts`         | Match generation service |
+| `/backend/src/services/pushNotificationService.ts` | Push notifications       |
+| `/backend/src/services/emailService.ts`            | Email sending            |
+| `/backend/src/middleware/auth.ts`                  | Authentication           |
+| `/backend/src/middleware/rateLimiting.ts`          | Rate limiting            |
 
 ### Frontend Entry Points
 
-| File | Purpose |
-|------|---------|
-| `/frontend/app/_layout.tsx` | Root layout with providers |
-| `/frontend/app/index.tsx` | Welcome/login screen |
-| `/frontend/app/(auth)/(tabs)/_layout.tsx` | Main tab navigation |
-| `/frontend/firebase.ts` | Firebase initialization |
+| File                                      | Purpose                    |
+| ----------------------------------------- | -------------------------- |
+| `/frontend/app/_layout.tsx`               | Root layout with providers |
+| `/frontend/app/index.tsx`                 | Welcome/login screen       |
+| `/frontend/app/(auth)/(tabs)/_layout.tsx` | Main tab navigation        |
+| `/frontend/firebase.ts`                   | Firebase initialization    |
 
 ### Cloud Functions
 
-| File | Purpose |
-|------|---------|
-| `/backend/functions/src/index.ts` | Function definitions |
+| File                               | Purpose                               |
+| ---------------------------------- | ------------------------------------- |
+| `/backend/functions/src/index.ts`  | Function definitions                  |
 | `/backend/functions/src/services/` | Shared services (copied from backend) |
 
 ---
@@ -695,4 +716,4 @@ firebase functions:log
 
 ---
 
-*This analysis was generated by examining the complete REDI codebase. For questions or clarifications, consult the existing documentation in the repository or reach out to the development team.*
+_This analysis was generated by examining the complete REDI codebase. For questions or clarifications, consult the existing documentation in the repository or reach out to the development team._
