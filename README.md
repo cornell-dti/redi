@@ -16,6 +16,8 @@ Cornell's first and best dating app, connecting students through authentic campu
 
 - Node.js 18+ and npm
 - Expo CLI (`npm install -g @expo/cli`)
+- [Xcode](https://developer.apple.com/xcode/) (required for iOS development)
+- iOS Simulator (installed via Xcode > Settings > Platforms)
 - Firebase project with Firestore and Authentication enabled
 - Cornell NetID for testing
 
@@ -60,6 +62,13 @@ npm install
 # - GoogleService-Info.plist (iOS)
 
 npm run [platform: ios, android, web]
+```
+
+#### Running on iOS Simulator
+
+```bash
+cd frontend/ios
+npm run ios
 ```
 
 ### 4. Landing Page Setup
