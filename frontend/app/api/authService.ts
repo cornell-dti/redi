@@ -148,7 +148,6 @@ export const signInWithGoogle = async (): Promise<void> => {
     const firebaseUser = userCredential.user;
 
     if (firebaseUser && firebaseUser.email) {
-      // Ensure user exists in backend (create is idempotent — returns existing user if already created)
       try {
         await createUserInBackend(firebaseUser.email);
       } catch (createError) {
