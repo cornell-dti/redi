@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import {
   ArrowLeft,
   ArrowRight,
@@ -20,14 +19,12 @@ import {
   View,
 } from 'react-native';
 import {
-  getCurrentUser,
   sendPasswordlessSignInLink,
   signInUser,
   signInWithGoogle,
   signUpUser,
   validateCornellEmail,
 } from './api/authService';
-import { getCurrentUserProfile } from './api/profileApi';
 import { AppColors } from './components/AppColors';
 import OnboardingVideo from './components/onboarding/OnboardingVideo';
 import AppInput from './components/ui/AppInput';
@@ -141,8 +138,7 @@ export default function HomePage() {
     setLoading(true);
     try {
       await signUpUser(email, password);
-      // After successful signup, navigate to create profile
-      router.replace('/(auth)/create-profile');
+      // Auth state listener in _layout.tsx handles routing
     } catch (error) {
       Alert.alert(
         'Sign Up Failed',
@@ -174,23 +170,7 @@ export default function HomePage() {
     setLoading(true);
     try {
       await signInUser(email, password);
-
-      // Get the current user's Firebase UID
-      const user = getCurrentUser();
-      if (!user?.uid) {
-        throw new Error('Authentication failed. Please try again.');
-      }
-
-      // Check if user has a profile in the database
-      const profile = await getCurrentUserProfile();
-
-      if (profile) {
-        // User has a complete profile, go to main app
-        router.replace('/(auth)/(tabs)');
-      } else {
-        // User doesn't have a profile yet, go to create profile
-        router.replace('/(auth)/create-profile');
-      }
+      // Auth state listener in _layout.tsx handles routing
     } catch (error) {
       Alert.alert(
         'Login Failed',
@@ -237,23 +217,6 @@ export default function HomePage() {
     setLoading(true);
     try {
       await signInWithGoogle();
-
-      // Get the current user's Firebase UID
-      const user = getCurrentUser();
-      if (!user?.uid) {
-        throw new Error('Authentication failed. Please try again.');
-      }
-
-      // Check if user has a profile in the database
-      const profile = await getCurrentUserProfile();
-
-      if (profile) {
-        // User has a complete profile, go to main app
-        router.replace('/(auth)/(tabs)');
-      } else {
-        // User doesn't have a profile yet, go to create profile
-        router.replace('/(auth)/create-profile');
-      }
     } catch (error) {
       setShowGoogleErrorSheet(true);
     } finally {

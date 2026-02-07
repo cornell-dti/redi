@@ -4,8 +4,8 @@ import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import auth from '@react-native-firebase/auth';
 import * as Linking from 'expo-linking';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect, useState, useRef } from 'react';
-import { Alert, View, AppState } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, AppState, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { APIError } from './api/apiClient';
 import { onAuthStateChanged, signInWithEmailLink } from './api/authService';
@@ -51,9 +51,13 @@ function RootNavigator() {
   const appState = useRef(AppState.currentState);
 
   const handleAuthStateChanged = (user: FirebaseAuthTypes.User | null) => {
-    console.log('Auth state changed:', user?.email || 'No user');
+    console.log('[Auth] Auth state changed:', user?.email || 'No user');
+    console.log('[Auth] Current initializing state:', initializing);
     setUser(user);
-    if (initializing) setInitializing(false);
+    if (initializing) {
+      console.log('[Auth] Setting initializing to false');
+      setInitializing(false);
+    }
   };
 
   useEffect(() => {
@@ -86,13 +90,14 @@ function RootNavigator() {
           const firebaseEmailLink = `https://redi.love/auth-redirect?${params.toString()}`;
 
           await signInWithEmailLink(firebaseEmailLink, email as string | undefined);
+          // Auth state listener handles routing after sign-in
+
           Alert.alert(
             'Success',
             'You have been signed in successfully!',
             [{ text: 'OK' }]
           );
         } catch (error) {
-          console.error('Passwordless sign-in error:', error);
           Alert.alert(
             'Sign In Failed',
             error instanceof Error ? error.message : 'Failed to sign in with email link'
@@ -172,7 +177,11 @@ function RootNavigator() {
   }, [user]);
 
   useEffect(() => {
-    if (initializing) return;
+    console.log('[Routing] useEffect triggered - user:', user?.email, 'initializing:', initializing);
+    if (initializing) {
+      console.log('[Routing] Still initializing, skipping redirect check');
+      return;
+    }
 
     const inAuthGroup = segments[0] === '(auth)';
 
