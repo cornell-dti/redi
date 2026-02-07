@@ -56,8 +56,9 @@ export default function AccountSettingsPage() {
     try {
       console.log('Starting sign out process...');
 
-      // Clear any stored data first
+      // Clear any stored data first, but preserve install-level flags
       await AsyncStorage.clear();
+      await AsyncStorage.setItem('@onboarding_video_shown', 'true');
       console.log('AsyncStorage cleared');
 
       // Sign out from Firebase
@@ -107,8 +108,9 @@ export default function AccountSettingsPage() {
       await deleteUser(netid);
       console.log('User deleted from backend successfully');
 
-      // Clear any stored data on the device.
+      // Clear any stored data on the device, but preserve install-level flags
       await AsyncStorage.clear();
+      await AsyncStorage.setItem('@onboarding_video_shown', 'true');
 
       // Sign out from Firebase
       await signOutUser();

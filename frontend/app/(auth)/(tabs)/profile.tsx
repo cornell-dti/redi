@@ -68,8 +68,9 @@ export default function ProfileScreen() {
     try {
       console.log('Starting sign out process...');
 
-      // Clear any stored data first
+      // Clear any stored data first, but preserve install-level flags
       await AsyncStorage.clear();
+      await AsyncStorage.setItem('@onboarding_video_shown', 'true');
       console.log('AsyncStorage cleared');
 
       // Sign out from Firebase

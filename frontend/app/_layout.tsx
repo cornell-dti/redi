@@ -5,8 +5,6 @@ import auth from '@react-native-firebase/auth';
 import * as Linking from 'expo-linking';
 import * as SplashScreen from 'expo-splash-screen';
 import { Stack, useRouter, useSegments } from 'expo-router';
-
-SplashScreen.preventAutoHideAsync();
 import { useEffect, useRef, useState } from 'react';
 import { Alert, AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -19,6 +17,8 @@ import { ProfileProvider } from './contexts/ProfileContext';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
 import { ToastProvider, useToast } from './contexts/ToastContext';
 import { clearBadgeCount } from './services/notificationPermissions';
+
+SplashScreen.preventAutoHideAsync();
 
 /**
  * Token Refresh Configuration
@@ -348,7 +348,7 @@ function RootNavigator() {
 
   return (
     <>
-      <Stack>
+      <Stack screenOptions={{ animation: 'none' }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen

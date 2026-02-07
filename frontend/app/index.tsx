@@ -1,8 +1,7 @@
 import auth from '@react-native-firebase/auth';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { AppColors } from './components/AppColors';
+import { View } from 'react-native';
 import OnboardingVideo, {
   hasShownOnboardingVideo,
   markOnboardingVideoAsShown,
@@ -12,14 +11,18 @@ export default function Index() {
   const [showVideo, setShowVideo] = useState(false);
 
   useEffect(() => {
-    if (auth().currentUser) return;
-    hasShownOnboardingVideo().then((hasShown) => {
-      if (hasShown) {
-        router.replace('/home');
-      } else {
-        setShowVideo(true);
-      }
+    const unsubscribe = auth().onAuthStateChanged((user) => {
+      unsubscribe();
+      if (user) return; // signed in — _layout.tsx handles routing under the splash screen
+      hasShownOnboardingVideo().then((hasShown) => {
+        if (hasShown) {
+          router.replace('/home');
+        } else {
+          setShowVideo(true);
+        }
+      });
     });
+    return unsubscribe;
   }, []);
 
   const handleVideoFinish = async () => {
@@ -29,15 +32,8 @@ export default function Index() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1 }}>
       <OnboardingVideo visible={showVideo} onFinish={handleVideoFinish} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: AppColors.backgroundDefault,
-  },
-});

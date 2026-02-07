@@ -213,7 +213,6 @@ export default function HomePage() {
     setShowVideo(false);
   };
 
-
   const handleSendPasswordlessLink = async () => {
     if (!email) {
       Alert.alert('Missing Information', 'Please enter your email address');
