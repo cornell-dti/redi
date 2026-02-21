@@ -59,8 +59,7 @@ npm install
 # - google-services.json (Android)
 # - GoogleService-Info.plist (iOS)
 
-# Start Expo development server
-npm start  # Choose platform (iOS/Android/Web)
+npm run [platform: ios, android, web]
 ```
 
 ### 4. Landing Page Setup
@@ -185,9 +184,11 @@ cd frontend && npm test
 
 ### Backend
 
-Deploy to your preferred platform (Heroku, Railway, Render, etc.) with environment variables configured.
+We use Heroku for our backend deployment.
 
 ### Frontend
+
+Frontend deployment is done through Netlify.
 
 ````bash
 # Build for production
@@ -221,7 +222,7 @@ Automatically deployed via Netlify on push to main branch.
 
 Available formatting commands:
 
-From root directory (/Users/jujucrane/dev/redi):
+From root directory:
 
 - npm run format - Format all files across the entire codebase
 - npm run format:check - Check formatting without making changes
@@ -244,12 +245,12 @@ From individual directories:
 - [ ] Enhanced profile customization
 
 ## 👥 The Dream Team
-
-- **TPM**: Juju Crane
-- **Designer/Frontend Dev**: Clément Rozé
-- **Designer**: Brandon Lee
-- **PM**: Arsh Aggarwal
-- **Dev**: Abrar Amin
+### FA25
+- **Arsh Aggarwal** - Product Manager
+- **Juju Crane** - Technical Product Manager
+- **Clément Rozé** - Designer/Frontend Developer 
+- **Brandon Lee** - Designer/Product Marketing Manager
+- **Abrar Amin** - Developer
 
 ## 📄 License
 
