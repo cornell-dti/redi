@@ -5,9 +5,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-between min-h-screen p-4 md:p-8 bg-[url(/background.png)] bg-cover bg-center">
       <div className="flex justify-between w-full">
-        <p className="text-[20px] md:text-[24px] text-white">
-          Launching 11.11.25
-        </p>
+        
 
         <Link
           href="https://www.instagram.com/redi.match/"
