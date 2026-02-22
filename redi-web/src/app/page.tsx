@@ -53,7 +53,7 @@ export default function Home() {
             href="https://apps.apple.com/us/app/redi-love/id6754899018"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white text-black rounded-full px-8 py-4 text-[16px] md:text-[20px] cursor-pointer transform flex items-center justify-center gap-2 w-full
+            className="bg-white text-black rounded-full px-8 py-4 text-[16px] md:text-[20px] cursor-pointer transform flex items-center gap-2 w-full
             hover:-translate-y-1.5 hover:[box-shadow:0_6px_0_0_rgba(255_255_255_/_40%)] hover:opacity-90
             focus-visible:-translate-y-1.5 focus-visible:[box-shadow:0_6px_0_0_rgba(255_255_255_/_40%)] focus-visible:opacity-90
             focus:outline-none
@@ -69,14 +69,14 @@ export default function Home() {
           <a
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white text-black rounded-full px-8 py-4 text-[16px] md:text-[20px] cursor-pointer transform flex items-center justify-center gap-2 w-full
+            className="border border-white text-white rounded-full px-8 py-4 text-[16px] md:text-[20px] cursor-pointer transform flex items-center gap-2 w-full
             hover:-translate-y-1.5 hover:[box-shadow:0_6px_0_0_rgba(255_255_255_/_40%)] hover:opacity-90
             focus-visible:-translate-y-1.5 focus-visible:[box-shadow:0_6px_0_0_rgba(255_255_255_/_40%)] focus-visible:opacity-90
             focus:outline-none
             active:-translate-y-1 active:[box-shadow:0_4px_0_0_rgba(255_255_255_/_40%)] active:opacity-95
             transition focus-visible:outline-[#006BFF]"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5 md:w-6 md:h-6" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5 md:w-6 md:h-6 -translate-y-[1px]" fill="currentColor">
               <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84 1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C14.15 1.23 13.11 1 12 1c-1.11 0-2.15.23-3.09.63L7.43.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.3 1.3C6.45 3.28 5.26 5.01 5.03 7h13.95c-.24-1.99-1.43-3.72-3.45-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z" />
             </svg>
             Coming soon to Android
