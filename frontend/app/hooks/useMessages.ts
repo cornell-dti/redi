@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useEffect, useState } from 'react';
 import { Message } from '../api/chatApi';
 
 /**
@@ -47,18 +47,23 @@ export const useMessages = (
       .collection('conversations')
       .doc(conversationId)
       .collection('messages')
-      .orderBy('timestamp', 'asc')
+      .orderBy('timestamp', 'desc')
       .limit(limit)
       .onSnapshot(
         (snapshot) => {
-          console.log(`useMessages: Received ${snapshot.docs.length} messages for conversation ${conversationId}`);
-          const messagesData: Message[] = snapshot.docs.map(
-            (doc) =>
-              ({
-                id: doc.id,
-                ...doc.data(),
-              }) as Message
+          console.log(
+            `useMessages: Received ${snapshot.docs.length} messages for conversation ${conversationId}`
           );
+
+          const messagesData: Message[] = snapshot.docs
+            .map(
+              (doc) =>
+                ({
+                  id: doc.id,
+                  ...doc.data(),
+                }) as Message
+            )
+            .reverse();
 
           setMessages(messagesData);
           setLoading(false);
