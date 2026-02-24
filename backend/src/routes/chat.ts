@@ -317,6 +317,7 @@ router.post(
         timestamp: FieldValue.serverTimestamp(),
         read: false,
         status: 'sent',
+        isUnsent: false,
       };
 
       const messageRef = await conversationRef
@@ -550,6 +551,214 @@ router.put(
       res.status(200).json({ success: true });
     } catch (error) {
       console.error('Error marking message as read:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      res.status(500).json({ error: errorMessage });
+    }
+  }
+);
+
+/**
+ * PUT /api/chat/messages/:messageId/edit
+ * Edit a previously sent message
+ */
+router.put(
+  '/api/chat/messages/:messageId/edit',
+  chatRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      const { messageId } = req.params;
+      const { conversationId, newText } = req.body;
+
+      if (!conversationId) {
+        return res.status(400).json({ error: 'conversationId is required' });
+      }
+
+      if (!newText || !(typeof (newText) === 'string') || newText.trim().length === 0 || newText.length > 5000) {
+        return res.status(400).json({ error: 'invalid input text (newText required)' })
+      }
+
+      const userId = req.user.uid;
+
+      // Verify user is participant
+      const conversationRef = db
+        .collection('conversations')
+        .doc(conversationId);
+      const conversationDoc = await conversationRef.get();
+
+      if (!conversationDoc.exists) {
+        return res
+          .status(403)
+          .json({ error: 'Cannot access this conversation' });
+      }
+
+      const conversationData = conversationDoc.data();
+      if (!conversationData?.participantIds.includes(userId)) {
+        return res
+          .status(403)
+          .json({ error: 'User ID cannot access this conversation' });
+      }
+
+      const messageRef = conversationRef.collection('messages').doc(messageId);
+      const messageDoc = await messageRef.get();
+
+      // Verify message exists
+      if (!messageDoc.exists) {
+        return res
+          .status(403)
+          .json({ error: 'Message does not exist' });
+      }
+
+      // Verify that the user trying to edit the message is the sender
+      const messageData = messageDoc.data();
+      if (messageData?.senderId !== userId) {
+        return res
+          .status(403)
+          .json({ error: 'User cannot edit message sent by another user' })
+      }
+
+      // Verify that edit is made <= 15 minutes after initial send time
+      const EDIT_WINDOW_MS = 15 * 60 * 1000;
+
+      const rawTimestamp = messageData?.timestamp;
+
+      // Firestore Timestamp conversion
+      const sentAt =
+        rawTimestamp?.toDate?.() instanceof Date
+          ? rawTimestamp.toDate()
+          : rawTimestamp
+            ? new Date(rawTimestamp)
+            : null;
+
+      if (!sentAt || Number.isNaN(sentAt.getTime())) {
+        return res.status(400).json({ error: 'Message timestamp is invalid' });
+      }
+
+      const nowMs = Date.now();
+      const sentAtMs = sentAt.getTime();
+
+      if (nowMs - sentAtMs > EDIT_WINDOW_MS) {
+        return res.status(403).json({
+          error: 'Messages can only be edited within 15 minutes of sending',
+        });
+      }
+
+      // Update message
+      await messageRef.update({
+        text: newText.trim(),
+        editTimestamp: FieldValue.serverTimestamp(),
+      });
+
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error editing sent message:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      res.status(500).json({ error: errorMessage });
+    }
+  }
+);
+
+/**
+ * PUT /api/chat/messages/:messageId/unsend
+ * Unsend (soft-delete) a message
+ */
+router.put(
+  '/api/chat/messages/:messageId/unsend',
+  chatRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      const { messageId } = req.params;
+      const { conversationId } = req.body;
+
+      if (!conversationId) {
+        return res.status(400).json({ error: 'conversationId is required' });
+      }
+
+      const userId = req.user.uid;
+
+      // Verify user is participant
+      const conversationRef = db
+        .collection('conversations')
+        .doc(conversationId);
+      const conversationDoc = await conversationRef.get();
+
+      if (!conversationDoc.exists) {
+        return res
+          .status(403)
+          .json({ error: 'Cannot access this conversation' });
+      }
+
+      const conversationData = conversationDoc.data();
+      if (!conversationData?.participantIds.includes(userId)) {
+        return res
+          .status(403)
+          .json({ error: 'User ID cannot access this conversation' });
+      }
+
+      const messageRef = conversationRef.collection('messages').doc(messageId);
+      const messageDoc = await messageRef.get();
+
+      // Verify message exists
+      if (!messageDoc.exists) {
+        return res
+          .status(403)
+          .json({ error: 'Message does not exist' });
+      }
+
+      // Verify that the user trying to edit the message is the sender
+      const messageData = messageDoc.data();
+      if (messageData?.senderId !== userId) {
+        return res
+          .status(403)
+          .json({ error: 'User cannot unsend message sent by another user' })
+      }
+
+      // Verify that edit is made <= 15 minutes after initial send time
+      const EDIT_WINDOW_MS = 15 * 60 * 1000;
+
+      const rawTimestamp = messageData?.timestamp;
+
+      // Firestore Timestamp conversion
+      const sentAt =
+        rawTimestamp?.toDate?.() instanceof Date
+          ? rawTimestamp.toDate()
+          : rawTimestamp
+            ? new Date(rawTimestamp)
+            : null;
+
+      if (!sentAt || Number.isNaN(sentAt.getTime())) {
+        return res.status(400).json({ error: 'Message timestamp is invalid' });
+      }
+
+      const nowMs = Date.now();
+      const sentAtMs = sentAt.getTime();
+
+      if (nowMs - sentAtMs > EDIT_WINDOW_MS) {
+        return res.status(403).json({
+          error: 'Messages can only be unsent within 15 minutes of sending',
+        });
+      }
+
+      // Update message
+      await messageRef.update({
+        unsentTimestamp: FieldValue.serverTimestamp(),
+        isUnsent: true,
+      });
+
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error unsending message:', error);
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       res.status(500).json({ error: errorMessage });
