@@ -53,6 +53,7 @@ const getUserProfile = async (firebaseUid: string) => {
       name: profileData.firstName || netid,
       image: profileData.pictures?.[0] || null,
     };
+    return profile
   } catch (error) {
     console.error('❌ Error getting user profile:', error);
     return null;
