@@ -18,11 +18,13 @@ import {
   MoreVertical,
   Send,
   User2,
+  X
 } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StatusBar,
@@ -34,7 +36,9 @@ import { getCurrentUser } from '../api/authService';
 import { blockUser, getBlockedUsers, unblockUser } from '../api/blockingApi';
 import {
   createOrGetConversation,
+  editMessage as editMessageAPI,
   sendMessage as sendMessageAPI,
+  unsendMessage as unsendMessageAPI
 } from '../api/chatApi';
 import { createReport } from '../api/reportsApi';
 import { AppColors } from '../components/AppColors';
@@ -48,6 +52,9 @@ interface Message {
   text: string;
   timestamp: Date;
   isOwn: boolean;
+  isUnsent?: boolean;
+  editTimestamp?: Date | null;
+  unsentTimestamp?: Date | null;
 }
 
 const REPORT_REASONS: { value: ReportReason; label: string }[] = [
@@ -72,6 +79,13 @@ export default function ChatDetailScreen() {
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [blocking, setBlocking] = useState(false);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  const [showMessageActionsSheet, setShowMessageActionsSheet] = useState(false);
+
+  const [isEditingMessage, setIsEditingMessage] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState('');
+  const [messageActionLoading, setMessageActionLoading] = useState(false);
 
   const {
     conversationId: routeConversationId,
@@ -109,7 +123,11 @@ export default function ChatDetailScreen() {
   // Animation for send button
   const sendButtonAnim = useRef(new Animated.Value(0)).current;
 
-  const { messages: firebaseMessages, loading } = useMessages(conversationId);
+  const {
+    messages: firebaseMessages,
+    loading,
+    error: messagesError,
+  } = useMessages(conversationId);
 
   // Animate send button in/out based on message input
   useEffect(() => {
@@ -156,13 +174,116 @@ export default function ChatDetailScreen() {
     }, [netid, currentUser])
   );
 
+  const toDateOrNull = (value: any): Date | null => {
+    if (!value) return null;
+
+    if (typeof value?.toDate === 'function') {
+      const d = value.toDate();
+      return d instanceof Date && !Number.isNaN(d.getTime()) ? d : null;
+    }
+
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? null : value;
+    }
+
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
   // Transform Firebase messages to display format
   const displayMessages: Message[] = firebaseMessages.map((msg) => ({
     id: msg.id,
     text: msg.text,
-    timestamp: msg.timestamp?.toDate?.() || new Date(),
+    timestamp: toDateOrNull(msg.timestamp) || new Date(),
     isOwn: msg.senderId === currentUser?.uid,
+    isUnsent: !!msg.isUnsent,
+    editTimestamp: toDateOrNull(msg.editTimestamp),
+    unsentTimestamp: toDateOrNull(msg.unsentTimestamp),
   }));
+
+  const handleMessageLongPress = (msg: Message) => {
+    if (!canModifyMessage(msg)) return;
+
+    setSelectedMessageId(msg.id);
+    setShowMessageActionsSheet(true);
+  };
+
+  const closeMessageActions = () => {
+    setShowMessageActionsSheet(false);
+    setTimeout(() => setSelectedMessageId(null), 200);
+  };
+
+  const handleStartEditMessage = () => {
+    const target = displayMessages.find((m) => m.id === selectedMessageId);
+    if (!target || target.isUnsent) return;
+
+    setEditDraft(target.text);
+    setEditingMessageId(target.id);
+    setIsEditingMessage(true);
+    setShowMessageActionsSheet(false);
+  };
+
+  const handleUnsendSelectedMessage = async () => {
+    if (!conversationId || !selectedMessageId) return;
+
+    try {
+      setMessageActionLoading(true);
+      await unsendMessageAPI(conversationId, selectedMessageId);
+      closeMessageActions();
+    } catch (err: any) {
+      showToast({
+        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        label: err.message || 'Failed to unsend message',
+      });
+    } finally {
+      setMessageActionLoading(false);
+    }
+  };
+
+  const handleConfirmEditMessage = async () => {
+    if (!conversationId || !editingMessageId) return;
+
+    const trimmed = editDraft.trim();
+    if (!trimmed) return;
+
+    if (!isMessageValid(trimmed)) {
+      showToast({
+        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        label: 'Message contains inappropriate content',
+      });
+      return;
+    }
+
+    try {
+      setMessageActionLoading(true);
+      await editMessageAPI(conversationId, editingMessageId, trimmed);
+
+      setIsEditingMessage(false);
+      setEditingMessageId(null);
+      setEditDraft('');
+      Keyboard.dismiss();
+    } catch (err: any) {
+      showToast({
+        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        label: err.message || 'Failed to edit message',
+      });
+    } finally {
+      setMessageActionLoading(false);
+    }
+  };
+
+  const handleCancelEditMessage = () => {
+    setIsEditingMessage(false);
+    setEditingMessageId(null);
+    setEditDraft('');
+    Keyboard.dismiss();
+  };
+
+  useEffect(() => {
+    if (messagesError) {
+      console.error('Chat detail message listener error:', messagesError);
+    }
+  }, [messagesError]);
 
   const sendMessage = async () => {
     if (newMessage.trim() && conversationId) {
@@ -259,7 +380,7 @@ export default function ChatDetailScreen() {
       Math.abs(
         currentMessage.timestamp.getTime() - prevMessage.timestamp.getTime()
       ) <=
-        5 * 60 * 1000;
+      5 * 60 * 1000;
 
     const isGroupedWithNext =
       nextMessage &&
@@ -267,12 +388,22 @@ export default function ChatDetailScreen() {
       Math.abs(
         nextMessage.timestamp.getTime() - currentMessage.timestamp.getTime()
       ) <=
-        5 * 60 * 1000;
+      5 * 60 * 1000;
 
     if (!isGroupedWithPrev && !isGroupedWithNext) return 'single';
     if (!isGroupedWithPrev && isGroupedWithNext) return 'first';
     if (isGroupedWithPrev && isGroupedWithNext) return 'middle';
     return 'last'; // isGroupedWithPrev && !isGroupedWithNext
+  };
+
+  // Helper function to determine whether editing/unsending message option shows up or not
+  const EDIT_WINDOW_MS = 15 * 60 * 1000;
+  const canModifyMessage = (msg: Message) => {
+    if (!msg.isOwn) return false;
+    if (msg.isUnsent) return false;
+
+    const ageMs = Date.now() - msg.timestamp.getTime();
+    return ageMs >= 0 && ageMs <= EDIT_WINDOW_MS;
   };
 
   const getBubbleStyle = (isOwn: boolean, position: string) => {
@@ -354,40 +485,63 @@ export default function ChatDetailScreen() {
     const position = getMessagePosition(item, prevMessage, nextMessage);
     const bubbleStyle = getBubbleStyle(item.isOwn, position);
 
+    const isSelected = item.id === selectedMessageId;
+    const isEdited = !!item.editTimestamp && !item.isUnsent;
+    const displayText = item.isUnsent
+      ? item.isOwn
+        ? 'You unsent a message'
+        : 'This message was unsent'
+      : item.text;
+
     return (
       <View
         style={[
           styles.messageContainer,
-          item.isOwn
-            ? styles.ownMessageContainer
-            : styles.otherMessageContainer,
-          // Add less margin for grouped messages
+          item.isOwn ? styles.ownMessageContainer : styles.otherMessageContainer,
           position === 'middle' || position === 'first'
             ? { marginBottom: 0 }
             : { marginBottom: 4 },
         ]}
       >
-        <View
-          style={[
-            styles.messageBubble,
-            {
-              backgroundColor: item.isOwn
-                ? AppColors.accentDefault
-                : AppColors.backgroundDimmer,
-            },
-            bubbleStyle,
-          ]}
+        <Pressable
+          onLongPress={() => handleMessageLongPress(item)}
+          disabled={!canModifyMessage(item)}
         >
-          <AppText
+          <Animated.View
             style={[
-              item.isOwn
-                ? { color: AppColors.backgroundDefault }
-                : { color: AppColors.foregroundDefault },
+              styles.messageBubbleFrame,
+              {
+                opacity: isSelected ? 0.7 : 1,
+                transform: [{ scale: isSelected ? 0.9 : 1 }],
+              },
             ]}
           >
-            {item.text}
-          </AppText>
-        </View>
+            <View
+              style={[
+                styles.messageBubble,
+                {
+                  backgroundColor: item.isOwn
+                    ? AppColors.accentDefault
+                    : AppColors.backgroundDimmer,
+                },
+                item.isUnsent && styles.unsentMessageBubble,
+                bubbleStyle,
+              ]}
+            >
+              <AppText
+                style={[
+                  item.isOwn
+                    ? { color: AppColors.backgroundDefault }
+                    : { color: AppColors.foregroundDefault },
+                  item.isUnsent && styles.unsentMessageText,
+                ]}
+              >
+                {displayText}
+              </AppText>
+            </View>
+          </Animated.View>
+        </Pressable>
+
         {showTimestamp && (
           <AppText
             style={[
@@ -396,6 +550,7 @@ export default function ChatDetailScreen() {
             ]}
           >
             {formatTime(item.timestamp)}
+            {isEdited ? ' · edited' : ''}
           </AppText>
         )}
       </View>
@@ -717,6 +872,24 @@ export default function ChatDetailScreen() {
         )}
       </Sheet>
 
+      <Sheet
+        visible={showMessageActionsSheet}
+        onDismiss={closeMessageActions}
+        title="Message options"
+      >
+        <ListItemWrapper>
+          <ListItem
+            title="Edit message"
+            onPress={handleStartEditMessage}
+          />
+          <ListItem
+            title={messageActionLoading ? 'Unsending...' : 'Unsend'}
+            destructive
+            onPress={handleUnsendSelectedMessage}
+          />
+        </ListItemWrapper>
+      </Sheet>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
@@ -724,26 +897,44 @@ export default function ChatDetailScreen() {
       >
         <View style={styles.inputRow}>
           <AppInput
-            value={newMessage}
-            onChangeText={setNewMessage}
-            placeholder="Send a message..."
+            value={isEditingMessage ? editDraft : newMessage}
+            onChangeText={isEditingMessage ? setEditDraft : setNewMessage}
+            placeholder={isEditingMessage ? 'Edit message...' : 'Send a message...'}
             placeholderTextColor={AppColors.foregroundDimmer}
             fullRound
             style={styles.messageInput}
-            onSubmitEditing={sendMessage}
-            returnKeyType="send"
+            onSubmitEditing={isEditingMessage ? handleConfirmEditMessage : sendMessage}
+            returnKeyType={isEditingMessage ? 'done' : 'send'}
             blurOnSubmit={false}
             enablesReturnKeyAutomatically
             forceMinHeight
             fullWidth
           />
 
-          <IconButton
-            onPress={sendMessage}
-            disabled={sending}
-            icon={Send}
-            style={styles.sendButton}
-          />
+          {isEditingMessage ? (
+            <View style={styles.editActionsRow}>
+              <IconButton
+                onPress={handleConfirmEditMessage}
+                disabled={messageActionLoading}
+                icon={Check}
+                style={styles.editActionButton}
+              />
+              <IconButton
+                onPress={handleCancelEditMessage}
+                disabled={messageActionLoading}
+                icon={X}
+                variant="secondary"
+                style={styles.editActionButton}
+              />
+            </View>
+          ) : (
+            <IconButton
+              onPress={sendMessage}
+              disabled={sending}
+              icon={Send}
+              style={styles.sendButton}
+            />
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -873,5 +1064,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderWidth: 2,
     borderColor: AppColors.foregroundDimmer,
+  },
+  messageBubbleFrame: {
+    borderRadius: 24,
+  },
+  unsentMessageBubble: {
+    opacity: 0.75,
+  },
+  unsentMessageText: {
+    fontStyle: 'italic',
+  },
+  editActionsRow: {
+    position: 'absolute',
+    top: 5.5,
+    right: 13.5,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  editActionButton: {
+    width: 45,
+    height: 45,
   },
 });
