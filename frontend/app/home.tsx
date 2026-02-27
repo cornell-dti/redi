@@ -21,7 +21,6 @@ import {
 import {
   sendPasswordlessSignInLink,
   signInUser,
-  signInWithGoogle,
   signUpUser,
   validateCornellEmail,
 } from './api/authService';
@@ -32,18 +31,19 @@ import AppText from './components/ui/AppText';
 import Button from './components/ui/Button';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 import Sheet from './components/ui/Sheet';
+import { useToast } from './contexts/ToastContext';
 
 type AuthMode = 'splash' | 'welcome' | 'signup' | 'login' | 'passwordless';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function HomePage() {
+  const { showToast } = useToast();
   const [mode, setMode] = useState<AuthMode>('splash');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showInfoSheet, setShowInfoSheet] = useState(false);
-  const [showGoogleErrorSheet, setShowGoogleErrorSheet] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
 
@@ -213,16 +213,6 @@ export default function HomePage() {
     setShowVideo(false);
   };
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      setShowGoogleErrorSheet(true);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSendPasswordlessLink = async () => {
     if (!email) {
@@ -241,11 +231,7 @@ export default function HomePage() {
     setLoading(true);
     try {
       await sendPasswordlessSignInLink(email);
-      Alert.alert(
-        'Check Your Email',
-        'We sent you a sign-in link. Click the link in your email to continue.',
-        [{ text: 'OK' }]
-      );
+      showToast({ label: 'Sign-in link sent! Check your email.' });
       // Keep the email in case user needs to resend
     } catch (error) {
       Alert.alert(
@@ -606,32 +592,6 @@ export default function HomePage() {
         </AppText>
       </Sheet>
 
-      <Sheet
-        visible={showGoogleErrorSheet}
-        onDismiss={() => setShowGoogleErrorSheet(false)}
-        title="Could not continue with Google"
-        height="auto"
-      >
-        <AppText variant="body" style={styles.sheetText}>
-          Please try again with your Cornell .edu email address.
-        </AppText>
-
-        <AppText variant="body" style={styles.sheetText}>
-          We require a Cornell email address to ensure that redi is exclusively
-          for the Cornell community. This helps create a safe and trusted
-          environment where you can connect with fellow Cornellians.
-        </AppText>
-        <AppText variant="body" style={styles.sheetText}>
-          Your email is kept private and is only used for account verification
-          and authentication purposes.
-        </AppText>
-
-        <Button
-          onPress={() => setShowGoogleErrorSheet(false)}
-          title="Close"
-          variant="secondary"
-        />
-      </Sheet>
     </View>
   );
 }

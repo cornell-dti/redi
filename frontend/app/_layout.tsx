@@ -19,7 +19,7 @@ import { HapticsProvider } from './contexts/HapticsContext';
 import { MotionProvider } from './contexts/MotionContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
-import { ToastProvider } from './contexts/ToastContext';
+import { ToastProvider, useToast } from './contexts/ToastContext';
 import { clearBadgeCount } from './services/notificationPermissions';
 
 /**
@@ -43,6 +43,7 @@ interface CachedProfile {
 
 function RootNavigator() {
   useThemeAware(); // This makes all screens theme-aware
+  const { showToast } = useToast();
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -90,13 +91,15 @@ function RootNavigator() {
           const firebaseEmailLink = `https://redi.love/auth-redirect?${params.toString()}`;
 
           await signInWithEmailLink(firebaseEmailLink, email as string | undefined);
-          // Auth state listener handles routing after sign-in
 
-          Alert.alert(
-            'Success',
-            'You have been signed in successfully!',
-            [{ text: 'OK' }]
-          );
+          showToast({ label: 'Signed in successfully!' });
+
+          const profile = await getCurrentUserProfile();
+          if (profile) {
+            router.replace('/(auth)/(tabs)');
+          } else {
+            router.replace('/(auth)/create-profile');
+          }
         } catch (error) {
           Alert.alert(
             'Sign In Failed',
