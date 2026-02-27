@@ -1,6 +1,43 @@
-import { Redirect } from 'expo-router';
-import React from 'react';
+import auth from '@react-native-firebase/auth';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { AppColors } from './components/AppColors';
+import OnboardingVideo, {
+  hasShownOnboardingVideo,
+  markOnboardingVideoAsShown,
+} from './components/onboarding/OnboardingVideo';
 
 export default function Index() {
-  return <Redirect href="/home" />;
+  const [showVideo, setShowVideo] = useState(false);
+
+  useEffect(() => {
+    if (auth().currentUser) return;
+    hasShownOnboardingVideo().then((hasShown) => {
+      if (hasShown) {
+        router.replace('/home');
+      } else {
+        setShowVideo(true);
+      }
+    });
+  }, []);
+
+  const handleVideoFinish = async () => {
+    await markOnboardingVideoAsShown();
+    setShowVideo(false);
+    router.replace('/home');
+  };
+
+  return (
+    <View style={styles.container}>
+      <OnboardingVideo visible={showVideo} onFinish={handleVideoFinish} />
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: AppColors.backgroundDefault,
+  },
+});
