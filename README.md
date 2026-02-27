@@ -71,6 +71,13 @@ cd frontend/ios
 npm run ios
 ```
 
+#### Running on iOS Simulator
+
+```bash
+cd frontend/ios
+npm run ios
+```
+
 ### 4. Landing Page Setup
 
 ```bash
