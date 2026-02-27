@@ -3,18 +3,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import auth from '@react-native-firebase/auth';
 import * as Linking from 'expo-linking';
+import * as SplashScreen from 'expo-splash-screen';
 import { Stack, useRouter, useSegments } from 'expo-router';
+
+SplashScreen.preventAutoHideAsync();
 import { useEffect, useRef, useState } from 'react';
-import { Alert, AppState, View } from 'react-native';
+import { Alert, AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { APIError } from './api/apiClient';
 import { onAuthStateChanged, signInWithEmailLink } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
-import OnboardingVideo, {
-  hasShownOnboardingVideo,
-  markOnboardingVideoAsShown,
-} from './components/onboarding/OnboardingVideo';
-import LoadingSpinner from './components/ui/LoadingSpinner';
 import { HapticsProvider } from './contexts/HapticsContext';
 import { MotionProvider } from './contexts/MotionContext';
 import { ProfileProvider } from './contexts/ProfileContext';
@@ -45,8 +43,8 @@ function RootNavigator() {
   useThemeAware(); // This makes all screens theme-aware
   const { showToast } = useToast();
   const [initializing, setInitializing] = useState(true);
+  const [firstCheckDone, setFirstCheckDone] = useState(false);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const router = useRouter();
   const segments = useSegments();
   const appState = useRef(AppState.currentState);
@@ -122,17 +120,6 @@ function RootNavigator() {
     return () => {
       subscription.remove();
     };
-  }, []);
-
-  // Check if onboarding video should be shown on first launch
-  useEffect(() => {
-    const checkOnboarding = async () => {
-      const hasShown = await hasShownOnboardingVideo();
-      if (!hasShown) {
-        setShowOnboarding(true);
-      }
-    };
-    checkOnboarding();
   }, []);
 
   // Clear badge when app comes to foreground
@@ -235,6 +222,7 @@ function RootNavigator() {
       console.log('segments:', segments);
       console.log('Full path:', segments.join('/'));
 
+      try {
       if (user && !inAuthGroup) {
         // User is signed in but not in auth group
         // Check if user has a profile to determine where to redirect
@@ -344,23 +332,19 @@ function RootNavigator() {
         );
       }
       console.log('=== END AUTH CHECK ===\n');
+      } finally {
+        setFirstCheckDone(true);
+      }
     };
 
     checkAndRedirect();
   }, [user, initializing]);
 
-  const handleOnboardingFinish = async () => {
-    await markOnboardingVideoAsShown();
-    setShowOnboarding(false);
-  };
-
-  if (initializing) {
-    return (
-      <View style={styles.loadingContainer}>
-        <LoadingSpinner />
-      </View>
-    );
-  }
+  useEffect(() => {
+    if (firstCheckDone) {
+      SplashScreen.hideAsync();
+    }
+  }, [firstCheckDone]);
 
   return (
     <>
@@ -374,10 +358,6 @@ function RootNavigator() {
           }}
         />
       </Stack>
-      <OnboardingVideo
-        visible={showOnboarding}
-        onFinish={handleOnboardingFinish}
-      />
     </>
   );
 }
@@ -400,10 +380,3 @@ export default function RootLayout() {
   );
 }
 
-const styles = {
-  loadingContainer: {
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    flex: 1,
-  },
-};
