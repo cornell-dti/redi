@@ -1,7 +1,8 @@
 import auth from '@react-native-firebase/auth';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { AppColors } from './components/AppColors';
 import OnboardingVideo, {
   hasShownOnboardingVideo,
   markOnboardingVideoAsShown,
@@ -32,8 +33,15 @@ export default function Index() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       <OnboardingVideo visible={showVideo} onFinish={handleVideoFinish} />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: AppColors.backgroundDefault,
+  },
+});

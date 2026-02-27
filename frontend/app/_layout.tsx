@@ -5,6 +5,8 @@ import auth from '@react-native-firebase/auth';
 import * as Linking from 'expo-linking';
 import * as SplashScreen from 'expo-splash-screen';
 import { Stack, useRouter, useSegments } from 'expo-router';
+
+SplashScreen.preventAutoHideAsync();
 import { useEffect, useRef, useState } from 'react';
 import { Alert, AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
