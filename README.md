@@ -246,6 +246,17 @@ From individual directories:
 
 ## 👥 The Dream Team
 
+### SP26
+
+- **Jacqueline Cai** - Technical Product Manager
+- **Layla Liu** - Technical Product Manager
+- **Sarvagna Malladi** - Associate Product Manager
+- **Hanna Vasquez** - Product Marketing Manager
+- **Clément Rozé** - Designer/Frontend Developer
+- **Abrar Amin** - Developer
+- **Nadia Choophungart** - Developer
+- **Gillio Lopes** - Developer
+
 ### FA25
 
 - **Arsh Aggarwal** - Product Manager
@@ -253,17 +264,6 @@ From individual directories:
 - **Clément Rozé** - Designer/Frontend Developer
 - **Brandon Lee** - Designer/Product Marketing Manager
 - **Abrar Amin** - Developer
-
-### SP26
-
-- **Jacqueline Cai** - Technical Product Manager
-- **Layla Liu** - Technical Product Manager
-- **Sarvagna Malladi** - Associate Product Manager
-- **Hanna Vasquez** - Product Marketing Manager
-- **Clément Rozé** - Product Designer/Developer
-- **Abrar Amin** - Developer
-- **Nadia Choophungart** - Developer
-- **Gillio Lopes** - Developer
 
 ## 📄 License
 
