@@ -2,8 +2,8 @@
 // .env.local is gitignored and holds secrets (API keys, etc.)
 // .env.development / .env.production hold non-secret env config
 import { config } from 'dotenv';
-config({ path: '.env.local' }); // secrets — not committed
-config({ override: false }); // falls back to .env / .env.development
+config({ path: '.env.local' });
+config({ override: false });
 
 export default {
   expo: {
