@@ -317,7 +317,7 @@ export const unsendMessage = async (
     const response = await fetch(
       `${API_BASE_URL}/api/chat/messages/${messageId}/unsend`,
       {
-        method: 'PUT',
+        method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -335,4 +335,3 @@ export const unsendMessage = async (
     throw error;
   }
 };
-
