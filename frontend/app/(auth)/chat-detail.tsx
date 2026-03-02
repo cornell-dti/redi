@@ -16,7 +16,9 @@ import {
   ChevronRight,
   FlagIcon,
   MoreVertical,
+  Pencil,
   Send,
+  Trash2,
   User2,
   X
 } from 'lucide-react-native';
@@ -28,7 +30,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
-  StyleSheet,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -46,6 +47,7 @@ import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Pressable from '../components/ui/Pressable';
 import { useMessages } from '../hooks/useMessages';
 import { isMessageValid } from '../utils/chatUtils';
+import styles from './chat-detail.styles';
 
 interface Message {
   id: string;
@@ -68,6 +70,10 @@ const REPORT_REASONS: { value: ReportReason; label: string }[] = [
 export default function ChatDetailScreen() {
   useThemeAware();
   const { showToast } = useToast();
+  const toastErrorIcon = <Ban size={20} color={AppColors.backgroundDefault} />;
+  const toastUserIcon = <User2 size={20} color={AppColors.backgroundDefault} />;
+  const toastSuccessIcon = <Check size={20} color={AppColors.backgroundDefault} />;
+  const toastReportIcon = <FlagIcon size={20} color={AppColors.backgroundDefault} />;
 
   const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   type SheetView = 'menu' | 'report' | 'block';
@@ -126,7 +132,6 @@ export default function ChatDetailScreen() {
   const {
     messages: firebaseMessages,
     loading,
-    error: messagesError,
   } = useMessages(conversationId);
 
   // Animate send button in/out based on message input
@@ -202,7 +207,7 @@ export default function ChatDetailScreen() {
   }));
 
   const handleMessageLongPress = (msg: Message) => {
-    if (!canModifyMessage(msg)) return;
+    if (!msg.isOwn || msg.isUnsent) return;
 
     setSelectedMessageId(msg.id);
     setShowMessageActionsSheet(true);
@@ -232,7 +237,7 @@ export default function ChatDetailScreen() {
       closeMessageActions();
     } catch (err: any) {
       showToast({
-        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        icon: toastErrorIcon,
         label: err.message || 'Failed to unsend message',
       });
     } finally {
@@ -248,7 +253,7 @@ export default function ChatDetailScreen() {
 
     if (!isMessageValid(trimmed)) {
       showToast({
-        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        icon: toastErrorIcon,
         label: 'Message contains inappropriate content',
       });
       return;
@@ -264,7 +269,7 @@ export default function ChatDetailScreen() {
       Keyboard.dismiss();
     } catch (err: any) {
       showToast({
-        icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+        icon: toastErrorIcon,
         label: err.message || 'Failed to edit message',
       });
     } finally {
@@ -279,19 +284,13 @@ export default function ChatDetailScreen() {
     Keyboard.dismiss();
   };
 
-  useEffect(() => {
-    if (messagesError) {
-      console.error('Chat detail message listener error:', messagesError);
-    }
-  }, [messagesError]);
-
   const sendMessage = async () => {
     if (newMessage.trim() && conversationId) {
       const messageText = newMessage.trim();
 
       if (!isMessageValid(messageText)) {
         showToast({
-          icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+          icon: toastErrorIcon,
           label: 'Message contains inappropriate content',
         });
         return;
@@ -300,7 +299,7 @@ export default function ChatDetailScreen() {
       // We check locally to see if the recepient is blocked or not
       if (isBlocked) {
         showToast({
-          icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+          icon: toastErrorIcon,
           label: 'Cannot send message to blocked user',
         });
         return;
@@ -327,14 +326,14 @@ export default function ChatDetailScreen() {
         if (isBlockingError) {
           console.log('Message blocked due to user blocking:', error.message);
           showToast({
-            icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+            icon: toastErrorIcon,
             label: 'You have been blocked by this user',
           });
         } else {
           // Should we log all other errors with toasts?
           console.error('Error sending message:', error);
           showToast({
-            icon: <Ban size={20} color={AppColors.backgroundDefault} />,
+            icon: toastErrorIcon,
             label: 'Failed to send message. Please try again.',
           });
         }
@@ -405,6 +404,12 @@ export default function ChatDetailScreen() {
     const ageMs = Date.now() - msg.timestamp.getTime();
     return ageMs >= 0 && ageMs <= EDIT_WINDOW_MS;
   };
+
+  const selectedMessage =
+    displayMessages.find((m) => m.id === selectedMessageId) || null;
+  const canModifySelectedMessage = selectedMessage
+    ? canModifyMessage(selectedMessage)
+    : false;
 
   const getBubbleStyle = (isOwn: boolean, position: string) => {
     const baseRadius = 24;
@@ -487,11 +492,24 @@ export default function ChatDetailScreen() {
 
     const isSelected = item.id === selectedMessageId;
     const isEdited = !!item.editTimestamp && !item.isUnsent;
-    const displayText = item.isUnsent
-      ? item.isOwn
-        ? 'You unsent a message'
-        : 'This message was unsent'
-      : item.text;
+
+    if (item.isUnsent) {
+      return (
+        <View
+          style={[
+            styles.messageContainer,
+            styles.unsentMessageRow,
+            position === 'middle' || position === 'first'
+              ? { marginBottom: 0 }
+              : { marginBottom: 4 },
+          ]}
+        >
+          <AppText style={styles.unsentCenteredText}>
+            {item.isOwn ? 'You unsent a message' : 'This message was unsent'}
+          </AppText>
+        </View>
+      );
+    }
 
     return (
       <View
@@ -505,7 +523,7 @@ export default function ChatDetailScreen() {
       >
         <Pressable
           onLongPress={() => handleMessageLongPress(item)}
-          disabled={!canModifyMessage(item)}
+          disabled={!item.isOwn || item.isUnsent}
         >
           <Animated.View
             style={[
@@ -524,7 +542,6 @@ export default function ChatDetailScreen() {
                     ? AppColors.accentDefault
                     : AppColors.backgroundDimmer,
                 },
-                item.isUnsent && styles.unsentMessageBubble,
                 bubbleStyle,
               ]}
             >
@@ -533,10 +550,9 @@ export default function ChatDetailScreen() {
                   item.isOwn
                     ? { color: AppColors.backgroundDefault }
                     : { color: AppColors.foregroundDefault },
-                  item.isUnsent && styles.unsentMessageText,
                 ]}
               >
-                {displayText}
+                {item.text}
               </AppText>
             </View>
           </Animated.View>
@@ -577,7 +593,7 @@ export default function ChatDetailScreen() {
           onPress={() => {
             if (!netid) {
               showToast({
-                icon: <User2 size={20} color={AppColors.backgroundDefault} />,
+                icon: toastUserIcon,
                 label: 'Unable to view profile. User information is missing.',
               });
               return;
@@ -650,9 +666,7 @@ export default function ChatDetailScreen() {
               onPress={() => {
                 if (!netid) {
                   showToast({
-                    icon: (
-                      <User2 size={20} color={AppColors.backgroundDefault} />
-                    ),
+                    icon: toastUserIcon,
                     label:
                       'Unable to view profile. User information is missing.',
                   });
@@ -738,9 +752,7 @@ export default function ChatDetailScreen() {
                     });
 
                     showToast({
-                      icon: (
-                        <Check size={20} color={AppColors.backgroundDefault} />
-                      ),
+                      icon: toastSuccessIcon,
                       label: 'Report submitted',
                     });
 
@@ -753,12 +765,7 @@ export default function ChatDetailScreen() {
                   } catch (err: any) {
                     console.error('Error submitting report:', err);
                     showToast({
-                      icon: (
-                        <FlagIcon
-                          size={20}
-                          color={AppColors.backgroundDefault}
-                        />
-                      ),
+                      icon: toastReportIcon,
                       label:
                         err.message ||
                         'Failed to submit report. Please try again.',
@@ -818,24 +825,14 @@ export default function ChatDetailScreen() {
                       await unblockUser(netid as string);
                       setIsBlocked(false);
                       showToast({
-                        icon: (
-                          <Check
-                            size={20}
-                            color={AppColors.backgroundDefault}
-                          />
-                        ),
+                        icon: toastSuccessIcon,
                         label: `Unblocked ${name}`,
                       });
                     } else {
                       await blockUser(netid as string);
                       setIsBlocked(true);
                       showToast({
-                        icon: (
-                          <Check
-                            size={20}
-                            color={AppColors.backgroundDefault}
-                          />
-                        ),
+                        icon: toastSuccessIcon,
                         label: `Blocked ${name}`,
                       });
                       // Navigate back to chat list after blocking
@@ -846,9 +843,7 @@ export default function ChatDetailScreen() {
                     setTimeout(() => setSheetView('menu'), 300);
                   } catch (error: any) {
                     showToast({
-                      icon: (
-                        <Ban size={20} color={AppColors.backgroundDefault} />
-                      ),
+                      icon: toastErrorIcon,
                       label:
                         error.message ||
                         `Failed to ${isBlocked ? 'unblock' : 'block'} user`,
@@ -877,212 +872,105 @@ export default function ChatDetailScreen() {
         onDismiss={closeMessageActions}
         title="Message options"
       >
-        <ListItemWrapper>
-          <ListItem
-            title="Edit message"
-            onPress={handleStartEditMessage}
-          />
-          <ListItem
-            title={messageActionLoading ? 'Unsending...' : 'Unsend'}
-            destructive
-            onPress={handleUnsendSelectedMessage}
-          />
-        </ListItemWrapper>
+        {canModifySelectedMessage ? (
+          <ListItemWrapper>
+            <ListItem
+              left={<Pencil size={20} color={AppColors.foregroundDefault} />}
+              title="Edit message"
+              onPress={handleStartEditMessage}
+            />
+            <ListItem
+              left={<Trash2 size={20} color={AppColors.negativeDefault} />}
+              title={messageActionLoading ? 'Unsending...' : 'Unsend'}
+              destructive
+              onPress={handleUnsendSelectedMessage}
+            />
+          </ListItemWrapper>
+        ) : (
+          <View style={styles.sheetContent}>
+            <AppText color="dimmer">
+              Cannot edit or unsend messages after 15 minutes.
+            </AppText>
+          </View>
+        )}
       </Sheet>
+
+      {isEditingMessage && <View style={styles.editingBackdrop} />}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         style={styles.inputContainer}
       >
-        <View style={styles.inputRow}>
-          <AppInput
-            value={isEditingMessage ? editDraft : newMessage}
-            onChangeText={isEditingMessage ? setEditDraft : setNewMessage}
-            placeholder={isEditingMessage ? 'Edit message...' : 'Send a message...'}
-            placeholderTextColor={AppColors.foregroundDimmer}
-            fullRound
-            style={styles.messageInput}
-            onSubmitEditing={isEditingMessage ? handleConfirmEditMessage : sendMessage}
-            returnKeyType={isEditingMessage ? 'done' : 'send'}
-            blurOnSubmit={false}
-            enablesReturnKeyAutomatically
-            forceMinHeight
-            fullWidth
+        {isEditingMessage && (
+          <View
+            pointerEvents="none"
+            style={styles.inputContainerEditingDimmer}
           />
-
-          {isEditingMessage ? (
-            <View style={styles.editActionsRow}>
-              <IconButton
-                onPress={handleConfirmEditMessage}
-                disabled={messageActionLoading}
-                icon={Check}
-                style={styles.editActionButton}
-              />
-              <IconButton
-                onPress={handleCancelEditMessage}
-                disabled={messageActionLoading}
-                icon={X}
-                variant="secondary"
-                style={styles.editActionButton}
+        )}
+        {isEditingMessage ? (
+          <View
+            style={[
+              styles.inputRow,
+              styles.inputRowEditing,
+              styles.editingControlsRow,
+            ]}
+          >
+            <IconButton
+              onPress={handleCancelEditMessage}
+              disabled={messageActionLoading}
+              icon={X}
+              variant="secondary"
+              style={styles.editSideButton}
+            />
+            <View style={styles.editInputContainer}>
+              <AppInput
+                value={editDraft}
+                onChangeText={setEditDraft}
+                placeholder="Edit message..."
+                placeholderTextColor={AppColors.foregroundDimmer}
+                fullRound
+                style={[styles.messageInput, styles.messageInputEditing]}
+                onSubmitEditing={handleConfirmEditMessage}
+                returnKeyType="done"
+                blurOnSubmit={false}
+                enablesReturnKeyAutomatically
+                forceMinHeight
+                fullWidth
               />
             </View>
-          ) : (
+            <IconButton
+              onPress={handleConfirmEditMessage}
+              disabled={messageActionLoading}
+              icon={Check}
+              style={styles.editSideButton}
+            />
+          </View>
+        ) : (
+          <View style={styles.inputRow}>
+            <AppInput
+              value={newMessage}
+              onChangeText={setNewMessage}
+              placeholder="Send a message..."
+              placeholderTextColor={AppColors.foregroundDimmer}
+              fullRound
+              style={styles.messageInput}
+              onSubmitEditing={sendMessage}
+              returnKeyType="send"
+              blurOnSubmit={false}
+              enablesReturnKeyAutomatically
+              forceMinHeight
+              fullWidth
+            />
             <IconButton
               onPress={sendMessage}
               disabled={sending}
               icon={Send}
               style={styles.sendButton}
             />
-          )}
-        </View>
+          </View>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: AppColors.backgroundDefault,
-    borderBottomWidth: 1,
-    borderBottomColor: AppColors.backgroundDimmest,
-  },
-  messagesList: {
-    flex: 1,
-  },
-  messagesContent: {
-    padding: 16,
-  },
-  messageContainer: {
-    marginTop: 4,
-    maxWidth: '80%',
-  },
-  ownMessageContainer: {
-    alignSelf: 'flex-end',
-    alignItems: 'flex-end',
-  },
-  otherMessageContainer: {
-    alignSelf: 'flex-start',
-    alignItems: 'flex-start',
-  },
-  messageBubble: {
-    padding: 18,
-    paddingVertical: 12,
-    borderRadius: 24,
-    marginBottom: 0,
-  },
-  messageTime: {
-    fontSize: 11,
-    marginHorizontal: 8,
-  },
-  ownMessageTime: {
-    color: AppColors.foregroundDimmer,
-  },
-  otherMessageTime: {
-    color: AppColors.foregroundDimmer,
-  },
-  inputContainer: {
-    backgroundColor: AppColors.backgroundDefault,
-    borderTopWidth: 1,
-    borderTopColor: AppColors.backgroundDimmest,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    padding: 16,
-    paddingBottom: 10,
-    minHeight: 56,
-    gap: 8,
-    position: 'relative',
-  },
-  textInputContainer: {
-    minHeight: 80,
-    flex: 1,
-  },
-  messageInput: {
-    height: 32,
-    paddingTop: 17,
-    paddingLeft: 20,
-    paddingRight: 64,
-    borderRadius: 24,
-    fontSize: 16,
-    flex: 1,
-  },
-  sendButtonContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendButton: {
-    width: 45,
-    height: 45,
-    position: 'absolute',
-    top: 5.5,
-    right: 13.5,
-  },
-  sendButtonActive: {
-    backgroundColor: AppColors.accentDefault,
-  },
-  sendButtonInactive: {
-    backgroundColor: AppColors.backgroundDimmer,
-  },
-  sheetContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 16,
-  },
-  buttonRow: {
-    display: 'flex',
-    gap: 12,
-  },
-  reasonSelector: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  radioSelected: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: AppColors.accentDefault,
-    borderWidth: 2,
-    borderColor: AppColors.accentDefault,
-  },
-  radioUnselected: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: AppColors.foregroundDimmer,
-  },
-  messageBubbleFrame: {
-    borderRadius: 24,
-  },
-  unsentMessageBubble: {
-    opacity: 0.75,
-  },
-  unsentMessageText: {
-    fontStyle: 'italic',
-  },
-  editActionsRow: {
-    position: 'absolute',
-    top: 5.5,
-    right: 13.5,
-    flexDirection: 'row',
-    gap: 8,
-  },
-  editActionButton: {
-    width: 45,
-    height: 45,
-  },
-});
