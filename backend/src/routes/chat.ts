@@ -1,5 +1,5 @@
 import express from 'express';
-import { FieldValue } from 'firebase-admin/firestore';
+import { DocumentReference, FieldValue } from 'firebase-admin/firestore';
 import { db } from '../../firebaseAdmin';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import { chatRateLimit } from '../middleware/rateLimiting';
@@ -11,6 +11,57 @@ import {
 } from '../services/pushNotificationService';
 
 const router = express.Router();
+const EDIT_WINDOW_MS = 15 * 60 * 1000;
+const CHAT_ROUTE = '/api/chat'
+
+const syncConversationLastMessage = async (
+  conversationRef: DocumentReference
+) => {
+  const latestMessageSnapshot = await conversationRef
+    .collection('messages')
+    .orderBy('timestamp', 'desc')
+    .limit(1)
+    .get();
+
+  if (latestMessageSnapshot.empty) {
+    await conversationRef.update({
+      lastMessage: null,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    return;
+  }
+
+  const latestMessageData = latestMessageSnapshot.docs[0].data();
+
+  await conversationRef.update({
+    lastMessage: {
+      text: latestMessageData.isUnsent ? 'Message unsent' : latestMessageData.text,
+      senderId: latestMessageData.senderId,
+      timestamp: latestMessageData.timestamp || FieldValue.serverTimestamp(),
+    },
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+};
+
+const getAuthorizedConversation = async (
+  conversationId: string,
+  userId: string
+) => {
+  const conversationRef = db.collection('conversations').doc(conversationId);
+  const conversationDoc = await conversationRef.get();
+
+  if (!conversationDoc.exists) {
+    throw { status: 403, error: 'Cannot access this conversation' };
+  }
+
+  const conversationData = conversationDoc.data();
+  if (!Array.isArray(conversationData?.participantIds) ||
+    !conversationData.participantIds.includes(userId)) {
+    throw { status: 403, error: 'User ID does not have access to this conversation' };
+  }
+
+  return { conversationRef, conversationData };
+};
 
 /**
  * Helper function to get user's profile data
@@ -66,7 +117,7 @@ const getUserProfile = async (firebaseUid: string) => {
  * Accepts either otherUserId (Firebase UID) or otherUserNetid (Cornell netid)
  */
 router.post(
-  '/api/chat/conversations',
+  `${CHAT_ROUTE}/conversations`,
   chatRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
@@ -179,9 +230,7 @@ router.post(
       });
     } catch (error) {
       console.error('Error creating conversation:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      res.status(500).json({ error: errorMessage });
+      res.status(500).json({ error: 'Error creating conversation' });
     }
   }
 );
@@ -191,7 +240,7 @@ router.post(
  * Get all conversations for the authenticated user
  */
 router.get(
-  '/api/chat/conversations',
+  `${CHAT_ROUTE}/conversations`,
   chatRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
@@ -216,9 +265,7 @@ router.get(
       res.status(200).json({ conversations });
     } catch (error) {
       console.error('Error getting conversations:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      res.status(500).json({ error: errorMessage });
+      res.status(500).json({ error: 'Error getting conversations' });
     }
   }
 );
@@ -228,7 +275,7 @@ router.get(
  * Send a message in a conversation
  */
 router.post(
-  '/api/chat/messages',
+  `${CHAT_ROUTE}/messages`,
   chatRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
@@ -258,26 +305,11 @@ router.post(
       const userId = req.user.uid;
 
       // Verify user is participant in conversation
-      const conversationRef = db
-        .collection('conversations')
-        .doc(conversationId);
-      const conversationDoc = await conversationRef.get();
-
-      if (!conversationDoc.exists) {
-        console.error(`❌ Conversation ${conversationId} does not exist for user ${userId}`);
-        return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
-      }
-
-      const conversationData = conversationDoc.data();
-      if (!conversationData?.participantIds.includes(userId)) {
-        console.error(`❌ User ${userId} is not a participant in conversation ${conversationId}`, {
-          participantIds: conversationData?.participantIds,
-        });
-        return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
+      let conversationRef, conversationData;
+      try {
+        ({ conversationRef, conversationData } = await getAuthorizedConversation(conversationId, userId));
+      } catch (e: any) {
+        return res.status(e.status || 500).json({ error: e.error || 'Server error' });
       }
 
       // Get netids from participant info to check blocking
@@ -426,9 +458,7 @@ router.post(
       });
     } catch (error) {
       console.error('Error sending message:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      res.status(500).json({ error: errorMessage });
+      res.status(500).json({ error: 'Error sending message' });
     }
   }
 );
@@ -438,7 +468,7 @@ router.post(
  * Get messages for a conversation
  */
 router.get(
-  '/api/chat/conversations/:conversationId/messages',
+  `${CHAT_ROUTE}/conversations/:conversationId/messages`,
   chatRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
@@ -452,22 +482,11 @@ router.get(
       const limit = parseInt(req.query.limit as string) || 50;
 
       // Verify user is participant
-      const conversationRef = db
-        .collection('conversations')
-        .doc(conversationId);
-      const conversationDoc = await conversationRef.get();
-
-      if (!conversationDoc.exists) {
-        return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
-      }
-
-      const conversationData = conversationDoc.data();
-      if (!conversationData?.participantIds.includes(userId)) {
-        return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
+      let conversationRef, conversationData;
+      try {
+        ({ conversationRef, conversationData } = await getAuthorizedConversation(conversationId, userId));
+      } catch (e: any) {
+        return res.status(e.status || 500).json({ error: e.error || 'Server error' });
       }
 
       // Get messages
@@ -487,9 +506,7 @@ router.get(
       res.status(200).json({ messages });
     } catch (error) {
       console.error('Error getting messages:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      res.status(500).json({ error: errorMessage });
+      res.status(500).json({ error: 'Error getting messages' });
     }
   }
 );
@@ -499,7 +516,7 @@ router.get(
  * Mark a message as read
  */
 router.put(
-  '/api/chat/messages/:messageId/read',
+  `${CHAT_ROUTE}/messages/:messageId/read`,
   chatRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
@@ -518,22 +535,11 @@ router.put(
       const userId = req.user.uid;
 
       // Verify user is participant
-      const conversationRef = db
-        .collection('conversations')
-        .doc(conversationId);
-      const conversationDoc = await conversationRef.get();
-
-      if (!conversationDoc.exists) {
-        return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
-      }
-
-      const conversationData = conversationDoc.data();
-      if (!conversationData?.participantIds.includes(userId)) {
-        return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
+      let conversationRef, conversationData;
+      try {
+        ({ conversationRef, conversationData } = await getAuthorizedConversation(conversationId, userId));
+      } catch (e: any) {
+        return res.status(e.status || 500).json({ error: e.error || 'Server error' });
       }
 
       // Update message
@@ -552,9 +558,7 @@ router.put(
       res.status(200).json({ success: true });
     } catch (error) {
       console.error('Error marking message as read:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      res.status(500).json({ error: errorMessage });
+      res.status(500).json({ error: 'Error marking message as read' });
     }
   }
 );
@@ -564,7 +568,7 @@ router.put(
  * Edit a previously sent message
  */
 router.put(
-  '/api/chat/messages/:messageId/edit',
+  `${CHAT_ROUTE}/messages/:messageId/edit`,
   chatRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
@@ -587,22 +591,11 @@ router.put(
       const userId = req.user.uid;
 
       // Verify user is participant
-      const conversationRef = db
-        .collection('conversations')
-        .doc(conversationId);
-      const conversationDoc = await conversationRef.get();
-
-      if (!conversationDoc.exists) {
-        return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
-      }
-
-      const conversationData = conversationDoc.data();
-      if (!conversationData?.participantIds.includes(userId)) {
-        return res
-          .status(403)
-          .json({ error: 'User ID cannot access this conversation' });
+      let conversationRef, conversationData;
+      try {
+        ({ conversationRef, conversationData } = await getAuthorizedConversation(conversationId, userId));
+      } catch (e: any) {
+        return res.status(e.status || 500).json({ error: e.error || 'Server error' });
       }
 
       const messageRef = conversationRef.collection('messages').doc(messageId);
@@ -622,9 +615,6 @@ router.put(
           .status(403)
           .json({ error: 'User cannot edit message sent by another user' })
       }
-
-      // Verify that edit is made <= 15 minutes after initial send time
-      const EDIT_WINDOW_MS = 15 * 60 * 1000;
 
       const rawTimestamp = messageData?.timestamp;
 
@@ -654,23 +644,22 @@ router.put(
         text: newText.trim(),
         editTimestamp: FieldValue.serverTimestamp(),
       });
+      await syncConversationLastMessage(conversationRef);
 
       res.status(200).json({ success: true });
     } catch (error) {
       console.error('Error editing sent message:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      res.status(500).json({ error: errorMessage });
+      res.status(500).json({ error: 'Error editing sent message' });
     }
   }
 );
 
 /**
- * PUT /api/chat/messages/:messageId/unsend
+ * DELETE /api/chat/messages/:messageId/unsend
  * Unsend (soft-delete) a message
  */
-router.put(
-  '/api/chat/messages/:messageId/unsend',
+router.delete(
+  `${CHAT_ROUTE}/messages/:messageId/unsend`,
   chatRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
@@ -689,22 +678,11 @@ router.put(
       const userId = req.user.uid;
 
       // Verify user is participant
-      const conversationRef = db
-        .collection('conversations')
-        .doc(conversationId);
-      const conversationDoc = await conversationRef.get();
-
-      if (!conversationDoc.exists) {
-        return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
-      }
-
-      const conversationData = conversationDoc.data();
-      if (!conversationData?.participantIds.includes(userId)) {
-        return res
-          .status(403)
-          .json({ error: 'User ID cannot access this conversation' });
+      let conversationRef, conversationData;
+      try {
+        ({ conversationRef, conversationData } = await getAuthorizedConversation(conversationId, userId));
+      } catch (e: any) {
+        return res.status(e.status || 500).json({ error: e.error || 'Server error' });
       }
 
       const messageRef = conversationRef.collection('messages').doc(messageId);
@@ -726,8 +704,6 @@ router.put(
       }
 
       // Verify that edit is made <= 15 minutes after initial send time
-      const EDIT_WINDOW_MS = 15 * 60 * 1000;
-
       const rawTimestamp = messageData?.timestamp;
 
       // Firestore Timestamp conversion
@@ -745,7 +721,7 @@ router.put(
       const nowMs = Date.now();
       const sentAtMs = sentAt.getTime();
 
-      if (nowMs - sentAtMs > EDIT_WINDOW_MS) {
+      if (nowMs - sentAtMs >= EDIT_WINDOW_MS) {
         return res.status(403).json({
           error: 'Messages can only be unsent within 15 minutes of sending',
         });
@@ -756,13 +732,12 @@ router.put(
         unsentTimestamp: FieldValue.serverTimestamp(),
         isUnsent: true,
       });
+      await syncConversationLastMessage(conversationRef);
 
       res.status(200).json({ success: true });
     } catch (error) {
       console.error('Error unsending message:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      res.status(500).json({ error: errorMessage });
+      res.status(500).json({ error: 'Error unsending message' });
     }
   }
 );
