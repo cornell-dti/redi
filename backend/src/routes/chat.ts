@@ -18,51 +18,6 @@ const router = express.Router();
 const EDIT_WINDOW_MS = 15 * 60 * 1000;
 const CHAT_ROUTE = '/api/chat';
 
-const validateEditWindow = (
-  messageData: FirebaseFirestore.DocumentData | undefined,
-  action: 'edited' | 'unsent'
-): { error: string; status: number } | null => {
-  const rawTimestamp = messageData?.timestamp;
-
-  const sentAt =
-    rawTimestamp?.toDate?.() instanceof Date
-      ? rawTimestamp.toDate()
-      : rawTimestamp
-        ? new Date(rawTimestamp)
-        : null;
-
-  if (!sentAt || Number.isNaN(sentAt.getTime())) {
-    return { status: 400, error: 'Message timestamp is invalid' };
-  }
-
-  if (Date.now() - sentAt.getTime() >= EDIT_WINDOW_MS) {
-    return {
-      status: 403,
-      error: `Messages can only be ${action} within 15 minutes of sending`,
-    };
-  }
-
-  return null;
-};
-
-const validateMessageOwnerAndWindow = (
-  messageDoc: FirebaseFirestore.DocumentSnapshot,
-  userId: string,
-  action: 'edited' | 'unsent'
-): { status: number; error: string } | null => {
-  // Verify that the user trying to edit the message is the sender
-  const messageData = messageDoc.data();
-
-  if (messageData?.senderId !== userId) {
-    return {
-      status: 403,
-      error: `User cannot ${action === 'edited' ? 'edit' : 'unsend'} message sent by another user`,
-    };
-  }
-
-  return validateEditWindow(messageData, action);
-};
-
 const syncConversationLastMessage = async (
   conversationRef: DocumentReference
 ) => {
@@ -171,15 +126,15 @@ const getUserProfile = async (firebaseUid: string) => {
   }
 };
 
-const validateUserParticipant = async (
-  conversationId: string,
+const validateUserMessage = async (
   userId: string,
-  messageId: string
+  conversationId: string,
+  messageId: string,
+  action: 'edited' | 'unsent'
 ): Promise<
   | {
       conversationRef: DocumentReference;
       messageRef: FirebaseFirestore.DocumentReference;
-      messageDoc: FirebaseFirestore.DocumentSnapshot;
     }
   | { status: number; error: string }
 > => {
@@ -200,7 +155,37 @@ const validateUserParticipant = async (
     return { status: 403, error: 'Message does not exist' };
   }
 
-  return { conversationRef, messageRef, messageDoc };
+  // Verify that the user trying to edit the message is the sender
+  const messageData = messageDoc.data();
+
+  if (messageData?.senderId !== userId) {
+    return {
+      status: 403,
+      error: `User cannot ${action === 'edited' ? 'edit' : 'unsend'} message sent by another user`,
+    };
+  }
+
+  const rawTimestamp = messageData?.timestamp;
+
+  const sentAt =
+    rawTimestamp?.toDate?.() instanceof Date
+      ? rawTimestamp.toDate()
+      : rawTimestamp
+        ? new Date(rawTimestamp)
+        : null;
+
+  if (!sentAt || Number.isNaN(sentAt.getTime())) {
+    return { status: 400, error: 'Message timestamp is invalid' };
+  }
+
+  if (Date.now() - sentAt.getTime() >= EDIT_WINDOW_MS) {
+    return {
+      status: 403,
+      error: `Messages can only be ${action} within 15 minutes of sending`,
+    };
+  }
+
+  return { conversationRef, messageRef };
 };
 
 /**
@@ -423,9 +408,7 @@ router.post(
         : null;
 
       if (!senderInfo?.netid || !recipientInfo?.netid) {
-        console.error(
-          `❌ Missing participant netids in conversation ${conversationId}`
-        );
+        console.error('❌ Missing participant netids in conversation');
         return res
           .status(403)
           .json({ error: 'Cannot send message to this conversation' });
@@ -499,7 +482,7 @@ router.post(
           const blocked = await isUserBlocked(senderNetid, recipientNetid);
           if (blocked) {
             console.log(
-              `User ${senderNetid} is blocked by ${recipientNetid}, skipping notification`
+              'Sender is blocked by recipient, skipping notification'
             );
             return;
           }
@@ -512,7 +495,7 @@ router.post(
 
           if (!prefEnabled) {
             console.log(
-              `User ${recipientNetid} has disabled new message notifications`
+              `Recipient User ${recipientNetid} has disabled new message notifications`
             );
             return;
           }
@@ -705,24 +688,15 @@ router.put(
       }
 
       const userId = req.user.uid;
-
-      const result = await validateUserParticipant(
-        conversationId,
+      const result = await validateUserMessage(
         userId,
-        messageId
+        conversationId,
+        messageId,
+        'unsent'
       );
       if ('error' in result)
         return res.status(result.status).json({ error: result.error });
-
-      const { conversationRef, messageRef, messageDoc } = result;
-
-      const ownerError = validateMessageOwnerAndWindow(
-        messageDoc,
-        userId,
-        'edited'
-      );
-      if (ownerError)
-        return res.status(ownerError.status).json({ error: ownerError.error });
+      const { conversationRef, messageRef } = result;
 
       // Update message
       await messageRef.update({
@@ -761,24 +735,15 @@ router.delete(
       }
 
       const userId = req.user.uid;
-
-      const result = await validateUserParticipant(
-        conversationId,
+      const result = await validateUserMessage(
         userId,
-        messageId
+        conversationId,
+        messageId,
+        'unsent'
       );
       if ('error' in result)
         return res.status(result.status).json({ error: result.error });
-
-      const { conversationRef, messageRef, messageDoc } = result;
-
-      const ownerError = validateMessageOwnerAndWindow(
-        messageDoc,
-        userId,
-        'unsent'
-      );
-      if (ownerError)
-        return res.status(ownerError.status).json({ error: ownerError.error });
+      const { conversationRef, messageRef } = result;
 
       // Update message
       await messageRef.update({
