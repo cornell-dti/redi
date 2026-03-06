@@ -20,7 +20,7 @@ import {
   Send,
   Trash2,
   User2,
-  X
+  X,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -39,7 +39,7 @@ import {
   createOrGetConversation,
   editMessage as editMessageAPI,
   sendMessage as sendMessageAPI,
-  unsendMessage as unsendMessageAPI
+  unsendMessage as unsendMessageAPI,
 } from '../api/chatApi';
 import { createReport } from '../api/reportsApi';
 import { AppColors } from '../components/AppColors';
@@ -72,8 +72,12 @@ export default function ChatDetailScreen() {
   const { showToast } = useToast();
   const toastErrorIcon = <Ban size={20} color={AppColors.backgroundDefault} />;
   const toastUserIcon = <User2 size={20} color={AppColors.backgroundDefault} />;
-  const toastSuccessIcon = <Check size={20} color={AppColors.backgroundDefault} />;
-  const toastReportIcon = <FlagIcon size={20} color={AppColors.backgroundDefault} />;
+  const toastSuccessIcon = (
+    <Check size={20} color={AppColors.backgroundDefault} />
+  );
+  const toastReportIcon = (
+    <FlagIcon size={20} color={AppColors.backgroundDefault} />
+  );
 
   const [showOptionsSheet, setShowOptionsSheet] = useState(false);
   type SheetView = 'menu' | 'report' | 'block';
@@ -85,7 +89,9 @@ export default function ChatDetailScreen() {
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [blocking, setBlocking] = useState(false);
-  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
+    null
+  );
   const [showMessageActionsSheet, setShowMessageActionsSheet] = useState(false);
 
   const [isEditingMessage, setIsEditingMessage] = useState(false);
@@ -132,7 +138,12 @@ export default function ChatDetailScreen() {
   const {
     messages: firebaseMessages,
     loading,
+    error: messagesError,
   } = useMessages(conversationId);
+
+  if (messagesError) {
+    console.error('Chat detail message listener error:', messagesError);
+  }
 
   // Animate send button in/out based on message input
   useEffect(() => {
@@ -379,7 +390,7 @@ export default function ChatDetailScreen() {
       Math.abs(
         currentMessage.timestamp.getTime() - prevMessage.timestamp.getTime()
       ) <=
-      5 * 60 * 1000;
+        5 * 60 * 1000;
 
     const isGroupedWithNext =
       nextMessage &&
@@ -387,7 +398,7 @@ export default function ChatDetailScreen() {
       Math.abs(
         nextMessage.timestamp.getTime() - currentMessage.timestamp.getTime()
       ) <=
-      5 * 60 * 1000;
+        5 * 60 * 1000;
 
     if (!isGroupedWithPrev && !isGroupedWithNext) return 'single';
     if (!isGroupedWithPrev && isGroupedWithNext) return 'first';
@@ -515,7 +526,9 @@ export default function ChatDetailScreen() {
       <View
         style={[
           styles.messageContainer,
-          item.isOwn ? styles.ownMessageContainer : styles.otherMessageContainer,
+          item.isOwn
+            ? styles.ownMessageContainer
+            : styles.otherMessageContainer,
           position === 'middle' || position === 'first'
             ? { marginBottom: 0 }
             : { marginBottom: 4 },
