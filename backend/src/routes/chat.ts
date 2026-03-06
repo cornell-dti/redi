@@ -1,5 +1,9 @@
 import express from 'express';
-import { DocumentReference, FieldValue } from 'firebase-admin/firestore';
+import {
+  DocumentData,
+  DocumentReference,
+  FieldValue,
+} from 'firebase-admin/firestore';
 import { db } from '../../firebaseAdmin';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import { chatRateLimit } from '../middleware/rateLimiting';
@@ -12,7 +16,34 @@ import {
 
 const router = express.Router();
 const EDIT_WINDOW_MS = 15 * 60 * 1000;
-const CHAT_ROUTE = '/api/chat'
+const CHAT_ROUTE = '/api/chat';
+
+const validateEditWindow = (
+  messageData: FirebaseFirestore.DocumentData | undefined,
+  action: 'edited' | 'unsent'
+): { error: string; status: number } | null => {
+  const rawTimestamp = messageData?.timestamp;
+
+  const sentAt =
+    rawTimestamp?.toDate?.() instanceof Date
+      ? rawTimestamp.toDate()
+      : rawTimestamp
+        ? new Date(rawTimestamp)
+        : null;
+
+  if (!sentAt || Number.isNaN(sentAt.getTime())) {
+    return { status: 400, error: 'Message timestamp is invalid' };
+  }
+
+  if (Date.now() - sentAt.getTime() >= EDIT_WINDOW_MS) {
+    return {
+      status: 403,
+      error: `Messages can only be ${action} within 15 minutes of sending`,
+    };
+  }
+
+  return null;
+};
 
 const syncConversationLastMessage = async (
   conversationRef: DocumentReference
@@ -35,7 +66,9 @@ const syncConversationLastMessage = async (
 
   await conversationRef.update({
     lastMessage: {
-      text: latestMessageData.isUnsent ? 'Message unsent' : latestMessageData.text,
+      text: latestMessageData.isUnsent
+        ? 'Message unsent'
+        : latestMessageData.text,
       senderId: latestMessageData.senderId,
       timestamp: latestMessageData.timestamp || FieldValue.serverTimestamp(),
     },
@@ -46,7 +79,10 @@ const syncConversationLastMessage = async (
 const getAuthorizedConversation = async (
   conversationId: string,
   userId: string
-) => {
+): Promise<{
+  conversationRef: DocumentReference;
+  conversationData: DocumentData;
+}> => {
   const conversationRef = db.collection('conversations').doc(conversationId);
   const conversationDoc = await conversationRef.get();
 
@@ -55,9 +91,15 @@ const getAuthorizedConversation = async (
   }
 
   const conversationData = conversationDoc.data();
-  if (!Array.isArray(conversationData?.participantIds) ||
-    !conversationData.participantIds.includes(userId)) {
-    throw { status: 403, error: 'User ID does not have access to this conversation' };
+  if (
+    !Array.isArray(conversationData?.participantIds) ||
+    !conversationData ||
+    !conversationData.participantIds.includes(userId)
+  ) {
+    throw {
+      status: 403,
+      error: 'User ID does not have access to this conversation',
+    };
   }
 
   return { conversationRef, conversationData };
@@ -81,7 +123,9 @@ const getUserProfile = async (firebaseUid: string) => {
 
     const userData = userSnapshot.docs[0].data();
     const netid = userData.netid;
-    console.log(`✅ Found user with netid: ${netid} for Firebase UID: ${firebaseUid}`);
+    console.log(
+      `✅ Found user with netid: ${netid} for Firebase UID: ${firebaseUid}`
+    );
 
     const profileSnapshot = await db
       .collection('profiles')
@@ -104,7 +148,7 @@ const getUserProfile = async (firebaseUid: string) => {
       name: profileData.firstName || netid,
       image: profileData.pictures?.[0] || null,
     };
-    return profile
+    return profile;
   } catch (error) {
     console.error('❌ Error getting user profile:', error);
     return null;
@@ -131,18 +175,20 @@ router.post(
       // Support both otherUserId and otherUserNetid
       if (!otherUserId && !otherUserNetid) {
         return res.status(400).json({
-          error: 'Either otherUserId or otherUserNetid is required'
+          error: 'Either otherUserId or otherUserNetid is required',
         });
       }
 
       // If otherUserNetid is provided, convert it to Firebase UID
       if (otherUserNetid && !otherUserId) {
-        const { getFirebaseUidFromNetid } = await import('../middleware/authorization');
+        const { getFirebaseUidFromNetid } = await import(
+          '../middleware/authorization'
+        );
         otherUserId = await getFirebaseUidFromNetid(otherUserNetid);
 
         if (!otherUserId) {
           return res.status(404).json({
-            error: 'User not found with provided netid'
+            error: 'User not found with provided netid',
           });
         }
       }
@@ -180,10 +226,13 @@ router.post(
       ]);
 
       if (!currentUserProfile || !otherUserProfile) {
-        console.error('❌ Cannot create conversation - missing user profile(s)', {
-          currentUserProfile: !!currentUserProfile,
-          otherUserProfile: !!otherUserProfile,
-        });
+        console.error(
+          '❌ Cannot create conversation - missing user profile(s)',
+          {
+            currentUserProfile: !!currentUserProfile,
+            otherUserProfile: !!otherUserProfile,
+          }
+        );
         return res.status(403).json({ error: 'Cannot create conversation' });
       }
 
@@ -305,11 +354,15 @@ router.post(
       const userId = req.user.uid;
 
       // Verify user is participant in conversation
-      let conversationRef, conversationData;
+      let conversationRef: DocumentReference;
+      let conversationData: DocumentData;
       try {
-        ({ conversationRef, conversationData } = await getAuthorizedConversation(conversationId, userId));
+        ({ conversationRef, conversationData } =
+          await getAuthorizedConversation(conversationId, userId));
       } catch (e: any) {
-        return res.status(e.status || 500).json({ error: e.error || 'Server error' });
+        return res
+          .status(e.status || 500)
+          .json({ error: e.error || 'Server error' });
       }
 
       // Get netids from participant info to check blocking
@@ -322,7 +375,9 @@ router.post(
         : null;
 
       if (!senderInfo?.netid || !recipientInfo?.netid) {
-        console.error(`❌ Missing participant netids in conversation ${conversationId}`);
+        console.error(
+          `❌ Missing participant netids in conversation ${conversationId}`
+        );
         return res
           .status(403)
           .json({ error: 'Cannot send message to this conversation' });
@@ -484,9 +539,12 @@ router.get(
       // Verify user is participant
       let conversationRef, conversationData;
       try {
-        ({ conversationRef, conversationData } = await getAuthorizedConversation(conversationId, userId));
+        ({ conversationRef, conversationData } =
+          await getAuthorizedConversation(conversationId, userId));
       } catch (e: any) {
-        return res.status(e.status || 500).json({ error: e.error || 'Server error' });
+        return res
+          .status(e.status || 500)
+          .json({ error: e.error || 'Server error' });
       }
 
       // Get messages
@@ -537,9 +595,12 @@ router.put(
       // Verify user is participant
       let conversationRef, conversationData;
       try {
-        ({ conversationRef, conversationData } = await getAuthorizedConversation(conversationId, userId));
+        ({ conversationRef, conversationData } =
+          await getAuthorizedConversation(conversationId, userId));
       } catch (e: any) {
-        return res.status(e.status || 500).json({ error: e.error || 'Server error' });
+        return res
+          .status(e.status || 500)
+          .json({ error: e.error || 'Server error' });
       }
 
       // Update message
@@ -584,8 +645,15 @@ router.put(
         return res.status(400).json({ error: 'conversationId is required' });
       }
 
-      if (!newText || !(typeof (newText) === 'string') || newText.trim().length === 0 || newText.length > 5000) {
-        return res.status(400).json({ error: 'invalid input text (newText required)' })
+      if (
+        !newText ||
+        !(typeof newText === 'string') ||
+        newText.trim().length === 0 ||
+        newText.length > 5000
+      ) {
+        return res
+          .status(400)
+          .json({ error: 'invalid input text (newText required)' });
       }
 
       const userId = req.user.uid;
@@ -593,9 +661,12 @@ router.put(
       // Verify user is participant
       let conversationRef, conversationData;
       try {
-        ({ conversationRef, conversationData } = await getAuthorizedConversation(conversationId, userId));
+        ({ conversationRef, conversationData } =
+          await getAuthorizedConversation(conversationId, userId));
       } catch (e: any) {
-        return res.status(e.status || 500).json({ error: e.error || 'Server error' });
+        return res
+          .status(e.status || 500)
+          .json({ error: e.error || 'Server error' });
       }
 
       const messageRef = conversationRef.collection('messages').doc(messageId);
@@ -603,9 +674,7 @@ router.put(
 
       // Verify message exists
       if (!messageDoc.exists) {
-        return res
-          .status(403)
-          .json({ error: 'Message does not exist' });
+        return res.status(403).json({ error: 'Message does not exist' });
       }
 
       // Verify that the user trying to edit the message is the sender
@@ -613,31 +682,14 @@ router.put(
       if (messageData?.senderId !== userId) {
         return res
           .status(403)
-          .json({ error: 'User cannot edit message sent by another user' })
+          .json({ error: 'User cannot edit message sent by another user' });
       }
 
-      const rawTimestamp = messageData?.timestamp;
-
-      // Firestore Timestamp conversion
-      const sentAt =
-        rawTimestamp?.toDate?.() instanceof Date
-          ? rawTimestamp.toDate()
-          : rawTimestamp
-            ? new Date(rawTimestamp)
-            : null;
-
-      if (!sentAt || Number.isNaN(sentAt.getTime())) {
-        return res.status(400).json({ error: 'Message timestamp is invalid' });
-      }
-
-      const nowMs = Date.now();
-      const sentAtMs = sentAt.getTime();
-
-      if (nowMs - sentAtMs > EDIT_WINDOW_MS) {
-        return res.status(403).json({
-          error: 'Messages can only be edited within 15 minutes of sending',
-        });
-      }
+      const windowError = validateEditWindow(messageData, 'edited');
+      if (windowError)
+        return res
+          .status(windowError.status)
+          .json({ error: windowError.error });
 
       // Update message
       await messageRef.update({
@@ -680,9 +732,12 @@ router.delete(
       // Verify user is participant
       let conversationRef, conversationData;
       try {
-        ({ conversationRef, conversationData } = await getAuthorizedConversation(conversationId, userId));
+        ({ conversationRef, conversationData } =
+          await getAuthorizedConversation(conversationId, userId));
       } catch (e: any) {
-        return res.status(e.status || 500).json({ error: e.error || 'Server error' });
+        return res
+          .status(e.status || 500)
+          .json({ error: e.error || 'Server error' });
       }
 
       const messageRef = conversationRef.collection('messages').doc(messageId);
@@ -690,9 +745,7 @@ router.delete(
 
       // Verify message exists
       if (!messageDoc.exists) {
-        return res
-          .status(403)
-          .json({ error: 'Message does not exist' });
+        return res.status(403).json({ error: 'Message does not exist' });
       }
 
       // Verify that the user trying to edit the message is the sender
@@ -700,32 +753,14 @@ router.delete(
       if (messageData?.senderId !== userId) {
         return res
           .status(403)
-          .json({ error: 'User cannot unsend message sent by another user' })
+          .json({ error: 'User cannot unsend message sent by another user' });
       }
 
-      // Verify that edit is made <= 15 minutes after initial send time
-      const rawTimestamp = messageData?.timestamp;
-
-      // Firestore Timestamp conversion
-      const sentAt =
-        rawTimestamp?.toDate?.() instanceof Date
-          ? rawTimestamp.toDate()
-          : rawTimestamp
-            ? new Date(rawTimestamp)
-            : null;
-
-      if (!sentAt || Number.isNaN(sentAt.getTime())) {
-        return res.status(400).json({ error: 'Message timestamp is invalid' });
-      }
-
-      const nowMs = Date.now();
-      const sentAtMs = sentAt.getTime();
-
-      if (nowMs - sentAtMs >= EDIT_WINDOW_MS) {
-        return res.status(403).json({
-          error: 'Messages can only be unsent within 15 minutes of sending',
-        });
-      }
+      const windowError = validateEditWindow(messageData, 'unsent');
+      if (windowError)
+        return res
+          .status(windowError.status)
+          .json({ error: windowError.error });
 
       // Update message
       await messageRef.update({
