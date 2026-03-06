@@ -45,6 +45,24 @@ const validateEditWindow = (
   return null;
 };
 
+const validateMessageOwnerAndWindow = (
+  messageDoc: FirebaseFirestore.DocumentSnapshot,
+  userId: string,
+  action: 'edited' | 'unsent'
+): { status: number; error: string } | null => {
+  // Verify that the user trying to edit the message is the sender
+  const messageData = messageDoc.data();
+
+  if (messageData?.senderId !== userId) {
+    return {
+      status: 403,
+      error: `User cannot ${action === 'edited' ? 'edit' : 'unsend'} message sent by another user`,
+    };
+  }
+
+  return validateEditWindow(messageData, action);
+};
+
 const syncConversationLastMessage = async (
   conversationRef: DocumentReference
 ) => {
@@ -110,23 +128,20 @@ const getAuthorizedConversation = async (
  */
 const getUserProfile = async (firebaseUid: string) => {
   try {
-    console.log('🔍 Getting user profile for Firebase UID', firebaseUid);
+    console.log('🔍 Getting user profile for Firebase UID');
     const userSnapshot = await db
       .collection('users')
       .where('firebaseUid', '==', firebaseUid)
       .get();
 
     if (userSnapshot.empty) {
-      console.warn('⚠️ No user found with Firebase UID', firebaseUid);
+      console.warn('⚠️ No user found with Firebase UID');
       return null;
     }
 
     const userData = userSnapshot.docs[0].data();
     const netid = userData.netid;
-    console.log('✅ Found user with netid and Firebase UID', {
-      netid,
-      firebaseUid,
-    });
+    console.log('✅ Found user with netid and Firebase UID');
 
     const profileSnapshot = await db
       .collection('profiles')
@@ -304,7 +319,7 @@ router.post(
 
       const conversationDoc = await conversationsRef.add(newConversation);
 
-      res.status(201).json({
+      return res.status(201).json({
         id: conversationDoc.id,
         ...newConversation,
         createdAt: new Date().toISOString(),
@@ -312,7 +327,7 @@ router.post(
       });
     } catch (error) {
       console.error('Error creating conversation:', error);
-      res.status(500).json({ error: 'Error creating conversation' });
+      return res.status(500).json({ error: 'Error creating conversation' });
     }
   }
 );
@@ -344,10 +359,10 @@ router.get(
         ...doc.data(),
       }));
 
-      res.status(200).json({ conversations });
+      return res.status(200).json({ conversations });
     } catch (error) {
       console.error('Error getting conversations:', error);
-      res.status(500).json({ error: 'Error getting conversations' });
+      return res.status(500).json({ error: 'Error getting conversations' });
     }
   }
 );
@@ -539,14 +554,14 @@ router.post(
         }
       });
 
-      res.status(201).json({
+      return res.status(201).json({
         id: messageRef.id,
         ...messageData,
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Error sending message:', error);
-      res.status(500).json({ error: 'Error sending message' });
+      return res.status(500).json({ error: 'Error sending message' });
     }
   }
 );
@@ -594,10 +609,10 @@ router.get(
         }))
         .reverse(); // Reverse to show oldest first
 
-      res.status(200).json({ messages });
+      return res.status(200).json({ messages });
     } catch (error) {
       console.error('Error getting messages:', error);
-      res.status(500).json({ error: 'Error getting messages' });
+      return res.status(500).json({ error: 'Error getting messages' });
     }
   }
 );
@@ -649,10 +664,10 @@ router.put(
         status: 'read',
       });
 
-      res.status(200).json({ success: true });
+      return res.status(200).json({ success: true });
     } catch (error) {
       console.error('Error marking message as read:', error);
-      res.status(500).json({ error: 'Error marking message as read' });
+      return res.status(500).json({ error: 'Error marking message as read' });
     }
   }
 );
@@ -701,19 +716,13 @@ router.put(
 
       const { conversationRef, messageRef, messageDoc } = result;
 
-      // Verify that the user trying to edit the message is the sender
-      const messageData = messageDoc.data();
-      if (messageData?.senderId !== userId) {
-        return res
-          .status(403)
-          .json({ error: 'User cannot edit message sent by another user' });
-      }
-
-      const windowError = validateEditWindow(messageData, 'edited');
-      if (windowError)
-        return res
-          .status(windowError.status)
-          .json({ error: windowError.error });
+      const ownerError = validateMessageOwnerAndWindow(
+        messageDoc,
+        userId,
+        'edited'
+      );
+      if (ownerError)
+        return res.status(ownerError.status).json({ error: ownerError.error });
 
       // Update message
       await messageRef.update({
@@ -722,10 +731,10 @@ router.put(
       });
       await syncConversationLastMessage(conversationRef);
 
-      res.status(200).json({ success: true });
+      return res.status(200).json({ success: true });
     } catch (error) {
       console.error('Error editing sent message:', error);
-      res.status(500).json({ error: 'Error editing sent message' });
+      return res.status(500).json({ error: 'Error editing sent message' });
     }
   }
 );
@@ -763,19 +772,13 @@ router.delete(
 
       const { conversationRef, messageRef, messageDoc } = result;
 
-      // Verify that the user trying to edit the message is the sender
-      const messageData = messageDoc.data();
-      if (messageData?.senderId !== userId) {
-        return res
-          .status(403)
-          .json({ error: 'User cannot unsend message sent by another user' });
-      }
-
-      const windowError = validateEditWindow(messageData, 'unsent');
-      if (windowError)
-        return res
-          .status(windowError.status)
-          .json({ error: windowError.error });
+      const ownerError = validateMessageOwnerAndWindow(
+        messageDoc,
+        userId,
+        'unsent'
+      );
+      if (ownerError)
+        return res.status(ownerError.status).json({ error: ownerError.error });
 
       // Update message
       await messageRef.update({
@@ -784,10 +787,10 @@ router.delete(
       });
       await syncConversationLastMessage(conversationRef);
 
-      res.status(200).json({ success: true });
+      return res.status(200).json({ success: true });
     } catch (error) {
       console.error('Error unsending message:', error);
-      res.status(500).json({ error: 'Error unsending message' });
+      return res.status(500).json({ error: 'Error unsending message' });
     }
   }
 );
