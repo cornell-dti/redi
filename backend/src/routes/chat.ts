@@ -110,22 +110,23 @@ const getAuthorizedConversation = async (
  */
 const getUserProfile = async (firebaseUid: string) => {
   try {
-    console.log(`🔍 Getting user profile for Firebase UID: ${firebaseUid}`);
+    console.log('🔍 Getting user profile for Firebase UID', firebaseUid);
     const userSnapshot = await db
       .collection('users')
       .where('firebaseUid', '==', firebaseUid)
       .get();
 
     if (userSnapshot.empty) {
-      console.warn(`⚠️ No user found with Firebase UID: ${firebaseUid}`);
+      console.warn('⚠️ No user found with Firebase UID', firebaseUid);
       return null;
     }
 
     const userData = userSnapshot.docs[0].data();
     const netid = userData.netid;
-    console.log(
-      `✅ Found user with netid: ${netid} for Firebase UID: ${firebaseUid}`
-    );
+    console.log('✅ Found user with netid and Firebase UID', {
+      netid,
+      firebaseUid,
+    });
 
     const profileSnapshot = await db
       .collection('profiles')
@@ -153,6 +154,38 @@ const getUserProfile = async (firebaseUid: string) => {
     console.error('❌ Error getting user profile:', error);
     return null;
   }
+};
+
+const validateUserParticipant = async (
+  conversationId: string,
+  userId: string,
+  messageId: string
+): Promise<
+  | {
+      conversationRef: DocumentReference;
+      messageRef: FirebaseFirestore.DocumentReference;
+      messageDoc: FirebaseFirestore.DocumentSnapshot;
+    }
+  | { status: number; error: string }
+> => {
+  let conversationRef: DocumentReference;
+  try {
+    ({ conversationRef } = await getAuthorizedConversation(
+      conversationId,
+      userId
+    ));
+  } catch (e: any) {
+    return { status: e.status || 500, error: e.error || 'Server error' };
+  }
+
+  const messageRef = conversationRef.collection('messages').doc(messageId);
+  const messageDoc = await messageRef.get();
+
+  if (!messageDoc.exists) {
+    return { status: 403, error: 'Message does not exist' };
+  }
+
+  return { conversationRef, messageRef, messageDoc };
 };
 
 /**
@@ -658,24 +691,15 @@ router.put(
 
       const userId = req.user.uid;
 
-      // Verify user is participant
-      let conversationRef, conversationData;
-      try {
-        ({ conversationRef, conversationData } =
-          await getAuthorizedConversation(conversationId, userId));
-      } catch (e: any) {
-        return res
-          .status(e.status || 500)
-          .json({ error: e.error || 'Server error' });
-      }
+      const result = await validateUserParticipant(
+        conversationId,
+        userId,
+        messageId
+      );
+      if ('error' in result)
+        return res.status(result.status).json({ error: result.error });
 
-      const messageRef = conversationRef.collection('messages').doc(messageId);
-      const messageDoc = await messageRef.get();
-
-      // Verify message exists
-      if (!messageDoc.exists) {
-        return res.status(403).json({ error: 'Message does not exist' });
-      }
+      const { conversationRef, messageRef, messageDoc } = result;
 
       // Verify that the user trying to edit the message is the sender
       const messageData = messageDoc.data();
@@ -729,24 +753,15 @@ router.delete(
 
       const userId = req.user.uid;
 
-      // Verify user is participant
-      let conversationRef, conversationData;
-      try {
-        ({ conversationRef, conversationData } =
-          await getAuthorizedConversation(conversationId, userId));
-      } catch (e: any) {
-        return res
-          .status(e.status || 500)
-          .json({ error: e.error || 'Server error' });
-      }
+      const result = await validateUserParticipant(
+        conversationId,
+        userId,
+        messageId
+      );
+      if ('error' in result)
+        return res.status(result.status).json({ error: result.error });
 
-      const messageRef = conversationRef.collection('messages').doc(messageId);
-      const messageDoc = await messageRef.get();
-
-      // Verify message exists
-      if (!messageDoc.exists) {
-        return res.status(403).json({ error: 'Message does not exist' });
-      }
+      const { conversationRef, messageRef, messageDoc } = result;
 
       // Verify that the user trying to edit the message is the sender
       const messageData = messageDoc.data();
