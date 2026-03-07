@@ -1,5 +1,5 @@
-import { getCurrentUser } from './authService';
 import { API_BASE_URL } from '../../constants/constants';
+import { getCurrentUser } from './authService';
 
 /**
  * Gets the Firebase ID token for the current authenticated user
@@ -43,6 +43,9 @@ export interface Message {
   timestamp: any;
   read: boolean;
   status: 'sending' | 'sent' | 'delivered' | 'read';
+  editTimestamp?: any;
+  unsentTimestamp?: any;
+  isUnsent?: boolean;
 }
 
 /**
@@ -259,6 +262,76 @@ export const markMessageAsRead = async (
     }
   } catch (error) {
     console.error('Error marking message as read:', error);
+    throw error;
+  }
+};
+
+/**
+ * Edit a previously sent message
+ * @param conversationId - ID of the conversation
+ * @param messageId - ID of the message
+ * @param newText - updated content of message
+ */
+export const editMessage = async (
+  conversationId: string,
+  messageId: string,
+  newText: string
+): Promise<void> => {
+  try {
+    const token = await getAuthToken();
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/chat/messages/${messageId}/edit`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ conversationId, newText }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to edit message');
+    }
+  } catch (error) {
+    console.error('Error editing message:', error);
+    throw error;
+  }
+};
+
+/**
+ * Unsend a message
+ * @param conversationId - ID of the conversation
+ * @param messageId - ID of the message
+ */
+export const unsendMessage = async (
+  conversationId: string,
+  messageId: string
+): Promise<void> => {
+  try {
+    const token = await getAuthToken();
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/chat/messages/${messageId}/unsend`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ conversationId }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to unsend message');
+    }
+  } catch (error) {
+    console.error('Error unsending message:', error);
     throw error;
   }
 };
