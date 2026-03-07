@@ -71,13 +71,6 @@ cd frontend/ios
 npm run ios
 ```
 
-#### Running on iOS Simulator
-
-```bash
-cd frontend/ios
-npm run ios
-```
-
 ### 4. Landing Page Setup
 
 ```bash
@@ -205,30 +198,6 @@ We use Heroku for our backend deployment.
 ### Frontend
 
 Frontend deployment is done through Netlify.
-
-````bash
-# Build for production
-cd frontend
-npm run build:web  # For web deployment
-eas build  # For app store builds (requires Expo account)
-
-## Frontend Development Commands
-
-```bash
-# Start development server
-npm start
-
-# Run on specific platform
-npm run ios
-npm run android
-npm run web
-
-# Type checking
-npx tsc --noEmit
-
-# Linting
-npm run lint
-````
 
 ### Landing Page
 
