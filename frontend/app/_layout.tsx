@@ -47,6 +47,7 @@ function RootNavigator() {
   const [initializing, setInitializing] = useState(true);
   const [firstCheckDone, setFirstCheckDone] = useState(false);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [animate, setAnimate] = useState(false);
   const router = useRouter();
   const segments = useSegments();
   const appState = useRef(AppState.currentState);
@@ -94,12 +95,14 @@ function RootNavigator() {
 
           showToast({ label: 'Signed in successfully!' });
 
+          setAnimate(true);
           const profile = await getCurrentUserProfile();
           if (profile) {
             router.replace('/(auth)/(tabs)');
           } else {
             router.replace('/(auth)/create-profile');
           }
+          setAnimate(false);
         } catch (error) {
           Alert.alert(
             'Sign In Failed',
@@ -350,7 +353,7 @@ function RootNavigator() {
 
   return (
     <>
-      <Stack screenOptions={{ animation: 'none' }}>
+      <Stack screenOptions={{ animation: animate ? 'default' : 'none' }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen
