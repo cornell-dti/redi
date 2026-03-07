@@ -1,21 +1,16 @@
-import Constants from 'expo-constants';
+import { House } from 'lucide-react-native';
+import { apiClient } from '../../api/apiClient';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  ScrollView,
   StyleSheet,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { AppColors } from '../AppColors';
 import AppInput from './AppInput';
-import AppText from './AppText';
-import Button from './Button';
 import ListItem from './ListItem';
 import ListItemWrapper from './ListItemWrapper';
-import Sheet from './Sheet';
-
-const GEOAPIFY_API_KEY =
-  (Constants.expoConfig?.extra?.geoapifyApiKey as string) || '';
 
 interface GeoapifyResult {
   city?: string;
@@ -35,18 +30,18 @@ export default function CityAutocomplete({
   onSelect,
   placeholder = 'E.g. New York City',
 }: CityAutocompleteProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(value);
   const [results, setResults] = useState<GeoapifyResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [pending, setPending] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    setQuery(value);
+  }, [value]);
 
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      abortControllerRef.current?.abort();
     };
   }, []);
 
@@ -56,38 +51,17 @@ export default function CityAutocomplete({
       return;
     }
 
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = new AbortController();
-
-    setPending(false);
     setLoading(true);
     try {
-      const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(text)}&type=city&limit=5&apiKey=${GEOAPIFY_API_KEY}`;
-      const response = await fetch(url, {
-        signal: abortControllerRef.current.signal,
-      });
-      const data = await response.json();
+      const data = await apiClient.get<{ results: GeoapifyResult[] }>(
+        `/api/geocode/cities?q=${encodeURIComponent(text)}`
+      );
 
-      if (data.features) {
-        const mapped: GeoapifyResult[] = data.features.map((f: any) => ({
-          city: f.properties.city || f.properties.name,
-          state: f.properties.state,
-          country: f.properties.country,
-          formatted: f.properties.formatted,
-        }));
-
-        const seen = new Set<string>();
-        setResults(
-          mapped.filter((r) => {
-            if (seen.has(r.formatted)) return false;
-            seen.add(r.formatted);
-            return true;
-          })
-        );
+      if (data.results) {
+        setResults(data.results);
       }
-    } catch (e: any) {
-      // Ignore aborted requests — they're intentional cancellations
-      if (e?.name !== 'AbortError') setResults([]);
+    } catch {
+      setResults([]);
     } finally {
       setLoading(false);
     }
@@ -95,7 +69,7 @@ export default function CityAutocomplete({
 
   const handleQueryChange = (text: string) => {
     setQuery(text);
-    setPending(true);
+    onSelect(text);
     setResults([]);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => fetchCities(text), 300);
@@ -105,59 +79,41 @@ export default function CityAutocomplete({
     const displayValue = [result.city, result.state, result.country]
       .filter(Boolean)
       .join(', ');
-    onSelect(displayValue || result.formatted);
-    handleDismiss();
-  };
-
-  const handleCustom = () => {
-    if (query.trim()) {
-      onSelect(query.trim());
-      handleDismiss();
-    }
-  };
-
-  const handleDismiss = () => {
-    setIsOpen(false);
-    setQuery('');
+    const selected = displayValue || result.formatted;
+    setQuery(selected);
+    onSelect(selected);
     setResults([]);
   };
 
   return (
     <View>
-      <TouchableOpacity
-        style={styles.trigger}
-        onPress={() => setIsOpen(true)}
-        activeOpacity={0.7}
-      >
-        <AppText style={[!value && { color: AppColors.foregroundDimmer }]}>
-          {value || placeholder}
-        </AppText>
-      </TouchableOpacity>
-
-      <Sheet
-        visible={isOpen}
-        onDismiss={handleDismiss}
-        title="Where are you from?"
-        bottomRound={false}
-        height="50%"
-      >
+      <View style={styles.inputWrapper}>
         <AppInput
-          placeholder="Search city or town..."
+          placeholder={placeholder}
           value={query}
           onChangeText={handleQueryChange}
-          autoFocus
           autoCapitalize="words"
           maxLength={80}
+          style={{ paddingRight: 44 }}
         />
+        <View style={styles.inputIcon} pointerEvents="none">
+          <House size={18} color={AppColors.foregroundDimmer} />
+        </View>
+      </View>
 
-        {loading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator color={AppColors.foregroundDimmer} />
-          </View>
-        )}
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator color={AppColors.foregroundDimmer} />
+        </View>
+      )}
 
-        {!loading && results.length > 0 && (
-          <ListItemWrapper style={styles.list}>
+      {!loading && results.length > 0 && (
+        <ScrollView
+          style={styles.resultsList}
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled
+        >
+          <ListItemWrapper>
             {results.map((result, index) => (
               <ListItem
                 key={`${result.formatted}-${index}`}
@@ -171,48 +127,29 @@ export default function CityAutocomplete({
               />
             ))}
           </ListItemWrapper>
-        )}
-
-        {!loading && !pending && results.length === 0 && query.trim().length >= 2 && (
-          <View style={styles.emptyContainer}>
-            <AppText style={styles.emptyText}>No cities found</AppText>
-            <Button
-              title={`Use "${query.trim()}"`}
-              onPress={handleCustom}
-              variant="primary"
-            />
-          </View>
-        )}
-      </Sheet>
+        </ScrollView>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  trigger: {
-    backgroundColor: AppColors.backgroundDimmer,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: AppColors.backgroundDimmer,
-    paddingHorizontal: 12,
-    height: 48,
+  inputWrapper: {
+    position: 'relative',
+  },
+  inputIcon: {
+    position: 'absolute',
+    right: 14,
+    top: 0,
+    bottom: 0,
     justifyContent: 'center',
   },
   loadingContainer: {
     padding: 24,
     alignItems: 'center',
   },
-  list: {
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyContainer: {
-    paddingVertical: 32,
-    alignItems: 'center',
-    gap: 16,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: AppColors.foregroundDimmer,
+  resultsList: {
+    maxHeight: 260,
+    marginTop: 12,
   },
 });
