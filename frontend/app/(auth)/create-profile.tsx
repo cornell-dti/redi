@@ -46,6 +46,7 @@ import AppText from '../components/ui/AppText';
 import Button from '../components/ui/Button';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
+import CityAutocomplete from '../components/ui/CityAutocomplete';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
@@ -540,11 +541,9 @@ export default function CreateProfileScreen() {
         return (
           <View style={styles.stepContainer}>
             <OnboardingTitle title="What's your hometown?" />
-            <AppInput
-              placeholder="E.g. New York City"
+            <CityAutocomplete
               value={data.hometown}
-              onChangeText={(text) => updateField('hometown', text)}
-              autoCapitalize="words"
+              onSelect={(city) => updateField('hometown', city)}
             />
           </View>
         );
@@ -1100,6 +1099,7 @@ export default function CreateProfileScreen() {
             style={styles.content}
             contentContainerStyle={{ paddingBottom: 200 }}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
             {renderStep()}
           </ScrollView>

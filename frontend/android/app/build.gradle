@@ -88,6 +88,15 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'com.incubator.redi'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
     defaultConfig {
         applicationId 'com.incubator.redi'
         minSdkVersion rootProject.ext.minSdkVersion

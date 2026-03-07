@@ -1,5 +1,9 @@
 import express from 'express';
-import { FieldValue } from 'firebase-admin/firestore';
+import {
+  DocumentData,
+  DocumentReference,
+  FieldValue,
+} from 'firebase-admin/firestore';
 import { db } from '../../firebaseAdmin';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
 import { chatRateLimit } from '../middleware/rateLimiting';
@@ -11,26 +15,88 @@ import {
 } from '../services/pushNotificationService';
 
 const router = express.Router();
+const EDIT_WINDOW_MS = 15 * 60 * 1000;
+const CHAT_ROUTE = '/api/chat';
+
+const syncConversationLastMessage = async (
+  conversationRef: DocumentReference
+) => {
+  const latestMessageSnapshot = await conversationRef
+    .collection('messages')
+    .orderBy('timestamp', 'desc')
+    .limit(1)
+    .get();
+
+  if (latestMessageSnapshot.empty) {
+    await conversationRef.update({
+      lastMessage: null,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    return;
+  }
+
+  const latestMessageData = latestMessageSnapshot.docs[0].data();
+
+  await conversationRef.update({
+    lastMessage: {
+      text: latestMessageData.isUnsent
+        ? 'Message unsent'
+        : latestMessageData.text,
+      senderId: latestMessageData.senderId,
+      timestamp: latestMessageData.timestamp || FieldValue.serverTimestamp(),
+    },
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+};
+
+const getAuthorizedConversation = async (
+  conversationId: string,
+  userId: string
+): Promise<{
+  conversationRef: DocumentReference;
+  conversationData: DocumentData;
+}> => {
+  const conversationRef = db.collection('conversations').doc(conversationId);
+  const conversationDoc = await conversationRef.get();
+
+  if (!conversationDoc.exists) {
+    throw { status: 403, error: 'Cannot access this conversation' };
+  }
+
+  const conversationData = conversationDoc.data();
+  if (
+    !Array.isArray(conversationData?.participantIds) ||
+    !conversationData ||
+    !conversationData.participantIds.includes(userId)
+  ) {
+    throw {
+      status: 403,
+      error: 'User ID does not have access to this conversation',
+    };
+  }
+
+  return { conversationRef, conversationData };
+};
 
 /**
  * Helper function to get user's profile data
  */
 const getUserProfile = async (firebaseUid: string) => {
   try {
-    console.log(`🔍 Getting user profile for Firebase UID: ${firebaseUid}`);
+    console.log('🔍 Getting user profile for Firebase UID');
     const userSnapshot = await db
       .collection('users')
       .where('firebaseUid', '==', firebaseUid)
       .get();
 
     if (userSnapshot.empty) {
-      console.warn(`⚠️ No user found with Firebase UID: ${firebaseUid}`);
+      console.warn('⚠️ No user found with Firebase UID');
       return null;
     }
 
     const userData = userSnapshot.docs[0].data();
     const netid = userData.netid;
-    console.log(`✅ Found user with netid: ${netid} for Firebase UID: ${firebaseUid}`);
+    console.log('✅ Found user with netid and Firebase UID');
 
     const profileSnapshot = await db
       .collection('profiles')
@@ -53,10 +119,73 @@ const getUserProfile = async (firebaseUid: string) => {
       name: profileData.firstName || netid,
       image: profileData.pictures?.[0] || null,
     };
+    return profile;
   } catch (error) {
     console.error('❌ Error getting user profile:', error);
     return null;
   }
+};
+
+const validateUserMessage = async (
+  userId: string,
+  conversationId: string,
+  messageId: string,
+  action: 'edited' | 'unsent'
+): Promise<
+  | {
+      conversationRef: DocumentReference;
+      messageRef: FirebaseFirestore.DocumentReference;
+    }
+  | { status: number; error: string }
+> => {
+  let conversationRef: DocumentReference;
+  try {
+    ({ conversationRef } = await getAuthorizedConversation(
+      conversationId,
+      userId
+    ));
+  } catch (e: any) {
+    return { status: e.status || 500, error: e.error || 'Server error' };
+  }
+
+  const messageRef = conversationRef.collection('messages').doc(messageId);
+  const messageDoc = await messageRef.get();
+
+  if (!messageDoc.exists) {
+    return { status: 403, error: 'Message does not exist' };
+  }
+
+  // Verify that the user trying to edit the message is the sender
+  const messageData = messageDoc.data();
+
+  if (messageData?.senderId !== userId) {
+    return {
+      status: 403,
+      error: `User cannot ${action === 'edited' ? 'edit' : 'unsend'} message sent by another user`,
+    };
+  }
+
+  const rawTimestamp = messageData?.timestamp;
+
+  const sentAt =
+    rawTimestamp?.toDate?.() instanceof Date
+      ? rawTimestamp.toDate()
+      : rawTimestamp
+        ? new Date(rawTimestamp)
+        : null;
+
+  if (!sentAt || Number.isNaN(sentAt.getTime())) {
+    return { status: 400, error: 'Message timestamp is invalid' };
+  }
+
+  if (Date.now() - sentAt.getTime() >= EDIT_WINDOW_MS) {
+    return {
+      status: 403,
+      error: `Messages can only be ${action} within 15 minutes of sending`,
+    };
+  }
+
+  return { conversationRef, messageRef };
 };
 
 /**
@@ -65,7 +194,7 @@ const getUserProfile = async (firebaseUid: string) => {
  * Accepts either otherUserId (Firebase UID) or otherUserNetid (Cornell netid)
  */
 router.post(
-  '/api/chat/conversations',
+  `${CHAT_ROUTE}/conversations`,
   chatRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
@@ -79,18 +208,20 @@ router.post(
       // Support both otherUserId and otherUserNetid
       if (!otherUserId && !otherUserNetid) {
         return res.status(400).json({
-          error: 'Either otherUserId or otherUserNetid is required'
+          error: 'Either otherUserId or otherUserNetid is required',
         });
       }
 
       // If otherUserNetid is provided, convert it to Firebase UID
       if (otherUserNetid && !otherUserId) {
-        const { getFirebaseUidFromNetid } = await import('../middleware/authorization');
+        const { getFirebaseUidFromNetid } = await import(
+          '../middleware/authorization'
+        );
         otherUserId = await getFirebaseUidFromNetid(otherUserNetid);
 
         if (!otherUserId) {
           return res.status(404).json({
-            error: 'User not found with provided netid'
+            error: 'User not found with provided netid',
           });
         }
       }
@@ -128,10 +259,13 @@ router.post(
       ]);
 
       if (!currentUserProfile || !otherUserProfile) {
-        console.error('❌ Cannot create conversation - missing user profile(s)', {
-          currentUserProfile: !!currentUserProfile,
-          otherUserProfile: !!otherUserProfile,
-        });
+        console.error(
+          '❌ Cannot create conversation - missing user profile(s)',
+          {
+            currentUserProfile: !!currentUserProfile,
+            otherUserProfile: !!otherUserProfile,
+          }
+        );
         return res.status(403).json({ error: 'Cannot create conversation' });
       }
 
@@ -170,7 +304,7 @@ router.post(
 
       const conversationDoc = await conversationsRef.add(newConversation);
 
-      res.status(201).json({
+      return res.status(201).json({
         id: conversationDoc.id,
         ...newConversation,
         createdAt: new Date().toISOString(),
@@ -178,9 +312,7 @@ router.post(
       });
     } catch (error) {
       console.error('Error creating conversation:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      res.status(500).json({ error: errorMessage });
+      return res.status(500).json({ error: 'Error creating conversation' });
     }
   }
 );
@@ -190,7 +322,7 @@ router.post(
  * Get all conversations for the authenticated user
  */
 router.get(
-  '/api/chat/conversations',
+  `${CHAT_ROUTE}/conversations`,
   chatRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
@@ -212,12 +344,10 @@ router.get(
         ...doc.data(),
       }));
 
-      res.status(200).json({ conversations });
+      return res.status(200).json({ conversations });
     } catch (error) {
       console.error('Error getting conversations:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      res.status(500).json({ error: errorMessage });
+      return res.status(500).json({ error: 'Error getting conversations' });
     }
   }
 );
@@ -227,7 +357,7 @@ router.get(
  * Send a message in a conversation
  */
 router.post(
-  '/api/chat/messages',
+  `${CHAT_ROUTE}/messages`,
   chatRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
@@ -257,26 +387,15 @@ router.post(
       const userId = req.user.uid;
 
       // Verify user is participant in conversation
-      const conversationRef = db
-        .collection('conversations')
-        .doc(conversationId);
-      const conversationDoc = await conversationRef.get();
-
-      if (!conversationDoc.exists) {
-        console.error(`❌ Conversation ${conversationId} does not exist for user ${userId}`);
+      let conversationRef: DocumentReference;
+      let conversationData: DocumentData;
+      try {
+        ({ conversationRef, conversationData } =
+          await getAuthorizedConversation(conversationId, userId));
+      } catch (e: any) {
         return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
-      }
-
-      const conversationData = conversationDoc.data();
-      if (!conversationData?.participantIds.includes(userId)) {
-        console.error(`❌ User ${userId} is not a participant in conversation ${conversationId}`, {
-          participantIds: conversationData?.participantIds,
-        });
-        return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
+          .status(e.status || 500)
+          .json({ error: e.error || 'Server error' });
       }
 
       // Get netids from participant info to check blocking
@@ -289,7 +408,7 @@ router.post(
         : null;
 
       if (!senderInfo?.netid || !recipientInfo?.netid) {
-        console.error(`❌ Missing participant netids in conversation ${conversationId}`);
+        console.error('❌ Missing participant netids in conversation');
         return res
           .status(403)
           .json({ error: 'Cannot send message to this conversation' });
@@ -317,6 +436,7 @@ router.post(
         timestamp: FieldValue.serverTimestamp(),
         read: false,
         status: 'sent',
+        isUnsent: false,
       };
 
       const messageRef = await conversationRef
@@ -362,7 +482,7 @@ router.post(
           const blocked = await isUserBlocked(senderNetid, recipientNetid);
           if (blocked) {
             console.log(
-              `User ${senderNetid} is blocked by ${recipientNetid}, skipping notification`
+              'Sender is blocked by recipient, skipping notification'
             );
             return;
           }
@@ -375,7 +495,7 @@ router.post(
 
           if (!prefEnabled) {
             console.log(
-              `User ${recipientNetid} has disabled new message notifications`
+              `Recipient User ${recipientNetid} has disabled new message notifications`
             );
             return;
           }
@@ -417,16 +537,14 @@ router.post(
         }
       });
 
-      res.status(201).json({
+      return res.status(201).json({
         id: messageRef.id,
         ...messageData,
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Error sending message:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      res.status(500).json({ error: errorMessage });
+      return res.status(500).json({ error: 'Error sending message' });
     }
   }
 );
@@ -436,7 +554,7 @@ router.post(
  * Get messages for a conversation
  */
 router.get(
-  '/api/chat/conversations/:conversationId/messages',
+  `${CHAT_ROUTE}/conversations/:conversationId/messages`,
   chatRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
@@ -450,22 +568,14 @@ router.get(
       const limit = parseInt(req.query.limit as string) || 50;
 
       // Verify user is participant
-      const conversationRef = db
-        .collection('conversations')
-        .doc(conversationId);
-      const conversationDoc = await conversationRef.get();
-
-      if (!conversationDoc.exists) {
+      let conversationRef, conversationData;
+      try {
+        ({ conversationRef, conversationData } =
+          await getAuthorizedConversation(conversationId, userId));
+      } catch (e: any) {
         return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
-      }
-
-      const conversationData = conversationDoc.data();
-      if (!conversationData?.participantIds.includes(userId)) {
-        return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
+          .status(e.status || 500)
+          .json({ error: e.error || 'Server error' });
       }
 
       // Get messages
@@ -482,12 +592,10 @@ router.get(
         }))
         .reverse(); // Reverse to show oldest first
 
-      res.status(200).json({ messages });
+      return res.status(200).json({ messages });
     } catch (error) {
       console.error('Error getting messages:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      res.status(500).json({ error: errorMessage });
+      return res.status(500).json({ error: 'Error getting messages' });
     }
   }
 );
@@ -497,7 +605,7 @@ router.get(
  * Mark a message as read
  */
 router.put(
-  '/api/chat/messages/:messageId/read',
+  `${CHAT_ROUTE}/messages/:messageId/read`,
   chatRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
@@ -516,22 +624,14 @@ router.put(
       const userId = req.user.uid;
 
       // Verify user is participant
-      const conversationRef = db
-        .collection('conversations')
-        .doc(conversationId);
-      const conversationDoc = await conversationRef.get();
-
-      if (!conversationDoc.exists) {
+      let conversationRef, conversationData;
+      try {
+        ({ conversationRef, conversationData } =
+          await getAuthorizedConversation(conversationId, userId));
+      } catch (e: any) {
         return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
-      }
-
-      const conversationData = conversationDoc.data();
-      if (!conversationData?.participantIds.includes(userId)) {
-        return res
-          .status(403)
-          .json({ error: 'Cannot access this conversation' });
+          .status(e.status || 500)
+          .json({ error: e.error || 'Server error' });
       }
 
       // Update message
@@ -547,12 +647,115 @@ router.put(
         status: 'read',
       });
 
-      res.status(200).json({ success: true });
+      return res.status(200).json({ success: true });
     } catch (error) {
       console.error('Error marking message as read:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      res.status(500).json({ error: errorMessage });
+      return res.status(500).json({ error: 'Error marking message as read' });
+    }
+  }
+);
+
+/**
+ * PUT /api/chat/messages/:messageId/edit
+ * Edit a previously sent message
+ */
+router.put(
+  `${CHAT_ROUTE}/messages/:messageId/edit`,
+  chatRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      const { messageId } = req.params;
+      const { conversationId, newText } = req.body;
+
+      if (!conversationId) {
+        return res.status(400).json({ error: 'conversationId is required' });
+      }
+
+      if (
+        !newText ||
+        !(typeof newText === 'string') ||
+        newText.trim().length === 0 ||
+        newText.length > 5000
+      ) {
+        return res
+          .status(400)
+          .json({ error: 'invalid input text (newText required)' });
+      }
+
+      const userId = req.user.uid;
+      const result = await validateUserMessage(
+        userId,
+        conversationId,
+        messageId,
+        'unsent'
+      );
+      if ('error' in result)
+        return res.status(result.status).json({ error: result.error });
+      const { conversationRef, messageRef } = result;
+
+      // Update message
+      await messageRef.update({
+        text: newText.trim(),
+        editTimestamp: FieldValue.serverTimestamp(),
+      });
+      await syncConversationLastMessage(conversationRef);
+
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error editing sent message:', error);
+      return res.status(500).json({ error: 'Error editing sent message' });
+    }
+  }
+);
+
+/**
+ * DELETE /api/chat/messages/:messageId/unsend
+ * Unsend (soft-delete) a message
+ */
+router.delete(
+  `${CHAT_ROUTE}/messages/:messageId/unsend`,
+  chatRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      const { messageId } = req.params;
+      const { conversationId } = req.body;
+
+      if (!conversationId) {
+        return res.status(400).json({ error: 'conversationId is required' });
+      }
+
+      const userId = req.user.uid;
+      const result = await validateUserMessage(
+        userId,
+        conversationId,
+        messageId,
+        'unsent'
+      );
+      if ('error' in result)
+        return res.status(result.status).json({ error: result.error });
+      const { conversationRef, messageRef } = result;
+
+      // Update message
+      await messageRef.update({
+        unsentTimestamp: FieldValue.serverTimestamp(),
+        isUnsent: true,
+      });
+      await syncConversationLastMessage(conversationRef);
+
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error unsending message:', error);
+      return res.status(500).json({ error: 'Error unsending message' });
     }
   }
 );

@@ -16,6 +16,8 @@ Cornell's first and best dating app, connecting students through authentic campu
 
 - Node.js 18+ and npm
 - Expo CLI (`npm install -g @expo/cli`)
+- [Xcode](https://developer.apple.com/xcode/) (required for iOS development)
+- iOS Simulator (installed via Xcode > Settings > Platforms)
 - Firebase project with Firestore and Authentication enabled
 - Cornell NetID for testing
 
@@ -59,8 +61,14 @@ npm install
 # - google-services.json (Android)
 # - GoogleService-Info.plist (iOS)
 
-# Start Expo development server
-npm start  # Choose platform (iOS/Android/Web)
+npm run [platform: ios, android, web]
+```
+
+#### Running on iOS Simulator
+
+```bash
+cd frontend/ios
+npm run ios
 ```
 
 ### 4. Landing Page Setup
@@ -185,33 +193,11 @@ cd frontend && npm test
 
 ### Backend
 
-Deploy to your preferred platform (Heroku, Railway, Render, etc.) with environment variables configured.
+We use Heroku for our backend deployment.
 
 ### Frontend
 
-````bash
-# Build for production
-cd frontend
-npm run build:web  # For web deployment
-eas build  # For app store builds (requires Expo account)
-
-## Frontend Development Commands
-
-```bash
-# Start development server
-npm start
-
-# Run on specific platform
-npm run ios
-npm run android
-npm run web
-
-# Type checking
-npx tsc --noEmit
-
-# Linting
-npm run lint
-````
+Frontend deployment is done through Netlify.
 
 ### Landing Page
 
@@ -221,7 +207,7 @@ Automatically deployed via Netlify on push to main branch.
 
 Available formatting commands:
 
-From root directory (/Users/jujucrane/dev/redi):
+From root directory:
 
 - npm run format - Format all files across the entire codebase
 - npm run format:check - Check formatting without making changes
@@ -245,11 +231,24 @@ From individual directories:
 
 ## 👥 The Dream Team
 
-- **TPM**: Juju Crane
-- **Designer/Frontend Dev**: Clément Rozé
-- **Designer**: Brandon Lee
-- **PM**: Arsh Aggarwal
-- **Dev**: Abrar Amin
+### SP26
+
+- **Jacqueline Cai** - Technical Product Manager
+- **Layla Liu** - Technical Product Manager
+- **Sarvagna Malladi** - Associate Product Manager
+- **Hanna Vasquez** - Product Marketing Manager
+- **Clément Rozé** - Designer/Frontend Developer
+- **Abrar Amin** - Developer
+- **Nadia Choophungart** - Developer
+- **Gillio Lopes** - Developer
+
+### FA25
+
+- **Arsh Aggarwal** - Product Manager
+- **Juju Crane** - Technical Product Manager
+- **Clément Rozé** - Designer/Frontend Developer
+- **Brandon Lee** - Designer/Product Marketing Manager
+- **Abrar Amin** - Developer
 
 ## 📄 License
 

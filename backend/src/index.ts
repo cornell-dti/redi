@@ -19,6 +19,7 @@ import pushTokensRouter from './routes/pushTokens';
 import reportsRouter from './routes/reports';
 import usersRouter from './routes/users';
 import authRouter from './routes/auth';
+import geocodeRouter from './routes/geocode';
 
 dotenv.config();
 
@@ -101,6 +102,7 @@ app.use((req, _res, next) => {
 app.get('/ping', (_req, res) => res.send('pong'));
 
 app.use(authRouter); // /api/auth
+app.use(geocodeRouter); // /api/geocode/cities
 app.use(landingPageRouter); // /api/landing-emails
 app.use(usersRouter); // User authentication
 app.use(profilesRouter);

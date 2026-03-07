@@ -109,7 +109,7 @@ router.post(
   validate,
   async (req: AuthenticatedRequest, res: express.Response) => {
     try {
-      console.log('Creating user from auth:', req.body);
+      console.log('🆕 [firebase-create] Route handler started');
 
       // Use authenticated user's email and uid from token
       const email = req.user!.email;
@@ -129,11 +129,13 @@ router.post(
       }
 
       // If user exists, return their info
+      console.log('🆕 [firebase-create] Checking if user already exists:', { netid });
       const existingUser = await db
         .collection('users')
         .where('netid', '==', netid)
         .get();
       if (!existingUser.empty) {
+        console.log('ℹ️ [firebase-create] User already exists, returning existing user');
         const doc = existingUser.docs[0];
         const user = userDocToResponse({
           id: doc.id,
@@ -158,6 +160,7 @@ router.post(
       };
 
       const docRef = await db.collection('users').add(userDoc);
+      console.log('✅ [firebase-create] User created successfully:', { docId: docRef.id, netid, email });
       res.status(201).json({
         id: docRef.id,
         netid,
@@ -165,7 +168,7 @@ router.post(
         message: 'User created successfully',
       });
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error('❌ [firebase-create] Error creating user:', error);
       res.status(500).json({ error: 'Failed to create user' });
     }
   }
@@ -178,9 +181,11 @@ router.post(
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
     try {
+      console.log('🔑 [firebase-login] Route handler started');
       // Use authenticated user's email and uid from verified token
       const email = req.user!.email;
       const firebaseUid = req.user!.uid;
+      console.log('🔑 [firebase-login] User from token:', { email, firebaseUid });
 
       if (!email || !firebaseUid) {
         return res
@@ -196,13 +201,17 @@ router.post(
           .json({ error: 'Only Cornell emails (@cornell.edu) are allowed' });
       }
 
+      console.log('🔑 [firebase-login] Querying users collection for:', { netid, firebaseUid });
       const snapshot = await db
         .collection('users')
         .where('netid', '==', netid)
         .where('firebaseUid', '==', firebaseUid)
         .get();
 
+      console.log('🔑 [firebase-login] Query result - empty:', snapshot.empty, 'size:', snapshot.size);
+
       if (snapshot.empty) {
+        console.log('❌ [firebase-login] User not found, returning 401');
         return res
           .status(401)
           .json({ error: 'User not found or invalid credentials' });
@@ -214,12 +223,13 @@ router.post(
         ...(doc.data() as UserDoc),
       });
 
+      console.log('✅ [firebase-login] Login successful for:', netid);
       res.status(200).json({
         message: 'Login successful',
         user,
       });
     } catch (error) {
-      console.error('Error during login:', error);
+      console.error('❌ [firebase-login] Error during login:', error);
       res.status(500).json({ error: 'Login failed' });
     }
   }

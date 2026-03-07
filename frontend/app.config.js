@@ -1,5 +1,9 @@
-// Load environment variables from .env file
-import 'dotenv/config';
+// Load environment variables
+// .env.local is gitignored and holds secrets (API keys, etc.)
+// .env.development / .env.production hold non-secret env config
+import { config } from 'dotenv';
+config({ path: '.env.local' });
+config({ override: false });
 
 export default {
   expo: {
@@ -82,6 +86,7 @@ export default {
     extra: {
       // Production URL is hardcoded as fallback to prevent localhost in production builds
       // Development can override via REACT_APP_API_BASE_URL environment variable
+      geoapifyApiKey: process.env.GEOAPIFY_API_KEY || '',
       apiBaseUrl:
         process.env.REACT_APP_API_BASE_URL ||
         (process.env.EAS_BUILD_PROFILE === 'development'

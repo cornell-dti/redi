@@ -1,5 +1,5 @@
-import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
+import CityAutocomplete from '@/app/components/ui/CityAutocomplete';
 import { router } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -134,20 +134,13 @@ export default function EditHometownPage() {
         <ScrollView
           style={styles.scrollView}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.sentence}>
-            <AppText>I&apos;m from </AppText>
-            <AppInput
-              placeholder="e.g., New York, NY"
-              value={hometown}
-              onChangeText={setHometown}
-              autoCapitalize="words"
-              style={{ width: 200 }}
-              returnKeyType="done"
-              onSubmitEditing={handleSave}
-            />
-            <AppText>.</AppText>
-          </View>
+          <CityAutocomplete
+            value={hometown}
+            onSelect={setHometown}
+            placeholder="e.g., New York, NY"
+          />
 
           <ListItemWrapper>
             <View style={styles.toggleContainer}>
@@ -184,12 +177,6 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     padding: 16,
-  },
-  sentence: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
   },
   toggleContainer: {
     flexDirection: 'row',

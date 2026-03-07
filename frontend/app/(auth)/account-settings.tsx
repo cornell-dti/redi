@@ -4,13 +4,13 @@ import DeleteAccountSheet from '@/app/components/ui/DeleteAccountSheet';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import SignOutSheet from '@/app/components/ui/SignOutSheet';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { LogOut, Pencil, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  clearUserStorage,
   extractNetidFromEmail,
   getCurrentUser,
   signOutUser,
@@ -56,9 +56,7 @@ export default function AccountSettingsPage() {
     try {
       console.log('Starting sign out process...');
 
-      // Clear any stored data first
-      await AsyncStorage.clear();
-      console.log('AsyncStorage cleared');
+      await clearUserStorage();
 
       // Sign out from Firebase
       await signOutUser();
@@ -107,8 +105,7 @@ export default function AccountSettingsPage() {
       await deleteUser(netid);
       console.log('User deleted from backend successfully');
 
-      // Clear any stored data on the device.
-      await AsyncStorage.clear();
+      await clearUserStorage();
 
       // Sign out from Firebase
       await signOutUser();
