@@ -8,7 +8,6 @@ import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Pressable from '@/app/components/ui/Pressable';
 import Sheet from '@/app/components/ui/Sheet';
 import SignOutSheet from '@/app/components/ui/SignOutSheet';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useFocusEffect } from 'expo-router';
 import {
   ChevronRight,
@@ -36,7 +35,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { getCurrentUser, signOutUser } from '../../api/authService';
+import { clearUserStorage, getCurrentUser, signOutUser } from '../../api/authService';
 import { AppColors } from '../../components/AppColors';
 import { useProfile } from '../../contexts/ProfileContext';
 import { useThemeAware } from '../../contexts/ThemeContext';
@@ -68,10 +67,7 @@ export default function ProfileScreen() {
     try {
       console.log('Starting sign out process...');
 
-      // Clear any stored data first, but preserve install-level flags
-      await AsyncStorage.clear();
-      await AsyncStorage.setItem('@onboarding_video_shown', 'true');
-      console.log('AsyncStorage cleared');
+      await clearUserStorage();
 
       // Sign out from Firebase
       await signOutUser();

@@ -358,3 +358,13 @@ export const signInWithEmailLink = async (
     }
   }
 };
+
+/**
+ * Clears all user data from AsyncStorage while preserving install-level flags
+ * (e.g. onboarding video shown state).
+ */
+export const clearUserStorage = async (): Promise<void> => {
+  await AsyncStorage.clear();
+  await AsyncStorage.setItem('@onboarding_video_shown', 'true');
+  console.log('AsyncStorage cleared');
+};
