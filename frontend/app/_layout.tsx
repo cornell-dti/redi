@@ -3,24 +3,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import auth from '@react-native-firebase/auth';
 import * as Linking from 'expo-linking';
+import * as SplashScreen from 'expo-splash-screen';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect, useState, useRef } from 'react';
-import { Alert, View, AppState } from 'react-native';
+
+SplashScreen.preventAutoHideAsync();
+import { useEffect, useRef, useState } from 'react';
+import { Alert, AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { APIError } from './api/apiClient';
 import { onAuthStateChanged, signInWithEmailLink } from './api/authService';
 import { getCurrentUserProfile } from './api/profileApi';
-import OnboardingVideo, {
-  hasShownOnboardingVideo,
-  markOnboardingVideoAsShown,
-} from './components/onboarding/OnboardingVideo';
-import LoadingSpinner from './components/ui/LoadingSpinner';
 import { HapticsProvider } from './contexts/HapticsContext';
 import { MotionProvider } from './contexts/MotionContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
-import { ToastProvider } from './contexts/ToastContext';
+import { ToastProvider, useToast } from './contexts/ToastContext';
 import { clearBadgeCount } from './services/notificationPermissions';
+
+SplashScreen.preventAutoHideAsync();
 
 /**
  * Token Refresh Configuration
@@ -43,17 +43,23 @@ interface CachedProfile {
 
 function RootNavigator() {
   useThemeAware(); // This makes all screens theme-aware
+  const { showToast } = useToast();
   const [initializing, setInitializing] = useState(true);
+  const [firstCheckDone, setFirstCheckDone] = useState(false);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [animate, setAnimate] = useState(false);
   const router = useRouter();
   const segments = useSegments();
   const appState = useRef(AppState.currentState);
 
   const handleAuthStateChanged = (user: FirebaseAuthTypes.User | null) => {
-    console.log('Auth state changed:', user?.email || 'No user');
+    console.log('[Auth] Auth state changed:', user?.email || 'No user');
+    console.log('[Auth] Current initializing state:', initializing);
     setUser(user);
-    if (initializing) setInitializing(false);
+    if (initializing) {
+      console.log('[Auth] Setting initializing to false');
+      setInitializing(false);
+    }
   };
 
   useEffect(() => {
@@ -86,13 +92,18 @@ function RootNavigator() {
           const firebaseEmailLink = `https://redi.love/auth-redirect?${params.toString()}`;
 
           await signInWithEmailLink(firebaseEmailLink, email as string | undefined);
-          Alert.alert(
-            'Success',
-            'You have been signed in successfully!',
-            [{ text: 'OK' }]
-          );
+
+          showToast({ label: 'Signed in successfully!' });
+
+          setAnimate(true);
+          const profile = await getCurrentUserProfile();
+          if (profile) {
+            router.replace('/(auth)/(tabs)');
+          } else {
+            router.replace('/(auth)/create-profile');
+          }
+          setAnimate(false);
         } catch (error) {
-          console.error('Passwordless sign-in error:', error);
           Alert.alert(
             'Sign In Failed',
             error instanceof Error ? error.message : 'Failed to sign in with email link'
@@ -114,17 +125,6 @@ function RootNavigator() {
     return () => {
       subscription.remove();
     };
-  }, []);
-
-  // Check if onboarding video should be shown on first launch
-  useEffect(() => {
-    const checkOnboarding = async () => {
-      const hasShown = await hasShownOnboardingVideo();
-      if (!hasShown) {
-        setShowOnboarding(true);
-      }
-    };
-    checkOnboarding();
   }, []);
 
   // Clear badge when app comes to foreground
@@ -172,7 +172,11 @@ function RootNavigator() {
   }, [user]);
 
   useEffect(() => {
-    if (initializing) return;
+    console.log('[Routing] useEffect triggered - user:', user?.email, 'initializing:', initializing);
+    if (initializing) {
+      console.log('[Routing] Still initializing, skipping redirect check');
+      return;
+    }
 
     const inAuthGroup = segments[0] === '(auth)';
 
@@ -223,6 +227,7 @@ function RootNavigator() {
       console.log('segments:', segments);
       console.log('Full path:', segments.join('/'));
 
+      try {
       if (user && !inAuthGroup) {
         // User is signed in but not in auth group
         // Check if user has a profile to determine where to redirect
@@ -332,41 +337,26 @@ function RootNavigator() {
         );
       }
       console.log('=== END AUTH CHECK ===\n');
+      } finally {
+        setFirstCheckDone(true);
+      }
     };
 
     checkAndRedirect();
   }, [user, initializing]);
 
-  const handleOnboardingFinish = async () => {
-    await markOnboardingVideoAsShown();
-    setShowOnboarding(false);
-  };
-
-  if (initializing) {
-    return (
-      <View style={styles.loadingContainer}>
-        <LoadingSpinner />
-      </View>
-    );
-  }
+  useEffect(() => {
+    if (firstCheckDone) {
+      SplashScreen.hideAsync();
+    }
+  }, [firstCheckDone]);
 
   return (
-    <>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="home"
-          options={{
-            headerShown: false,
-          }}
-        />
-      </Stack>
-      <OnboardingVideo
-        visible={showOnboarding}
-        onFinish={handleOnboardingFinish}
-      />
-    </>
+    <Stack screenOptions={{ animation: animate ? 'default' : 'none' }}>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="home" options={{ headerShown: false }} />
+    </Stack>
   );
 }
 
@@ -388,10 +378,3 @@ export default function RootLayout() {
   );
 }
 
-const styles = {
-  loadingContainer: {
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    flex: 1,
-  },
-};

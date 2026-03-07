@@ -1,20 +1,36 @@
+import auth from '@react-native-firebase/auth';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AppColors } from './components/AppColors';
-import OnboardingVideo from './components/onboarding/OnboardingVideo';
+import OnboardingVideo, {
+  hasShownOnboardingVideo,
+  markOnboardingVideoAsShown,
+} from './components/onboarding/OnboardingVideo';
 
 export default function Index() {
-  const [showVideo, setShowVideo] = useState(true);
+  const [showVideo, setShowVideo] = useState(false);
 
-  const handleVideoFinish = () => {
+  useEffect(() => {
+    const unsubscribe = auth().onAuthStateChanged((user) => {
+      unsubscribe();
+      if (user) return; // signed in — _layout.tsx handles routing under the splash screen
+      hasShownOnboardingVideo().then((hasShown) => {
+        if (hasShown) {
+          router.replace('/home');
+        } else {
+          setShowVideo(true);
+        }
+      });
+    });
+    return unsubscribe;
+  }, []);
+
+  const handleVideoFinish = async () => {
+    await markOnboardingVideoAsShown();
     setShowVideo(false);
-    // Navigate to home screen where the splash and auth will be
     router.replace('/home');
   };
-
-  // Note: Auth routing is handled by _layout.tsx
-  // This page is only shown when user is not authenticated
 
   return (
     <View style={styles.container}>
