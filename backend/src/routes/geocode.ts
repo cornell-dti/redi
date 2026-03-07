@@ -12,8 +12,8 @@ router.get(
     const q = req.query.q as string;
 
 
-    if (!q || q.trim().length < 2) {
-      return res.status(400).json({ error: 'Query must be at least 2 characters' });
+    if (!q || q.trim().length < 3) {
+      return res.status(400).json({ error: 'Query must be at least 3 characters' });
     }
 
     const apiKey = process.env.GEOAPIFY_API_KEY;
