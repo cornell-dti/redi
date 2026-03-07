@@ -11,6 +11,22 @@ GoogleSignin.configure({
   iosClientId: '272234540869-6okghrkn79ub3kf6urj9h2jed3nmopel.apps.googleusercontent.com',
 });
 
+enum FirebaseAuthCode {
+  EmailAlreadyInUse = 'auth/email-already-in-use',
+  WeakPassword = 'auth/weak-password',
+  InvalidEmail = 'auth/invalid-email',
+  UserNotFound = 'auth/user-not-found',
+  WrongPassword = 'auth/wrong-password',
+  UserDisabled = 'auth/user-disabled',
+  InvalidActionCode = 'auth/invalid-action-code',
+}
+
+enum GoogleSignInCode {
+  Cancelled = 'SIGN_IN_CANCELLED',
+  InProgress = 'IN_PROGRESS',
+  PlayServicesNotAvailable = 'PLAY_SERVICES_NOT_AVAILABLE',
+}
+
 export const validateCornellEmail = (email: string): boolean => {
   const cornellEmailRegex = /^[a-zA-Z0-9]+@cornell\.edu$/;
   return cornellEmailRegex.test(email);
@@ -46,15 +62,15 @@ export const signUpUser = async (
     const err = error as FirebaseError;
 
     // Handle specific Firebase errors with messages
-    if (err.code === 'auth/email-already-in-use') {
+    if (err.code === FirebaseAuthCode.EmailAlreadyInUse) {
       throw new Error(
         'An account with this email already exists. Please try logging in instead.'
       );
-    } else if (err.code === 'auth/weak-password') {
+    } else if (err.code === FirebaseAuthCode.WeakPassword) {
       throw new Error(
         'Password is too weak. Please choose a stronger password.'
       );
-    } else if (err.code === 'auth/invalid-email') {
+    } else if (err.code === FirebaseAuthCode.InvalidEmail) {
       throw new Error('Please enter a valid email address.');
     } else {
       throw new Error(err.message || 'Registration failed. Please try again.');
@@ -88,15 +104,15 @@ export const signInUser = async (
 
     // Handle specific Firebase errors with messages
     if (
-      err.code === 'auth/user-not-found' ||
-      err.code === 'auth/wrong-password'
+      err.code === FirebaseAuthCode.UserNotFound ||
+      err.code === FirebaseAuthCode.WrongPassword
     ) {
       throw new Error(
         'Invalid email or password. Please check your credentials and try again.'
       );
-    } else if (err.code === 'auth/invalid-email') {
+    } else if (err.code === FirebaseAuthCode.InvalidEmail) {
       throw new Error('Please enter a valid email address.');
-    } else if (err.code === 'auth/user-disabled') {
+    } else if (err.code === FirebaseAuthCode.UserDisabled) {
       throw new Error(
         'This account has been disabled. Please contact support.'
       );
@@ -159,11 +175,11 @@ export const signInWithGoogle = async (): Promise<void> => {
     }
   } catch (error: any) {
     // Handle specific Google Sign-In errors
-    if (error.code === 'SIGN_IN_CANCELLED') {
+    if (error.code === GoogleSignInCode.Cancelled) {
       throw new Error('Sign in was cancelled');
-    } else if (error.code === 'IN_PROGRESS') {
+    } else if (error.code === GoogleSignInCode.InProgress) {
       throw new Error('Sign in already in progress');
-    } else if (error.code === 'PLAY_SERVICES_NOT_AVAILABLE') {
+    } else if (error.code === GoogleSignInCode.PlayServicesNotAvailable) {
       throw new Error('Google Play Services not available');
     }
 
@@ -333,9 +349,9 @@ export const signInWithEmailLink = async (
     const err = error as FirebaseError;
 
     // Handle specific Firebase errors
-    if (err.code === 'auth/invalid-action-code') {
+    if (err.code === FirebaseAuthCode.InvalidActionCode) {
       throw new Error('This sign-in link has expired or already been used.');
-    } else if (err.code === 'auth/invalid-email') {
+    } else if (err.code === FirebaseAuthCode.InvalidEmail) {
       throw new Error('Please enter a valid email address.');
     } else {
       throw new Error(err.message || 'Sign-in failed. Please try again.');
