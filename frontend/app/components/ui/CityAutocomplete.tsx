@@ -1,5 +1,4 @@
 import { House } from 'lucide-react-native';
-import { apiClient } from '../../api/apiClient';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -7,6 +6,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { apiClient } from '../../api/apiClient';
 import { AppColors } from '../AppColors';
 import AppInput from './AppInput';
 import ListItem from './ListItem';
@@ -46,7 +46,7 @@ export default function CityAutocomplete({
   }, []);
 
   const fetchCities = async (text: string) => {
-    if (!text.trim() || text.trim().length < 2) {
+    if (!text.trim() || text.trim().length < 3) {
       setResults([]);
       return;
     }
