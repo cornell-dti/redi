@@ -110,7 +110,6 @@ router.post(
   async (req: AuthenticatedRequest, res: express.Response) => {
     try {
       console.log('🆕 [firebase-create] Route handler started');
-      console.log('🆕 [firebase-create] Creating user from auth:', req.body);
 
       // Use authenticated user's email and uid from token
       const email = req.user!.email;
