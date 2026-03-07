@@ -47,10 +47,11 @@ function RootNavigator() {
   const [initializing, setInitializing] = useState(true);
   const [firstCheckDone, setFirstCheckDone] = useState(false);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
-  const [animate, setAnimate] = useState(false);
+  const [animate] = useState(false);
   const router = useRouter();
   const segments = useSegments();
   const appState = useRef(AppState.currentState);
+  const isHandlingDeepLink = useRef(false);
 
   const handleAuthStateChanged = (user: FirebaseAuthTypes.User | null) => {
     console.log('[Auth] Auth state changed:', user?.email || 'No user');
@@ -91,19 +92,20 @@ function RootNavigator() {
           // Reconstruct the Firebase email link
           const firebaseEmailLink = `https://redi.love/auth-redirect?${params.toString()}`;
 
+          isHandlingDeepLink.current = true;
           await signInWithEmailLink(firebaseEmailLink, email as string | undefined);
 
           showToast({ label: 'Signed in successfully!' });
 
-          setAnimate(true);
           const profile = await getCurrentUserProfile();
           if (profile) {
             router.replace('/(auth)/(tabs)');
           } else {
             router.replace('/(auth)/create-profile');
           }
-          setAnimate(false);
+          isHandlingDeepLink.current = false;
         } catch (error) {
+          isHandlingDeepLink.current = false;
           Alert.alert(
             'Sign In Failed',
             error instanceof Error ? error.message : 'Failed to sign in with email link'
@@ -221,6 +223,7 @@ function RootNavigator() {
     };
 
     const checkAndRedirect = async () => {
+      if (isHandlingDeepLink.current) return;
       console.log('=== AUTH CHECK ===');
       console.log('User:', user?.email || 'No user');
       console.log('inAuthGroup:', inAuthGroup);

@@ -51,6 +51,7 @@ import SearchableDropdown from '../components/ui/SearchableDropdown';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import { useThemeAware } from '../contexts/ThemeContext';
+import { useProfile } from '../contexts/ProfileContext';
 import { useHapticFeedback } from '../hooks/useHapticFeedback';
 import { useOnboardingState } from '../hooks/useOnboardingState';
 import {
@@ -157,6 +158,7 @@ function DraggablePromptSelector({
 export default function CreateProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
   const haptic = useHapticFeedback();
+  const { refreshProfile } = useProfile();
 
   const [currentStep, setCurrentStep] = useState(2); // Start at step 2
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
@@ -375,6 +377,9 @@ export default function CreateProfileScreen() {
         // Don't fail the whole onboarding if preferences save fails
         console.error('Failed to save preferences:', prefError);
       }
+
+      // Populate ProfileContext with the newly created profile
+      await refreshProfile();
 
       // Clear storage and navigate to main app
       await clearStorage();
