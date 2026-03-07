@@ -114,6 +114,7 @@ export default function SearchableDropdown({
           <ScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
             <ListItemWrapper style={styles.list}>
               {filteredOptions.map((item, index) => (
