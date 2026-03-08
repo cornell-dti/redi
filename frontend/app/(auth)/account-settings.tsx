@@ -110,8 +110,6 @@ export default function AccountSettingsPage() {
       await signOutUser();
       setShowDeleteSheet(false);
       setIsDeleting(false);
-
-      router.replace('/home' as any);
     } catch (error) {
       console.error('Delete account error:', error);
       setIsDeleting(false);
