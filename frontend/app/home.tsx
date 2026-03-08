@@ -1,4 +1,3 @@
-import * as SplashScreen from 'expo-splash-screen';
 import {
   ArrowLeft,
   ArrowRight,
@@ -13,7 +12,6 @@ import {
   Animated,
   Dimensions,
   Image,
-  Linking,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -27,8 +25,7 @@ import {
 } from './api/authService';
 import { AppColors } from './components/AppColors';
 import OnboardingVideo, {
-  hasShownOnboardingVideo,
-  markOnboardingVideoAsShown,
+  markOnboardingVideoAsShown
 } from './components/onboarding/OnboardingVideo';
 import AppInput from './components/ui/AppInput';
 import AppText from './components/ui/AppText';
@@ -37,7 +34,7 @@ import LoadingSpinner from './components/ui/LoadingSpinner';
 import Sheet from './components/ui/Sheet';
 import { useToast } from './contexts/ToastContext';
 
-type AuthMode = 'splash' | 'welcome' | 'signup' | 'login' | 'passwordless';
+type AuthMode = 'splash' | 'signup' | 'login' | 'passwordless';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -61,9 +58,9 @@ export default function HomePage() {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // Animate transitions between splash and welcome
+  // Animate transitions between splash and auth screens
   useEffect(() => {
-    if (mode === 'splash' || mode === 'welcome') {
+    if (mode === 'splash') {
       // Reset position based on direction
       buttonsSlideAnim.setValue(
         direction === 'forward' ? SCREEN_WIDTH : -SCREEN_WIDTH
@@ -200,18 +197,6 @@ export default function HomePage() {
     setMode(newMode);
   };
 
-  const handleGetStarted = () => {
-    setDirection('forward');
-    setMode('welcome');
-  };
-
-  useEffect(() => {
-    SplashScreen.hideAsync();
-    hasShownOnboardingVideo().then((hasShown) => {
-      if (!hasShown) setShowVideo(true);
-    });
-  }, []);
-
   const handleReplayVideo = () => {
     setShowVideo(true);
   };
@@ -290,6 +275,14 @@ export default function HomePage() {
           variant="secondary"
           iconLeft={Play}
         />
+
+        {__DEV__ && (
+          <Button
+            title="Dev Login"
+            onPress={() => handleModeChange('login')}
+            variant="negative"
+          />
+        )}
       </Animated.View>
 
       <Animated.View
@@ -300,94 +293,6 @@ export default function HomePage() {
       >
         <AppText style={{ textAlign: 'center', height: 60 }} color="dimmer">
           Made by Incubator, part of DTI
-        </AppText>
-      </Animated.View>
-    </View>
-  );
-
-  const renderWelcomeScreen = () => (
-    <View style={{ flex: 1, gap: 24, position: 'relative' }}>
-      <View style={{ position: 'absolute', top: 48, right: 0, width: 200 }}>
-        <Button
-          title="TESTING LOGIN"
-          onPress={() => handleModeChange('login')}
-          variant="negative"
-          fullWidth
-        />
-      </View>
-
-      <View style={styles.logoContainer}>
-        <Image
-          source={require('../assets/images/icon.png')}
-          resizeMode="contain"
-          style={styles.logoImage}
-        />
-
-        <AppText variant="title" style={styles.logoWordmark}>
-          redi
-        </AppText>
-        <AppText variant="subtitle" color="dimmer">
-          Cornell&apos;s first dating app
-        </AppText>
-      </View>
-
-      <Animated.View
-        style={{
-          gap: 12,
-          justifyContent: 'flex-end',
-          opacity: buttonsFadeAnim,
-          transform: [{ translateX: buttonsSlideAnim }],
-        }}
-      >
-        {/* <Button
-          title="Continue with Google"
-          onPress={handleGoogleSignIn}
-          variant="primary"
-          fullWidth
-          disabled={loading}
-          iconLeft={GoogleIcon}
-        /> */}
-
-        <Button
-          title="Sign in / Sign up with Email"
-          onPress={() => handleModeChange('passwordless')}
-          variant="primary"
-          fullWidth
-        />
-
-        <Button
-          title="Back"
-          onPress={handleBack}
-          variant="secondary"
-          fullWidth
-          iconLeft={ArrowLeft}
-        />
-      </Animated.View>
-
-      <Animated.View
-        style={{
-          opacity: footerFadeAnim,
-          transform: [{ translateX: footerSlideAnim }],
-        }}
-      >
-        <AppText style={{ textAlign: 'center', height: 60 }} color="dimmer">
-          By signing up, you agree to our{' '}
-          <AppText
-            color="accent"
-            style={{ textDecorationLine: 'underline' }}
-            onPress={() => Linking.openURL('https://redi.love/terms')}
-          >
-            Terms
-          </AppText>
-          . Learn how we process your data in our{' '}
-          <AppText
-            color="accent"
-            style={{ textDecorationLine: 'underline' }}
-            onPress={() => Linking.openURL('https://redi.love/privacy')}
-          >
-            Privacy
-          </AppText>
-          .
         </AppText>
       </Animated.View>
     </View>
@@ -575,7 +480,6 @@ export default function HomePage() {
       {/* <StatusBar barStyle="dark-content" /> */}
 
       {mode === 'splash' && renderSplashScreen()}
-      {mode === 'welcome' && renderWelcomeScreen()}
       {mode === 'passwordless' && renderPasswordlessScreen()}
       {(mode === 'signup' || mode === 'login') && renderAuthForm()}
 
@@ -624,11 +528,6 @@ const styles = StyleSheet.create({
   },
   // Center content - "redi" title area
   centerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
