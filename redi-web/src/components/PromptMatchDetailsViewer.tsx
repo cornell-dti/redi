@@ -324,8 +324,10 @@ export default function PromptMatchDetailsViewer({
                       Their Matches:
                     </div>
                     {match.matches.map((matchedUser, matchIndex) => {
-                      const isMutual = matchedUser.nudgedByUser && matchedUser.nudgedByMatch;
-                      const isNudged = matchedUser.nudgedByUser && !matchedUser.nudgedByMatch;
+                      const isMutual =
+                        matchedUser.nudgedByUser && matchedUser.nudgedByMatch;
+                      const isNudged =
+                        matchedUser.nudgedByUser && !matchedUser.nudgedByMatch;
 
                       return (
                         <div
@@ -334,8 +336,8 @@ export default function PromptMatchDetailsViewer({
                             isMutual
                               ? 'bg-purple-50 border border-purple-300'
                               : isNudged
-                              ? 'bg-green-50 border border-green-200'
-                              : 'bg-white border border-gray-200'
+                                ? 'bg-green-50 border border-green-200'
+                                : 'bg-white border border-gray-200'
                           }`}
                         >
                           {matchedUser.profilePicture ? (

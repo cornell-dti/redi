@@ -400,9 +400,7 @@ export default function AdminBroadcastPage() {
 
               {/* Preview in dialog */}
               <div className="bg-gray-100 rounded-lg p-4 mb-6">
-                <p className="font-semibold text-black text-sm mb-1">
-                  {title}
-                </p>
+                <p className="font-semibold text-black text-sm mb-1">{title}</p>
                 <p className="text-gray-700 text-xs">{body}</p>
               </div>
 

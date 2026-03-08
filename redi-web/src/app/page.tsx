@@ -1,12 +1,9 @@
 import Link from 'next/link';
 
 export default function Home() {
-
   return (
     <div className="flex flex-col items-center justify-between min-h-screen p-4 md:p-8 bg-[url(/background.png)] bg-cover bg-center">
       <div className="flex justify-between w-full">
-        
-
         <Link
           href="https://www.instagram.com/redi.match/"
           target="_blank"
@@ -60,16 +57,24 @@ export default function Home() {
             active:-translate-y-1 active:[box-shadow:0_4px_0_0_rgba(255_255_255_/_40%)] active:opacity-95
             transition focus-visible:outline-[#006BFF]"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 814 1000" className="w-5 h-5 md:w-6 md:h-6 -translate-y-[1px]" fill="currentColor">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 814 1000"
+              className="w-5 h-5 md:w-6 md:h-6 -translate-y-[1px]"
+              fill="currentColor"
+            >
               <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-194.3 126.4-297.5 250.8-297.5 66.1 0 121.2 43.4 162.7 43.4 39.5 0 101.1-46 176.3-46 28.5 0 130.9 2.6 198.3 99.2zm-234-181.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z" />
             </svg>
             Download on the App Store
           </a>
 
-          <div
-            className="border border-white text-white rounded-full px-8 py-4 text-[16px] md:text-[20px] flex items-center justify-center gap-2 w-full"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="w-5 h-5 md:w-6 md:h-6 -translate-y-[1px]" fill="currentColor">
+          <div className="border border-white text-white rounded-full px-8 py-4 text-[16px] md:text-[20px] flex items-center justify-center gap-2 w-full">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              className="w-5 h-5 md:w-6 md:h-6 -translate-y-[1px]"
+              fill="currentColor"
+            >
               <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84 1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C14.15 1.23 13.11 1 12 1c-1.11 0-2.15.23-3.09.63L7.43.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.3 1.3C6.45 3.28 5.26 5.01 5.03 7h13.95c-.24-1.99-1.43-3.72-3.45-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z" />
             </svg>
             Coming soon to Android
