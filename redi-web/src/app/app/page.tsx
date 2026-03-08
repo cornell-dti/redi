@@ -10,7 +10,8 @@ export default async function RedirectApp() {
     redirect('https://apps.apple.com/us/app/redi-love/id6754899018');
   }
   else {
-    redirect('https://redi.love/');
+    console.log(process.env.NEXT_PUBLIC_BASE_URL)
+    redirect(`${process.env.NEXT_PUBLIC_BASE_URL ?? 'https://redi.love'}/`);
   }
 
 }
