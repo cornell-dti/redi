@@ -73,7 +73,6 @@ export default function ProfileScreen() {
       await signOutUser();
       console.log('Sign out successful');
       setShowSignOutSheet(false);
-      router.replace('/home' as any);
     } catch (error) {
       console.error('Sign out error:', error);
       Alert.alert(

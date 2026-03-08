@@ -1,3 +1,4 @@
+import * as SplashScreen from 'expo-splash-screen';
 import {
   ArrowLeft,
   ArrowRight,
@@ -25,7 +26,10 @@ import {
   validateCornellEmail,
 } from './api/authService';
 import { AppColors } from './components/AppColors';
-import OnboardingVideo from './components/onboarding/OnboardingVideo';
+import OnboardingVideo, {
+  hasShownOnboardingVideo,
+  markOnboardingVideoAsShown,
+} from './components/onboarding/OnboardingVideo';
 import AppInput from './components/ui/AppInput';
 import AppText from './components/ui/AppText';
 import Button from './components/ui/Button';
@@ -205,11 +209,19 @@ export default function HomePage() {
     setMode('welcome');
   };
 
+  useEffect(() => {
+    SplashScreen.hideAsync();
+    hasShownOnboardingVideo().then((hasShown) => {
+      if (!hasShown) setShowVideo(true);
+    });
+  }, []);
+
   const handleReplayVideo = () => {
     setShowVideo(true);
   };
 
-  const handleVideoFinish = () => {
+  const handleVideoFinish = async () => {
+    await markOnboardingVideoAsShown();
     setShowVideo(false);
   };
 

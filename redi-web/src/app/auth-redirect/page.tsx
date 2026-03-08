@@ -29,7 +29,7 @@ function AuthRedirectContent() {
         params.append('email', email);
       }
 
-      deepLink = `redi://?${params.toString()}`;
+      deepLink = `redi:///auth-redirect?${params.toString()}`;
     }
 
     console.log('Deep link:', deepLink);
@@ -62,7 +62,7 @@ function AuthRedirectContent() {
         params.append('email', email);
       }
 
-      deepLink = `redi://?${params.toString()}`;
+      deepLink = `redi:///auth-redirect?${params.toString()}`;
     }
 
     window.location.href = deepLink;
