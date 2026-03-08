@@ -4,7 +4,6 @@ import DeleteAccountSheet from '@/app/components/ui/DeleteAccountSheet';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import SignOutSheet from '@/app/components/ui/SignOutSheet';
-import { router } from 'expo-router';
 import { LogOut, Pencil, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
@@ -67,7 +66,7 @@ export default function AccountSettingsPage() {
       Alert.alert(
         'Error',
         'Failed to sign out: ' +
-          (error instanceof Error ? error.message : 'Unknown error')
+        (error instanceof Error ? error.message : 'Unknown error')
       );
     }
   };
@@ -116,7 +115,7 @@ export default function AccountSettingsPage() {
       Alert.alert(
         'Error',
         'Failed to delete account: ' +
-          (error instanceof Error ? error.message : 'Unknown error')
+        (error instanceof Error ? error.message : 'Unknown error')
       );
     }
   };
@@ -154,7 +153,7 @@ export default function AccountSettingsPage() {
               iconLeft={Pencil}
               variant="secondary"
               title="Cannot change email address"
-              onPress={() => {}}
+              onPress={() => { }}
             />
           </ListItemWrapper>
         </View>
