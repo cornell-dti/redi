@@ -190,11 +190,7 @@ export default function HomePage() {
 
   const handleBack = () => {
     setDirection('backward');
-    if (mode === 'welcome') {
-      setMode('splash');
-    } else {
-      setMode('welcome');
-    }
+    setMode('splash');
     setEmail('');
     setPassword('');
   };
@@ -283,7 +279,7 @@ export default function HomePage() {
       >
         <Button
           title="Get Started"
-          onPress={handleGetStarted}
+          onPress={() => handleModeChange('passwordless')}
           variant="primary"
           iconRight={ArrowRight}
         />
