@@ -12,11 +12,11 @@ import { Check, ChevronDown, GripVertical, Plus } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
-  Animated as RNAnimated,
   Dimensions,
   Image,
   KeyboardAvoidingView,
   Platform,
+  Animated as RNAnimated,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -44,14 +44,14 @@ import PromptSelector from '../components/onboarding/PromptSelector';
 import AppInput from '../components/ui/AppInput';
 import AppText from '../components/ui/AppText';
 import Button from '../components/ui/Button';
+import CityAutocomplete from '../components/ui/CityAutocomplete';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
-import CityAutocomplete from '../components/ui/CityAutocomplete';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
-import { useThemeAware } from '../contexts/ThemeContext';
 import { useProfile } from '../contexts/ProfileContext';
+import { useThemeAware } from '../contexts/ThemeContext';
 import { useHapticFeedback } from '../hooks/useHapticFeedback';
 import { useOnboardingState } from '../hooks/useOnboardingState';
 import {
@@ -378,7 +378,6 @@ export default function CreateProfileScreen() {
         console.error('Failed to save preferences:', prefError);
       }
 
-      // Populate ProfileContext with the newly created profile
       await refreshProfile();
 
       // Clear storage and navigate to main app
@@ -814,8 +813,8 @@ export default function CreateProfileScreen() {
                           >
                             <PromptSelector
                               prompt={data.prompts[draggingPromptIndex]}
-                              onUpdate={() => {}}
-                              onRemove={() => {}}
+                              onUpdate={() => { }}
+                              onRemove={() => { }}
                               canRemove={true}
                             />
                           </View>
