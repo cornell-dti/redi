@@ -29,8 +29,9 @@ export default function DataDeletionPage() {
               How to Request Account Deletion
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              If you would like to delete your <span className="font-semibold">Redi</span> account
-              and all associated data, please follow these steps:
+              If you would like to delete your{' '}
+              <span className="font-semibold">Redi</span> account and all
+              associated data, please follow these steps:
             </p>
 
             <div className="bg-purple-50 border-l-4 border-purple-600 p-6 my-6 rounded-r-lg">
@@ -45,7 +46,10 @@ export default function DataDeletionPage() {
                   </a>
                 </li>
                 <li>
-                  Use the subject line: <span className="italic">&quot;Account Deletion Request&quot;</span>
+                  Use the subject line:{' '}
+                  <span className="italic">
+                    &quot;Account Deletion Request&quot;
+                  </span>
                 </li>
                 <li>
                   Include the email address associated with your Redi account
@@ -57,7 +61,8 @@ export default function DataDeletionPage() {
             </div>
 
             <p className="text-gray-700 leading-relaxed">
-              Our team will verify your identity and process your deletion request promptly.
+              Our team will verify your identity and process your deletion
+              request promptly.
             </p>
           </section>
 
@@ -66,7 +71,8 @@ export default function DataDeletionPage() {
               What Data Will Be Deleted
             </h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              When you request account deletion, the following data will be permanently removed:
+              When you request account deletion, the following data will be
+              permanently removed:
             </p>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
               <li>Your Cornell email address and account identifiers</li>
@@ -87,17 +93,20 @@ export default function DataDeletionPage() {
             </p>
             <ul className="list-disc pl-6 text-gray-700 space-y-2">
               <li>
-                <span className="font-semibold">De-identified, aggregated statistics</span> such as
-                overall usage metrics and engagement patterns that cannot be linked back to you
+                <span className="font-semibold">
+                  De-identified, aggregated statistics
+                </span>{' '}
+                such as overall usage metrics and engagement patterns that
+                cannot be linked back to you
               </li>
               <li>
-                <span className="font-semibold">Anonymized data</span> used to improve our matching
-                algorithm and app functionality
+                <span className="font-semibold">Anonymized data</span> used to
+                improve our matching algorithm and app functionality
               </li>
             </ul>
             <p className="text-gray-700 leading-relaxed mt-4">
-              This retained data is completely anonymized and cannot be used to identify you
-              personally.
+              This retained data is completely anonymized and cannot be used to
+              identify you personally.
             </p>
           </section>
 
@@ -107,12 +116,14 @@ export default function DataDeletionPage() {
             </h2>
             <div className="bg-pink-50 border border-pink-200 rounded-lg p-6">
               <p className="text-gray-700 leading-relaxed">
-                Once we receive and verify your deletion request, all personally identifiable
-                information will be permanently deleted from our systems within{' '}
+                Once we receive and verify your deletion request, all personally
+                identifiable information will be permanently deleted from our
+                systems within{' '}
                 <span className="font-bold text-pink-700 text-xl">7 days</span>.
               </p>
               <p className="text-gray-700 leading-relaxed mt-3">
-                You will receive a confirmation email once the deletion process is complete.
+                You will receive a confirmation email once the deletion process
+                is complete.
               </p>
             </div>
           </section>
@@ -123,15 +134,19 @@ export default function DataDeletionPage() {
             </h2>
             <ul className="list-disc pl-6 text-gray-700 space-y-3">
               <li>
-                Account deletion is <span className="font-semibold">permanent and irreversible</span>.
-                Once deleted, you cannot recover your account or data.
+                Account deletion is{' '}
+                <span className="font-semibold">
+                  permanent and irreversible
+                </span>
+                . Once deleted, you cannot recover your account or data.
               </li>
               <li>
-                If you wish to use Redi again in the future, you will need to create a new account.
+                If you wish to use Redi again in the future, you will need to
+                create a new account.
               </li>
               <li>
-                Deletion requests are processed manually to ensure security. You should receive
-                confirmation within 1-2 business days.
+                Deletion requests are processed manually to ensure security. You
+                should receive confirmation within 1-2 business days.
               </li>
             </ul>
           </section>
@@ -141,15 +156,16 @@ export default function DataDeletionPage() {
               Questions or Concerns?
             </h2>
             <p className="text-gray-700 leading-relaxed">
-              If you have any questions about the deletion process or our data practices,
-              please contact us at{' '}
+              If you have any questions about the deletion process or our data
+              practices, please contact us at{' '}
               <a
                 href="mailto:redicornell@gmail.com"
                 className="text-purple-600 hover:text-purple-700 font-medium"
               >
                 redicornell@gmail.com
               </a>
-              . For more information about how we handle your data, please review our{' '}
+              . For more information about how we handle your data, please
+              review our{' '}
               <Link
                 href="/privacy"
                 className="text-purple-600 hover:text-purple-700 font-medium"

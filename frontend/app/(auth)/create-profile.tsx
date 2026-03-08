@@ -861,7 +861,7 @@ export default function CreateProfileScreen() {
           <View style={styles.stepContainer}>
             <OnboardingTitle
               title="What clubs are you in?"
-              subtitle="Optional - Add any Cornell clubs or organizations you're part of."
+              subtitle="Optional - Add any Cornell clubs or organizations you're a part of."
             />
 
             {data.clubs.length > 0 && (
@@ -1017,7 +1017,7 @@ export default function CreateProfileScreen() {
         return (
           <View style={styles.stepContainer}>
             <AppText variant="title" style={{ textAlign: 'center' }}>
-              And now, {data.firstName}, you&apos;re redi!
+              And now, {data.firstName}, you&apos;re redi! 
             </AppText>
             <View style={styles.welcomeContainer}>
               {data.pictures[0] && (

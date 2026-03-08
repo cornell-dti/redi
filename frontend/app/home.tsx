@@ -584,7 +584,7 @@ export default function HomePage() {
       {(mode === 'signup' || mode === 'login') && renderAuthForm()}
 
       {/* Onboarding Video Modal */}
-      <OnboardingVideo visible={showVideo} onFinish={handleVideoFinish} />
+      {showVideo && <OnboardingVideo visible={showVideo} onFinish={handleVideoFinish} />}
 
       <Sheet
         visible={showInfoSheet}
