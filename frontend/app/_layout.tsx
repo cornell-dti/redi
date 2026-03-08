@@ -45,7 +45,6 @@ function RootNavigator() {
   const { showToast } = useToast();
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
-  const [animate] = useState(false);
   const router = useRouter();
   const segments = useSegments();
   const appState = useRef(AppState.currentState);
@@ -347,7 +346,7 @@ function RootNavigator() {
 
 
   return (
-    <Stack screenOptions={{ animation: animate ? 'default' : 'default' }}>
+    <Stack screenOptions={{ animation: 'default' }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="auth-redirect" options={{ headerShown: false, animation: 'none' }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
