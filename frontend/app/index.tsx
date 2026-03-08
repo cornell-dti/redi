@@ -34,7 +34,7 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
-      <OnboardingVideo visible={showVideo} onFinish={handleVideoFinish} />
+      {showVideo && <OnboardingVideo visible={showVideo} onFinish={handleVideoFinish} />}
     </View>
   );
 }

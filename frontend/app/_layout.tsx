@@ -47,6 +47,8 @@ function RootNavigator() {
   const [initializing, setInitializing] = useState(true);
   const [firstCheckDone, setFirstCheckDone] = useState(false);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isCheckingProfile, setIsCheckingProfile] = useState(false);
   const [animate, setAnimate] = useState(false);
   const router = useRouter();
   const segments = useSegments();
@@ -231,6 +233,7 @@ function RootNavigator() {
       if (user && !inAuthGroup) {
         // User is signed in but not in auth group
         // Check if user has a profile to determine where to redirect
+        setIsCheckingProfile(true);
         try {
           const profile = await getCurrentUserProfile();
 
@@ -352,11 +355,24 @@ function RootNavigator() {
   }, [firstCheckDone]);
 
   return (
-    <Stack screenOptions={{ animation: animate ? 'default' : 'none' }}>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="home" options={{ headerShown: false }} />
-    </Stack>
+    <>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="home"
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack>
+      {showOnboarding && (
+        <OnboardingVideo
+          visible={showOnboarding}
+          onFinish={handleOnboardingFinish}
+        />
+      )}
+    </>
   );
 }
 
