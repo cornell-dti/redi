@@ -18,12 +18,16 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
+  TouchableOpacity,
   View,
 } from 'react-native';
+
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
+
+import { CLUBS } from '@/constants/clubs';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import Button from '../components/ui/Button';
@@ -106,6 +110,8 @@ export default function EditClubsPage() {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [editingClub, setEditingClub] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [suggestions, setSuggestions] = useState<{ name: string; category: string }[]>([]);
+  const [editSuggestions, setEditSuggestions] = useState<{ name: string; category: string }[]>([]);
 
   useEffect(() => {
     fetchProfile();
@@ -205,6 +211,23 @@ export default function EditClubsPage() {
     const [movedClub] = newClubs.splice(fromIndex, 1);
     newClubs.splice(toIndex, 0, movedClub);
     setClubs(newClubs);
+  };
+
+  const filterSuggestions = (text: string, currentClubs: string[]) =>
+    CLUBS.filter(
+      (c) =>
+        c.name.toLowerCase().includes(text.toLowerCase()) &&
+        !currentClubs.includes(c.name)
+    ).slice(0, 5);
+
+  const handleNewClubChange = (text: string) => {
+    setNewClub(text);
+    setSuggestions(text.trim().length > 0 ? filterSuggestions(text, clubs) : []);
+  };
+
+  const handleEditValueChange = (text: string) => {
+    setEditValue(text);
+    setEditSuggestions(text.trim().length > 0 ? filterSuggestions(text, clubs) : []);
   };
 
   const handleEditClub = (club: string) => {
@@ -341,13 +364,29 @@ export default function EditClubsPage() {
           <AppInput
             placeholder="e.g., Debate, Sports, Drama"
             value={newClub}
-            onChangeText={setNewClub}
+            onChangeText={handleNewClubChange}
             autoCapitalize="words"
             autoCorrect={false}
             autoFocus={true}
             returnKeyType="done"
             onSubmitEditing={addClub}
           />
+          {suggestions.length > 0 && (
+            <View style={styles.suggestionsContainer}>
+              {suggestions.map((club) => (
+                <TouchableOpacity
+                  key={club.name}
+                  onPress={() => {
+                    setNewClub(club.name);
+                    setSuggestions([]);
+                  }}
+                  style={styles.suggestionRow}
+                >
+                  <AppText>{club.name}</AppText>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
           <Button
             title="Add"
             onPress={addClub}
@@ -375,13 +414,29 @@ export default function EditClubsPage() {
           <AppInput
             placeholder="e.g., Debate, Sports, Drama"
             value={editValue}
-            onChangeText={setEditValue}
+            onChangeText={handleEditValueChange}
             autoCapitalize="words"
             autoCorrect={false}
             autoFocus={true}
             returnKeyType="done"
             onSubmitEditing={handleSaveEdit}
           />
+          {editSuggestions.length > 0 && (
+            <View style={styles.suggestionsContainer}>
+              {editSuggestions.map((club) => (
+                <TouchableOpacity
+                  key={club.name}
+                  onPress={() => {
+                    setEditValue(club.name);
+                    setEditSuggestions([]);
+                  }}
+                  style={styles.suggestionRow}
+                >
+                  <AppText>{club.name}</AppText>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
           <Button
             title="Save"
             onPress={handleSaveEdit}
@@ -452,5 +507,20 @@ const styles = StyleSheet.create({
   },
   sheetContent: {
     gap: 16,
+  },
+  suggestionsContainer: {
+    backgroundColor: AppColors.backgroundDimmer,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: -8,
+  },
+  suggestionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: AppColors.backgroundDefault,
   },
 });
