@@ -44,12 +44,13 @@ import PromptSelector from '../components/onboarding/PromptSelector';
 import AppInput from '../components/ui/AppInput';
 import AppText from '../components/ui/AppText';
 import Button from '../components/ui/Button';
+import CityAutocomplete from '../components/ui/CityAutocomplete';
 import ListItem from '../components/ui/ListItem';
 import ListItemWrapper from '../components/ui/ListItemWrapper';
-import CityAutocomplete from '../components/ui/CityAutocomplete';
 import SearchableDropdown from '../components/ui/SearchableDropdown';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
+import { useProfile } from '../contexts/ProfileContext';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useHapticFeedback } from '../hooks/useHapticFeedback';
 import { useOnboardingState } from '../hooks/useOnboardingState';
@@ -157,6 +158,7 @@ function DraggablePromptSelector({
 export default function CreateProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
   const haptic = useHapticFeedback();
+  const { refreshProfile } = useProfile();
 
   const [currentStep, setCurrentStep] = useState(2); // Start at step 2
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
@@ -204,7 +206,7 @@ export default function CreateProfileScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [currentStep]);
+  }, [currentStep, direction, slideAnim, fadeAnim]);
 
   if (!isLoaded) {
     return null; // Wait for AsyncStorage to load
@@ -375,6 +377,8 @@ export default function CreateProfileScreen() {
         // Don't fail the whole onboarding if preferences save fails
         console.error('Failed to save preferences:', prefError);
       }
+
+      await refreshProfile();
 
       // Clear storage and navigate to main app
       await clearStorage();

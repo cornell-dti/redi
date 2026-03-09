@@ -3,10 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import auth from '@react-native-firebase/auth';
 import * as Linking from 'expo-linking';
-import * as SplashScreen from 'expo-splash-screen';
 import { Stack, useRouter, useSegments } from 'expo-router';
-
-SplashScreen.preventAutoHideAsync();
+import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, AppState } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -21,6 +19,7 @@ import { ToastProvider, useToast } from './contexts/ToastContext';
 import { clearBadgeCount } from './services/notificationPermissions';
 
 SplashScreen.preventAutoHideAsync();
+
 
 /**
  * Token Refresh Configuration
@@ -45,14 +44,11 @@ function RootNavigator() {
   useThemeAware(); // This makes all screens theme-aware
   const { showToast } = useToast();
   const [initializing, setInitializing] = useState(true);
-  const [firstCheckDone, setFirstCheckDone] = useState(false);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [isCheckingProfile, setIsCheckingProfile] = useState(false);
-  const [animate, setAnimate] = useState(false);
   const router = useRouter();
   const segments = useSegments();
   const appState = useRef(AppState.currentState);
+  const isHandlingDeepLink = useRef(false);
 
   const handleAuthStateChanged = (user: FirebaseAuthTypes.User | null) => {
     console.log('[Auth] Auth state changed:', user?.email || 'No user');
@@ -79,55 +75,57 @@ function RootNavigator() {
       const { apiKey, oobCode, mode, email } = parsedUrl.queryParams || {};
 
       if (apiKey && oobCode) {
+        const params = new URLSearchParams({
+          apiKey: apiKey as string,
+          oobCode: oobCode as string,
+          mode: (mode as string) || 'signIn',
+        });
+
+        if (email) {
+          params.append('email', email as string);
+        }
+
+        // Reconstruct the Firebase email link
+        const firebaseEmailLink = `https://redi.love/auth-redirect?${params.toString()}`;
+
+        isHandlingDeepLink.current = true;
         try {
-          const params = new URLSearchParams({
-            apiKey: apiKey as string,
-            oobCode: oobCode as string,
-            mode: (mode as string) || 'signIn',
-          });
-
-          if (email) {
-            params.append('email', email as string);
-          }
-
-          // Reconstruct the Firebase email link
-          const firebaseEmailLink = `https://redi.love/auth-redirect?${params.toString()}`;
-
           await signInWithEmailLink(firebaseEmailLink, email as string | undefined);
 
           showToast({ label: 'Signed in successfully!' });
 
-          setAnimate(true);
           const profile = await getCurrentUserProfile();
           if (profile) {
             router.replace('/(auth)/(tabs)');
           } else {
             router.replace('/(auth)/create-profile');
           }
-          setAnimate(false);
         } catch (error) {
           Alert.alert(
             'Sign In Failed',
             error instanceof Error ? error.message : 'Failed to sign in with email link'
           );
+          router.replace('/home');
+        } finally {
+          isHandlingDeepLink.current = false;
         }
       }
     };
 
-    // Check for initial URL when app is opened from a link
-    Linking.getInitialURL().then((url) => {
-      if (url) {
-        handleDeepLink({ url });
-      }
-    });
+      // Check for initial URL when app is opened from a link.
+      Linking.getInitialURL().then((url) => {
+        if (url) {
+          handleDeepLink({ url });
+        }
+      });
 
-    // Listen for deep links while app is running
-    const subscription = Linking.addEventListener('url', handleDeepLink);
+      // Listen for deep links while app is running
+      const subscription = Linking.addEventListener('url', handleDeepLink);
 
-    return () => {
-      subscription.remove();
-    };
-  }, []);
+      return () => {
+        subscription.remove();
+      };
+    }, []);
 
   // Clear badge when app comes to foreground
   useEffect(() => {
@@ -223,6 +221,7 @@ function RootNavigator() {
     };
 
     const checkAndRedirect = async () => {
+      if (isHandlingDeepLink.current) return;
       console.log('=== AUTH CHECK ===');
       console.log('User:', user?.email || 'No user');
       console.log('inAuthGroup:', inAuthGroup);
@@ -230,149 +229,130 @@ function RootNavigator() {
       console.log('Full path:', segments.join('/'));
 
       try {
-      if (user && !inAuthGroup) {
-        // User is signed in but not in auth group
-        // Check if user has a profile to determine where to redirect
-        setIsCheckingProfile(true);
-        try {
-          const profile = await getCurrentUserProfile();
+        if (user && !inAuthGroup) {
+          // User is signed in but not in auth group
+          // Check if user has a profile to determine where to redirect
+          try {
+            const profile = await getCurrentUserProfile();
 
-          if (profile) {
-            // User has a complete profile, go to tabs
-            console.log('✅ Redirecting to tabs - user has profile');
-            await cacheProfile(profile); // Cache successful fetch
-            router.replace('/(auth)/(tabs)');
-          } else {
-            // User doesn't have a profile yet, go to create profile
-            console.log('✅ Redirecting to create-profile - no profile found');
-            router.replace('/(auth)/create-profile');
-          }
-        } catch (error: any) {
-          console.error('Error checking profile:', error);
-
-          // Differentiated error handling based on error type
-          if (error instanceof APIError) {
-            if (error.status === 429) {
-              // Rate limited - check cache and stay in place
-              console.log('⚠️  Rate limited - checking cache');
-              const cachedProfile = await getCachedProfile();
-
-              if (cachedProfile) {
-                // Have cached profile, redirect to tabs
-                console.log('✅ Using cached profile - redirecting to tabs');
-                router.replace('/(auth)/(tabs)');
-              } else {
-                // No cache - show alert but don't redirect
-                console.log('❌ Rate limited with no cache - showing alert');
-                Alert.alert(
-                  'Too Many Requests',
-                  "Please wait a moment before trying again. We're experiencing high traffic.",
-                  [{ text: 'OK' }]
-                );
-              }
-            } else if (error.status >= 500 && error.status < 600) {
-              // Server error - check cache
-              console.log('⚠️  Server error - checking cache');
-              const cachedProfile = await getCachedProfile();
-
-              if (cachedProfile) {
-                console.log('✅ Using cached profile - redirecting to tabs');
-                router.replace('/(auth)/(tabs)');
-              } else {
-                console.log('❌ Server error with no cache - showing alert');
-                Alert.alert(
-                  'Server Error',
-                  'Unable to load your profile. Please try again later.',
-                  [{ text: 'OK' }]
-                );
-              }
-            } else if (error.status === 404) {
-              // Profile not found - redirect to create profile
-              console.log(
-                '✅ Redirecting to create-profile - 404 profile not found'
-              );
-              router.replace('/(auth)/create-profile');
-            } else {
-              // Other API errors - likely profile doesn't exist
-              console.log('✅ Redirecting to create-profile - other API error');
-              router.replace('/(auth)/create-profile');
-            }
-          } else {
-            // Network or other errors - check cache
-            console.log('⚠️  Network/unknown error - checking cache');
-            const cachedProfile = await getCachedProfile();
-
-            if (cachedProfile) {
-              console.log('✅ Using cached profile - redirecting to tabs');
+            if (profile) {
+              // User has a complete profile, go to tabs
+              console.log('✅ Redirecting to tabs - user has profile');
+              await cacheProfile(profile); // Cache successful fetch
               router.replace('/(auth)/(tabs)');
             } else {
-              console.log(
-                '⚠️  No cached profile available - defaulting to create-profile'
-              );
-              Alert.alert(
-                'Connection Error',
-                'Unable to verify your profile. Please check your internet connection.',
-                [
-                  {
-                    text: 'Retry',
-                    onPress: () => checkAndRedirect(),
-                  },
-                  {
-                    text: 'Continue',
-                    onPress: () => router.replace('/(auth)/create-profile'),
-                  },
-                ]
-              );
+              // User doesn't have a profile yet, go to create profile
+              console.log('✅ Redirecting to create-profile - no profile found');
+              router.replace('/(auth)/create-profile');
+            }
+          } catch (error: any) {
+            console.error('Error checking profile:', error);
+
+            // Differentiated error handling based on error type
+            if (error instanceof APIError) {
+              if (error.status === 429) {
+                // Rate limited - check cache and stay in place
+                console.log('⚠️  Rate limited - checking cache');
+                const cachedProfile = await getCachedProfile();
+
+                if (cachedProfile) {
+                  // Have cached profile, redirect to tabs
+                  console.log('✅ Using cached profile - redirecting to tabs');
+                  router.replace('/(auth)/(tabs)');
+                } else {
+                  // No cache - show alert but don't redirect
+                  console.log('❌ Rate limited with no cache - showing alert');
+                  Alert.alert(
+                    'Too Many Requests',
+                    "Please wait a moment before trying again. We're experiencing high traffic.",
+                    [{ text: 'OK' }]
+                  );
+                }
+              } else if (error.status >= 500 && error.status < 600) {
+                // Server error - check cache
+                console.log('⚠️  Server error - checking cache');
+                const cachedProfile = await getCachedProfile();
+
+                if (cachedProfile) {
+                  console.log('✅ Using cached profile - redirecting to tabs');
+                  router.replace('/(auth)/(tabs)');
+                } else {
+                  console.log('❌ Server error with no cache - showing alert');
+                  Alert.alert(
+                    'Server Error',
+                    'Unable to load your profile. Please try again later.',
+                    [{ text: 'OK' }]
+                  );
+                }
+              } else if (error.status === 404) {
+                // Profile not found - redirect to create profile
+                console.log(
+                  '✅ Redirecting to create-profile - 404 profile not found'
+                );
+                router.replace('/(auth)/create-profile');
+              } else {
+                // Other API errors - likely profile doesn't exist
+                console.log('✅ Redirecting to create-profile - other API error');
+                router.replace('/(auth)/create-profile');
+              }
+            } else {
+              // Network or other errors - check cache
+              console.log('⚠️  Network/unknown error - checking cache');
+              const cachedProfile = await getCachedProfile();
+
+              if (cachedProfile) {
+                console.log('✅ Using cached profile - redirecting to tabs');
+                router.replace('/(auth)/(tabs)');
+              } else {
+                console.log(
+                  '⚠️  No cached profile available - defaulting to create-profile'
+                );
+                Alert.alert(
+                  'Connection Error',
+                  'Unable to verify your profile. Please check your internet connection.',
+                  [
+                    {
+                      text: 'Retry',
+                      onPress: () => checkAndRedirect(),
+                    },
+                    {
+                      text: 'Continue',
+                      onPress: () => router.replace('/(auth)/create-profile'),
+                    },
+                  ]
+                );
+              }
             }
           }
+        } else if (!user && inAuthGroup) {
+          // User is not signed in but in auth group, redirect to login
+          console.log('✅ Redirecting to home - no user but in auth group');
+          router.replace('/home' as any);
+        } else if (!user && !inAuthGroup) {
+          console.log('✅ Redirecting to home - no user and not in auth group');
+          router.replace('/home' as any);
+        } else {
+          console.log(
+            'ℹ️  User authenticated and in auth group - no action needed'
+          );
         }
-      } else if (!user && inAuthGroup) {
-        // User is not signed in but in auth group, redirect to login
-        console.log('✅ Redirecting to root - no user but in auth group');
-        router.replace('/');
-      } else if (!user && !inAuthGroup) {
-        console.log(
-          'ℹ️  No user and not in auth group - staying at current location'
-        );
-      } else {
-        console.log(
-          'ℹ️  User authenticated and in auth group - no action needed'
-        );
-      }
-      console.log('=== END AUTH CHECK ===\n');
+        console.log('=== END AUTH CHECK ===\n');
       } finally {
-        setFirstCheckDone(true);
+        // Splash is hidden by destination screens (home.tsx / auth layout) on mount
       }
     };
 
     checkAndRedirect();
   }, [user, initializing]);
 
-  useEffect(() => {
-    if (firstCheckDone) {
-      SplashScreen.hideAsync();
-    }
-  }, [firstCheckDone]);
 
   return (
-    <>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="home"
-          options={{
-            headerShown: false,
-          }}
-        />
-      </Stack>
-      {showOnboarding && (
-        <OnboardingVideo
-          visible={showOnboarding}
-          onFinish={handleOnboardingFinish}
-        />
-      )}
-    </>
+    <Stack screenOptions={{ animation: 'default' }}>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="auth-redirect" options={{ headerShown: false, animation: 'none' }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="home" options={{ headerShown: false, animation: 'slide_from_left' }} />
+    </Stack>
   );
 }
 

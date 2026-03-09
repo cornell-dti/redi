@@ -1,7 +1,13 @@
+import * as SplashScreen from 'expo-splash-screen';
 import { Stack } from 'expo-router';
+import { useEffect } from 'react';
 import { NotificationsProvider } from '../contexts/NotificationsContext';
 
 export default function AuthLayout() {
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
   return (
     <NotificationsProvider>
       <Stack

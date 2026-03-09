@@ -1,4 +1,5 @@
 import { OwnProfileResponse } from '@/types';
+import auth from '@react-native-firebase/auth';
 import React, {
   createContext,
   ReactNode,
@@ -28,6 +29,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const fetchProfile = useCallback(async () => {
     const user = getCurrentUser();
     if (!user?.uid) {
+      setProfile(null);
       setLoading(false);
       return;
     }
@@ -46,7 +48,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    fetchProfile();
+    const unsubscribe = auth().onAuthStateChanged(() => {
+      fetchProfile();
+    });
+    return unsubscribe;
   }, [fetchProfile]);
 
   const refreshProfile = useCallback(async () => {
