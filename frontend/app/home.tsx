@@ -37,7 +37,7 @@ import LoadingSpinner from './components/ui/LoadingSpinner';
 import Sheet from './components/ui/Sheet';
 import { useToast } from './contexts/ToastContext';
 
-type AuthMode = 'splash' | 'welcome' | 'signup' | 'login' | 'passwordless';
+type AuthMode = 'splash' | 'signup' | 'login' | 'passwordless';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -51,7 +51,7 @@ export default function HomePage() {
   const [showVideo, setShowVideo] = useState(false);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
 
-  // Animation refs for splash/welcome elements
+  // Animation refs for splash elements
   const buttonsSlideAnim = useRef(new Animated.Value(0)).current;
   const buttonsFadeAnim = useRef(new Animated.Value(1)).current;
   const footerSlideAnim = useRef(new Animated.Value(0)).current;
@@ -61,9 +61,9 @@ export default function HomePage() {
   const slideAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // Animate transitions between splash and welcome
+  // Animate transitions between splash
   useEffect(() => {
-    if (mode === 'splash' || mode === 'welcome') {
+    if (mode === 'splash') {
       // Reset position based on direction
       buttonsSlideAnim.setValue(
         direction === 'forward' ? SCREEN_WIDTH : -SCREEN_WIDTH
@@ -190,11 +190,7 @@ export default function HomePage() {
 
   const handleBack = () => {
     setDirection('backward');
-    if (mode === 'welcome') {
-      setMode('splash');
-    } else {
-      setMode('welcome');
-    }
+    setMode('splash');
     setEmail('');
     setPassword('');
   };
@@ -204,10 +200,6 @@ export default function HomePage() {
     setMode(newMode);
   };
 
-  const handleGetStarted = () => {
-    setDirection('forward');
-    setMode('welcome');
-  };
 
   useEffect(() => {
     SplashScreen.hideAsync();
@@ -256,6 +248,15 @@ export default function HomePage() {
 
   const renderSplashScreen = () => (
     <View style={{ flex: 1, gap: 24 }}>
+      <View style={{ position: 'absolute', top: 48, right: 0, width: 200 }}>
+        <Button
+          title="TESTING LOGIN"
+          onPress={() => handleModeChange('login')}
+          variant="negative"
+          fullWidth
+        />
+      </View>
+
       <View style={styles.logoContainerAlt}>
         <Image
           source={require('../assets/images/icon.png')}
@@ -283,7 +284,7 @@ export default function HomePage() {
       >
         <Button
           title="Get Started"
-          onPress={handleGetStarted}
+          onPress={() => handleModeChange('passwordless')}
           variant="primary"
           iconRight={ArrowRight}
         />
@@ -309,93 +310,6 @@ export default function HomePage() {
     </View>
   );
 
-  const renderWelcomeScreen = () => (
-    <View style={{ flex: 1, gap: 24, position: 'relative' }}>
-      <View style={{ position: 'absolute', top: 48, right: 0, width: 200 }}>
-        <Button
-          title="TESTING LOGIN"
-          onPress={() => handleModeChange('login')}
-          variant="negative"
-          fullWidth
-        />
-      </View>
-
-      <View style={styles.logoContainer}>
-        <Image
-          source={require('../assets/images/icon.png')}
-          resizeMode="contain"
-          style={styles.logoImage}
-        />
-
-        <AppText variant="title" style={styles.logoWordmark}>
-          redi
-        </AppText>
-        <AppText variant="subtitle" color="dimmer">
-          Cornell&apos;s first dating app
-        </AppText>
-      </View>
-
-      <Animated.View
-        style={{
-          gap: 12,
-          justifyContent: 'flex-end',
-          opacity: buttonsFadeAnim,
-          transform: [{ translateX: buttonsSlideAnim }],
-        }}
-      >
-        {/* <Button
-          title="Continue with Google"
-          onPress={handleGoogleSignIn}
-          variant="primary"
-          fullWidth
-          disabled={loading}
-          iconLeft={GoogleIcon}
-        /> */}
-
-        <Button
-          title="Sign in / Sign up with Email"
-          onPress={() => handleModeChange('passwordless')}
-          variant="primary"
-          fullWidth
-        />
-
-        <Button
-          title="Back"
-          onPress={handleBack}
-          variant="secondary"
-          fullWidth
-          iconLeft={ArrowLeft}
-        />
-      </Animated.View>
-
-      <Animated.View
-        style={{
-          opacity: footerFadeAnim,
-          transform: [{ translateX: footerSlideAnim }],
-        }}
-      >
-        <AppText style={{ textAlign: 'center', height: 60 }} color="dimmer">
-          By signing up, you agree to our{' '}
-          <AppText
-            color="accent"
-            style={{ textDecorationLine: 'underline' }}
-            onPress={() => Linking.openURL('https://redi.love/terms')}
-          >
-            Terms
-          </AppText>
-          . Learn how we process your data in our{' '}
-          <AppText
-            color="accent"
-            style={{ textDecorationLine: 'underline' }}
-            onPress={() => Linking.openURL('https://redi.love/privacy')}
-          >
-            Privacy
-          </AppText>
-          .
-        </AppText>
-      </Animated.View>
-    </View>
-  );
 
   const renderPasswordlessScreen = () => (
     <Animated.View
@@ -466,6 +380,26 @@ export default function HomePage() {
           </View>
         )}
       </View>
+
+      <AppText style={{ textAlign: 'center', height: 50 }} color="dimmer">
+        By signing up, you agree to our{' '}
+        <AppText
+          color="accent"
+          style={{ textDecorationLine: 'underline' }}
+          onPress={() => Linking.openURL('https://redi.love/terms')}
+        >
+          Terms
+        </AppText>
+        . Learn how we process your data in our{' '}
+        <AppText
+          color="accent"
+          style={{ textDecorationLine: 'underline' }}
+          onPress={() => Linking.openURL('https://redi.love/privacy')}
+        >
+          Privacy
+        </AppText>
+        .
+      </AppText>
     </Animated.View>
   );
 
@@ -579,7 +513,6 @@ export default function HomePage() {
       {/* <StatusBar barStyle="dark-content" /> */}
 
       {mode === 'splash' && renderSplashScreen()}
-      {mode === 'welcome' && renderWelcomeScreen()}
       {mode === 'passwordless' && renderPasswordlessScreen()}
       {(mode === 'signup' || mode === 'login') && renderAuthForm()}
 
