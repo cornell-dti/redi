@@ -330,7 +330,7 @@ export default function HomePage() {
         >
           <View style={styles.formContainer}>
             <AppText variant="title" style={styles.formTitle}>
-              Sign in with Email Link
+              Sign in
             </AppText>
             <AppText variant="subtitle" style={styles.formSubtitle}>
               Enter your Cornell email and we&apos;ll send you a sign-in link
@@ -595,8 +595,7 @@ const styles = StyleSheet.create({
   },
   // Button container - stacks buttons with gap
   buttonContainer: {
-    // gap: 12,
-    // marginBottom: 20,
+    gap: 12,
   },
   // Footer container - separate, below buttons
   footerContainer: {
