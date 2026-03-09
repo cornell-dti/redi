@@ -75,21 +75,21 @@ function RootNavigator() {
       const { apiKey, oobCode, mode, email } = parsedUrl.queryParams || {};
 
       if (apiKey && oobCode) {
+        const params = new URLSearchParams({
+          apiKey: apiKey as string,
+          oobCode: oobCode as string,
+          mode: (mode as string) || 'signIn',
+        });
+
+        if (email) {
+          params.append('email', email as string);
+        }
+
+        // Reconstruct the Firebase email link
+        const firebaseEmailLink = `https://redi.love/auth-redirect?${params.toString()}`;
+
+        isHandlingDeepLink.current = true;
         try {
-          const params = new URLSearchParams({
-            apiKey: apiKey as string,
-            oobCode: oobCode as string,
-            mode: (mode as string) || 'signIn',
-          });
-
-          if (email) {
-            params.append('email', email as string);
-          }
-
-          // Reconstruct the Firebase email link
-          const firebaseEmailLink = `https://redi.love/auth-redirect?${params.toString()}`;
-
-          isHandlingDeepLink.current = true;
           await signInWithEmailLink(firebaseEmailLink, email as string | undefined);
 
           showToast({ label: 'Signed in successfully!' });
@@ -100,31 +100,32 @@ function RootNavigator() {
           } else {
             router.replace('/(auth)/create-profile');
           }
-          isHandlingDeepLink.current = false;
         } catch (error) {
-          isHandlingDeepLink.current = false;
           Alert.alert(
             'Sign In Failed',
             error instanceof Error ? error.message : 'Failed to sign in with email link'
           );
+          router.replace('/home');
+        } finally {
+          isHandlingDeepLink.current = false;
         }
       }
     };
 
-    // Check for initial URL when app is opened from a link.
-    Linking.getInitialURL().then((url) => {
-      if (url) {
-        handleDeepLink({ url });
-      }
-    });
+      // Check for initial URL when app is opened from a link.
+      Linking.getInitialURL().then((url) => {
+        if (url) {
+          handleDeepLink({ url });
+        }
+      });
 
-    // Listen for deep links while app is running
-    const subscription = Linking.addEventListener('url', handleDeepLink);
+      // Listen for deep links while app is running
+      const subscription = Linking.addEventListener('url', handleDeepLink);
 
-    return () => {
-      subscription.remove();
-    };
-  }, []);
+      return () => {
+        subscription.remove();
+      };
+    }, []);
 
   // Clear badge when app comes to foreground
   useEffect(() => {

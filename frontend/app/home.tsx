@@ -220,9 +220,9 @@ export default function HomePage() {
     setShowVideo(true);
   };
 
-  const handleVideoFinish = async () => {
-    await markOnboardingVideoAsShown();
+  const handleVideoFinish = () => {
     setShowVideo(false);
+    markOnboardingVideoAsShown();
   };
 
   const handleSendPasswordlessLink = async () => {

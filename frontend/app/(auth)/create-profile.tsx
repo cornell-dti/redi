@@ -206,7 +206,7 @@ export default function CreateProfileScreen() {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [currentStep]);
+  }, [currentStep, direction, slideAnim, fadeAnim]);
 
   if (!isLoaded) {
     return null; // Wait for AsyncStorage to load

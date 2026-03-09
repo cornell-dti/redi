@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AppColors } from './components/AppColors';
 import LoadingSpinner from './components/ui/LoadingSpinner';
@@ -6,9 +6,6 @@ import LoadingSpinner from './components/ui/LoadingSpinner';
 // Landing screen for email sign-in deep links.
 // _layout.tsx handles the actual sign-in and routes away when done.
 export default function AuthRedirect() {
-  useEffect(() => {
-  }, []);
-
   return (
     < View style={styles.container} >
       <LoadingSpinner />

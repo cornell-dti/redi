@@ -51,7 +51,7 @@ export default function ProfileScreen() {
   const [animationTrigger, setAnimationTrigger] = useState(0);
 
   useThemeAware(); // Force re-render when theme changes
-  const { profile, loading } = useProfile();
+  const { profile } = useProfile();
   const [showSignOutSheet, setShowSignOutSheet] = useState(false);
   const [showRatingSheet, setShowRatingSheet] = useState(false);
   const [showOnboardingVideo, setShowOnboardingVideo] = useState(false);
