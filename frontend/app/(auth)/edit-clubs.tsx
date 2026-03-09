@@ -36,6 +36,7 @@ import EmptyState from '../components/ui/EmptyState';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
+import { useProfile } from '../contexts/ProfileContext';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
@@ -98,6 +99,7 @@ function DraggableTag({
 export default function EditClubsPage() {
   useThemeAware();
   const { showToast } = useToast();
+  const { updateProfileData, refreshProfile } = useProfile();
   const haptic = useHapticFeedback();
   const [saving, setSaving] = useState(false);
   const [clubs, setClubs] = useState<string[]>([]);
@@ -151,6 +153,8 @@ export default function EditClubsPage() {
         clubs,
       });
 
+      updateProfileData({ clubs });
+      refreshProfile();
       setOriginalClubs(clubs);
 
       showToast({
