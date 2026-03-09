@@ -24,9 +24,7 @@ import {
   validateCornellEmail,
 } from './api/authService';
 import { AppColors } from './components/AppColors';
-import OnboardingVideo, {
-  markOnboardingVideoAsShown
-} from './components/onboarding/OnboardingVideo';
+import OnboardingVideo from './components/onboarding/OnboardingVideo';
 import AppInput from './components/ui/AppInput';
 import AppText from './components/ui/AppText';
 import Button from './components/ui/Button';
