@@ -13,7 +13,7 @@ const mockDb = db as jest.Mocked<typeof db>;
 
 const setupMockCollection = (docs: { data: () => object }[]) => {
   const mockGet = jest.fn().mockResolvedValue({
-    forEach: (callback: any) => docs.forEach(callback),
+    forEach: (callback: any) => docs.forEach((doc) => callback(doc)),
   });
   const mockWhere = jest.fn().mockReturnValue({ get: mockGet });
   const mockCollection = jest.fn().mockReturnValue({

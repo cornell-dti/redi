@@ -6,7 +6,6 @@
  */
 
 import express from 'express';
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { db } from '../../firebaseAdmin';
 import { ProfileDoc } from '../../types';
 import { AdminRequest, requireAdmin } from '../middleware/adminAuth';
@@ -268,7 +267,7 @@ router.post('/api/admin/matches/manual', async (req: AdminRequest, res) => {
   try {
     const matchData: CreateManualMatchInput = req.body;
 
-    console.log(`Admin ${req.user?.email} creating manual match:`, matchData);
+    console.log(`Admin ${req.user?.email} creating manual match`);
 
     // Validate required fields
     if (
