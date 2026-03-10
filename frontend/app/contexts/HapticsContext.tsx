@@ -12,9 +12,7 @@ interface HapticsContextType {
   setHapticsEnabled: (value: boolean) => void;
 }
 
-const HapticsContext = createContext<HapticsContextType | undefined>(
-  undefined
-);
+const HapticsContext = createContext<HapticsContextType | undefined>(undefined);
 
 const STORAGE_KEY = '@redi_haptics_enabled';
 

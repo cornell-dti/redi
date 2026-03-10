@@ -50,8 +50,10 @@ describe('Push Notification Service', () => {
   let mockDoc: jest.Mock;
 
   // Get references to the mocks from the module
-  const mockSendPushNotificationsAsync = (ExpoSDK as any).__mockSendPushNotificationsAsync;
-  const mockChunkPushNotifications = (ExpoSDK as any).__mockChunkPushNotifications;
+  const mockSendPushNotificationsAsync = (ExpoSDK as any)
+    .__mockSendPushNotificationsAsync;
+  const mockChunkPushNotifications = (ExpoSDK as any)
+    .__mockChunkPushNotifications;
   const mockIsExpoPushToken = (ExpoSDK as any).__mockIsExpoPushToken;
 
   beforeEach(() => {
@@ -336,7 +338,10 @@ describe('Push Notification Service', () => {
         docs: [{ data: () => mockUserData }],
       });
 
-      const result = await checkNotificationPreference('test123', 'newMessages');
+      const result = await checkNotificationPreference(
+        'test123',
+        'newMessages'
+      );
 
       expect(result).toBe(true);
     });
@@ -356,7 +361,10 @@ describe('Push Notification Service', () => {
         docs: [{ data: () => mockUserData }],
       });
 
-      const result = await checkNotificationPreference('test123', 'newMessages');
+      const result = await checkNotificationPreference(
+        'test123',
+        'newMessages'
+      );
 
       expect(result).toBe(false);
     });
@@ -371,7 +379,10 @@ describe('Push Notification Service', () => {
         docs: [{ data: () => mockUserData }],
       });
 
-      const result = await checkNotificationPreference('test123', 'newMessages');
+      const result = await checkNotificationPreference(
+        'test123',
+        'newMessages'
+      );
 
       expect(result).toBe(true);
     });
@@ -382,7 +393,10 @@ describe('Push Notification Service', () => {
         docs: [],
       });
 
-      const result = await checkNotificationPreference('test123', 'newMessages');
+      const result = await checkNotificationPreference(
+        'test123',
+        'newMessages'
+      );
 
       expect(result).toBe(true);
     });

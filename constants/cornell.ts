@@ -1,4 +1,4 @@
-import { School, Gender } from '../types';
+import { Gender, School } from '../backend/types';
 
 export const CORNELL_SCHOOLS: School[] = [
   'College of Agriculture and Life Sciences',

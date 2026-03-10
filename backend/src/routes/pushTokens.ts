@@ -206,8 +206,7 @@ router.put(
         mutualNudges === undefined
       ) {
         return res.status(400).json({
-          error:
-            'At least one notification preference must be provided',
+          error: 'At least one notification preference must be provided',
         });
       }
 

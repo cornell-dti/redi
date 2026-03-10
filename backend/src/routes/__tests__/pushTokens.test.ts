@@ -125,7 +125,10 @@ describe('Push Tokens Routes', () => {
         .send({ pushToken: 'invalid-token' })
         .expect(400);
 
-      expect(response.body).toHaveProperty('error', 'Invalid push token format');
+      expect(response.body).toHaveProperty(
+        'error',
+        'Invalid push token format'
+      );
     });
 
     it('should return 404 if user not found', async () => {
@@ -188,7 +191,9 @@ describe('Push Tokens Routes', () => {
         message: 'Push token removed successfully',
       });
 
-      expect(deviceTokenService.removePushToken).toHaveBeenCalledWith('test123');
+      expect(deviceTokenService.removePushToken).toHaveBeenCalledWith(
+        'test123'
+      );
     });
 
     it('should return 404 if user not found', async () => {

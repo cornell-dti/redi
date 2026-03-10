@@ -63,7 +63,13 @@ export default function OnboardingFooter({
   }, [loading, slideAnim, opacityAnim, animationEnabled]);
 
   // Animated spinner component that conforms to CustomIcon type
-  const AnimatedSpinner = ({ size = 20, color = AppColors.backgroundDefault }: { size?: number; color?: string }) => (
+  const AnimatedSpinner = ({
+    size = 20,
+    color = AppColors.backgroundDefault,
+  }: {
+    size?: number;
+    color?: string;
+  }) => (
     <Animated.View
       style={{
         transform: [{ translateX: slideAnim }],

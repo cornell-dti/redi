@@ -30,7 +30,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CORNELL_MAJORS, CORNELL_SCHOOLS } from '../../constants/cornell';
+import { CORNELL_MAJORS, CORNELL_SCHOOLS } from '../../../constants/cornell';
 import { getCurrentUser } from '../api/authService';
 import { uploadImages } from '../api/imageApi';
 import { updatePreferences } from '../api/preferencesApi';
@@ -813,8 +813,8 @@ export default function CreateProfileScreen() {
                           >
                             <PromptSelector
                               prompt={data.prompts[draggingPromptIndex]}
-                              onUpdate={() => { }}
-                              onRemove={() => { }}
+                              onUpdate={() => {}}
+                              onRemove={() => {}}
                               canRemove={true}
                             />
                           </View>
@@ -1017,7 +1017,7 @@ export default function CreateProfileScreen() {
         return (
           <View style={styles.stepContainer}>
             <AppText variant="title" style={{ textAlign: 'center' }}>
-              And now, {data.firstName}, you&apos;re redi! 
+              And now, {data.firstName}, you&apos;re redi!
             </AppText>
             <View style={styles.welcomeContainer}>
               {data.pictures[0] && (

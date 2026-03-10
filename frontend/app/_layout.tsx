@@ -20,7 +20,6 @@ import { clearBadgeCount } from './services/notificationPermissions';
 
 SplashScreen.preventAutoHideAsync();
 
-
 /**
  * Token Refresh Configuration
  * Automatically refreshes Firebase ID tokens every 45 minutes
@@ -90,7 +89,10 @@ function RootNavigator() {
 
         isHandlingDeepLink.current = true;
         try {
-          await signInWithEmailLink(firebaseEmailLink, email as string | undefined);
+          await signInWithEmailLink(
+            firebaseEmailLink,
+            email as string | undefined
+          );
 
           showToast({ label: 'Signed in successfully!' });
 
@@ -103,7 +105,9 @@ function RootNavigator() {
         } catch (error) {
           Alert.alert(
             'Sign In Failed',
-            error instanceof Error ? error.message : 'Failed to sign in with email link'
+            error instanceof Error
+              ? error.message
+              : 'Failed to sign in with email link'
           );
           router.replace('/home');
         } finally {
@@ -112,20 +116,20 @@ function RootNavigator() {
       }
     };
 
-      // Check for initial URL when app is opened from a link.
-      Linking.getInitialURL().then((url) => {
-        if (url) {
-          handleDeepLink({ url });
-        }
-      });
+    // Check for initial URL when app is opened from a link.
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        handleDeepLink({ url });
+      }
+    });
 
-      // Listen for deep links while app is running
-      const subscription = Linking.addEventListener('url', handleDeepLink);
+    // Listen for deep links while app is running
+    const subscription = Linking.addEventListener('url', handleDeepLink);
 
-      return () => {
-        subscription.remove();
-      };
-    }, []);
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   // Clear badge when app comes to foreground
   useEffect(() => {
@@ -172,7 +176,12 @@ function RootNavigator() {
   }, [user]);
 
   useEffect(() => {
-    console.log('[Routing] useEffect triggered - user:', user?.email, 'initializing:', initializing);
+    console.log(
+      '[Routing] useEffect triggered - user:',
+      user?.email,
+      'initializing:',
+      initializing
+    );
     if (initializing) {
       console.log('[Routing] Still initializing, skipping redirect check');
       return;
@@ -242,7 +251,9 @@ function RootNavigator() {
               router.replace('/(auth)/(tabs)');
             } else {
               // User doesn't have a profile yet, go to create profile
-              console.log('✅ Redirecting to create-profile - no profile found');
+              console.log(
+                '✅ Redirecting to create-profile - no profile found'
+              );
               router.replace('/(auth)/create-profile');
             }
           } catch (error: any) {
@@ -292,7 +303,9 @@ function RootNavigator() {
                 router.replace('/(auth)/create-profile');
               } else {
                 // Other API errors - likely profile doesn't exist
-                console.log('✅ Redirecting to create-profile - other API error');
+                console.log(
+                  '✅ Redirecting to create-profile - other API error'
+                );
                 router.replace('/(auth)/create-profile');
               }
             } else {
@@ -345,13 +358,18 @@ function RootNavigator() {
     checkAndRedirect();
   }, [user, initializing]);
 
-
   return (
     <Stack screenOptions={{ animation: 'default' }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="auth-redirect" options={{ headerShown: false, animation: 'none' }} />
+      <Stack.Screen
+        name="auth-redirect"
+        options={{ headerShown: false, animation: 'none' }}
+      />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="home" options={{ headerShown: false, animation: 'slide_from_left' }} />
+      <Stack.Screen
+        name="home"
+        options={{ headerShown: false, animation: 'slide_from_left' }}
+      />
     </Stack>
   );
 }
@@ -373,4 +391,3 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
-

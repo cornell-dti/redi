@@ -152,10 +152,15 @@ describe('Reveal System Integration Tests', () => {
         await revealMatch(testUsers[0].netid, testPromptId, i);
       }
 
-      const updatedMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const updatedMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
 
       // All matches should be revealed
-      expect(updatedMatches!.revealed.every((r: boolean) => r === true)).toBe(true);
+      expect(updatedMatches!.revealed.every((r: boolean) => r === true)).toBe(
+        true
+      );
     });
   });
 
@@ -168,9 +173,9 @@ describe('Reveal System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      await expect(revealMatch(testUsers[0].netid, testPromptId, -1)).rejects.toThrow(
-        'Match index must be between 0 and 2'
-      );
+      await expect(
+        revealMatch(testUsers[0].netid, testPromptId, -1)
+      ).rejects.toThrow('Match index must be between 0 and 2');
     });
 
     test('should throw error for invalid match index (too high)', async () => {
@@ -181,9 +186,9 @@ describe('Reveal System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      await expect(revealMatch(testUsers[0].netid, testPromptId, 3)).rejects.toThrow(
-        'Match index must be between 0 and 2'
-      );
+      await expect(
+        revealMatch(testUsers[0].netid, testPromptId, 3)
+      ).rejects.toThrow('Match index must be between 0 and 2');
     });
 
     test('should throw error when revealing match for non-existent prompt', async () => {
@@ -206,9 +211,9 @@ describe('Reveal System Integration Tests', () => {
 
       // Try to reveal index 2 when user only has 2 matches (indices 0 and 1)
       if (matches!.matches.length < 3) {
-        await expect(revealMatch(testUsers[0].netid, testPromptId, 2)).rejects.toThrow(
-          'Match index out of bounds'
-        );
+        await expect(
+          revealMatch(testUsers[0].netid, testPromptId, 2)
+        ).rejects.toThrow('Match index out of bounds');
       }
     });
   });
@@ -244,7 +249,10 @@ describe('Reveal System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      const initialMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const initialMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const matchCount = initialMatches!.matches.length;
 
       // Reveal all matches
@@ -259,7 +267,9 @@ describe('Reveal System Integration Tests', () => {
 
       // But chat should not be unlocked
       if (matches!.chatUnlocked) {
-        expect(matches!.chatUnlocked.every((u: boolean) => u === false)).toBe(true);
+        expect(matches!.chatUnlocked.every((u: boolean) => u === false)).toBe(
+          true
+        );
       }
     });
   });
@@ -273,7 +283,10 @@ describe('Reveal System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      const initialMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const initialMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       expect(initialMatches).toBeTruthy();
 
       const matchCount = initialMatches!.matches.length;
@@ -322,7 +335,10 @@ describe('Reveal System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      const initialMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const initialMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const matchCount = initialMatches!.matches.length;
 
       // Only test if user has at least 3 matches
@@ -399,7 +415,10 @@ describe('Reveal System Integration Tests', () => {
       // Reveal first match
       await revealMatch(testUsers[0].netid, testPromptId, 0);
 
-      const initialMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const initialMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const matchCount = initialMatches!.matches.length;
 
       // Query multiple times - state should persist
@@ -421,7 +440,10 @@ describe('Reveal System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      const initialMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const initialMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const matchCount = initialMatches!.matches.length;
 
       // Reveal matches one by one, checking state persists

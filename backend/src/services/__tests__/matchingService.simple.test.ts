@@ -3,9 +3,7 @@
  * Tests core logic without full Firestore mocking complexity
  */
 
-import {
-  validateMatchMutuality,
-} from '../matchingService';
+import { validateMatchMutuality } from '../matchingService';
 import { db } from '../../../firebaseAdmin';
 
 // Mock Firebase
@@ -103,7 +101,9 @@ describe('Two-Phase Mutual Matching - Core Logic Tests', () => {
 
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
-      expect(result.errors.some((e) => e.includes('invalid match values'))).toBe(true);
+      expect(
+        result.errors.some((e) => e.includes('invalid match values'))
+      ).toBe(true);
     });
 
     test('should pass validation for all mutual matches', async () => {
@@ -260,7 +260,9 @@ describe('Two-Phase Mutual Matching - Core Logic Tests', () => {
       const result = await validateMatchMutuality(promptId);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some((e) => e.includes('invalid match values'))).toBe(true);
+      expect(
+        result.errors.some((e) => e.includes('invalid match values'))
+      ).toBe(true);
     });
 
     test('should detect whitespace-only strings', async () => {
@@ -294,7 +296,9 @@ describe('Two-Phase Mutual Matching - Core Logic Tests', () => {
       const result = await validateMatchMutuality(promptId);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some((e) => e.includes('invalid match values'))).toBe(true);
+      expect(
+        result.errors.some((e) => e.includes('invalid match values'))
+      ).toBe(true);
     });
 
     test('should handle empty matches collection', async () => {
@@ -377,9 +381,13 @@ describe('Two-Phase Mutual Matching - Core Logic Tests', () => {
       // userB ↔ userD (mutual)
       // userC ↔ userD (mutual)
       expect(finalMatches.get('userA')).toEqual(['userB']);
-      expect(finalMatches.get('userB')).toEqual(expect.arrayContaining(['userA', 'userD']));
+      expect(finalMatches.get('userB')).toEqual(
+        expect.arrayContaining(['userA', 'userD'])
+      );
       expect(finalMatches.get('userC')).toEqual(['userD']);
-      expect(finalMatches.get('userD')).toEqual(expect.arrayContaining(['userB', 'userC']));
+      expect(finalMatches.get('userD')).toEqual(
+        expect.arrayContaining(['userB', 'userC'])
+      );
     });
 
     test('filtering guarantees: empty strings, nulls, and self-references are removed', () => {
@@ -403,7 +411,13 @@ describe('Two-Phase Mutual Matching - Core Logic Tests', () => {
 
     test('match limit: users get maximum of 3 matches', () => {
       const potentialMatches = new Map<string, string[]>();
-      potentialMatches.set('userA', ['userB', 'userC', 'userD', 'userE', 'userF']);
+      potentialMatches.set('userA', [
+        'userB',
+        'userC',
+        'userD',
+        'userE',
+        'userF',
+      ]);
       potentialMatches.set('userB', ['userA']);
       potentialMatches.set('userC', ['userA']);
       potentialMatches.set('userD', ['userA']);

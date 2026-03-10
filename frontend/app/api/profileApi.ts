@@ -160,7 +160,9 @@ export const getAllProfiles = async (
  */
 export const getBatchProfiles = async (
   uids: string[]
-): Promise<Record<string, { firstName: string; pictures: string[]; netid: string }>> => {
+): Promise<
+  Record<string, { firstName: string; pictures: string[]; netid: string }>
+> => {
   if (uids.length === 0) {
     return {};
   }
@@ -168,7 +170,7 @@ export const getBatchProfiles = async (
   // Join UIDs with commas for query parameter
   const uidsParam = uids.join(',');
 
-  return apiClient.get<Record<string, { firstName: string; pictures: string[]; netid: string }>>(
-    `/api/profiles/batch?uids=${encodeURIComponent(uidsParam)}`
-  );
+  return apiClient.get<
+    Record<string, { firstName: string; pictures: string[]; netid: string }>
+  >(`/api/profiles/batch?uids=${encodeURIComponent(uidsParam)}`);
 };

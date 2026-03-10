@@ -78,80 +78,91 @@ interface UserDetailsResponse {
  * @returns {Error} 404 - User not found
  * @returns {Error} 500 - Internal server error
  */
-router.get('/api/admin/users/:netId/details', async (req: AdminRequest, res) => {
-  try {
-    const { netId } = req.params;
-    const { promptId } = req.query;
+router.get(
+  '/api/admin/users/:netId/details',
+  async (req: AdminRequest, res) => {
+    try {
+      const { netId } = req.params;
+      const { promptId } = req.query;
 
-    console.log(`Admin ${req.user?.email} fetching details for user ${netId}`);
+      console.log(
+        `Admin ${req.user?.email} fetching details for user ${netId}`
+      );
 
-    // Fetch profile by querying netid field (profiles use auto-generated IDs)
-    const profileSnapshot = await db
-      .collection('profiles')
-      .where('netid', '==', netId)
-      .limit(1)
-      .get();
-
-    if (profileSnapshot.empty) {
-      return res.status(404).json({ error: 'User profile not found' });
-    }
-
-    const profileData = profileSnapshot.docs[0].data() as ProfileDoc;
-
-    // Fetch prompt answer if promptId provided
-    let promptAnswer = null;
-    if (promptId && typeof promptId === 'string' && promptId.trim() !== '' && netId.trim() !== '') {
-      const answerDoc = await db
-        .collection('weeklyPromptAnswers')
-        .doc(`${netId}_${promptId}`)
+      // Fetch profile by querying netid field (profiles use auto-generated IDs)
+      const profileSnapshot = await db
+        .collection('profiles')
+        .where('netid', '==', netId)
+        .limit(1)
         .get();
 
-      if (answerDoc.exists) {
-        promptAnswer = answerDoc.data()?.answer || null;
+      if (profileSnapshot.empty) {
+        return res.status(404).json({ error: 'User profile not found' });
       }
+
+      const profileData = profileSnapshot.docs[0].data() as ProfileDoc;
+
+      // Fetch prompt answer if promptId provided
+      let promptAnswer = null;
+      if (
+        promptId &&
+        typeof promptId === 'string' &&
+        promptId.trim() !== '' &&
+        netId.trim() !== ''
+      ) {
+        const answerDoc = await db
+          .collection('weeklyPromptAnswers')
+          .doc(`${netId}_${promptId}`)
+          .get();
+
+        if (answerDoc.exists) {
+          promptAnswer = answerDoc.data()?.answer || null;
+        }
+      }
+
+      const userDetails: UserDetailsResponse = {
+        netId,
+        firstName: profileData.firstName || 'Unknown',
+        pictures: profileData.pictures || [],
+        promptAnswer,
+      };
+
+      // Log successful action
+      await logAdminAction(
+        'VIEW_USER',
+        req.user!.uid,
+        req.user!.email,
+        'user',
+        netId,
+        { promptId: promptId || null },
+        getIpAddress(req),
+        getUserAgent(req)
+      );
+
+      res.status(200).json(userDetails);
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Log failed action
+      await logAdminAction(
+        'VIEW_USER',
+        req.user!.uid,
+        req.user!.email,
+        'user',
+        req.params.netId,
+        { error: errorMessage },
+        getIpAddress(req),
+        getUserAgent(req),
+        false,
+        errorMessage
+      );
+
+      res.status(500).json({ error: errorMessage });
     }
-
-    const userDetails: UserDetailsResponse = {
-      netId,
-      firstName: profileData.firstName || 'Unknown',
-      pictures: profileData.pictures || [],
-      promptAnswer,
-    };
-
-    // Log successful action
-    await logAdminAction(
-      'VIEW_USER',
-      req.user!.uid,
-      req.user!.email,
-      'user',
-      netId,
-      { promptId: promptId || null },
-      getIpAddress(req),
-      getUserAgent(req)
-    );
-
-    res.status(200).json(userDetails);
-  } catch (error) {
-    console.error('Error fetching user details:', error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    // Log failed action
-    await logAdminAction(
-      'VIEW_USER',
-      req.user!.uid,
-      req.user!.email,
-      'user',
-      req.params.netId,
-      { error: errorMessage },
-      getIpAddress(req),
-      getUserAgent(req),
-      false,
-      errorMessage
-    );
-
-    res.status(500).json({ error: errorMessage });
   }
-});
+);
 
 /**
  * GET /api/admin/users
@@ -257,10 +268,7 @@ router.post('/api/admin/matches/manual', async (req: AdminRequest, res) => {
   try {
     const matchData: CreateManualMatchInput = req.body;
 
-    console.log(
-      `Admin ${req.user?.email} creating manual match:`,
-      matchData
-    );
+    console.log(`Admin ${req.user?.email} creating manual match:`, matchData);
 
     // Validate required fields
     if (
@@ -343,7 +351,9 @@ router.post('/api/admin/matches/manual', async (req: AdminRequest, res) => {
     } catch (createError) {
       // Handle match creation errors (e.g., matches already exist and append not enabled)
       const errorMsg =
-        createError instanceof Error ? createError.message : String(createError);
+        createError instanceof Error
+          ? createError.message
+          : String(createError);
 
       if (errorMsg.includes('already exist')) {
         return res.status(409).json({

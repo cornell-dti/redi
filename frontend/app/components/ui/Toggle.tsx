@@ -14,8 +14,9 @@ export default function Toggle({ value, onValueChange }: ToggleProps) {
   const { currentTheme } = useTheme();
   const { animationEnabled } = useMotion();
   const haptic = useHapticFeedback();
-  const baseTranslateX = React.useRef(new Animated.Value(value ? 24 : 0))
-    .current;
+  const baseTranslateX = React.useRef(
+    new Animated.Value(value ? 24 : 0)
+  ).current;
   const scaleX = React.useRef(new Animated.Value(1)).current;
   const colorAnim = React.useRef(new Animated.Value(value ? 1 : 0)).current;
   const [isPressed, setIsPressed] = React.useState(false);

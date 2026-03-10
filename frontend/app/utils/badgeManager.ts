@@ -43,8 +43,7 @@ export async function clearBadge(): Promise<void> {
 export async function incrementBadge(): Promise<void> {
   try {
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      const currentBadgeCount =
-        await Notifications.getBadgeCountAsync();
+      const currentBadgeCount = await Notifications.getBadgeCountAsync();
       await Notifications.setBadgeCountAsync(currentBadgeCount + 1);
       console.log(`✅ Badge incremented to: ${currentBadgeCount + 1}`);
     }
@@ -59,8 +58,7 @@ export async function incrementBadge(): Promise<void> {
 export async function decrementBadge(): Promise<void> {
   try {
     if (Platform.OS === 'ios' || Platform.OS === 'android') {
-      const currentBadgeCount =
-        await Notifications.getBadgeCountAsync();
+      const currentBadgeCount = await Notifications.getBadgeCountAsync();
       const newCount = Math.max(0, currentBadgeCount - 1);
       await Notifications.setBadgeCountAsync(newCount);
       console.log(`✅ Badge decremented to: ${newCount}`);

@@ -59,13 +59,20 @@ describe('Nudging System Integration Tests', () => {
       await generateMatchesForPrompt(testPromptId);
 
       // User 0 nudges User 1 (assuming they're matched)
-      const userAMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const userBNetid = userAMatches!.matches[0]; // First match
 
       await createNudge(testUsers[0].netid, userBNetid, testPromptId);
 
       // Verify nudge was created
-      const nudge = await getNudge(testUsers[0].netid, userBNetid, testPromptId);
+      const nudge = await getNudge(
+        testUsers[0].netid,
+        userBNetid,
+        testPromptId
+      );
       expect(nudge).toBeTruthy();
       expect(nudge!.fromNetid).toBe(testUsers[0].netid);
       expect(nudge!.toNetid).toBe(userBNetid);
@@ -81,7 +88,10 @@ describe('Nudging System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      const userAMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const userBNetid = userAMatches!.matches[0];
 
       // User A nudges User B
@@ -91,8 +101,16 @@ describe('Nudging System Integration Tests', () => {
       await createNudge(userBNetid, testUsers[0].netid, testPromptId);
 
       // Both nudges should be marked as mutual
-      const nudgeAtoB = await getNudge(testUsers[0].netid, userBNetid, testPromptId);
-      const nudgeBtoA = await getNudge(userBNetid, testUsers[0].netid, testPromptId);
+      const nudgeAtoB = await getNudge(
+        testUsers[0].netid,
+        userBNetid,
+        testPromptId
+      );
+      const nudgeBtoA = await getNudge(
+        userBNetid,
+        testUsers[0].netid,
+        testPromptId
+      );
 
       expect(nudgeAtoB!.mutual).toBe(true);
       expect(nudgeBtoA!.mutual).toBe(true);
@@ -106,7 +124,10 @@ describe('Nudging System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      const userAMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const userBNetid = userAMatches!.matches[0];
 
       // Before nudging, chatUnlocked should not exist or be false
@@ -119,12 +140,17 @@ describe('Nudging System Integration Tests', () => {
       await createNudge(userBNetid, testUsers[0].netid, testPromptId);
 
       // Get updated match data
-      const userAMatchesAfter = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatchesAfter = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const userBMatchesAfter = await getUserMatches(userBNetid, testPromptId);
 
       // Find the index of each user in the other's matches array
       const indexOfBInA = userAMatchesAfter!.matches.indexOf(userBNetid);
-      const indexOfAInB = userBMatchesAfter!.matches.indexOf(testUsers[0].netid);
+      const indexOfAInB = userBMatchesAfter!.matches.indexOf(
+        testUsers[0].netid
+      );
 
       // chatUnlocked should be set for the specific match index
       expect(userAMatchesAfter!.chatUnlocked).toBeDefined();
@@ -142,7 +168,10 @@ describe('Nudging System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      const userAMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const userBNetid = userAMatches!.matches[0]; // First match
       const userCNetid = userAMatches!.matches[1]; // Second match
 
@@ -151,7 +180,10 @@ describe('Nudging System Integration Tests', () => {
       await createNudge(userBNetid, testUsers[0].netid, testPromptId);
 
       // Get updated matches
-      const userAMatchesAfter = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatchesAfter = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
 
       const indexOfB = userAMatchesAfter!.matches.indexOf(userBNetid);
       const indexOfC = userAMatchesAfter!.matches.indexOf(userCNetid);
@@ -171,11 +203,18 @@ describe('Nudging System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      const userAMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const userBNetid = userAMatches!.matches[0];
 
       // Initial status - no nudges
-      let status = await getNudgeStatus(testUsers[0].netid, userBNetid, testPromptId);
+      let status = await getNudgeStatus(
+        testUsers[0].netid,
+        userBNetid,
+        testPromptId
+      );
       expect(status.sent).toBe(false);
       expect(status.received).toBe(false);
       expect(status.mutual).toBe(false);
@@ -184,13 +223,21 @@ describe('Nudging System Integration Tests', () => {
       await createNudge(testUsers[0].netid, userBNetid, testPromptId);
 
       // Status from User A's perspective
-      status = await getNudgeStatus(testUsers[0].netid, userBNetid, testPromptId);
+      status = await getNudgeStatus(
+        testUsers[0].netid,
+        userBNetid,
+        testPromptId
+      );
       expect(status.sent).toBe(true);
       expect(status.received).toBe(false);
       expect(status.mutual).toBe(false);
 
       // Status from User B's perspective
-      status = await getNudgeStatus(userBNetid, testUsers[0].netid, testPromptId);
+      status = await getNudgeStatus(
+        userBNetid,
+        testUsers[0].netid,
+        testPromptId
+      );
       expect(status.sent).toBe(false);
       expect(status.received).toBe(true);
       expect(status.mutual).toBe(false);
@@ -199,12 +246,20 @@ describe('Nudging System Integration Tests', () => {
       await createNudge(userBNetid, testUsers[0].netid, testPromptId);
 
       // Both should show mutual
-      status = await getNudgeStatus(testUsers[0].netid, userBNetid, testPromptId);
+      status = await getNudgeStatus(
+        testUsers[0].netid,
+        userBNetid,
+        testPromptId
+      );
       expect(status.sent).toBe(true);
       expect(status.received).toBe(true);
       expect(status.mutual).toBe(true);
 
-      status = await getNudgeStatus(userBNetid, testUsers[0].netid, testPromptId);
+      status = await getNudgeStatus(
+        userBNetid,
+        testUsers[0].netid,
+        testPromptId
+      );
       expect(status.sent).toBe(true);
       expect(status.received).toBe(true);
       expect(status.mutual).toBe(true);
@@ -220,16 +275,19 @@ describe('Nudging System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      const userAMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const userBNetid = userAMatches!.matches[0];
 
       // First nudge should succeed
       await createNudge(testUsers[0].netid, userBNetid, testPromptId);
 
       // Second nudge should fail
-      await expect(createNudge(testUsers[0].netid, userBNetid, testPromptId)).rejects.toThrow(
-        'already nudged'
-      );
+      await expect(
+        createNudge(testUsers[0].netid, userBNetid, testPromptId)
+      ).rejects.toThrow('already nudged');
     });
 
     test('should handle nudging non-matched users gracefully', async () => {
@@ -240,16 +298,29 @@ describe('Nudging System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      const userAMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const nonMatchedUser = testUsers.find(
-        (u) => !userAMatches!.matches.includes(u.netid) && u.netid !== testUsers[0].netid
+        (u) =>
+          !userAMatches!.matches.includes(u.netid) &&
+          u.netid !== testUsers[0].netid
       );
 
       // Nudging a non-matched user should still create the nudge
       // (the system doesn't prevent this, though the UI might)
-      await createNudge(testUsers[0].netid, nonMatchedUser!.netid, testPromptId);
+      await createNudge(
+        testUsers[0].netid,
+        nonMatchedUser!.netid,
+        testPromptId
+      );
 
-      const nudge = await getNudge(testUsers[0].netid, nonMatchedUser!.netid, testPromptId);
+      const nudge = await getNudge(
+        testUsers[0].netid,
+        nonMatchedUser!.netid,
+        testPromptId
+      );
       expect(nudge).toBeTruthy();
     });
 
@@ -262,7 +333,10 @@ describe('Nudging System Integration Tests', () => {
       await generateMatchesForPrompt(testPromptId);
 
       // Get two users who are matched
-      const userAMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const userBNetid = userAMatches!.matches[0];
 
       // Both users nudge each other
@@ -270,11 +344,16 @@ describe('Nudging System Integration Tests', () => {
       await createNudge(userBNetid, testUsers[0].netid, testPromptId);
 
       // Even if users have different numbers of matches, chat should unlock correctly
-      const userAMatchesAfter = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatchesAfter = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const userBMatchesAfter = await getUserMatches(userBNetid, testPromptId);
 
       const indexOfBInA = userAMatchesAfter!.matches.indexOf(userBNetid);
-      const indexOfAInB = userBMatchesAfter!.matches.indexOf(testUsers[0].netid);
+      const indexOfAInB = userBMatchesAfter!.matches.indexOf(
+        testUsers[0].netid
+      );
 
       expect(userAMatchesAfter!.chatUnlocked![indexOfBInA]).toBe(true);
       expect(userBMatchesAfter!.chatUnlocked![indexOfAInB]).toBe(true);
@@ -290,7 +369,10 @@ describe('Nudging System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      const userAMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const userBNetid = userAMatches!.matches[0];
 
       // User A nudges User B
@@ -332,7 +414,10 @@ describe('Nudging System Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      const userAMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const userBNetid = userAMatches!.matches[0];
 
       // Both users nudge simultaneously
@@ -342,18 +427,31 @@ describe('Nudging System Integration Tests', () => {
       ]);
 
       // Both nudges should be marked as mutual
-      const nudgeAtoB = await getNudge(testUsers[0].netid, userBNetid, testPromptId);
-      const nudgeBtoA = await getNudge(userBNetid, testUsers[0].netid, testPromptId);
+      const nudgeAtoB = await getNudge(
+        testUsers[0].netid,
+        userBNetid,
+        testPromptId
+      );
+      const nudgeBtoA = await getNudge(
+        userBNetid,
+        testUsers[0].netid,
+        testPromptId
+      );
 
       expect(nudgeAtoB!.mutual).toBe(true);
       expect(nudgeBtoA!.mutual).toBe(true);
 
       // Chat should be unlocked for both
-      const userAMatchesAfter = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatchesAfter = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const userBMatchesAfter = await getUserMatches(userBNetid, testPromptId);
 
       const indexOfBInA = userAMatchesAfter!.matches.indexOf(userBNetid);
-      const indexOfAInB = userBMatchesAfter!.matches.indexOf(testUsers[0].netid);
+      const indexOfAInB = userBMatchesAfter!.matches.indexOf(
+        testUsers[0].netid
+      );
 
       expect(userAMatchesAfter!.chatUnlocked![indexOfBInA]).toBe(true);
       expect(userBMatchesAfter!.chatUnlocked![indexOfAInB]).toBe(true);
@@ -400,8 +498,14 @@ describe('Nudging System Integration Tests', () => {
       await createNudge(testUsers[1].netid, testUsers[0].netid, testPromptId);
 
       // Chat should be unlocked
-      const user0MatchesAfter = await getUserMatches(testUsers[0].netid, testPromptId);
-      const user1MatchesAfter = await getUserMatches(testUsers[1].netid, testPromptId);
+      const user0MatchesAfter = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
+      const user1MatchesAfter = await getUserMatches(
+        testUsers[1].netid,
+        testPromptId
+      );
 
       expect(user0MatchesAfter!.chatUnlocked![0]).toBe(true);
       expect(user1MatchesAfter!.chatUnlocked![0]).toBe(true);
