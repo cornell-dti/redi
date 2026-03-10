@@ -11,24 +11,33 @@
  * - Correct match index updates in chatUnlocked array
  */
 
-import { createNudge, getNudgeStatus } from '../../services/nudgesService';
+import { db } from '../../../firebaseAdmin';
 import { generateMatchesForPrompt } from '../../services/matchingService';
+import { createNudge, getNudgeStatus } from '../../services/nudgesService';
 import {
-  createTestUsers,
+  TestUser,
+  cleanupTestData,
   createTestPrompt,
   createTestPromptAnswers,
-  cleanupTestData,
-  getUserMatches,
+  createTestUsers,
   getNudge,
-  TestUser,
+  getUserMatches,
 } from '../utils/testDataGenerator';
-import { db } from '../../../firebaseAdmin';
 
 jest.setTimeout(120000);
 
 describe('Nudging System Integration Tests', () => {
   let testUsers: TestUser[] = [];
   let testPromptId: string;
+
+  const setupUsersAndMatches = async () => {
+    // Create users and matches
+    testUsers = await createTestUsers(6);
+    const prompt = await createTestPrompt();
+    testPromptId = prompt.promptId;
+    await createTestPromptAnswers(testUsers, testPromptId);
+    await generateMatchesForPrompt(testPromptId);
+  };
 
   beforeAll(async () => {
     await cleanupTestData();
@@ -50,13 +59,7 @@ describe('Nudging System Integration Tests', () => {
 
   describe('Basic Nudging Functionality', () => {
     test('should create a nudge from user A to user B', async () => {
-      // Create users and matches
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches();
 
       // User 0 nudges User 1 (assuming they're matched)
       const userAMatches = await getUserMatches(
@@ -81,12 +84,7 @@ describe('Nudging System Integration Tests', () => {
     });
 
     test('should detect mutual nudge when both users nudge each other', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches();
 
       const userAMatches = await getUserMatches(
         testUsers[0].netid,
@@ -117,12 +115,7 @@ describe('Nudging System Integration Tests', () => {
     });
 
     test('should unlock chat for both users on mutual nudge', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches();
 
       const userAMatches = await getUserMatches(
         testUsers[0].netid,
@@ -161,12 +154,7 @@ describe('Nudging System Integration Tests', () => {
     });
 
     test('should only unlock chat for the specific match, not all matches', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches();
 
       const userAMatches = await getUserMatches(
         testUsers[0].netid,
@@ -196,12 +184,7 @@ describe('Nudging System Integration Tests', () => {
 
   describe('Nudge Status Queries', () => {
     test('should correctly report nudge status', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches();
 
       const userAMatches = await getUserMatches(
         testUsers[0].netid,
@@ -268,12 +251,7 @@ describe('Nudging System Integration Tests', () => {
 
   describe('Edge Cases and Error Handling', () => {
     test('should throw error when nudging the same user twice', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches();
 
       const userAMatches = await getUserMatches(
         testUsers[0].netid,
@@ -291,12 +269,7 @@ describe('Nudging System Integration Tests', () => {
     });
 
     test('should handle nudging non-matched users gracefully', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches();
 
       const userAMatches = await getUserMatches(
         testUsers[0].netid,
@@ -325,12 +298,7 @@ describe('Nudging System Integration Tests', () => {
     });
 
     test('should handle nudges for users with different number of matches', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches();
 
       // Get two users who are matched
       const userAMatches = await getUserMatches(
@@ -362,12 +330,7 @@ describe('Nudging System Integration Tests', () => {
 
   describe('Notification Creation on Mutual Nudge', () => {
     test('should create notifications for both users on mutual nudge', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches();
 
       const userAMatches = await getUserMatches(
         testUsers[0].netid,
@@ -407,12 +370,7 @@ describe('Nudging System Integration Tests', () => {
 
   describe('Concurrent Nudging', () => {
     test('should handle concurrent mutual nudges correctly', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches();
 
       const userAMatches = await getUserMatches(
         testUsers[0].netid,

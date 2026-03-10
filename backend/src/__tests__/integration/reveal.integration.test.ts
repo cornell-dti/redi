@@ -10,15 +10,17 @@
  * - Edge cases and error handling
  */
 
-import { revealMatch } from '../../services/matchingService';
-import { generateMatchesForPrompt } from '../../services/matchingService';
 import {
-  createTestUsers,
+  generateMatchesForPrompt,
+  revealMatch,
+} from '../../services/matchingService';
+import {
+  TestUser,
+  cleanupTestData,
   createTestPrompt,
   createTestPromptAnswers,
-  cleanupTestData,
+  createTestUsers,
   getUserMatches,
-  TestUser,
 } from '../utils/testDataGenerator';
 
 jest.setTimeout(120000); // Increased timeout for integration tests with cleanup
@@ -26,6 +28,15 @@ jest.setTimeout(120000); // Increased timeout for integration tests with cleanup
 describe('Reveal System Integration Tests', () => {
   let testUsers: TestUser[] = [];
   let testPromptId: string;
+
+  const setupUsersAndMatches = async (numUsers: number) => {
+    testUsers = await createTestUsers(numUsers);
+    const prompt = await createTestPrompt();
+    testPromptId = prompt.promptId;
+
+    await createTestPromptAnswers(testUsers, testPromptId);
+    await generateMatchesForPrompt(testPromptId);
+  };
 
   beforeAll(async () => {
     await cleanupTestData();
@@ -47,12 +58,7 @@ describe('Reveal System Integration Tests', () => {
 
   describe('Basic Reveal Functionality', () => {
     test('should reveal a specific match by index', async () => {
-      testUsers = await createTestUsers(10);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(10);
 
       // Reveal first match (index 0)
       await revealMatch(testUsers[0].netid, testPromptId, 0);
@@ -68,12 +74,7 @@ describe('Reveal System Integration Tests', () => {
     });
 
     test('should reveal all matches independently', async () => {
-      testUsers = await createTestUsers(10);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(10);
 
       // Initially all should be unrevealed
       let matches = await getUserMatches(testUsers[0].netid, testPromptId);
@@ -97,12 +98,7 @@ describe('Reveal System Integration Tests', () => {
     });
 
     test('should not affect other users when revealing a match', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(6);
 
       // User 0 reveals their first match
       await revealMatch(testUsers[0].netid, testPromptId, 0);
@@ -115,12 +111,7 @@ describe('Reveal System Integration Tests', () => {
     });
 
     test('should allow revealing the same match multiple times (idempotent)', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(6);
 
       // Reveal first match
       await revealMatch(testUsers[0].netid, testPromptId, 0);
@@ -136,12 +127,7 @@ describe('Reveal System Integration Tests', () => {
 
   describe('Reveal with Different Match Counts', () => {
     test('should handle revealing matches when user has less than 3 matches', async () => {
-      testUsers = await createTestUsers(3);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(3);
 
       // Each user should have 2 matches (only 3 users total)
       const matches = await getUserMatches(testUsers[0].netid, testPromptId);
@@ -166,12 +152,7 @@ describe('Reveal System Integration Tests', () => {
 
   describe('Error Handling', () => {
     test('should throw error for invalid match index (negative)', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(6);
 
       await expect(
         revealMatch(testUsers[0].netid, testPromptId, -1)
@@ -179,12 +160,7 @@ describe('Reveal System Integration Tests', () => {
     });
 
     test('should throw error for invalid match index (too high)', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(6);
 
       await expect(
         revealMatch(testUsers[0].netid, testPromptId, 3)
@@ -200,12 +176,7 @@ describe('Reveal System Integration Tests', () => {
     });
 
     test('should throw error when match index exceeds actual match count', async () => {
-      testUsers = await createTestUsers(3);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(3);
 
       const matches = await getUserMatches(testUsers[0].netid, testPromptId);
 
@@ -220,12 +191,7 @@ describe('Reveal System Integration Tests', () => {
 
   describe('Reveal Independence from Nudging', () => {
     test('should allow revealing matches regardless of nudge status', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(6);
 
       // Reveal a match without any nudging
       await revealMatch(testUsers[0].netid, testPromptId, 0);
@@ -242,12 +208,7 @@ describe('Reveal System Integration Tests', () => {
     });
 
     test('revealing a match should not unlock chat', async () => {
-      testUsers = await createTestUsers(10);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(10);
 
       const initialMatches = await getUserMatches(
         testUsers[0].netid,
@@ -276,12 +237,7 @@ describe('Reveal System Integration Tests', () => {
 
   describe('Concurrent Reveal Operations', () => {
     test('should handle concurrent reveals of different matches', async () => {
-      testUsers = await createTestUsers(10);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(10);
 
       const initialMatches = await getUserMatches(
         testUsers[0].netid,
@@ -305,12 +261,7 @@ describe('Reveal System Integration Tests', () => {
     });
 
     test('should handle concurrent reveals of same match (idempotent)', async () => {
-      testUsers = await createTestUsers(6);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(6);
 
       // Reveal same match multiple times concurrently
       await Promise.all([
@@ -328,12 +279,7 @@ describe('Reveal System Integration Tests', () => {
 
   describe('Reveal Order Independence', () => {
     test('should allow revealing matches in any order', async () => {
-      testUsers = await createTestUsers(10);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(10);
 
       const initialMatches = await getUserMatches(
         testUsers[0].netid,
@@ -405,12 +351,7 @@ describe('Reveal System Integration Tests', () => {
 
   describe('Reveal State Persistence', () => {
     test('should persist revealed state across queries', async () => {
-      testUsers = await createTestUsers(10);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(10);
 
       // Reveal first match
       await revealMatch(testUsers[0].netid, testPromptId, 0);
@@ -433,12 +374,7 @@ describe('Reveal System Integration Tests', () => {
     });
 
     test('should maintain revealed state after revealing additional matches', async () => {
-      testUsers = await createTestUsers(10);
-      const prompt = await createTestPrompt();
-      testPromptId = prompt.promptId;
-
-      await createTestPromptAnswers(testUsers, testPromptId);
-      await generateMatchesForPrompt(testPromptId);
+      await setupUsersAndMatches(10);
 
       const initialMatches = await getUserMatches(
         testUsers[0].netid,

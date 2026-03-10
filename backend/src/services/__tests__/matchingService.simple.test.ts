@@ -3,13 +3,24 @@
  * Tests core logic without full Firestore mocking complexity
  */
 
-import { validateMatchMutuality } from '../matchingService';
 import { db } from '../../../firebaseAdmin';
+import { validateMatchMutuality } from '../matchingService';
 
 // Mock Firebase
 jest.mock('../../../firebaseAdmin');
 
 const mockDb = db as jest.Mocked<typeof db>;
+
+const setupMockCollection = (docs: { data: () => object }[]) => {
+  const mockGet = jest.fn().mockResolvedValue({
+    forEach: (callback: any) => docs.forEach(callback),
+  });
+  const mockWhere = jest.fn().mockReturnValue({ get: mockGet });
+  const mockCollection = jest.fn().mockReturnValue({
+    where: mockWhere,
+  });
+  mockDb.collection = mockCollection as any;
+};
 
 describe('Two-Phase Mutual Matching - Core Logic Tests', () => {
   describe('validateMatchMutuality', () => {
@@ -47,20 +58,7 @@ describe('Two-Phase Mutual Matching - Core Logic Tests', () => {
           }),
         },
       ];
-
-      const mockGet = jest.fn().mockResolvedValue({
-        forEach: (callback: any) => mockDocs.forEach(callback),
-      });
-
-      const mockWhere = jest.fn().mockReturnValue({
-        get: mockGet,
-      });
-
-      const mockCollection = jest.fn().mockReturnValue({
-        where: mockWhere,
-      });
-
-      mockDb.collection = mockCollection as any;
+      setupMockCollection(mockDocs);
 
       const result = await validateMatchMutuality(promptId);
 
@@ -83,19 +81,7 @@ describe('Two-Phase Mutual Matching - Core Logic Tests', () => {
         },
       ];
 
-      const mockGet = jest.fn().mockResolvedValue({
-        forEach: (callback: any) => mockDocs.forEach(callback),
-      });
-
-      const mockWhere = jest.fn().mockReturnValue({
-        get: mockGet,
-      });
-
-      const mockCollection = jest.fn().mockReturnValue({
-        where: mockWhere,
-      });
-
-      mockDb.collection = mockCollection as any;
+      setupMockCollection(mockDocs);
 
       const result = await validateMatchMutuality(promptId);
 
@@ -136,19 +122,7 @@ describe('Two-Phase Mutual Matching - Core Logic Tests', () => {
         },
       ];
 
-      const mockGet = jest.fn().mockResolvedValue({
-        forEach: (callback: any) => mockDocs.forEach(callback),
-      });
-
-      const mockWhere = jest.fn().mockReturnValue({
-        get: mockGet,
-      });
-
-      const mockCollection = jest.fn().mockReturnValue({
-        where: mockWhere,
-      });
-
-      mockDb.collection = mockCollection as any;
+      setupMockCollection(mockDocs);
 
       const result = await validateMatchMutuality(promptId);
 
@@ -209,19 +183,7 @@ describe('Two-Phase Mutual Matching - Core Logic Tests', () => {
         },
       ];
 
-      const mockGet = jest.fn().mockResolvedValue({
-        forEach: (callback: any) => mockDocs.forEach(callback),
-      });
-
-      const mockWhere = jest.fn().mockReturnValue({
-        get: mockGet,
-      });
-
-      const mockCollection = jest.fn().mockReturnValue({
-        where: mockWhere,
-      });
-
-      mockDb.collection = mockCollection as any;
+      setupMockCollection(mockDocs);
 
       const result = await validateMatchMutuality(promptId);
 
@@ -243,19 +205,7 @@ describe('Two-Phase Mutual Matching - Core Logic Tests', () => {
         },
       ];
 
-      const mockGet = jest.fn().mockResolvedValue({
-        forEach: (callback: any) => mockDocs.forEach(callback),
-      });
-
-      const mockWhere = jest.fn().mockReturnValue({
-        get: mockGet,
-      });
-
-      const mockCollection = jest.fn().mockReturnValue({
-        where: mockWhere,
-      });
-
-      mockDb.collection = mockCollection as any;
+      setupMockCollection(mockDocs);
 
       const result = await validateMatchMutuality(promptId);
 
@@ -279,19 +229,7 @@ describe('Two-Phase Mutual Matching - Core Logic Tests', () => {
         },
       ];
 
-      const mockGet = jest.fn().mockResolvedValue({
-        forEach: (callback: any) => mockDocs.forEach(callback),
-      });
-
-      const mockWhere = jest.fn().mockReturnValue({
-        get: mockGet,
-      });
-
-      const mockCollection = jest.fn().mockReturnValue({
-        where: mockWhere,
-      });
-
-      mockDb.collection = mockCollection as any;
+      setupMockCollection(mockDocs);
 
       const result = await validateMatchMutuality(promptId);
 
@@ -304,19 +242,7 @@ describe('Two-Phase Mutual Matching - Core Logic Tests', () => {
     test('should handle empty matches collection', async () => {
       const promptId = 'test-prompt-7';
 
-      const mockGet = jest.fn().mockResolvedValue({
-        forEach: jest.fn(), // No docs
-      });
-
-      const mockWhere = jest.fn().mockReturnValue({
-        get: mockGet,
-      });
-
-      const mockCollection = jest.fn().mockReturnValue({
-        where: mockWhere,
-      });
-
-      mockDb.collection = mockCollection as any;
+      setupMockCollection([]);
 
       const result = await validateMatchMutuality(promptId);
 
