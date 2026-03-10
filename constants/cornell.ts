@@ -147,7 +147,9 @@ export const CORNELL_MAJORS: Record<School, string[]> = {
 };
 
 // Flattened list of all majors for easy selection
-export const ALL_MAJORS = Object.values(CORNELL_MAJORS).flat().sort();
+export const ALL_MAJORS = Object.values(CORNELL_MAJORS)
+  .flat()
+  .sort((a, b) => a.localeCompare(b));
 
 // Academic year classifications
 export type Year =
