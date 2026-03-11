@@ -381,25 +381,6 @@ export default function HomePage() {
         )}
       </View>
 
-      <AppText style={{ textAlign: 'center', height: 50 }} color="dimmer">
-        By signing up, you agree to our{' '}
-        <AppText
-          color="accent"
-          style={{ textDecorationLine: 'underline' }}
-          onPress={() => Linking.openURL('https://redi.love/terms')}
-        >
-          Terms
-        </AppText>
-        . Learn how we process your data in our{' '}
-        <AppText
-          color="accent"
-          style={{ textDecorationLine: 'underline' }}
-          onPress={() => Linking.openURL('https://redi.love/privacy')}
-        >
-          Privacy
-        </AppText>
-        .
-      </AppText>
     </Animated.View>
   );
 
@@ -478,24 +459,6 @@ export default function HomePage() {
               iconLeft={mode === 'signup' ? Plus : LogIn}
             />
 
-            {/* Toggle between signup and login */}
-            <TouchableOpacity
-              onPress={() => {
-                setDirection('forward');
-                setMode(mode === 'signup' ? 'login' : 'signup');
-              }}
-              style={styles.toggleAuthMode}
-            >
-              {/* <AppText variant="body" style={styles.toggleAuthModeText}>
-                {mode === 'signup'
-                  ? 'Already have an account? '
-                  : "Don't have an account? "}
-                <AppText variant="body" style={styles.toggleAuthModeTextBold}>
-                  {mode === 'signup' ? 'Log in' : 'Create account'}
-                </AppText>
-              </AppText> */}
-            </TouchableOpacity>
-
             <Button
               title="Back"
               onPress={handleBack}
@@ -533,6 +496,29 @@ export default function HomePage() {
         <AppText variant="body" style={styles.sheetText}>
           Your email is kept private and is only used for account verification
           and authentication purposes.
+        </AppText>
+        <AppText variant="body" style={styles.sheetText}>
+          By signing up, you agree to our{' '}
+          <AppText
+            variant="body"
+            color="accent"
+            style={{ textDecorationLine: 'underline' }}
+            onPress={() => Linking.openURL('https://redi.love/terms')}
+          >
+            Terms
+          </AppText>
+          {'.'}
+          {'\n'}
+          {'Learn how we process your data in our '}
+          <AppText
+            variant="body"
+            color="accent"
+            style={{ textDecorationLine: 'underline' }}
+            onPress={() => Linking.openURL('https://redi.love/privacy')}
+          >
+            Privacy Policy
+          </AppText>
+          .
         </AppText>
       </Sheet>
 
