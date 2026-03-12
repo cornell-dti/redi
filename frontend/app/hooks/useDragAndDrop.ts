@@ -147,7 +147,9 @@ export function useDragAndDrop(config: DragConfig) {
       }
       case 'tag': {
         // Flexible wrap tag calculation (estimate based on thresholds)
-        const horizontalMove = Math.round(translationX / tagHorizontalThreshold);
+        const horizontalMove = Math.round(
+          translationX / tagHorizontalThreshold
+        );
         const verticalMove = Math.round(translationY / tagVerticalThreshold);
         offset = horizontalMove + verticalMove * tagsPerRow;
         break;
@@ -192,7 +194,10 @@ export function useDragAndDrop(config: DragConfig) {
     })
     .onEnd((event) => {
       // Calculate final drop position
-      const toIndex = calculateTargetIndex(event.translationX, event.translationY);
+      const toIndex = calculateTargetIndex(
+        event.translationX,
+        event.translationY
+      );
 
       runOnJS(onDragEnd)(toIndex);
       runOnJS(onHoverChange)(null);

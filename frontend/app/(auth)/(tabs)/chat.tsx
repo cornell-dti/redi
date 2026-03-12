@@ -74,7 +74,9 @@ export default function ChatScreen() {
   const currentUser = getCurrentUser();
   const [blockedUsers, setBlockedUsers] = useState<Set<string>>(new Set());
   const [animationTrigger, setAnimationTrigger] = useState(0);
-  const [freshProfiles, setFreshProfiles] = useState<Record<string, { firstName: string; pictures: string[]; netid: string }>>({});
+  const [freshProfiles, setFreshProfiles] = useState<
+    Record<string, { firstName: string; pictures: string[]; netid: string }>
+  >({});
 
   // Fetch blocked users list when screen is focused
   useFocusEffect(
@@ -130,49 +132,53 @@ export default function ChatScreen() {
     if (!currentUser) return mockChats;
 
     console.log(currentUser.uid);
-    return conversations
-      .map((conv) => {
-        // Get the other participant's info
-        const otherUserId = conv.participantIds.find(
-          (id) => id !== currentUser.uid
-        );
-        const otherUser = otherUserId ? conv.participants[otherUserId] : null;
+    return conversations.map((conv) => {
+      // Get the other participant's info
+      const otherUserId = conv.participantIds.find(
+        (id) => id !== currentUser.uid
+      );
+      const otherUser = otherUserId ? conv.participants[otherUserId] : null;
 
-        // Get fresh profile data if available, otherwise use cached data
-        const freshProfile = otherUserId ? freshProfiles[otherUserId] : null;
+      // Get fresh profile data if available, otherwise use cached data
+      const freshProfile = otherUserId ? freshProfiles[otherUserId] : null;
 
-        // Use fresh profile picture (pictures[0]) if available, otherwise fall back to cached image
-        // If no image available, use placeholder
-        const profileImage = freshProfile?.pictures?.[0] || otherUser?.image || 'https://via.placeholder.com/150';
+      // Use fresh profile picture (pictures[0]) if available, otherwise fall back to cached image
+      // If no image available, use placeholder
+      const profileImage =
+        freshProfile?.pictures?.[0] ||
+        otherUser?.image ||
+        'https://via.placeholder.com/150';
 
-        // Format timestamp
-        let timestamp = 'Just now';
-        if (conv.lastMessage?.timestamp) {
-          const messageDate =
-            conv.lastMessage.timestamp.toDate?.() ||
-            new Date(conv.lastMessage.timestamp);
-          const now = new Date();
-          const diffMs = now.getTime() - messageDate.getTime();
-          const diffMins = Math.floor(diffMs / 60000);
-          const diffHours = Math.floor(diffMs / 3600000);
-          const diffDays = Math.floor(diffMs / 86400000);
+      // Format timestamp
+      let timestamp = 'Just now';
+      if (conv.lastMessage?.timestamp) {
+        const messageDate =
+          conv.lastMessage.timestamp.toDate?.() ||
+          new Date(conv.lastMessage.timestamp);
+        const now = new Date();
+        const diffMs = now.getTime() - messageDate.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
 
-          if (diffMins < 1) timestamp = 'Just now';
-          else if (diffMins < 60) timestamp = `${diffMins}m ago`;
-          else if (diffHours < 24) timestamp = `${diffHours}h ago`;
-          else timestamp = `${diffDays}d ago`;
-        }
+        if (diffMins < 1) timestamp = 'Just now';
+        else if (diffMins < 60) timestamp = `${diffMins}m ago`;
+        else if (diffHours < 24) timestamp = `${diffHours}h ago`;
+        else timestamp = `${diffDays}d ago`;
+      }
 
-        return {
-          id: conv.id,
-          userId: otherUserId || '',
-          netid: freshProfile?.netid || otherUser?.netid || '',
-          name: otherUser?.deleted ? 'Deleted User' : (freshProfile?.firstName || otherUser?.name || 'Unknown'),
-          lastMessage: conv.lastMessage?.text || 'Start a conversation',
-          timestamp,
-          image: profileImage,
-        };
-      });
+      return {
+        id: conv.id,
+        userId: otherUserId || '',
+        netid: freshProfile?.netid || otherUser?.netid || '',
+        name: otherUser?.deleted
+          ? 'Deleted User'
+          : freshProfile?.firstName || otherUser?.name || 'Unknown',
+        lastMessage: conv.lastMessage?.text || 'Start a conversation',
+        timestamp,
+        image: profileImage,
+      };
+    });
   }, [conversations, currentUser, freshProfiles]);
 
   const displayData = chatData;

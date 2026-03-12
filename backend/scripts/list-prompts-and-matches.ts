@@ -11,7 +11,9 @@ async function listPromptsAndMatches() {
     // List all prompts
     console.log('═══════════════════════════════════════════════════════════');
     console.log('WEEKLY PROMPTS');
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log(
+      '═══════════════════════════════════════════════════════════\n'
+    );
 
     const promptsSnapshot = await db
       .collection('weeklyPrompts')
@@ -27,14 +29,18 @@ async function listPromptsAndMatches() {
       console.log(`   Question: ${data.question?.substring(0, 60)}...`);
       console.log(`   Status: ${data.status || 'unknown'}`);
       console.log(`   Active: ${data.active}`);
-      console.log(`   Created: ${data.createdAt?.toDate().toISOString().split('T')[0]}`);
+      console.log(
+        `   Created: ${data.createdAt?.toDate().toISOString().split('T')[0]}`
+      );
       console.log('');
     });
 
     // List some match documents
     console.log('═══════════════════════════════════════════════════════════');
     console.log('WEEKLY MATCHES SAMPLE');
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log(
+      '═══════════════════════════════════════════════════════════\n'
+    );
 
     const matchesSnapshot = await db
       .collection('weeklyMatches')
@@ -55,17 +61,22 @@ async function listPromptsAndMatches() {
     });
 
     // Get count of all matches
-    const allMatchesSnapshot = await db.collection('weeklyMatches').count().get();
-    console.log(`\nTotal match documents in database: ${allMatchesSnapshot.data().count}\n`);
+    const allMatchesSnapshot = await db
+      .collection('weeklyMatches')
+      .count()
+      .get();
+    console.log(
+      `\nTotal match documents in database: ${allMatchesSnapshot.data().count}\n`
+    );
 
     // Group matches by promptId
     console.log('═══════════════════════════════════════════════════════════');
     console.log('MATCHES BY PROMPT ID');
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log(
+      '═══════════════════════════════════════════════════════════\n'
+    );
 
-    const allMatchesForGrouping = await db
-      .collection('weeklyMatches')
-      .get();
+    const allMatchesForGrouping = await db.collection('weeklyMatches').get();
 
     const matchesByPrompt = new Map<string, number>();
     allMatchesForGrouping.docs.forEach((doc) => {
@@ -81,7 +92,6 @@ async function listPromptsAndMatches() {
       });
 
     console.log('\n🔍 Listing complete!\n');
-
   } catch (error) {
     console.error('❌ Error during listing:', error);
     throw error;

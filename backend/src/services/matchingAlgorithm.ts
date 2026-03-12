@@ -9,8 +9,8 @@
  * - /backend/functions/src/types.ts when in /backend/functions/src/services/ (copied during build)
  */
 
+import { ALL_MAJORS, CORNELL_SCHOOLS } from '../../../constants/cornell';
 import { PreferencesDoc, ProfileDoc, Year } from '../../types';
-import { ALL_MAJORS, CORNELL_SCHOOLS } from '../../constants/cornell';
 
 /**
  * UserData interface for matching algorithm
@@ -101,8 +101,16 @@ export function calculateMutualCompatibilityScore(
   relaxed: boolean = false
 ): number {
   // Calculate individual compatibility scores (0-100 each)
-  const aLikesBScore = calculatePreferenceMatchScore(profileB, preferencesA, relaxed);
-  const bLikesAScore = calculatePreferenceMatchScore(profileA, preferencesB, relaxed);
+  const aLikesBScore = calculatePreferenceMatchScore(
+    profileB,
+    preferencesA,
+    relaxed
+  );
+  const bLikesAScore = calculatePreferenceMatchScore(
+    profileA,
+    preferencesB,
+    relaxed
+  );
 
   // If either user has 0 score (fails hard requirements like gender), return 0
   if (aLikesBScore === 0 || bLikesAScore === 0) {

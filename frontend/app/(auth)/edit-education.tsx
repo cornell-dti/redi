@@ -8,9 +8,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CORNELL_MAJORS,
   CORNELL_SCHOOLS,
-  Year,
   YEARS,
-} from '../../constants/cornell';
+  Year,
+} from '../../../constants/cornell';
 import { getCurrentUser } from '../api/authService';
 import { updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';

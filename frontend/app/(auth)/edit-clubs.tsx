@@ -214,7 +214,10 @@ export default function EditClubsPage() {
 
   const handleSaveEdit = () => {
     if (editValue.trim() && editingClub) {
-      if (!clubs.includes(editValue.trim()) || editValue.trim() === editingClub) {
+      if (
+        !clubs.includes(editValue.trim()) ||
+        editValue.trim() === editingClub
+      ) {
         const updatedClubs = clubs.map((club) =>
           club === editingClub ? editValue.trim() : club
         );
@@ -282,7 +285,10 @@ export default function EditClubsPage() {
                     >
                       <AppText
                         variant="bodySmall"
-                        style={{ opacity: 0.3, color: AppColors.foregroundDefault }}
+                        style={{
+                          opacity: 0.3,
+                          color: AppColors.foregroundDefault,
+                        }}
                       >
                         {clubs[draggingIndex]}
                       </AppText>

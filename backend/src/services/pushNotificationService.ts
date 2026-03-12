@@ -46,9 +46,7 @@ export async function sendPushNotification(
 
     // Check if the push token is valid
     if (!Expo.isExpoPushToken(pushToken)) {
-      console.error(
-        `Invalid push token for user ${netid}: ${pushToken}`
-      );
+      console.error(`Invalid push token for user ${netid}: ${pushToken}`);
       // Remove invalid token
       await userSnapshot.docs[0].ref.update({
         pushToken: null,
@@ -332,8 +330,8 @@ export async function sendBroadcastNotification(
     // Create in-app notifications in Firestore for all users
     // Use batch writes for efficiency (max 500 per batch)
     const BATCH_SIZE = 500;
-    const allUsers: UserDoc[] = usersSnapshot.docs.map((doc) =>
-      doc.data() as UserDoc
+    const allUsers: UserDoc[] = usersSnapshot.docs.map(
+      (doc) => doc.data() as UserDoc
     );
 
     console.log(
@@ -437,7 +435,9 @@ export async function sendBroadcastNotification(
           const userInfo = userTokenMap.get(globalIndex);
 
           if (!userInfo) {
-            console.error(`No user info found for message index ${globalIndex}`);
+            console.error(
+              `No user info found for message index ${globalIndex}`
+            );
             return;
           }
 

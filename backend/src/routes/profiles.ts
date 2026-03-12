@@ -286,7 +286,10 @@ router.get(
       }
 
       // Parse comma-separated UIDs
-      const uidList = uids.split(',').map((uid) => uid.trim()).filter(Boolean);
+      const uidList = uids
+        .split(',')
+        .map((uid) => uid.trim())
+        .filter(Boolean);
 
       if (uidList.length === 0) {
         return res.status(400).json({
@@ -301,11 +304,14 @@ router.get(
       }
 
       // Create result map
-      const profilesMap: Record<string, {
-        firstName: string;
-        pictures: string[];
-        netid: string;
-      }> = {};
+      const profilesMap: Record<
+        string,
+        {
+          firstName: string;
+          pictures: string[];
+          netid: string;
+        }
+      > = {};
 
       // Fetch user documents to get netids from Firebase UIDs
       const userPromises = uidList.map(async (firebaseUid) => {
@@ -343,7 +349,10 @@ router.get(
             pictures: profileData.pictures || [],
           };
         } catch (error) {
-          console.error(`Error fetching profile for UID ${firebaseUid}:`, error);
+          console.error(
+            `Error fetching profile for UID ${firebaseUid}:`,
+            error
+          );
           return null;
         }
       });

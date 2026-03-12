@@ -34,9 +34,7 @@ export function MotionProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <MotionContext.Provider
-      value={{ animationEnabled, setAnimationEnabled }}
-    >
+    <MotionContext.Provider value={{ animationEnabled, setAnimationEnabled }}>
       {children}
     </MotionContext.Provider>
   );
