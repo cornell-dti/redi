@@ -98,6 +98,7 @@ function DraggableTag({
 
 export default function EditClubsPage() {
   useThemeAware();
+
   const { showToast } = useToast();
   const { updateProfileData, refreshProfile } = useProfile();
   const haptic = useHapticFeedback();
@@ -112,8 +113,12 @@ export default function EditClubsPage() {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [editingClub, setEditingClub] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
-  const [suggestions, setSuggestions] = useState<{ name: string; category: string }[]>([]);
-  const [editSuggestions, setEditSuggestions] = useState<{ name: string; category: string }[]>([]);
+  const [suggestions, setSuggestions] = useState<
+    { name: string; category: string }[]
+  >([]);
+  const [editSuggestions, setEditSuggestions] = useState<
+    { name: string; category: string }[]
+  >([]);
 
   useEffect(() => {
     fetchProfile();
@@ -192,17 +197,21 @@ export default function EditClubsPage() {
     router.back();
   };
 
-  const addClub = () => {
-    if (newClub.trim()) {
-      if (!clubs.includes(newClub.trim())) {
-        setClubs([...clubs, newClub.trim()]);
+  const addClubByName = (name: string) => {
+    const trimmed = name.trim();
+    if (trimmed) {
+      if (!clubs.includes(trimmed)) {
+        setClubs([...clubs, trimmed]);
         setNewClub('');
+        setSuggestions([]);
         setSheetVisible(false);
       } else {
         Alert.alert('Duplicate', 'This club already exists');
       }
     }
   };
+
+  const addClub = () => addClubByName(newClub);
 
   const removeClub = (clubToRemove: string) => {
     setClubs(clubs.filter((club) => club !== clubToRemove));
@@ -222,16 +231,20 @@ export default function EditClubsPage() {
       (c) =>
         c.name.toLowerCase().includes(text.toLowerCase()) &&
         !currentClubs.includes(c.name)
-    ).slice(0, 5);
+    ).slice(0, 20);
 
   const handleNewClubChange = (text: string) => {
     setNewClub(text);
-    setSuggestions(text.trim().length > 0 ? filterSuggestions(text, clubs) : []);
+    setSuggestions(
+      text.trim().length > 0 ? filterSuggestions(text, clubs) : []
+    );
   };
 
   const handleEditValueChange = (text: string) => {
     setEditValue(text);
-    setEditSuggestions(text.trim().length > 0 ? filterSuggestions(text, clubs) : []);
+    setEditSuggestions(
+      text.trim().length > 0 ? filterSuggestions(text, clubs) : []
+    );
   };
 
   const handleEditClub = (club: string) => {
@@ -239,20 +252,21 @@ export default function EditClubsPage() {
     setEditValue(club);
   };
 
-  const handleSaveEdit = () => {
-    if (editValue.trim() && editingClub) {
-      if (!clubs.includes(editValue.trim()) || editValue.trim() === editingClub) {
-        const updatedClubs = clubs.map((club) =>
-          club === editingClub ? editValue.trim() : club
-        );
-        setClubs(updatedClubs);
+  const saveEditByName = (name: string) => {
+    const trimmed = name.trim();
+    if (trimmed && editingClub) {
+      if (!clubs.includes(trimmed) || trimmed === editingClub) {
+        setClubs(clubs.map((club) => (club === editingClub ? trimmed : club)));
         setEditingClub(null);
         setEditValue('');
+        setEditSuggestions([]);
       } else {
         Alert.alert('Duplicate', 'This club already exists');
       }
     }
   };
+
+  const handleSaveEdit = () => saveEditByName(editValue);
 
   const handleRemoveFromEdit = () => {
     if (editingClub) {
@@ -309,7 +323,10 @@ export default function EditClubsPage() {
                     >
                       <AppText
                         variant="bodySmall"
-                        style={{ opacity: 0.3, color: AppColors.foregroundDefault }}
+                        style={{
+                          opacity: 0.3,
+                          color: AppColors.foregroundDefault,
+                        }}
                       >
                         {clubs[draggingIndex]}
                       </AppText>
@@ -376,28 +393,33 @@ export default function EditClubsPage() {
             onSubmitEditing={addClub}
           />
           {suggestions.length > 0 && (
-            <View style={styles.suggestionsContainer}>
-              {suggestions.map((club) => (
-                <TouchableOpacity
-                  key={club.name}
-                  onPress={() => {
-                    setNewClub(club.name);
-                    setSuggestions([]);
-                  }}
-                  style={styles.suggestionRow}
-                >
-                  <AppText>{club.name}</AppText>
-                </TouchableOpacity>
-              ))}
+            <View style={[styles.suggestionsContainer, { maxHeight: 160 }]}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {suggestions.map((club) => (
+                  <TouchableOpacity
+                    key={club.name}
+                    onPress={() => addClubByName(club.name)}
+                    style={styles.suggestionRow}
+                  >
+                    <AppText>{club.name}</AppText>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
           )}
-          <Button
-            title="Add"
-            onPress={addClub}
-            variant="primary"
-            iconLeft={Plus}
-            disabled={!newClub.trim()}
-          />
+          {newClub.trim().length > 0 && suggestions.length === 0 && (
+            <>
+              <AppText variant="bodySmall" style={styles.noResults}>
+                No results found
+              </AppText>
+              <Button
+                title={`Use "${newClub.trim()}"`}
+                onPress={addClub}
+                variant="primary"
+                disabled={!newClub.trim()}
+              />
+            </>
+          )}
         </KeyboardAvoidingView>
       </Sheet>
 
@@ -426,19 +448,21 @@ export default function EditClubsPage() {
             onSubmitEditing={handleSaveEdit}
           />
           {editSuggestions.length > 0 && (
-            <View style={styles.suggestionsContainer}>
-              {editSuggestions.map((club) => (
-                <TouchableOpacity
-                  key={club.name}
-                  onPress={() => {
-                    setEditValue(club.name);
-                    setEditSuggestions([]);
-                  }}
-                  style={styles.suggestionRow}
-                >
-                  <AppText>{club.name}</AppText>
-                </TouchableOpacity>
-              ))}
+            <View style={[styles.suggestionsContainer, { maxHeight: 160 }]}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {editSuggestions.map((club) => (
+                  <TouchableOpacity
+                    key={club.name}
+                    onPress={() => {
+                      setEditValue(club.name);
+                      setEditSuggestions([]);
+                    }}
+                    style={styles.suggestionRow}
+                  >
+                    <AppText>{club.name}</AppText>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
           )}
           <Button
@@ -515,8 +539,11 @@ const styles = StyleSheet.create({
   suggestionsContainer: {
     backgroundColor: AppColors.backgroundDimmer,
     borderRadius: 12,
-    overflow: 'hidden',
     marginTop: -8,
+  },
+  noResults: {
+    color: AppColors.foregroundDimmer,
+    textAlign: 'center',
   },
   suggestionRow: {
     flexDirection: 'row',
