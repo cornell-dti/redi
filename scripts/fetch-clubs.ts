@@ -46,7 +46,7 @@ async function main() {
       const name = decodeHtmlEntities(extractTag(item, 'groupName'));
       const rawCategory = extractTag(item, 'category');
       // Category can be semicolon-separated — use the first one
-      const category = decodeHtmlEntities(rawCategory.split(';')[0].trim());
+      const category = decodeHtmlEntities(rawCategory.split(',')[0].trim());
       return { name, category };
     })
     .filter((c) => c.name.length > 0)

@@ -226,12 +226,14 @@ export default function EditClubsPage() {
     setClubs(newClubs);
   };
 
-  const filterSuggestions = (text: string, currentClubs: string[]) =>
-    CLUBS.filter(
+  const filterSuggestions = (text: string, currentClubs: string[]) => {
+    const lowerText = text.toLowerCase();
+    return CLUBS.filter(
       (c) =>
-        c.name.toLowerCase().includes(text.toLowerCase()) &&
+        c.name.toLowerCase().includes(lowerText) &&
         !currentClubs.includes(c.name)
     ).slice(0, 20);
+  };
 
   const handleNewClubChange = (text: string) => {
     setNewClub(text);
