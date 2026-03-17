@@ -342,7 +342,7 @@ export default function EditEducationPage() {
               {school &&
                 (CORNELL_MAJORS[school] || [])
                   .filter((major) =>
-                    major.toLowerCase().includes(majorSearchQuery.toLowerCase())
+                    major.toLowerCase().includes(majorSearchQuery.toLowerCase()) && !majors.includes(major)
                   )
                   .map((major) => (
                     <ListItem
@@ -404,7 +404,7 @@ export default function EditEducationPage() {
               {school &&
                 (CORNELL_MINORS || [])
                   .filter((m) =>
-                    m.toLowerCase().includes(minorSearchQuery.toLowerCase())
+                    m.toLowerCase().includes(minorSearchQuery.toLowerCase()) && !minors.includes(m)
                   )
                   .map((m) => (
                     <ListItem
