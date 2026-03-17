@@ -1,6 +1,6 @@
 import AppText from '@/app/components/ui/AppText';
-import { ProfileResponse, PromptData, getProfileAge } from '@/types';
-import { router, useFocusEffect } from 'expo-router';
+import { PromptData, getProfileAge } from '@/types';
+import { router } from 'expo-router';
 import {
   Check,
   ChevronRight,
@@ -9,7 +9,7 @@ import {
   Pencil,
   Plus,
 } from 'lucide-react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -350,6 +350,10 @@ export default function EditProfileScreen() {
     profileData?.major && profileData.major.length > 0
       ? profileData.major.join(', ')
       : 'Major not set';
+  const displayMinor =
+    profileData?.minor && profileData.minor.length > 0
+      ? profileData.minor.join(', ')
+      : null;
   const displayYear = profileData?.year || 'Year not set';
   // Social fields are only available on OwnProfileResponse
   const displayInstagram =
@@ -563,7 +567,7 @@ export default function EditProfileScreen() {
               description={
                 profileData?.gender
                   ? profileData.gender.charAt(0).toUpperCase() +
-                    profileData.gender.slice(1)
+                  profileData.gender.slice(1)
                   : ''
               }
               right={<ChevronRight size={20} />}
@@ -593,6 +597,8 @@ export default function EditProfileScreen() {
                   <AppText>{profileData?.school}</AppText>
                   {' studying '}
                   <AppText>{profileData?.major?.join(', ')}</AppText>
+                  {displayMinor ? ' minoring in ' : ''}
+                  {displayMinor ? <AppText>{displayMinor}</AppText> : null}
                 </AppText>
               }
               right={<ChevronRight size={20} />}

@@ -67,6 +67,7 @@ export interface ProfileDocWrite {
   year: Year;
   school: School;
   major: string[];
+  minor?: string[];
   pictures: string[];
   createdAt: FirestoreTimestampType | FieldValue;
   updatedAt: FirestoreTimestampType | FieldValue;
@@ -128,6 +129,7 @@ export interface ProfileDoc {
   year: Year;
   school: School;
   major: string[];
+  minor?: string[];
   pictures: string[]; // URLs to images in Firebase Storage
   createdAt: FirestoreTimestampType;
   updatedAt: FirestoreTimestampType;
@@ -173,6 +175,7 @@ export interface ProfileResponse {
   year: Year;
   school: School;
   major: string[];
+  minor?: string[];
   pictures: string[];
   createdAt: string; // ISO string format for JSON
   updatedAt: string; // ISO string format for JSON
@@ -200,10 +203,10 @@ export type UpdateProfileInput = Partial<
 // Convert Firestore document to API response
 export type DocToResponse<T extends Record<string, any>> = {
   [K in keyof T]: T[K] extends FirestoreTimestampType
-    ? string
-    : T[K] extends FirestoreTimestampType | undefined
-      ? string | undefined
-      : T[K];
+  ? string
+  : T[K] extends FirestoreTimestampType | undefined
+  ? string | undefined
+  : T[K];
 };
 
 // Helper type for Firestore document with auto-generated ID
