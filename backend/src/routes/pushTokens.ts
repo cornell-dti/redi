@@ -13,7 +13,7 @@ import {
   getNotificationPreferences,
   updateNotificationPreferences,
 } from '../services/deviceTokenService';
-import { chatRateLimit } from '../middleware/rateLimiting';
+import { notificationRateLimit } from '../middleware/rateLimiting';
 
 const router = express.Router();
 
@@ -31,7 +31,7 @@ const router = express.Router();
  */
 router.post(
   '/api/users/push-token',
-  chatRateLimit,
+  notificationRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
     try {
@@ -92,7 +92,7 @@ router.post(
  */
 router.delete(
   '/api/users/push-token',
-  chatRateLimit,
+  notificationRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
     try {
@@ -140,7 +140,7 @@ router.delete(
  */
 router.get(
   '/api/users/notification-preferences',
-  chatRateLimit,
+  notificationRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
     try {
@@ -189,7 +189,7 @@ router.get(
  */
 router.put(
   '/api/users/notification-preferences',
-  chatRateLimit,
+  notificationRateLimit,
   authenticateUser,
   async (req: AuthenticatedRequest, res) => {
     try {

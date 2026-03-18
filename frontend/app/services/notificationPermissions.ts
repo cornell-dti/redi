@@ -3,10 +3,10 @@
  * Handles requesting and managing push notification permissions
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { registerPushToken, removePushToken } from '../api/pushTokenApi';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TOKEN_REGISTERED_KEY = '@notification_token_registered';
 
@@ -71,17 +71,9 @@ export async function registerForPushNotifications(): Promise<boolean> {
     const pushToken = tokenData.data;
     console.log('Expo push token:', pushToken);
 
-    // Check if we've already registered this exact token
-    const tokenRegistered = await AsyncStorage.getItem(TOKEN_REGISTERED_KEY);
-
-    // Register token with backend if not already registered or if it's different
-    if (!tokenRegistered || tokenRegistered !== pushToken) {
-      await registerPushToken(pushToken);
-      await AsyncStorage.setItem(TOKEN_REGISTERED_KEY, pushToken);
-      console.log('✅ Push token registered with backend');
-    } else {
-      console.log('✅ Push token already registered');
-    }
+    await registerPushToken(pushToken);
+    await AsyncStorage.setItem(TOKEN_REGISTERED_KEY, pushToken);
+    console.log('✅ Push token registered with backend');
 
     return true;
   } catch (error) {
