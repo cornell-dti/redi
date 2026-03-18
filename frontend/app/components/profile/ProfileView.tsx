@@ -109,51 +109,51 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     instagram:
       'instagram' in profile && profile.instagram
         ? {
-            icon: <Instagram size={24} color={AppColors.foregroundDefault} />,
-            url: `https://instagram.com/${profile.instagram.replace(/^@/, '')}`,
-          }
+          icon: <Instagram size={24} color={AppColors.foregroundDefault} />,
+          url: `https://instagram.com/${profile.instagram.replace(/^@/, '')}`,
+        }
         : null,
     snapchat:
       'snapchat' in profile && profile.snapchat
         ? {
-            icon: (
-              <SnapchatIcon size={24} color={AppColors.foregroundDefault} />
-            ),
-            url: `https://snapchat.com/add/${profile.snapchat.replace(/^@/, '')}`,
-          }
+          icon: (
+            <SnapchatIcon size={24} color={AppColors.foregroundDefault} />
+          ),
+          url: `https://snapchat.com/add/${profile.snapchat.replace(/^@/, '')}`,
+        }
         : null,
     linkedin:
       'linkedIn' in profile && profile.linkedIn
         ? {
-            icon: (
-              <LinkedinIcon size={24} color={AppColors.foregroundDefault} />
-            ),
-            url: profile.linkedIn.startsWith('in/')
-              ? `https://linkedin.com/${profile.linkedIn}`
-              : ensureProtocol(profile.linkedIn),
-          }
+          icon: (
+            <LinkedinIcon size={24} color={AppColors.foregroundDefault} />
+          ),
+          url: profile.linkedIn.startsWith('in/')
+            ? `https://linkedin.com/${profile.linkedIn}`
+            : ensureProtocol(profile.linkedIn),
+        }
         : null,
     github:
       'github' in profile && profile.github
         ? {
-            icon: <GithubIcon size={24} color={AppColors.foregroundDefault} />,
-            url: `https://github.com/${profile.github.replace(/^@/, '')}`,
-          }
+          icon: <GithubIcon size={24} color={AppColors.foregroundDefault} />,
+          url: `https://github.com/${profile.github.replace(/^@/, '')}`,
+        }
         : null,
     website:
       'website' in profile && profile.website
         ? {
-            icon: <Globe size={24} color={AppColors.foregroundDefault} />,
-            url: ensureProtocol(profile.website),
-          }
+          icon: <Globe size={24} color={AppColors.foregroundDefault} />,
+          url: ensureProtocol(profile.website),
+        }
         : null,
   };
 
   // Build socialItems array in the order specified by socialsOrder
   const socialItems: SocialItem[] = hasSocials
     ? (socialsOrder
-        .map((socialType) => socialMap[socialType])
-        .filter(Boolean) as SocialItem[])
+      .map((socialType) => socialMap[socialType])
+      .filter(Boolean) as SocialItem[])
     : [];
 
   const handleScroll = (event: any) => {
@@ -310,7 +310,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                   <AppText>
                     {profile.gender
                       ? profile.gender.charAt(0).toUpperCase() +
-                        profile.gender.slice(1)
+                      profile.gender.slice(1)
                       : ''}
                   </AppText>
                 </View>
@@ -336,7 +336,10 @@ const ProfileView: React.FC<ProfileViewProps> = ({
             {profile.showCollegeOnProfile && profile.school && (
               <View style={styles.subSection}>
                 <GraduationCap size={20} color={AppColors.foregroundDefault} />
-                <AppText>{`${profile.year} in ${profile.school} studying ${profile.major?.join(', ')}`}</AppText>
+                <AppText>
+                  {`${profile.year} in ${profile.school} studying ${profile.major?.join(', ')}`}
+                  {profile.minor && profile.minor.length > 0 ? `, minoring in ${profile.minor.join(', ')}` : ''}
+                </AppText>
               </View>
             )}
           </ListItemWrapper>
