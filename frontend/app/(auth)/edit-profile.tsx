@@ -592,13 +592,12 @@ export default function EditProfileScreen() {
               title="Education"
               description={
                 <AppText color="dimmer">
-                  <AppText>{profileData?.year}</AppText>
+                  {profileData?.year}
                   {' in '}
-                  <AppText>{profileData?.school}</AppText>
+                  {profileData?.school}
                   {' studying '}
-                  <AppText>{profileData?.major?.join(', ')}</AppText>
-                  {displayMinor ? ' minoring in ' : ''}
-                  {displayMinor ? <AppText>{displayMinor}</AppText> : null}
+                  {profileData?.major?.join(', ')}
+                  {displayMinor ? ` minoring in ${displayMinor}` : ''}
                 </AppText>
               }
               right={<ChevronRight size={20} />}
