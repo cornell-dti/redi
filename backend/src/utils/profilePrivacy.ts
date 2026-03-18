@@ -43,6 +43,7 @@ export function filterProfileByPrivacy(
       year: profile.year,
       school: profile.school,
       major: profile.major,
+      minor: profile.minor,
       pictures: profile.pictures,
       prompts: profile.prompts,
       interests: profile.interests,
@@ -79,6 +80,7 @@ export function filterProfileByPrivacy(
     interests: profile.interests,
     clubs: profile.clubs,
     major: profile.major,
+    minor: profile.minor,
     // Only show if privacy setting allows
     gender: profile.showGenderOnProfile ? profile.gender : undefined,
     pronouns: profile.showPronounsOnProfile ? profile.pronouns : undefined,

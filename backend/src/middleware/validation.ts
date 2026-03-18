@@ -112,6 +112,17 @@ export const validateProfileCreation: ValidationChain[] = [
     .isLength({ max: 100 })
     .customSanitizer(sanitizeText),
 
+  body('minor')
+    .optional()
+    .isArray({ max: 4 })
+    .withMessage('Maximum 4 minors allowed'),
+
+  body('minor.*')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .customSanitizer(sanitizeText),
+
   body('interests')
     .optional()
     .isArray({ max: 10 })
