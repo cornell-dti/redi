@@ -9,7 +9,7 @@ export default {
   expo: {
     name: 'redi',
     slug: 'redi',
-    version: '1.0.0',
+    version: '1.2.1',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: 'redi',
@@ -19,7 +19,7 @@ export default {
       supportsTablet: false,
       bundleIdentifier: 'com.incubator.redi',
       googleServicesFile: './GoogleService-Info.plist',
-      buildNumber: '3',
+      buildNumber: '5',
       infoPlist: {
         UIRequiredDeviceCapabilities: ['armv7', 'telephony'],
       },

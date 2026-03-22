@@ -38,6 +38,7 @@ interface BaseProfileResponse {
   interests?: string[];
   clubs?: string[];
   major: string[];
+  minor?: string[];
   socialsOrder?: string[]; // Order of social media platforms
   // Privacy-controlled fields (may be undefined based on user preferences)
   gender?: Gender;
@@ -161,7 +162,7 @@ export interface CreateProfileInput {
   gender: Gender;
   birthdate: string | Date; // ISO string or Date
   hometown?: string;
-  pronouns?: string[];
+  pronouns?: string;
   ethnicity?: string[];
   sexualOrientation?: string[];
   showGenderOnProfile?: boolean;
@@ -183,6 +184,7 @@ export interface CreateProfileInput {
   year: Year;
   school: School;
   major: string[];
+  minor?: string[];
   pictures: string[];
 }
 

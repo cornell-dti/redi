@@ -18,12 +18,16 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
+  TouchableOpacity,
   View,
 } from 'react-native';
+
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getCurrentUser } from '../api/authService';
+
+import { CLUBS } from '@/constants/clubs';
 import { getCurrentUserProfile, updateProfile } from '../api/profileApi';
 import { AppColors } from '../components/AppColors';
 import Button from '../components/ui/Button';
@@ -32,6 +36,7 @@ import EmptyState from '../components/ui/EmptyState';
 import Sheet from '../components/ui/Sheet';
 import Tag from '../components/ui/Tag';
 import UnsavedChangesSheet from '../components/ui/UnsavedChangesSheet';
+import { useProfile } from '../contexts/ProfileContext';
 import { useThemeAware } from '../contexts/ThemeContext';
 import { useToast } from '../contexts/ToastContext';
 import { useDragAndDrop } from '../hooks/useDragAndDrop';
@@ -93,7 +98,9 @@ function DraggableTag({
 
 export default function EditClubsPage() {
   useThemeAware();
+
   const { showToast } = useToast();
+  const { updateProfileData, refreshProfile } = useProfile();
   const haptic = useHapticFeedback();
   const [saving, setSaving] = useState(false);
   const [clubs, setClubs] = useState<string[]>([]);
@@ -106,6 +113,12 @@ export default function EditClubsPage() {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [editingClub, setEditingClub] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
+  const [suggestions, setSuggestions] = useState<
+    { name: string; category: string }[]
+  >([]);
+  const [editSuggestions, setEditSuggestions] = useState<
+    { name: string; category: string }[]
+  >([]);
 
   useEffect(() => {
     fetchProfile();
@@ -145,6 +158,8 @@ export default function EditClubsPage() {
         clubs,
       });
 
+      updateProfileData({ clubs });
+      refreshProfile();
       setOriginalClubs(clubs);
 
       showToast({
@@ -182,17 +197,21 @@ export default function EditClubsPage() {
     router.back();
   };
 
-  const addClub = () => {
-    if (newClub.trim()) {
-      if (!clubs.includes(newClub.trim())) {
-        setClubs([...clubs, newClub.trim()]);
+  const addClubByName = (name: string) => {
+    const trimmed = name.trim();
+    if (trimmed) {
+      if (!clubs.includes(trimmed)) {
+        setClubs([...clubs, trimmed]);
         setNewClub('');
+        setSuggestions([]);
         setSheetVisible(false);
       } else {
         Alert.alert('Duplicate', 'This club already exists');
       }
     }
   };
+
+  const addClub = () => addClubByName(newClub);
 
   const removeClub = (clubToRemove: string) => {
     setClubs(clubs.filter((club) => club !== clubToRemove));
@@ -207,28 +226,49 @@ export default function EditClubsPage() {
     setClubs(newClubs);
   };
 
+  const filterSuggestions = (text: string, currentClubs: string[]) => {
+    const lowerText = text.toLowerCase();
+    return CLUBS.filter(
+      (c) =>
+        c.name.toLowerCase().includes(lowerText) &&
+        !currentClubs.includes(c.name)
+    ).slice(0, 20);
+  };
+
+  const handleNewClubChange = (text: string) => {
+    setNewClub(text);
+    setSuggestions(
+      text.trim().length > 0 ? filterSuggestions(text, clubs) : []
+    );
+  };
+
+  const handleEditValueChange = (text: string) => {
+    setEditValue(text);
+    setEditSuggestions(
+      text.trim().length > 0 ? filterSuggestions(text, clubs) : []
+    );
+  };
+
   const handleEditClub = (club: string) => {
     setEditingClub(club);
     setEditValue(club);
   };
 
-  const handleSaveEdit = () => {
-    if (editValue.trim() && editingClub) {
-      if (
-        !clubs.includes(editValue.trim()) ||
-        editValue.trim() === editingClub
-      ) {
-        const updatedClubs = clubs.map((club) =>
-          club === editingClub ? editValue.trim() : club
-        );
-        setClubs(updatedClubs);
+  const saveEditByName = (name: string) => {
+    const trimmed = name.trim();
+    if (trimmed && editingClub) {
+      if (!clubs.includes(trimmed) || trimmed === editingClub) {
+        setClubs(clubs.map((club) => (club === editingClub ? trimmed : club)));
         setEditingClub(null);
         setEditValue('');
+        setEditSuggestions([]);
       } else {
         Alert.alert('Duplicate', 'This club already exists');
       }
     }
   };
+
+  const handleSaveEdit = () => saveEditByName(editValue);
 
   const handleRemoveFromEdit = () => {
     if (editingClub) {
@@ -347,20 +387,41 @@ export default function EditClubsPage() {
           <AppInput
             placeholder="e.g., Debate, Sports, Drama"
             value={newClub}
-            onChangeText={setNewClub}
+            onChangeText={handleNewClubChange}
             autoCapitalize="words"
             autoCorrect={false}
             autoFocus={true}
             returnKeyType="done"
             onSubmitEditing={addClub}
           />
-          <Button
-            title="Add"
-            onPress={addClub}
-            variant="primary"
-            iconLeft={Plus}
-            disabled={!newClub.trim()}
-          />
+          {suggestions.length > 0 && (
+            <View style={[styles.suggestionsContainer, { maxHeight: 160 }]}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {suggestions.map((club) => (
+                  <TouchableOpacity
+                    key={club.name}
+                    onPress={() => addClubByName(club.name)}
+                    style={styles.suggestionRow}
+                  >
+                    <AppText>{club.name}</AppText>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+          {newClub.trim().length > 0 && suggestions.length === 0 && (
+            <>
+              <AppText variant="bodySmall" style={styles.noResults}>
+                No results found
+              </AppText>
+              <Button
+                title={`Use "${newClub.trim()}"`}
+                onPress={addClub}
+                variant="primary"
+                disabled={!newClub.trim()}
+              />
+            </>
+          )}
         </KeyboardAvoidingView>
       </Sheet>
 
@@ -381,13 +442,31 @@ export default function EditClubsPage() {
           <AppInput
             placeholder="e.g., Debate, Sports, Drama"
             value={editValue}
-            onChangeText={setEditValue}
+            onChangeText={handleEditValueChange}
             autoCapitalize="words"
             autoCorrect={false}
             autoFocus={true}
             returnKeyType="done"
             onSubmitEditing={handleSaveEdit}
           />
+          {editSuggestions.length > 0 && (
+            <View style={[styles.suggestionsContainer, { maxHeight: 160 }]}>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {editSuggestions.map((club) => (
+                  <TouchableOpacity
+                    key={club.name}
+                    onPress={() => {
+                      setEditValue(club.name);
+                      setEditSuggestions([]);
+                    }}
+                    style={styles.suggestionRow}
+                  >
+                    <AppText>{club.name}</AppText>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
           <Button
             title="Save"
             onPress={handleSaveEdit}
@@ -458,5 +537,23 @@ const styles = StyleSheet.create({
   },
   sheetContent: {
     gap: 16,
+  },
+  suggestionsContainer: {
+    backgroundColor: AppColors.backgroundDimmer,
+    borderRadius: 12,
+    marginTop: -8,
+  },
+  noResults: {
+    color: AppColors.foregroundDimmer,
+    textAlign: 'center',
+  },
+  suggestionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: AppColors.backgroundDefault,
   },
 });

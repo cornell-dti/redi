@@ -7,6 +7,7 @@ import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CORNELL_MAJORS,
+  CORNELL_MINORS,
   CORNELL_SCHOOLS,
   YEARS,
   Year,
@@ -37,11 +38,13 @@ export default function EditEducationPage() {
   // Current values
   const [school, setSchool] = useState<School | ''>('');
   const [majors, setMajors] = useState<string[]>([]);
+  const [minors, setMinors] = useState<string[]>([]);
   const [year, setYear] = useState<Year | null>(null);
 
   // Original values for comparison
   const [originalSchool, setOriginalSchool] = useState<School | ''>('');
   const [originalMajors, setOriginalMajors] = useState<string[]>([]);
+  const [originalMinors, setOriginalMinors] = useState<string[]>([]);
   const [originalYear, setOriginalYear] = useState<Year | null>(null);
 
   // Visibility preference
@@ -51,18 +54,22 @@ export default function EditEducationPage() {
   // Sheet states
   const [showSchoolSheet, setShowSchoolSheet] = useState(false);
   const [showMajorSheet, setShowMajorSheet] = useState(false);
+  const [showMinorSheet, setShowMinorSheet] = useState(false);
   const [showYearSheet, setShowYearSheet] = useState(false);
   const [majorSearchQuery, setMajorSearchQuery] = useState('');
+  const [minorSearchQuery, setMinorSearchQuery] = useState('');
   const [showUnsavedChangesSheet, setShowUnsavedChangesSheet] = useState(false);
 
   useEffect(() => {
     if (profile) {
       setSchool(profile.school);
       setMajors(profile.major);
+      setMinors(profile.minor ?? []);
       setYear(profile.year);
 
       setOriginalSchool(profile.school);
       setOriginalMajors(profile.major);
+      setOriginalMinors(profile.minor ?? []);
       setOriginalYear(profile.year);
 
       const showCollegeValue = profile.showCollegeOnProfile ?? true;
@@ -96,6 +103,7 @@ export default function EditEducationPage() {
       await updateProfile({
         school,
         major: majors,
+        minor: minors,
         year,
         showCollegeOnProfile: showOnProfile,
       });
@@ -104,12 +112,14 @@ export default function EditEducationPage() {
       updateProfileData({
         school,
         major: majors,
+        minor: minors,
         year,
         showCollegeOnProfile: showOnProfile,
       });
 
       setOriginalSchool(school);
       setOriginalMajors(majors);
+      setOriginalMinors(minors);
       setOriginalYear(year);
       setOriginalShowOnProfile(showOnProfile);
 
@@ -135,7 +145,8 @@ export default function EditEducationPage() {
       school !== originalSchool ||
       year !== originalYear ||
       showOnProfile !== originalShowOnProfile ||
-      JSON.stringify(majors.sort()) !== JSON.stringify(originalMajors.sort())
+      JSON.stringify(majors.sort()) !== JSON.stringify(originalMajors.sort()) ||
+      JSON.stringify(minors.sort()) !== JSON.stringify(originalMinors.sort())
     );
   };
 
@@ -158,6 +169,10 @@ export default function EditEducationPage() {
 
   const removeMajor = (index: number) => {
     setMajors((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeMinor = (index: number) => {
+    setMinors((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -212,7 +227,35 @@ export default function EditEducationPage() {
                 onPress={() => setShowMajorSheet(true)}
                 variant="secondary"
                 noRound
-                disabled={!school}
+                disabled={!school || majors.length >= 3}
+              />
+            </ListItemWrapper>
+          </View>
+
+          {/* Minors */}
+          <View style={styles.section}>
+            <AppText indented>Minor(s)</AppText>
+            <ListItemWrapper>
+              {minors.length > 0 && (
+                <View style={styles.tagsContainer}>
+                  {minors.map((minor, index) => (
+                    <Tag
+                      key={minor}
+                      variant="white"
+                      label={minor}
+                      dismissible
+                      onDismiss={() => removeMinor(index)}
+                    />
+                  ))}
+                </View>
+              )}
+              <Button
+                title="Add minor"
+                iconLeft={Plus}
+                onPress={() => setShowMinorSheet(true)}
+                variant="secondary"
+                noRound
+                disabled={!school || minors.length >= 4}
               />
             </ListItemWrapper>
           </View>
@@ -299,7 +342,7 @@ export default function EditEducationPage() {
               {school &&
                 (CORNELL_MAJORS[school] || [])
                   .filter((major) =>
-                    major.toLowerCase().includes(majorSearchQuery.toLowerCase())
+                    major.toLowerCase().includes(majorSearchQuery.toLowerCase()) && !majors.includes(major)
                   )
                   .map((major) => (
                     <ListItem
@@ -329,6 +372,68 @@ export default function EditEducationPage() {
                         }
                         setShowMajorSheet(false);
                         setMajorSearchQuery('');
+                      }}
+                      variant="primary"
+                    />
+                  </View>
+                )}
+            </ListItemWrapper>
+          </ScrollView>
+        </View>
+      </Sheet>
+
+      {/* Minor Selection Sheet */}
+      <Sheet
+        visible={showMinorSheet && !!school}
+        onDismiss={() => {
+          setShowMinorSheet(false);
+          setMinorSearchQuery('');
+        }}
+        title="Select your minor"
+        bottomRound={false}
+      >
+        <View style={styles.majorSheetContent}>
+          <AppInput
+            placeholder="Search for your minor"
+            value={minorSearchQuery}
+            onChangeText={setMinorSearchQuery}
+            autoFocus
+          />
+          <ScrollView style={styles.majorScrollView}>
+            <ListItemWrapper>
+              {school &&
+                (CORNELL_MINORS || [])
+                  .filter((m) =>
+                    m.toLowerCase().includes(minorSearchQuery.toLowerCase()) && !minors.includes(m)
+                  )
+                  .map((m) => (
+                    <ListItem
+                      key={m}
+                      title={m}
+                      onPress={() => {
+                        if (!minors.includes(m)) {
+                          setMinors([...minors, m]);
+                        }
+                        setShowMinorSheet(false);
+                        setMinorSearchQuery('');
+                      }}
+                    />
+                  ))}
+              {minorSearchQuery.trim() &&
+                school &&
+                (CORNELL_MINORS || []).filter((m) =>
+                  m.toLowerCase().includes(minorSearchQuery.toLowerCase())
+                ).length === 0 && (
+                  <View style={styles.emptyState}>
+                    <AppText style={styles.emptyText}>No results found</AppText>
+                    <Button
+                      title={`Use "${minorSearchQuery}"`}
+                      onPress={() => {
+                        if (!minors.includes(minorSearchQuery.trim())) {
+                          setMinors([...minors, minorSearchQuery.trim()]);
+                        }
+                        setShowMinorSheet(false);
+                        setMinorSearchQuery('');
                       }}
                       variant="primary"
                     />

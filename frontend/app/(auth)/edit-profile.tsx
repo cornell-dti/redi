@@ -10,14 +10,7 @@ import {
   Plus,
 } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Alert,
-  Linking,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -151,20 +144,6 @@ export default function EditProfileScreen() {
     }
   }, [profileData]);
 
-  const openURL = async (url: string) => {
-    try {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        Alert.alert('Error', `Cannot open URL: ${url}`);
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to open link');
-      console.error('Error opening URL:', error);
-    }
-  };
-
   const hasUnsavedChanges = () => {
     const promptsChanged =
       JSON.stringify(prompts) !== JSON.stringify(originalPrompts);
@@ -181,10 +160,10 @@ export default function EditProfileScreen() {
     }
 
     // Validate minimum photos requirement
-    if (photos.length < 3) {
-      Alert.alert('Error', 'Please add at least 3 photos');
-      return;
-    }
+    // if (photos.length < 3) {
+    //   Alert.alert('Error', 'Please add at least 3 photos');
+    //   return;
+    // }
 
     setSaving(true);
 
@@ -316,17 +295,6 @@ export default function EditProfileScreen() {
     }
   };
 
-  const addPrompt = () => {
-    if (prompts.length < 3) {
-      const newPrompt: PromptData = {
-        id: Date.now().toString(),
-        question: '',
-        answer: '',
-      };
-      setPrompts([...prompts, newPrompt]);
-    }
-  };
-
   const reorderPrompts = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
 
@@ -339,6 +307,10 @@ export default function EditProfileScreen() {
   // Get display data - use profile data if available, otherwise fallback
   const displayName = profileData?.firstName || 'User';
   const displayAge = profileData ? `${getProfileAge(profileData)}` : 'Not set';
+  const displayMinor =
+    profileData?.minor && profileData.minor.length > 0
+      ? profileData.minor.join(', ')
+      : null;
   // Social fields are only available on OwnProfileResponse
   const displayInstagram =
     profileData && 'instagram' in profileData
@@ -578,11 +550,12 @@ export default function EditProfileScreen() {
               title="Education"
               description={
                 <AppText color="dimmer">
-                  <AppText>{profileData?.year}</AppText>
+                  {profileData?.year}
                   {' in '}
-                  <AppText>{profileData?.school}</AppText>
+                  {profileData?.school}
                   {' studying '}
-                  <AppText>{profileData?.major?.join(', ')}</AppText>
+                  {profileData?.major?.join(', ')}
+                  {displayMinor ? ` minoring in ${displayMinor}` : ''}
                 </AppText>
               }
               right={<ChevronRight size={20} />}

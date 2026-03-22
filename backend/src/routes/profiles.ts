@@ -81,6 +81,7 @@ const profileDocToResponse = (
   year: doc.year,
   school: doc.school,
   major: doc.major,
+  minor: doc.minor,
   pictures: doc.pictures,
   createdAt:
     doc.createdAt instanceof Date
