@@ -167,14 +167,16 @@ export function useOnboardingState() {
 
       case 11:
         // Photos: 3-6 photos required
-        return data.pictures.length >= 3 && data.pictures.length <= 6;
+        // return data.pictures.length >= 3 && data.pictures.length <= 6;
+        return true;
 
       case 12:
         // Prompts: 1-3 prompts required, each with answer
-        const validPrompts = data.prompts.filter(
-          (p) => p.question && p.answer.trim() !== ''
-        );
-        return validPrompts.length >= 1 && validPrompts.length <= 3;
+        // const validPrompts = data.prompts.filter(
+        //   (p) => p.question && p.answer.trim() !== ''
+        // );
+        // return validPrompts.length >= 1 && validPrompts.length <= 3;
+        return true;
 
       case 13:
         // Clubs: Optional, always valid

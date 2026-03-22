@@ -97,7 +97,12 @@ export default function EditProfileScreen() {
   useThemeAware(); // Force re-render when theme changes
   const { showToast } = useToast();
   const haptic = useHapticFeedback();
-  const { profile: profileData, loading, refreshProfile, updateProfileData } = useProfile();
+  const {
+    profile: profileData,
+    loading,
+    refreshProfile,
+    updateProfileData,
+  } = useProfile();
   const [prompts, setPrompts] = useState<PromptData[]>([]);
   const [showUnsavedSheet, setShowUnsavedSheet] = useState(false);
   const [originalPrompts, setOriginalPrompts] = useState<PromptData[]>([]);
@@ -178,10 +183,10 @@ export default function EditProfileScreen() {
     }
 
     // Validate minimum photos requirement
-    if (photos.length < 3) {
-      Alert.alert('Error', 'Please add at least 3 photos');
-      return;
-    }
+    // if (photos.length < 3) {
+    //   Alert.alert('Error', 'Please add at least 3 photos');
+    //   return;
+    // }
 
     setSaving(true);
 
@@ -357,15 +362,23 @@ export default function EditProfileScreen() {
   const displayYear = profileData?.year || 'Year not set';
   // Social fields are only available on OwnProfileResponse
   const displayInstagram =
-    profileData && 'instagram' in profileData ? profileData.instagram || null : null;
+    profileData && 'instagram' in profileData
+      ? profileData.instagram || null
+      : null;
   const displaySnapchat =
-    profileData && 'snapchat' in profileData ? profileData.snapchat || null : null;
+    profileData && 'snapchat' in profileData
+      ? profileData.snapchat || null
+      : null;
   const displayLinkedIn =
-    profileData && 'linkedIn' in profileData ? profileData.linkedIn || null : null;
+    profileData && 'linkedIn' in profileData
+      ? profileData.linkedIn || null
+      : null;
   const displayGithub =
     profileData && 'github' in profileData ? profileData.github || null : null;
   const displayWebsite =
-    profileData && 'website' in profileData ? profileData.website || null : null;
+    profileData && 'website' in profileData
+      ? profileData.website || null
+      : null;
   const displayClubs = profileData?.clubs || [];
   const displayInterests = profileData?.interests || [];
   const displayEthnicity =
@@ -567,7 +580,7 @@ export default function EditProfileScreen() {
               description={
                 profileData?.gender
                   ? profileData.gender.charAt(0).toUpperCase() +
-                  profileData.gender.slice(1)
+                    profileData.gender.slice(1)
                   : ''
               }
               right={<ChevronRight size={20} />}
@@ -576,7 +589,9 @@ export default function EditProfileScreen() {
 
             <ListItem
               title="Sexuality"
-              description={profileData?.sexualOrientation?.join(', ') || 'Not set'}
+              description={
+                profileData?.sexualOrientation?.join(', ') || 'Not set'
+              }
               right={<ChevronRight size={20} />}
               onPress={() => router.push('/edit-sexuality' as any)}
             />
