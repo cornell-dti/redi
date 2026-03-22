@@ -2,7 +2,7 @@
 // PROFILE TYPES
 // =============================================================================
 
-import type { Year } from '../constants/cornell';
+import type { Year } from '../../constants/cornell';
 
 export type Gender = 'female' | 'male' | 'non-binary';
 

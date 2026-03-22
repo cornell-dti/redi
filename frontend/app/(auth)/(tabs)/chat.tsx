@@ -16,61 +16,9 @@ import Header from '../../components/ui/Header';
 import { useThemeAware } from '../../contexts/ThemeContext';
 import { useConversations } from '../../hooks/useConversations';
 
-// Mock chat data
-const mockChats = [
-  {
-    id: '1',
-    userId: 'mock-user-1',
-    netid: 'mock-netid-1',
-    name: 'Emma',
-    lastMessage: 'Hey! Want to grab coffee at CTB this weekend?',
-    timestamp: '2m ago',
-    unread: true,
-    image:
-      'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
-    online: true,
-  },
-  {
-    id: '2',
-    userId: 'mock-user-2',
-    netid: 'mock-netid-2',
-    name: 'Sarah',
-    lastMessage: 'Thanks for the study session! Good luck on the exam ',
-    timestamp: '1h ago',
-    unread: false,
-    image:
-      'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
-    online: false,
-  },
-  {
-    id: '3',
-    userId: 'mock-user-3',
-    netid: 'mock-netid-3',
-    name: 'Jessica',
-    lastMessage: 'The farmers market was so fun! We should go again',
-    timestamp: '3h ago',
-    unread: false,
-    image:
-      'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
-    online: true,
-  },
-  {
-    id: '4',
-    userId: 'mock-user-4',
-    netid: 'mock-netid-4',
-    name: 'Alex',
-    lastMessage: 'Are you free for lunch tomorrow?',
-    timestamp: '1d ago',
-    unread: true,
-    image:
-      'https://media.licdn.com/dms/image/v2/D5603AQFxIrsKx3XV3g/profile-displayphoto-shrink_200_200/B56ZdXeERIHUAg-/0/1749519189434?e=2147483647&v=beta&t=MscfLHknj7AGAwDGZoRcVzT03zerW4P1jUR2mZ3QMKU',
-    online: false,
-  },
-];
-
 export default function ChatScreen() {
   useThemeAware(); // Force re-render when theme changes
-  const { conversations, loading, error } = useConversations();
+  const { conversations, loading } = useConversations();
   const currentUser = getCurrentUser();
   const [blockedUsers, setBlockedUsers] = useState<Set<string>>(new Set());
   const [animationTrigger, setAnimationTrigger] = useState(0);
@@ -129,7 +77,7 @@ export default function ChatScreen() {
   const chatData = useMemo(() => {
     if (!currentUser) {
     }
-    if (!currentUser) return mockChats;
+    if (!currentUser) return [];
 
     console.log(currentUser.uid);
     return conversations.map((conv) => {
@@ -181,7 +129,11 @@ export default function ChatScreen() {
     });
   }, [conversations, currentUser, freshProfiles]);
 
-  const displayData = chatData;
+  const displayData = useMemo(() => {
+    return chatData.filter((chat) => {
+      return chat.netid && !blockedUsers.has(chat.netid);
+    });
+  }, [chatData, blockedUsers]);
 
   if (loading) {
     return (

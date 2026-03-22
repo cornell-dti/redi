@@ -1,6 +1,6 @@
 import AppText from '@/app/components/ui/AppText';
-import { ProfileResponse, PromptData, getProfileAge } from '@/types';
-import { router, useFocusEffect } from 'expo-router';
+import { PromptData, getProfileAge } from '@/types';
+import { router } from 'expo-router';
 import {
   Check,
   ChevronRight,
@@ -9,7 +9,7 @@ import {
   Pencil,
   Plus,
 } from 'lucide-react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -99,7 +99,6 @@ export default function EditProfileScreen() {
   const haptic = useHapticFeedback();
   const {
     profile: profileData,
-    loading,
     refreshProfile,
     updateProfileData,
   } = useProfile();
@@ -120,7 +119,6 @@ export default function EditProfileScreen() {
 
   // Scroll position preservation
   const scrollViewRef = useRef<ScrollView>(null);
-  const scrollPositionRef = useRef(0);
 
   // Initialize data from profile context
   useEffect(() => {
@@ -329,14 +327,6 @@ export default function EditProfileScreen() {
     }
   };
 
-  const updatePrompt = (id: string, updatedPrompt: PromptData) => {
-    setPrompts(prompts.map((p) => (p.id === id ? updatedPrompt : p)));
-  };
-
-  const removePrompt = (id: string) => {
-    setPrompts(prompts.filter((p) => p.id !== id));
-  };
-
   const reorderPrompts = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
 
@@ -349,13 +339,6 @@ export default function EditProfileScreen() {
   // Get display data - use profile data if available, otherwise fallback
   const displayName = profileData?.firstName || 'User';
   const displayAge = profileData ? `${getProfileAge(profileData)}` : 'Not set';
-  const displayBio = profileData?.bio || 'No bio yet';
-  const displaySchool = profileData?.school || 'School not set';
-  const displayMajor =
-    profileData?.major && profileData.major.length > 0
-      ? profileData.major.join(', ')
-      : 'Major not set';
-  const displayYear = profileData?.year || 'Year not set';
   // Social fields are only available on OwnProfileResponse
   const displayInstagram =
     profileData && 'instagram' in profileData
@@ -377,10 +360,6 @@ export default function EditProfileScreen() {
       : null;
   const displayClubs = profileData?.clubs || [];
   const displayInterests = profileData?.interests || [];
-  const displayEthnicity =
-    profileData?.ethnicity && profileData.ethnicity.length > 0
-      ? profileData.ethnicity.join(', ')
-      : null;
 
   // Get socials order from profile, or use default order
   const socialsOrder =
@@ -436,10 +415,6 @@ export default function EditProfileScreen() {
         contentContainerStyle={{
           rowGap: 24,
         }}
-        onScroll={(event) => {
-          scrollPositionRef.current = event.nativeEvent.contentOffset.y;
-        }}
-        scrollEventThrottle={16}
       >
         <Button
           iconLeft={Eye}

@@ -1,10 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {
+  ReactNode,
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
-  ReactNode,
 } from 'react';
 
 interface MotionContextType {
@@ -33,10 +34,13 @@ export function MotionProvider({ children }: { children: ReactNode }) {
     AsyncStorage.setItem(STORAGE_KEY, String(value));
   };
 
+  const value = useMemo(
+    () => ({ animationEnabled, setAnimationEnabled }),
+    [animationEnabled]
+  );
+
   return (
-    <MotionContext.Provider value={{ animationEnabled, setAnimationEnabled }}>
-      {children}
-    </MotionContext.Provider>
+    <MotionContext.Provider value={value}>{children}</MotionContext.Provider>
   );
 }
 

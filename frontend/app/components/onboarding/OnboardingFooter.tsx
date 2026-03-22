@@ -20,6 +20,28 @@ interface OnboardingFooterProps {
   loading?: boolean;
 }
 
+// Animated spinner component that conforms to CustomIcon type
+const AnimatedSpinner = ({
+  size = 20,
+  color = AppColors.backgroundDefault,
+  slideAnim,
+  opacityAnim,
+}: {
+  size?: number;
+  color?: string;
+  slideAnim: Animated.Value;
+  opacityAnim: Animated.Value;
+}) => (
+  <Animated.View
+    style={{
+      transform: [{ translateX: slideAnim }],
+      opacity: opacityAnim,
+    }}
+  >
+    <LoadingSpinner size={size} color={color} />
+  </Animated.View>
+);
+
 export default function OnboardingFooter({
   onNext,
   nextDisabled = false,
@@ -62,23 +84,8 @@ export default function OnboardingFooter({
     }
   }, [loading, slideAnim, opacityAnim, animationEnabled]);
 
-  // Animated spinner component that conforms to CustomIcon type
-  const AnimatedSpinner = ({
-    size = 20,
-    color = AppColors.backgroundDefault,
-  }: {
-    size?: number;
-    color?: string;
-  }) => (
-    <Animated.View
-      style={{
-        transform: [{ translateX: slideAnim }],
-        opacity: opacityAnim,
-      }}
-    >
-      <LoadingSpinner size={size} color={color} />
-    </Animated.View>
-  );
+  const BoundAnimatedSpinner = (props: { size?: number; color?: string }) =>
+    AnimatedSpinner({ ...props, slideAnim, opacityAnim });
 
   return (
     <View style={styles.container}>
@@ -99,7 +106,7 @@ export default function OnboardingFooter({
       )}
       <Button
         title={nextLabel}
-        iconLeft={loading ? AnimatedSpinner : undefined}
+        iconLeft={loading ? BoundAnimatedSpinner : undefined}
         iconRight={loading ? undefined : ArrowRight}
         onPress={onNext}
         variant="primary"

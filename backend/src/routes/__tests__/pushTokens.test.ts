@@ -51,7 +51,7 @@ const mockUserData = {
 
 type MockDoc = { data: () => typeof mockUserData };
 
-const mockGet = (isEmpty: boolean, docs: MockDoc[]) => {
+const mockGetFunc = (isEmpty: boolean, docs: MockDoc[]) => {
   const mockGet = jest.fn().mockResolvedValue({
     empty: isEmpty,
     docs: docs,
@@ -74,7 +74,7 @@ describe('Push Tokens Routes', () => {
 
   describe('POST /api/users/push-token', () => {
     it('should register push token successfully', async () => {
-      mockGet(false, [{ data: () => mockUserData }]);
+      mockGetFunc(false, [{ data: () => mockUserData }]);
       (deviceTokenService.registerPushToken as jest.Mock).mockResolvedValue(
         true
       );
@@ -107,7 +107,7 @@ describe('Push Tokens Routes', () => {
     });
 
     it('should return 400 if pushToken is invalid format', async () => {
-      mockGet(false, [{ data: () => mockUserData }]);
+      mockGetFunc(false, [{ data: () => mockUserData }]);
       (deviceTokenService.registerPushToken as jest.Mock).mockRejectedValue(
         new Error('Invalid push token format')
       );
@@ -125,7 +125,7 @@ describe('Push Tokens Routes', () => {
     });
 
     it('should return 404 if user not found', async () => {
-      mockGet(true, []);
+      mockGetFunc(true, []);
       const response = await request(app)
         .post('/api/users/push-token')
         .set('Authorization', 'Bearer valid-token')
@@ -147,7 +147,7 @@ describe('Push Tokens Routes', () => {
 
   describe('DELETE /api/users/push-token', () => {
     it('should remove push token successfully', async () => {
-      mockGet(false, [{ data: () => mockUserData }]);
+      mockGetFunc(false, [{ data: () => mockUserData }]);
       (deviceTokenService.removePushToken as jest.Mock).mockResolvedValue(true);
 
       const response = await request(app)
@@ -166,7 +166,7 @@ describe('Push Tokens Routes', () => {
     });
 
     it('should return 404 if user not found', async () => {
-      mockGet(true, []);
+      mockGetFunc(true, []);
       const response = await request(app)
         .delete('/api/users/push-token')
         .set('Authorization', 'Bearer valid-token')
@@ -186,7 +186,7 @@ describe('Push Tokens Routes', () => {
 
   describe('GET /api/users/notification-preferences', () => {
     it('should return notification preferences', async () => {
-      mockGet(false, [{ data: () => mockUserData }]);
+      mockGetFunc(false, [{ data: () => mockUserData }]);
       const mockPreferences = {
         newMessages: true,
         matchDrops: false,
@@ -209,7 +209,7 @@ describe('Push Tokens Routes', () => {
     });
 
     it('should return 404 if user not found', async () => {
-      mockGet(true, []);
+      mockGetFunc(true, []);
       const response = await request(app)
         .get('/api/users/notification-preferences')
         .set('Authorization', 'Bearer valid-token')
@@ -229,7 +229,7 @@ describe('Push Tokens Routes', () => {
 
   describe('PUT /api/users/notification-preferences', () => {
     it('should update notification preferences successfully', async () => {
-      mockGet(false, [{ data: () => mockUserData }]);
+      mockGetFunc(false, [{ data: () => mockUserData }]);
       const updatedPreferences = {
         newMessages: false,
         matchDrops: true,
@@ -261,7 +261,7 @@ describe('Push Tokens Routes', () => {
     });
 
     it('should update multiple preferences at once', async () => {
-      mockGet(false, [{ data: () => mockUserData }]);
+      mockGetFunc(false, [{ data: () => mockUserData }]);
       const updatedPreferences = {
         newMessages: false,
         matchDrops: false,
@@ -316,7 +316,7 @@ describe('Push Tokens Routes', () => {
     });
 
     it('should return 404 if user not found', async () => {
-      mockGet(true, []);
+      mockGetFunc(true, []);
       const response = await request(app)
         .put('/api/users/notification-preferences')
         .set('Authorization', 'Bearer valid-token')

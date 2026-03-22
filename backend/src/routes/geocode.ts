@@ -27,7 +27,6 @@ router.get(
     try {
       const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(q.trim())}&type=city&limit=5&apiKey=${apiKey}`;
       const response = await fetch(url);
-      console.log('test');
 
       if (!response.ok) {
         return res.status(502).json({ error: 'Geocoding service unavailable' });
