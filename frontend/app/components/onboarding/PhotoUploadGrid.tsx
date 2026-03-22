@@ -339,14 +339,14 @@ export default function PhotoUploadGrid({
         })}
       </View>
 
-      <AppText
+      {/* <AppText
         variant="bodySmall"
         style={[styles.helperText, { color: AppColors.foregroundDimmer }]}
       >
         {photos.length < minPhotos
           ? `Add at least ${minPhotos - photos.length} more photo${minPhotos - photos.length > 1 ? 's' : ''}`
           : `${photos.length}/${maxPhotos} photos added`}
-      </AppText>
+      </AppText> */}
     </View>
   );
 }

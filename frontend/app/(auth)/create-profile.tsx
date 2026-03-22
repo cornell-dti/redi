@@ -772,7 +772,10 @@ export default function CreateProfileScreen() {
       case 11:
         return (
           <View style={styles.stepContainer}>
-            <OnboardingTitle title="Choose 3-6 photos for your profile" />
+            <OnboardingTitle
+              title="Choose 3-6 photos for your profile"
+              subtitle="Optional - Add photos so others can recognize you."
+            />
             <PhotoUploadGrid
               photos={data.pictures}
               onPhotosChange={(photos) => updateField('pictures', photos)}
@@ -785,7 +788,10 @@ export default function CreateProfileScreen() {
       case 12:
         return (
           <View style={styles.stepContainer}>
-            <OnboardingTitle title="Select 1-3 prompts for your profile" />
+            <OnboardingTitle
+              title="Select 1-3 prompts for your profile"
+              subtitle="Optional - Add prompts for fun conversation starters."
+            />
             <View style={styles.promptsContainer}>
               {data.prompts.map((prompt, index) => {
                 const isDragging = draggingPromptIndex === index;
@@ -813,8 +819,8 @@ export default function CreateProfileScreen() {
                           >
                             <PromptSelector
                               prompt={data.prompts[draggingPromptIndex]}
-                              onUpdate={() => { }}
-                              onRemove={() => { }}
+                              onUpdate={() => {}}
+                              onRemove={() => {}}
                               canRemove={true}
                             />
                           </View>

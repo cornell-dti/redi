@@ -1,7 +1,7 @@
 import {
-  OnboardingData,
   CreateProfileInput,
   Gender,
+  OnboardingData,
   UpdatePreferencesInput,
 } from '@/types';
 
@@ -201,9 +201,9 @@ export function validateProfilePayload(
   if (!payload.school) errors.push('School is required');
   if (!payload.major || payload.major.length === 0)
     errors.push('At least one major is required');
-  if (!payload.pictures || payload.pictures.length < 3) {
-    errors.push('At least 3 photos are required');
-  }
+  // if (!payload.pictures || payload.pictures.length < 3) {
+  //   errors.push('At least 3 photos are required');
+  // }
   if (payload.pictures && payload.pictures.length > 6) {
     errors.push('Maximum 6 photos allowed');
   }
