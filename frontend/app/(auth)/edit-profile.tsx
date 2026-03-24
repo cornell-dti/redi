@@ -10,14 +10,7 @@ import {
   Plus,
 } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Alert,
-  Linking,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, StatusBar, StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -99,7 +92,6 @@ export default function EditProfileScreen() {
   const haptic = useHapticFeedback();
   const {
     profile: profileData,
-    loading,
     refreshProfile,
     updateProfileData,
   } = useProfile();
@@ -120,7 +112,6 @@ export default function EditProfileScreen() {
 
   // Scroll position preservation
   const scrollViewRef = useRef<ScrollView>(null);
-  const scrollPositionRef = useRef(0);
 
   // Initialize data from profile context
   useEffect(() => {
@@ -152,20 +143,6 @@ export default function EditProfileScreen() {
       setOriginalPhotos(photosData);
     }
   }, [profileData]);
-
-  const openURL = async (url: string) => {
-    try {
-      const supported = await Linking.canOpenURL(url);
-      if (supported) {
-        await Linking.openURL(url);
-      } else {
-        Alert.alert('Error', `Cannot open URL: ${url}`);
-      }
-    } catch (error) {
-      Alert.alert('Error', 'Failed to open link');
-      console.error('Error opening URL:', error);
-    }
-  };
 
   const hasUnsavedChanges = () => {
     const promptsChanged =
@@ -318,25 +295,6 @@ export default function EditProfileScreen() {
     }
   };
 
-  const addPrompt = () => {
-    if (prompts.length < 3) {
-      const newPrompt: PromptData = {
-        id: Date.now().toString(),
-        question: '',
-        answer: '',
-      };
-      setPrompts([...prompts, newPrompt]);
-    }
-  };
-
-  const updatePrompt = (id: string, updatedPrompt: PromptData) => {
-    setPrompts(prompts.map((p) => (p.id === id ? updatedPrompt : p)));
-  };
-
-  const removePrompt = (id: string) => {
-    setPrompts(prompts.filter((p) => p.id !== id));
-  };
-
   const reorderPrompts = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex) return;
 
@@ -349,17 +307,10 @@ export default function EditProfileScreen() {
   // Get display data - use profile data if available, otherwise fallback
   const displayName = profileData?.firstName || 'User';
   const displayAge = profileData ? `${getProfileAge(profileData)}` : 'Not set';
-  const displayBio = profileData?.bio || 'No bio yet';
-  const displaySchool = profileData?.school || 'School not set';
-  const displayMajor =
-    profileData?.major && profileData.major.length > 0
-      ? profileData.major.join(', ')
-      : 'Major not set';
   const displayMinor =
     profileData?.minor && profileData.minor.length > 0
       ? profileData.minor.join(', ')
       : null;
-  const displayYear = profileData?.year || 'Year not set';
   // Social fields are only available on OwnProfileResponse
   const displayInstagram =
     profileData && 'instagram' in profileData
@@ -381,10 +332,6 @@ export default function EditProfileScreen() {
       : null;
   const displayClubs = profileData?.clubs || [];
   const displayInterests = profileData?.interests || [];
-  const displayEthnicity =
-    profileData?.ethnicity && profileData.ethnicity.length > 0
-      ? profileData.ethnicity.join(', ')
-      : null;
 
   // Get socials order from profile, or use default order
   const socialsOrder =
@@ -440,10 +387,6 @@ export default function EditProfileScreen() {
         contentContainerStyle={{
           rowGap: 24,
         }}
-        onScroll={(event) => {
-          scrollPositionRef.current = event.nativeEvent.contentOffset.y;
-        }}
-        scrollEventThrottle={16}
       >
         <Button
           iconLeft={Eye}

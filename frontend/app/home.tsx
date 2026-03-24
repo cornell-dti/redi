@@ -99,7 +99,11 @@ export default function HomePage() {
           useNativeDriver: true,
         }),
       ]).start();
-    } else if (mode === 'signup' || mode === 'login' || mode === 'passwordless') {
+    } else if (
+      mode === 'signup' ||
+      mode === 'login' ||
+      mode === 'passwordless'
+    ) {
       // Animate auth form screens
       slideAnim.setValue(
         direction === 'forward' ? SCREEN_WIDTH : -SCREEN_WIDTH
@@ -480,7 +484,9 @@ export default function HomePage() {
       {(mode === 'signup' || mode === 'login') && renderAuthForm()}
 
       {/* Onboarding Video Modal */}
-      {showVideo && <OnboardingVideo visible={showVideo} onFinish={handleVideoFinish} />}
+      {showVideo && (
+        <OnboardingVideo visible={showVideo} onFinish={handleVideoFinish} />
+      )}
 
       <Sheet
         visible={showInfoSheet}
@@ -521,7 +527,6 @@ export default function HomePage() {
           .
         </AppText>
       </Sheet>
-
     </View>
   );
 }

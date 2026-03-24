@@ -66,7 +66,7 @@ export default function AccountSettingsPage() {
       Alert.alert(
         'Error',
         'Failed to sign out: ' +
-        (error instanceof Error ? error.message : 'Unknown error')
+          (error instanceof Error ? error.message : 'Unknown error')
       );
     }
   };
@@ -115,7 +115,7 @@ export default function AccountSettingsPage() {
       Alert.alert(
         'Error',
         'Failed to delete account: ' +
-        (error instanceof Error ? error.message : 'Unknown error')
+          (error instanceof Error ? error.message : 'Unknown error')
       );
     }
   };
@@ -153,7 +153,7 @@ export default function AccountSettingsPage() {
               iconLeft={Pencil}
               variant="secondary"
               title="Cannot change email address"
-              onPress={() => { }}
+              onPress={() => {}}
             />
           </ListItemWrapper>
         </View>

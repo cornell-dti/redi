@@ -300,7 +300,9 @@ export async function generateMatchesForPrompt(
   promptId: string
 ): Promise<number> {
   console.log(`\n${'='.repeat(60)}`);
-  console.log(`Starting TWO-PHASE MUTUAL match generation for prompt: ${promptId}`);
+  console.log(
+    `Starting TWO-PHASE MUTUAL match generation for prompt: ${promptId}`
+  );
   console.log(`${'='.repeat(60)}\n`);
 
   // Get all users who answered the prompt
@@ -320,7 +322,9 @@ export async function generateMatchesForPrompt(
 
   // Get blocked users map (bidirectional blocking)
   const blockedUsersMap = await getBlockedUsersMap(userNetids);
-  console.log(`🚫 Fetched blocking relationships for ${userNetids.length} users\n`);
+  console.log(
+    `🚫 Fetched blocking relationships for ${userNetids.length} users\n`
+  );
 
   // =============================================================================
   // PHASE 1: Calculate potential matches for all users
@@ -363,7 +367,9 @@ export async function generateMatchesForPrompt(
       potentialMatches.set(netid, validMatches);
 
       if (validMatches.length > 0) {
-        console.log(`  ${netid}: ${validMatches.length} potential matches → [${validMatches.join(', ')}]`);
+        console.log(
+          `  ${netid}: ${validMatches.length} potential matches → [${validMatches.join(', ')}]`
+        );
       } else {
         console.log(`  ${netid}: 0 potential matches`);
       }
@@ -373,13 +379,17 @@ export async function generateMatchesForPrompt(
     }
   }
 
-  console.log(`\n✓ Phase 1 complete. Processed ${userNetids.length - usersSkipped} users, skipped ${usersSkipped}\n`);
+  console.log(
+    `\n✓ Phase 1 complete. Processed ${userNetids.length - usersSkipped} users, skipped ${usersSkipped}\n`
+  );
 
   // =============================================================================
   // PHASE 1.5: Retry with relaxed criteria for users with 0 matches
   // =============================================================================
   console.log(`${'='.repeat(60)}`);
-  console.log('PHASE 1.5: Retrying with relaxed criteria for users with 0 matches...');
+  console.log(
+    'PHASE 1.5: Retrying with relaxed criteria for users with 0 matches...'
+  );
   console.log(`${'='.repeat(60)}\n`);
 
   let usersRetried = 0;
@@ -420,9 +430,13 @@ export async function generateMatchesForPrompt(
         if (validMatches.length > 0) {
           potentialMatches.set(netid, validMatches);
           usersFoundMatchesRelaxed++;
-          console.log(`  ♻️  ${netid}: Found ${validMatches.length} relaxed matches → [${validMatches.join(', ')}]`);
+          console.log(
+            `  ♻️  ${netid}: Found ${validMatches.length} relaxed matches → [${validMatches.join(', ')}]`
+          );
         } else {
-          console.log(`  ⚠️  ${netid}: Still 0 matches even with relaxed criteria`);
+          console.log(
+            `  ⚠️  ${netid}: Still 0 matches even with relaxed criteria`
+          );
         }
       } catch (error) {
         console.error(`❌ Error finding relaxed matches for ${netid}:`, error);
@@ -432,7 +446,9 @@ export async function generateMatchesForPrompt(
 
   console.log(`\n✓ Phase 1.5 complete.`);
   console.log(`  Users retried with relaxed criteria: ${usersRetried}`);
-  console.log(`  Users who found matches via relaxed mode: ${usersFoundMatchesRelaxed}\n`);
+  console.log(
+    `  Users who found matches via relaxed mode: ${usersFoundMatchesRelaxed}\n`
+  );
 
   // =============================================================================
   // PHASE 2: Create only mutual pairs
@@ -488,7 +504,9 @@ export async function generateMatchesForPrompt(
         processedPairs.add(pairId);
       } else {
         // Non-mutual pair - skip it
-        console.log(`  ✗ Non-mutual: ${userA} → ${userB} (but ${userB} ↛ ${userA})`);
+        console.log(
+          `  ✗ Non-mutual: ${userA} → ${userB} (but ${userB} ↛ ${userA})`
+        );
         nonMutualPairsSkipped++;
       }
     }
@@ -539,7 +557,9 @@ export async function generateMatchesForPrompt(
     if (matches.length > 0) {
       try {
         await createWeeklyMatch(netid, promptId, matches);
-        console.log(`  ✓ Wrote ${matches.length} matches for ${netid}: [${matches.join(', ')}]`);
+        console.log(
+          `  ✓ Wrote ${matches.length} matches for ${netid}: [${matches.join(', ')}]`
+        );
         matchedCount++;
       } catch (error) {
         console.error(`  ✗ Failed to write matches for ${netid}:`, error);
@@ -573,7 +593,9 @@ export async function generateMatchesForPrompt(
   console.log(`${'='.repeat(60)}`);
   console.log('MATCH GENERATION COMPLETE');
   console.log(`${'='.repeat(60)}\n`);
-  console.log(`✅ ${matchedCount} users successfully matched with guaranteed mutuality\n`);
+  console.log(
+    `✅ ${matchedCount} users successfully matched with guaranteed mutuality\n`
+  );
 
   return matchedCount;
 }

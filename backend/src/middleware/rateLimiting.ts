@@ -9,7 +9,9 @@ const ipKeyGenerator = (req: Request): string => {
   // Use the x-forwarded-for header if behind a proxy (e.g., Heroku)
   const forwardedFor = req.headers['x-forwarded-for'];
   if (forwardedFor) {
-    const ip = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor.split(',')[0];
+    const ip = Array.isArray(forwardedFor)
+      ? forwardedFor[0]
+      : forwardedFor.split(',')[0];
     return ip.trim();
   }
   // Fall back to req.ip or socket address
@@ -31,7 +33,9 @@ const skipAdmin = async (req: Request): Promise<boolean> => {
   try {
     const isAdmin = await isUserAdmin(authReq.user.uid);
     if (isAdmin) {
-      console.log(`✅ [Rate Limit] Admin ${authReq.user.uid} bypassing rate limit`);
+      console.log(
+        `✅ [Rate Limit] Admin ${authReq.user.uid} bypassing rate limit`
+      );
     }
     return isAdmin;
   } catch (error) {
@@ -67,15 +71,21 @@ const generateIpKey = (req: Request): string => {
 /**
  * Base configuration factory for creating rate limiters
  */
-const createRateLimiter = (config: Partial<Options>): ReturnType<typeof rateLimit> => {
+const createRateLimiter = (
+  config: Partial<Options>
+): ReturnType<typeof rateLimit> => {
   return rateLimit({
     standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
     legacyHeaders: false, // Disable `X-RateLimit-*` headers
     skip: skipAdmin, // Skip rate limiting for admins
     handler: (req, res) => {
       const authReq = req as AuthenticatedRequest;
-      const identifier = authReq.user?.uid ? `user ${authReq.user.uid}` : `IP ${req.ip}`;
-      console.warn(`⚠️  [Rate Limit] Rate limit exceeded for ${identifier} on ${req.path}`);
+      const identifier = authReq.user?.uid
+        ? `user ${authReq.user.uid}`
+        : `IP ${req.ip}`;
+      console.warn(
+        `⚠️  [Rate Limit] Rate limit exceeded for ${identifier} on ${req.path}`
+      );
 
       res.status(429).json({
         error: 'Too many requests, please try again later.',

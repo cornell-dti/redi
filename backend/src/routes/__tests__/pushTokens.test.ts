@@ -1,7 +1,7 @@
-import request from 'supertest';
 import express from 'express';
-import pushTokensRouter from '../pushTokens';
+import request from 'supertest';
 import * as deviceTokenService from '../../services/deviceTokenService';
+import pushTokensRouter from '../pushTokens';
 
 // Mock the services
 jest.mock('../../services/deviceTokenService');
@@ -49,6 +49,23 @@ const mockUserData = {
   firebaseUid: 'test-firebase-uid-123',
 };
 
+type MockDoc = { data: () => typeof mockUserData };
+
+const mockGetFunc = (isEmpty: boolean, docs: MockDoc[]) => {
+  const mockGet = jest.fn().mockResolvedValue({
+    empty: isEmpty,
+    docs: docs,
+  });
+
+  app.locals.db.collection = jest.fn().mockReturnValue({
+    where: jest.fn().mockReturnValue({
+      limit: jest.fn().mockReturnValue({
+        get: mockGet,
+      }),
+    }),
+  });
+};
+
 describe('Push Tokens Routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -57,19 +74,7 @@ describe('Push Tokens Routes', () => {
 
   describe('POST /api/users/push-token', () => {
     it('should register push token successfully', async () => {
-      const mockGet = jest.fn().mockResolvedValue({
-        empty: false,
-        docs: [{ data: () => mockUserData }],
-      });
-
-      app.locals.db.collection = jest.fn().mockReturnValue({
-        where: jest.fn().mockReturnValue({
-          limit: jest.fn().mockReturnValue({
-            get: mockGet,
-          }),
-        }),
-      });
-
+      mockGetFunc(false, [{ data: () => mockUserData }]);
       (deviceTokenService.registerPushToken as jest.Mock).mockResolvedValue(
         true
       );
@@ -102,19 +107,7 @@ describe('Push Tokens Routes', () => {
     });
 
     it('should return 400 if pushToken is invalid format', async () => {
-      const mockGet = jest.fn().mockResolvedValue({
-        empty: false,
-        docs: [{ data: () => mockUserData }],
-      });
-
-      app.locals.db.collection = jest.fn().mockReturnValue({
-        where: jest.fn().mockReturnValue({
-          limit: jest.fn().mockReturnValue({
-            get: mockGet,
-          }),
-        }),
-      });
-
+      mockGetFunc(false, [{ data: () => mockUserData }]);
       (deviceTokenService.registerPushToken as jest.Mock).mockRejectedValue(
         new Error('Invalid push token format')
       );
@@ -125,23 +118,14 @@ describe('Push Tokens Routes', () => {
         .send({ pushToken: 'invalid-token' })
         .expect(400);
 
-      expect(response.body).toHaveProperty('error', 'Invalid push token format');
+      expect(response.body).toHaveProperty(
+        'error',
+        'Invalid push token format'
+      );
     });
 
     it('should return 404 if user not found', async () => {
-      const mockGet = jest.fn().mockResolvedValue({
-        empty: true,
-        docs: [],
-      });
-
-      app.locals.db.collection = jest.fn().mockReturnValue({
-        where: jest.fn().mockReturnValue({
-          limit: jest.fn().mockReturnValue({
-            get: mockGet,
-          }),
-        }),
-      });
-
+      mockGetFunc(true, []);
       const response = await request(app)
         .post('/api/users/push-token')
         .set('Authorization', 'Bearer valid-token')
@@ -163,19 +147,7 @@ describe('Push Tokens Routes', () => {
 
   describe('DELETE /api/users/push-token', () => {
     it('should remove push token successfully', async () => {
-      const mockGet = jest.fn().mockResolvedValue({
-        empty: false,
-        docs: [{ data: () => mockUserData }],
-      });
-
-      app.locals.db.collection = jest.fn().mockReturnValue({
-        where: jest.fn().mockReturnValue({
-          limit: jest.fn().mockReturnValue({
-            get: mockGet,
-          }),
-        }),
-      });
-
+      mockGetFunc(false, [{ data: () => mockUserData }]);
       (deviceTokenService.removePushToken as jest.Mock).mockResolvedValue(true);
 
       const response = await request(app)
@@ -188,23 +160,13 @@ describe('Push Tokens Routes', () => {
         message: 'Push token removed successfully',
       });
 
-      expect(deviceTokenService.removePushToken).toHaveBeenCalledWith('test123');
+      expect(deviceTokenService.removePushToken).toHaveBeenCalledWith(
+        'test123'
+      );
     });
 
     it('should return 404 if user not found', async () => {
-      const mockGet = jest.fn().mockResolvedValue({
-        empty: true,
-        docs: [],
-      });
-
-      app.locals.db.collection = jest.fn().mockReturnValue({
-        where: jest.fn().mockReturnValue({
-          limit: jest.fn().mockReturnValue({
-            get: mockGet,
-          }),
-        }),
-      });
-
+      mockGetFunc(true, []);
       const response = await request(app)
         .delete('/api/users/push-token')
         .set('Authorization', 'Bearer valid-token')
@@ -224,19 +186,7 @@ describe('Push Tokens Routes', () => {
 
   describe('GET /api/users/notification-preferences', () => {
     it('should return notification preferences', async () => {
-      const mockGet = jest.fn().mockResolvedValue({
-        empty: false,
-        docs: [{ data: () => mockUserData }],
-      });
-
-      app.locals.db.collection = jest.fn().mockReturnValue({
-        where: jest.fn().mockReturnValue({
-          limit: jest.fn().mockReturnValue({
-            get: mockGet,
-          }),
-        }),
-      });
-
+      mockGetFunc(false, [{ data: () => mockUserData }]);
       const mockPreferences = {
         newMessages: true,
         matchDrops: false,
@@ -259,19 +209,7 @@ describe('Push Tokens Routes', () => {
     });
 
     it('should return 404 if user not found', async () => {
-      const mockGet = jest.fn().mockResolvedValue({
-        empty: true,
-        docs: [],
-      });
-
-      app.locals.db.collection = jest.fn().mockReturnValue({
-        where: jest.fn().mockReturnValue({
-          limit: jest.fn().mockReturnValue({
-            get: mockGet,
-          }),
-        }),
-      });
-
+      mockGetFunc(true, []);
       const response = await request(app)
         .get('/api/users/notification-preferences')
         .set('Authorization', 'Bearer valid-token')
@@ -291,19 +229,7 @@ describe('Push Tokens Routes', () => {
 
   describe('PUT /api/users/notification-preferences', () => {
     it('should update notification preferences successfully', async () => {
-      const mockGet = jest.fn().mockResolvedValue({
-        empty: false,
-        docs: [{ data: () => mockUserData }],
-      });
-
-      app.locals.db.collection = jest.fn().mockReturnValue({
-        where: jest.fn().mockReturnValue({
-          limit: jest.fn().mockReturnValue({
-            get: mockGet,
-          }),
-        }),
-      });
-
+      mockGetFunc(false, [{ data: () => mockUserData }]);
       const updatedPreferences = {
         newMessages: false,
         matchDrops: true,
@@ -335,19 +261,7 @@ describe('Push Tokens Routes', () => {
     });
 
     it('should update multiple preferences at once', async () => {
-      const mockGet = jest.fn().mockResolvedValue({
-        empty: false,
-        docs: [{ data: () => mockUserData }],
-      });
-
-      app.locals.db.collection = jest.fn().mockReturnValue({
-        where: jest.fn().mockReturnValue({
-          limit: jest.fn().mockReturnValue({
-            get: mockGet,
-          }),
-        }),
-      });
-
+      mockGetFunc(false, [{ data: () => mockUserData }]);
       const updatedPreferences = {
         newMessages: false,
         matchDrops: false,
@@ -402,19 +316,7 @@ describe('Push Tokens Routes', () => {
     });
 
     it('should return 404 if user not found', async () => {
-      const mockGet = jest.fn().mockResolvedValue({
-        empty: true,
-        docs: [],
-      });
-
-      app.locals.db.collection = jest.fn().mockReturnValue({
-        where: jest.fn().mockReturnValue({
-          limit: jest.fn().mockReturnValue({
-            get: mockGet,
-          }),
-        }),
-      });
-
+      mockGetFunc(true, []);
       const response = await request(app)
         .put('/api/users/notification-preferences')
         .set('Authorization', 'Bearer valid-token')

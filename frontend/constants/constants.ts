@@ -14,7 +14,9 @@ const getApiBaseUrl = (): string => {
   // Fallback: If running in Expo Go or development, use localhost
   // Otherwise use production URL
   if (Constants.appOwnership === 'expo' || __DEV__) {
-    console.warn('Using localhost fallback - this should only happen in development');
+    console.warn(
+      'Using localhost fallback - this should only happen in development'
+    );
     return 'http://localhost:3001';
   }
 

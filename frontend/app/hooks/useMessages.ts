@@ -40,7 +40,9 @@ export const useMessages = (
       return;
     }
 
-    console.log(`useMessages: Setting up listener for conversation ${conversationId}`);
+    console.log(
+      `useMessages: Setting up listener for conversation ${conversationId}`
+    );
 
     // Create Firestore query using React Native Firebase
     const unsubscribe = firestore()
@@ -78,7 +80,9 @@ export const useMessages = (
 
     // Cleanup listener on unmount or when screen loses focus
     return () => {
-      console.log(`useMessages: Cleaning up listener for conversation ${conversationId}`);
+      console.log(
+        `useMessages: Cleaning up listener for conversation ${conversationId}`
+      );
       unsubscribe();
     };
   }, [conversationId, limit, isActive]);

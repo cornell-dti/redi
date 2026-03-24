@@ -12,7 +12,11 @@
  * - Full workflow scenarios
  */
 
-import { generateMatchesForPrompt, revealMatch, createWeeklyMatch } from '../../services/matchingService';
+import {
+  generateMatchesForPrompt,
+  revealMatch,
+  createWeeklyMatch,
+} from '../../services/matchingService';
 import { createNudge, getNudgeStatus } from '../../services/nudgesService';
 import {
   createTestUsers,
@@ -84,7 +88,9 @@ describe('End-to-End Integration Tests', () => {
         const matches = await getUserMatches(user.netid, testPromptId);
         expect(matches).toBeTruthy();
         if (!matches) {
-          throw new Error(`No matches found for user ${user.netid} on prompt ${testPromptId}. Check test setup.`);
+          throw new Error(
+            `No matches found for user ${user.netid} on prompt ${testPromptId}. Check test setup.`
+          );
         }
         expect(matches.matches.length).toBeGreaterThanOrEqual(1);
         expect(matches.matches.length).toBeLessThanOrEqual(3);
@@ -93,16 +99,25 @@ describe('End-to-End Integration Tests', () => {
 
       // Step 6: User 1 nudges User 2
       console.log('Step 6: User 1 nudging User 2...');
-      const user1Matches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const user1Matches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       if (!user1Matches) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
       const user2Netid = user1Matches.matches[0];
 
       await createNudge(testUsers[0].netid, user2Netid, testPromptId);
 
       // Verify nudge was created
-      const nudge1to2 = await getNudge(testUsers[0].netid, user2Netid, testPromptId);
+      const nudge1to2 = await getNudge(
+        testUsers[0].netid,
+        user2Netid,
+        testPromptId
+      );
       expect(nudge1to2).toBeTruthy();
       expect(nudge1to2!.mutual).toBe(false);
 
@@ -111,24 +126,41 @@ describe('End-to-End Integration Tests', () => {
       await createNudge(user2Netid, testUsers[0].netid, testPromptId);
 
       // Verify mutual nudge (refetch both nudges after mutual nudge is created)
-      const nudge2to1 = await getNudge(user2Netid, testUsers[0].netid, testPromptId);
-      const nudge1to2Updated = await getNudge(testUsers[0].netid, user2Netid, testPromptId);
+      const nudge2to1 = await getNudge(
+        user2Netid,
+        testUsers[0].netid,
+        testPromptId
+      );
+      const nudge1to2Updated = await getNudge(
+        testUsers[0].netid,
+        user2Netid,
+        testPromptId
+      );
       expect(nudge2to1!.mutual).toBe(true);
       expect(nudge1to2Updated!.mutual).toBe(true);
 
       // Step 8: Verify chat is unlocked between them
       console.log('Step 8: Verifying chat unlock...');
-      const user1MatchesAfter = await getUserMatches(testUsers[0].netid, testPromptId);
+      const user1MatchesAfter = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       const user2MatchesAfter = await getUserMatches(user2Netid, testPromptId);
       if (!user1MatchesAfter) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
       if (!user2MatchesAfter) {
-        throw new Error(`No matches found for user ${user2Netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${user2Netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
 
       const indexOfUser2InUser1 = user1MatchesAfter.matches.indexOf(user2Netid);
-      const indexOfUser1InUser2 = user2MatchesAfter.matches.indexOf(testUsers[0].netid);
+      const indexOfUser1InUser2 = user2MatchesAfter.matches.indexOf(
+        testUsers[0].netid
+      );
 
       expect(user1MatchesAfter.chatUnlocked![indexOfUser2InUser1]).toBe(true);
       expect(user2MatchesAfter.chatUnlocked![indexOfUser1InUser2]).toBe(true);
@@ -137,9 +169,14 @@ describe('End-to-End Integration Tests', () => {
       console.log('Step 9: User 1 revealing User 3...');
       await revealMatch(testUsers[0].netid, testPromptId, 1);
 
-      const user1MatchesFinal = await getUserMatches(testUsers[0].netid, testPromptId);
+      const user1MatchesFinal = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       if (!user1MatchesFinal) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
       expect(user1MatchesFinal.revealed[1]).toBe(true);
 
@@ -151,7 +188,9 @@ describe('End-to-End Integration Tests', () => {
         const matches = await getUserMatches(user.netid, testPromptId);
         expect(matches).toBeTruthy();
         if (!matches) {
-          throw new Error(`No matches found for user ${user.netid} on prompt ${testPromptId}. Check test setup.`);
+          throw new Error(
+            `No matches found for user ${user.netid} on prompt ${testPromptId}. Check test setup.`
+          );
         }
         expect(matches.matches.length).toBeGreaterThan(0);
         expect(matches.matches.length).toBeLessThanOrEqual(3);
@@ -183,10 +222,15 @@ describe('End-to-End Integration Tests', () => {
       ).resolves.toBeDefined();
 
       // But since user already has 3 matches, no new match should be added
-      const matchesAfterAttempt = await getUserMatches(testUsers[0].netid, testPromptId);
+      const matchesAfterAttempt = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       expect(matchesAfterAttempt).toBeTruthy();
       if (!matchesAfterAttempt) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
       expect(matchesAfterAttempt.matches.length).toBeGreaterThanOrEqual(1);
       expect(matchesAfterAttempt.matches.length).toBeLessThanOrEqual(3);
@@ -202,17 +246,31 @@ describe('End-to-End Integration Tests', () => {
       testPromptId = prompt.promptId;
 
       // Manually create bidirectional matches
-      await createWeeklyMatch(testUsers[0].netid, testPromptId, [testUsers[1].netid]);
-      await createWeeklyMatch(testUsers[1].netid, testPromptId, [testUsers[0].netid]);
+      await createWeeklyMatch(testUsers[0].netid, testPromptId, [
+        testUsers[1].netid,
+      ]);
+      await createWeeklyMatch(testUsers[1].netid, testPromptId, [
+        testUsers[0].netid,
+      ]);
 
       // Verify matches were created
-      const user0Matches = await getUserMatches(testUsers[0].netid, testPromptId);
-      const user1Matches = await getUserMatches(testUsers[1].netid, testPromptId);
+      const user0Matches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
+      const user1Matches = await getUserMatches(
+        testUsers[1].netid,
+        testPromptId
+      );
       if (!user0Matches) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
       if (!user1Matches) {
-        throw new Error(`No matches found for user ${testUsers[1].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[1].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
 
       expect(user0Matches.matches).toContain(testUsers[1].netid);
@@ -223,13 +281,23 @@ describe('End-to-End Integration Tests', () => {
       await createNudge(testUsers[1].netid, testUsers[0].netid, testPromptId);
 
       // Verify chat unlocked
-      const user0MatchesAfter = await getUserMatches(testUsers[0].netid, testPromptId);
-      const user1MatchesAfter = await getUserMatches(testUsers[1].netid, testPromptId);
+      const user0MatchesAfter = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
+      const user1MatchesAfter = await getUserMatches(
+        testUsers[1].netid,
+        testPromptId
+      );
       if (!user0MatchesAfter) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
       if (!user1MatchesAfter) {
-        throw new Error(`No matches found for user ${testUsers[1].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[1].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
 
       expect(user0MatchesAfter.chatUnlocked![0]).toBe(true);
@@ -262,11 +330,15 @@ describe('End-to-End Integration Tests', () => {
 
         expect(matches1).toBeTruthy();
         if (!matches1) {
-          throw new Error(`No matches found for user ${user.netid} on prompt ${prompt1.promptId}. Check test setup.`);
+          throw new Error(
+            `No matches found for user ${user.netid} on prompt ${prompt1.promptId}. Check test setup.`
+          );
         }
         expect(matches2).toBeTruthy();
         if (!matches2) {
-          throw new Error(`No matches found for user ${user.netid} on prompt ${prompt2.promptId}. Check test setup.`);
+          throw new Error(
+            `No matches found for user ${user.netid} on prompt ${prompt2.promptId}. Check test setup.`
+          );
         }
 
         expect(matches1.promptId).toBe(prompt1.promptId);
@@ -274,9 +346,14 @@ describe('End-to-End Integration Tests', () => {
       }
 
       // Nudge in prompt 1 shouldn't affect prompt 2
-      const user0Prompt1Matches = await getUserMatches(testUsers[0].netid, prompt1.promptId);
+      const user0Prompt1Matches = await getUserMatches(
+        testUsers[0].netid,
+        prompt1.promptId
+      );
       if (!user0Prompt1Matches) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${prompt1.promptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${prompt1.promptId}. Check test setup.`
+        );
       }
       const matchedUser = user0Prompt1Matches.matches[0];
 
@@ -284,13 +361,23 @@ describe('End-to-End Integration Tests', () => {
       await createNudge(matchedUser, testUsers[0].netid, prompt1.promptId);
 
       // Chat should be unlocked for prompt1 but not prompt2
-      const user0Prompt1After = await getUserMatches(testUsers[0].netid, prompt1.promptId);
-      const user0Prompt2After = await getUserMatches(testUsers[0].netid, prompt2.promptId);
+      const user0Prompt1After = await getUserMatches(
+        testUsers[0].netid,
+        prompt1.promptId
+      );
+      const user0Prompt2After = await getUserMatches(
+        testUsers[0].netid,
+        prompt2.promptId
+      );
       if (!user0Prompt1After) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${prompt1.promptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${prompt1.promptId}. Check test setup.`
+        );
       }
       if (!user0Prompt2After) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${prompt2.promptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${prompt2.promptId}. Check test setup.`
+        );
       }
 
       expect(user0Prompt1After.chatUnlocked).toBeDefined();
@@ -298,7 +385,9 @@ describe('End-to-End Integration Tests', () => {
 
       // Prompt 2 chat should not be affected
       if (user0Prompt2After.chatUnlocked) {
-        expect(user0Prompt2After.chatUnlocked.every((u: boolean) => u === false)).toBe(true);
+        expect(
+          user0Prompt2After.chatUnlocked.every((u: boolean) => u === false)
+        ).toBe(true);
       }
 
       console.log('✅ Multiple prompts work independently!');
@@ -315,9 +404,14 @@ describe('End-to-End Integration Tests', () => {
       await generateMatchesForPrompt(testPromptId);
 
       // Find three users who are all matched with each other
-      const userAMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const userAMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       if (!userAMatches) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
       const userBNetid = userAMatches.matches[0];
       const userCNetid = userAMatches.matches[1];
@@ -326,10 +420,14 @@ describe('End-to-End Integration Tests', () => {
       const userBMatches = await getUserMatches(userBNetid, testPromptId);
       const userCMatches = await getUserMatches(userCNetid, testPromptId);
       if (!userBMatches) {
-        throw new Error(`No matches found for user ${userBNetid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${userBNetid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
       if (!userCMatches) {
-        throw new Error(`No matches found for user ${userCNetid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${userCNetid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
 
       // A-B mutual nudge
@@ -356,7 +454,9 @@ describe('End-to-End Integration Tests', () => {
       // Verify User A has chat unlocked with both B and C
       const userAFinal = await getUserMatches(testUsers[0].netid, testPromptId);
       if (!userAFinal) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
       const indexOfB = userAFinal.matches.indexOf(userBNetid);
       const indexOfC = userAFinal.matches.indexOf(userCNetid);
@@ -376,9 +476,14 @@ describe('End-to-End Integration Tests', () => {
       await generateMatchesForPrompt(testPromptId);
 
       // User 0 reveals all their matches (could be 1-3)
-      const matchesBeforeReveal = await getUserMatches(testUsers[0].netid, testPromptId);
+      const matchesBeforeReveal = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       if (!matchesBeforeReveal) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
 
       // Reveal all matches dynamically
@@ -386,12 +491,19 @@ describe('End-to-End Integration Tests', () => {
         await revealMatch(testUsers[0].netid, testPromptId, i);
       }
 
-      const matchesAfterReveal = await getUserMatches(testUsers[0].netid, testPromptId);
+      const matchesAfterReveal = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       if (!matchesAfterReveal) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
       // All matches should be revealed
-      expect(matchesAfterReveal.revealed.every((r: boolean) => r === true)).toBe(true);
+      expect(
+        matchesAfterReveal.revealed.every((r: boolean) => r === true)
+      ).toBe(true);
 
       // Now nudge one of the revealed matches
       const matchedUser = matchesAfterReveal.matches[0];
@@ -399,19 +511,26 @@ describe('End-to-End Integration Tests', () => {
       await createNudge(matchedUser, testUsers[0].netid, testPromptId);
 
       // Both revealed and chatUnlocked should be maintained
-      const matchesFinal = await getUserMatches(testUsers[0].netid, testPromptId);
+      const matchesFinal = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       if (!matchesFinal) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
       // All matches should still be revealed
-      expect(matchesFinal.revealed.every((r: boolean) => r === true)).toBe(true);
+      expect(matchesFinal.revealed.every((r: boolean) => r === true)).toBe(
+        true
+      );
       // The first match should have chat unlocked (mutual nudge)
       expect(matchesFinal.chatUnlocked![0]).toBe(true);
 
       console.log('✅ Revealing before nudging works correctly!');
     });
 
-    test('Scenario: Asymmetric nudging (some users nudge, others don\'t)', async () => {
+    test("Scenario: Asymmetric nudging (some users nudge, others don't)", async () => {
       testUsers = await createTestUsers(6);
       const prompt = await createTestPrompt();
       testPromptId = prompt.promptId;
@@ -419,9 +538,14 @@ describe('End-to-End Integration Tests', () => {
       await createTestPromptAnswers(testUsers, testPromptId);
       await generateMatchesForPrompt(testPromptId);
 
-      const user0Matches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const user0Matches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       if (!user0Matches) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
 
       // Ensure user has at least 2 matches for asymmetric nudging test
@@ -441,7 +565,9 @@ describe('End-to-End Integration Tests', () => {
       // Check nudge statuses
       const statuses = [];
       for (let i = 0; i < matchCount; i++) {
-        statuses.push(await getNudgeStatus(testUsers[0].netid, matches[i], testPromptId));
+        statuses.push(
+          await getNudgeStatus(testUsers[0].netid, matches[i], testPromptId)
+        );
       }
 
       // First match should be mutual, others should not
@@ -453,7 +579,9 @@ describe('End-to-End Integration Tests', () => {
       // Only chat with first match should be unlocked
       const user0Final = await getUserMatches(testUsers[0].netid, testPromptId);
       if (!user0Final) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
 
       expect(user0Final.chatUnlocked![0]).toBe(true);
@@ -478,7 +606,9 @@ describe('End-to-End Integration Tests', () => {
       const operations = async () => {
         const matches = await getUserMatches(testUsers[0].netid, testPromptId);
         if (!matches) {
-          throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+          throw new Error(
+            `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+          );
         }
 
         // Reveal all matches dynamically (user may have 1-3 matches)
@@ -494,9 +624,14 @@ describe('End-to-End Integration Tests', () => {
       await operations();
 
       // Verify data integrity
-      const finalMatches = await getUserMatches(testUsers[0].netid, testPromptId);
+      const finalMatches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
       if (!finalMatches) {
-        throw new Error(`No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`);
+        throw new Error(
+          `No matches found for user ${testUsers[0].netid} on prompt ${testPromptId}. Check test setup.`
+        );
       }
 
       // Should have 1-3 matches
@@ -508,7 +643,9 @@ describe('End-to-End Integration Tests', () => {
 
       // chatUnlocked array should exist and match matches array length
       expect(finalMatches.chatUnlocked).toBeDefined();
-      expect(finalMatches.chatUnlocked).toHaveLength(finalMatches.matches.length);
+      expect(finalMatches.chatUnlocked).toHaveLength(
+        finalMatches.matches.length
+      );
 
       // All matches should be unique
       const uniqueMatches = new Set(finalMatches.matches);

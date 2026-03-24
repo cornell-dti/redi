@@ -21,7 +21,8 @@ router.post(
     try {
       // Get redirect URL from environment variable or use production default
       // For local development, set WEB_REDIRECT_URL=http://localhost:3000
-      const webRedirectUrl = process.env.WEB_REDIRECT_URL || 'https://redi.love';
+      const webRedirectUrl =
+        process.env.WEB_REDIRECT_URL || 'https://redi.love';
 
       // Generate Firebase sign-in link using Admin SDK (without sending email)
       const actionCodeSettings = {
@@ -36,10 +37,9 @@ router.post(
         },
       };
 
-      const signInLink = await admin.auth().generateSignInWithEmailLink(
-        email,
-        actionCodeSettings
-      );
+      const signInLink = await admin
+        .auth()
+        .generateSignInWithEmailLink(email, actionCodeSettings);
 
       // Send the email using Nodemailer
       await sendEmail({

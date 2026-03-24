@@ -28,7 +28,8 @@ Notifications.setNotificationHandler({
 export async function requestNotificationPermissions(): Promise<boolean> {
   try {
     // Get current permission status
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
 
     let finalStatus = existingStatus;
 
@@ -59,7 +60,9 @@ export async function registerForPushNotifications(): Promise<boolean> {
     // Request permissions
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
-      console.log('Notification permissions not granted, skipping token registration');
+      console.log(
+        'Notification permissions not granted, skipping token registration'
+      );
       return false;
     }
 
