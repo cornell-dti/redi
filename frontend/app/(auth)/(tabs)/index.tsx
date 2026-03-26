@@ -1,5 +1,6 @@
-// Main Matches/Home Screen
-import { sendNudge } from '@/app/api/nudgesApi';
+// Main Home Screen — Card-based daily engagement
+import { getConversations } from '@/app/api/chatApi';
+import { getCurrentUser } from '@/app/api/authService';
 import {
   getActivePrompt,
   getBatchMatchData,
@@ -11,21 +12,20 @@ import { AppColors } from '@/app/components/AppColors';
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
-import CountdownTimer from '@/app/components/ui/CountdownTimer';
-import EmptyState from '@/app/components/ui/EmptyState';
+import CardStack from '@/app/components/ui/CardStack';
+import { DailyCard } from '@/app/components/ui/cardTypes';
+import IconButton from '@/app/components/ui/IconButton';
+import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
-import WeeklyMatchCard from '@/app/components/ui/WeeklyMatchCard';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
 import {
-  getMatchDropDescription,
-  shouldShowCountdown,
-} from '@/app/utils/dateUtils';
-import {
-  cacheMatchData,
-  clearMatchCache,
-  getCachedMatchData,
-} from '@/app/utils/matchCache';
+  MOCK_MATCH_CARDS,
+  PREFERENCE_CARDS,
+  PROFILE_ACTION_CARDS,
+  WEEKLY_PROMPT_CARDS,
+} from '@/app/data/mockCards';
+import { cacheMatchData, getCachedMatchData } from '@/app/utils/matchCache';
 import {
   getProfileAge,
   NudgeStatusResponse,
@@ -35,82 +35,101 @@ import {
   WeeklyPromptResponse,
 } from '@/types';
 import { useFocusEffect } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
-import { Check, Heart, Pencil } from 'lucide-react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Animated,
-  Dimensions,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  View,
-} from 'react-native';
+  Check,
+  Heart,
+  HelpCircle,
+  LayoutGrid,
+  Pencil,
+  SlidersHorizontal,
+  Sparkles,
+  User,
+} from 'lucide-react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { StatusBar, StyleSheet, View } from 'react-native';
 
-const { width } = Dimensions.get('window');
+const FILTER_OPTIONS = [
+  {
+    value: 'all' as const,
+    label: 'All cards',
+    color: null,
+    icon: LayoutGrid,
+    iconColor: AppColors.foregroundDimmer,
+  },
+  {
+    value: 'profile_action' as const,
+    label: 'Profile building',
+    color: '#DBEAFE',
+    icon: User,
+    iconColor: '#2563EB',
+  },
+  {
+    value: 'preference' as const,
+    label: 'Preferences',
+    color: '#EDE9FE',
+    icon: HelpCircle,
+    iconColor: '#7C3AED',
+  },
+  {
+    value: 'weekly_prompt' as const,
+    label: 'Weekly prompts',
+    color: '#D1FAE5',
+    icon: Sparkles,
+    iconColor: '#059669',
+  },
+  {
+    value: 'match' as const,
+    label: 'Matches',
+    color: '#FCE7F3',
+    icon: Heart,
+    iconColor: '#EC4899',
+  },
+];
 
 interface MatchWithProfile {
   netid: string;
   profile: ProfileResponse | null;
   revealed: boolean;
   nudgeStatus?: NudgeStatusResponse;
-  promptId: string; // Store promptId with each match for nudging
+  promptId: string;
 }
 
-export default function MatchesScreen() {
+export default function HomeScreen() {
   useThemeAware();
 
-  const router = useRouter();
-  const [showCountdown, setShowCountdown] = useState(false);
   const [activePrompt, setActivePrompt] = useState<WeeklyPromptResponse | null>(
     null
   );
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [currentMatches, setCurrentMatches] = useState<MatchWithProfile[]>([]);
+  // ── TEMPORARY PLACEHOLDER ────────────────────────────────────────────────────
+  // Seeds match cards from existing chat conversations so the card stack isn't
+  // empty during development. Remove once the real match pipeline is wired up.
+  const [chatMatchCards, setChatMatchCards] = useState<DailyCard[]>([]);
+  // ─────────────────────────────────────────────────────────────────────────────
   const [showPromptSheet, setShowPromptSheet] = useState(false);
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<
+    'all' | 'profile_action' | 'preference' | 'weekly_prompt' | 'match'
+  >('all');
   const [tempAnswer, setTempAnswer] = useState('');
   const lastLoadTime = useRef<number>(0);
-  // Track local nudges for immediate UI feedback
-  const [localNudges, setLocalNudges] = useState<Set<string>>(new Set());
-
-  // Track scroll position for real-time dot animation
-  const scrollX = useRef(new Animated.Value(0)).current;
 
   const loadData = useCallback(async () => {
-    // Prevent rapid successive calls (rate limiting on client side)
     const now = Date.now();
-    const timeSinceLastLoad = now - lastLoadTime.current;
-
-    if (timeSinceLastLoad < 1000) {
-      // Minimum 1 second between loads
-      console.log('⚠️  Skipping load - too soon since last load');
-      return;
-    }
-
+    if (now - lastLoadTime.current < 1000) return;
     lastLoadTime.current = now;
 
     try {
       let prompt: WeeklyPromptResponse | null = null;
 
-      // Get active prompt (optional - matches can exist without an active prompt)
       try {
         prompt = await getActivePrompt();
         setActivePrompt(prompt);
-
-        // Set countdown visibility based on active prompt
-        if (prompt) {
-          setShowCountdown(shouldShowCountdown(prompt.matchDate));
-        } else {
-          setShowCountdown(false);
-        }
-      } catch (promptError) {
-        console.error('Error fetching active prompt:', promptError);
+      } catch {
         setActivePrompt(null);
-        setShowCountdown(false); // Hide countdown if no active prompt
-        // Don't return early - continue loading matches even without an active prompt
       }
 
-      // Get user's answer to the prompt (if there's an active prompt)
       if (prompt) {
         try {
           const answer: WeeklyPromptAnswerResponse = await getPromptAnswer(
@@ -118,52 +137,42 @@ export default function MatchesScreen() {
           );
           setUserAnswer(answer.answer);
         } catch {
-          // No answer yet
           setUserAnswer('');
         }
       }
 
-      // Get all match history - backend filters by expiration date automatically
       try {
         const history: WeeklyMatchResponse[] = await getMatchHistory(10);
 
         if (history.length > 0) {
-          // Collect all matches from all active match records
           const allMatchesData: MatchWithProfile[] = [];
 
           for (const matchRecord of history) {
             if (matchRecord.matches.length === 0) continue;
 
-            // Try to get cached data first for the most recent match
             let batchData;
             if (matchRecord === history[0]) {
               const cachedData = await getCachedMatchData(matchRecord.promptId);
               if (cachedData) {
                 batchData = cachedData;
-                console.log('✅ Using cached match data');
               } else {
                 batchData = await getBatchMatchData(
                   matchRecord.promptId,
                   matchRecord.matches
                 );
                 await cacheMatchData(matchRecord.promptId, batchData);
-                console.log('✅ Fetched and cached fresh match data');
               }
             } else {
-              // For older matches, just fetch the data
               batchData = await getBatchMatchData(
                 matchRecord.promptId,
                 matchRecord.matches
               );
             }
 
-            // Map the batch data to matches with profiles
             const matchesWithProfiles: MatchWithProfile[] =
               matchRecord.matches.map((netid: string, index: number) => {
                 const profile =
                   batchData.profiles.find((p) => p.netid === netid) || null;
-
-                // Only get nudge status for the most recent matches
                 const nudgeStatus =
                   matchRecord === history[0]
                     ? batchData.nudgeStatuses[index] || {
@@ -172,7 +181,6 @@ export default function MatchesScreen() {
                         mutual: false,
                       }
                     : undefined;
-
                 return {
                   netid,
                   profile,
@@ -187,42 +195,51 @@ export default function MatchesScreen() {
 
           setCurrentMatches(allMatchesData);
         } else {
-          // No match history at all
           setCurrentMatches([]);
         }
-      } catch (error) {
-        console.error('Error loading matches:', error);
+      } catch {
         setCurrentMatches([]);
       }
+
+      // ── TEMPORARY PLACEHOLDER ───────────────────────────────────────────────
+      // Builds match cards from existing chat conversations for dev/testing.
+      // Remove this block once the real weekly-match pipeline populates the feed.
+      try {
+        const convos = await getConversations();
+        const currentUid = getCurrentUser()?.uid;
+        const cards: DailyCard[] = convos
+          .filter((c) => c.lastMessage)
+          .flatMap((c) => {
+            const otherUid = c.participantIds.find((id) => id !== currentUid);
+            if (!otherUid) return [];
+            const other = c.participants[otherUid];
+            if (!other || other.deleted) return [];
+            return [{
+              id: `chat-match-${c.id}`,
+              type: 'match' as const,
+              matchName: other.name,
+              matchImage: other.image ?? undefined,
+            }];
+          });
+        setChatMatchCards(cards);
+      } catch {
+        // Non-critical — silently ignore
+      }
+      // ────────────────────────────────────────────────────────────────────────
+
     } catch (error) {
       console.error('Error loading data:', error);
-      if (error instanceof Error) {
-        console.error('Error details:', error.message);
-      }
-    } finally {
-      // Clear local nudges after data reload since server state is now current
-      setLocalNudges(new Set());
     }
-  }, []); // Empty dependency array since we use refs for state that shouldn't trigger re-renders
+  }, []);
 
-  useEffect(() => {
-    loadData();
-
-    // Update countdown state every minute
-    const interval = setInterval(() => {
-      if (activePrompt) {
-        setShowCountdown(shouldShowCountdown(activePrompt.matchDate));
-      } else {
-        setShowCountdown(false);
-      }
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, [activePrompt, loadData]); // Update when activePrompt changes or loadData changes
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   const handleSubmitAnswer = async () => {
     if (!activePrompt || !tempAnswer.trim()) return;
-
     try {
       await submitPromptAnswer(activePrompt.promptId, tempAnswer);
       setUserAnswer(tempAnswer);
@@ -233,262 +250,130 @@ export default function MatchesScreen() {
     }
   };
 
-  const [animationTrigger, setAnimationTrigger] = useState(0);
+  // Build the daily card list: interleave mock cards with real match cards
+  const dailyCards = useMemo((): DailyCard[] => {
+    const apiMatchCards: DailyCard[] = currentMatches
+      .filter((m) => m.profile)
+      .map((m) => {
+        const p = m.profile!;
+        return {
+          id: `match-${m.netid}-${m.promptId}`,
+          type: 'match' as const,
+          matchName: p.firstName,
+          matchAge: getProfileAge(p),
+          matchYear: p.year,
+          matchMajor: p.major.join(', '),
+          matchImage: p.pictures[0] || undefined,
+          matchProfile: p,
+        };
+      });
+    // Fallback chain: real API matches → chat contacts (temp) → static mocks
+    const matchCards: DailyCard[] =
+      apiMatchCards.length > 0 ? apiMatchCards :
+      chatMatchCards.length > 0 ? chatMatchCards :
+      MOCK_MATCH_CARDS;
 
-  // Trigger animation every time screen is focused
-  useFocusEffect(
-    useCallback(() => {
-      setAnimationTrigger((prev) => prev + 1);
-    }, [])
-  );
-
-  const renderCountdownPeriod = () => (
-    <>
-      <CountdownTimer
-        targetDate={
-          activePrompt ? new Date(activePrompt.matchDate) : new Date()
-        }
-      />
-      {activePrompt && (
-        <ListItemWrapper style={styles.promptSection}>
-          <View
-            style={[
-              styles.promptQuestion,
-              { backgroundColor: AppColors.backgroundDimmer },
-            ]}
-          >
-            <AppText color="dimmer"> Weekly Prompt: </AppText>
-
-            <AppText variant="subtitle">{activePrompt.question}</AppText>
-          </View>
-          <Button
-            title={userAnswer ? 'Edit answer' : 'Answer prompt'}
-            onPress={() => {
-              setTempAnswer(userAnswer);
-              setShowPromptSheet(true);
-            }}
-            variant="secondary"
-            iconLeft={Pencil}
-            noRound
-          />
-        </ListItemWrapper>
-      )}
-    </>
-  );
-
-  const renderWeekendPeriod = () => (
-    <>
-      {activePrompt && (
-        <ListItemWrapper style={styles.promptSection}>
-          <View
-            style={[
-              styles.promptQuestion,
-              { backgroundColor: AppColors.backgroundDimmer },
-            ]}
-          >
-            <AppText color="dimmer"> Weekly Prompt: </AppText>
-
-            <AppText variant="subtitle">{activePrompt.question}</AppText>
-          </View>
-          <Button
-            title={userAnswer ? 'Edit answer' : 'Answer prompt'}
-            onPress={() => {
-              setTempAnswer(userAnswer);
-              setShowPromptSheet(true);
-            }}
-            variant="secondary"
-            iconLeft={Pencil}
-            noRound
-          />
-        </ListItemWrapper>
-      )}
-      {currentMatches.length > 0 && (
-        <View style={[styles.section, styles.sectionPadding]}>
-          <AppText variant="subtitle" style={styles.sectionTitle}>
-            Your Matches
-          </AppText>
-        </View>
-      )}
-    </>
-  );
-
-  const renderCurrentMatch = () => {
-    if (currentMatches.length === 0) {
-      return (
-        <EmptyState
-          icon={Heart}
-          label="No matches available yet. Check back after submitting your answer!"
-          triggerAnimation={animationTrigger}
-        />
-      );
+    const profileCards = PROFILE_ACTION_CARDS.filter((c) => !c.completed);
+    const result: DailyCard[] = [];
+    const maxLen = Math.max(
+      profileCards.length,
+      PREFERENCE_CARDS.length,
+      matchCards.length,
+      WEEKLY_PROMPT_CARDS.length
+    );
+    for (let i = 0; i < maxLen; i++) {
+      if (i < profileCards.length) result.push(profileCards[i]);
+      if (i < PREFERENCE_CARDS.length) result.push(PREFERENCE_CARDS[i]);
+      if (i < matchCards.length) result.push(matchCards[i]);
+      if (i < WEEKLY_PROMPT_CARDS.length) result.push(WEEKLY_PROMPT_CARDS[i]);
     }
 
-    return (
-      <View style={styles.matchContainer}>
-        <ScrollView
-          horizontal
-          decelerationRate="fast"
-          snapToInterval={width - 60}
-          showsHorizontalScrollIndicator={false}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-            {
-              useNativeDriver: false,
-            }
-          )}
-          scrollEventThrottle={16}
-          style={{ paddingLeft: 16 }}
-        >
-          {currentMatches.map((m, matchIndex) => {
-            if (!m.profile) return null;
-            const matchProfile = m.profile;
-            const matchAge = getProfileAge(matchProfile);
-
-            const handleNudge = async () => {
-              // Create a unique key for this match
-              const matchKey = `${matchProfile.netid}-${m.promptId}`;
-
-              // Update local state immediately for instant UI feedback
-              setLocalNudges((prev) => new Set(prev).add(matchKey));
-
-              try {
-                await sendNudge(matchProfile.netid, m.promptId);
-
-                // Clear cache to force fresh data fetch with updated nudge status
-                await clearMatchCache(m.promptId);
-
-                // Reload immediately (no debounce) to ensure cache is updated before user closes app
-                await loadData();
-              } catch (error) {
-                // Remove from local nudges if there was an error
-                setLocalNudges((prev) => {
-                  const newSet = new Set(prev);
-                  newSet.delete(matchKey);
-                  return newSet;
-                });
-                throw error; // Re-throw so WeeklyMatchCard can show error alert
-              }
-            };
-
-            // Check if this match has been nudged locally
-            const matchKey = `${matchProfile.netid}-${m.promptId}`;
-            const hasLocalNudge = localNudges.has(matchKey);
-
-            return (
-              <View
-                key={`${matchProfile.netid}-${m.promptId ?? matchIndex}`}
-                style={{
-                  width: width - 60,
-                  marginRight: 12,
-                }}
-              >
-                <WeeklyMatchCard
-                  name={matchProfile.firstName}
-                  age={matchAge}
-                  year={matchProfile.year}
-                  major={matchProfile.major.join(', ')}
-                  image={
-                    matchProfile.pictures[0] ||
-                    'https://via.placeholder.com/400'
-                  }
-                  onNudge={handleNudge}
-                  onViewProfile={() => {
-                    // Pass activePrompt and nudgeStatus to avoid re-fetching
-                    const params = new URLSearchParams({
-                      netid: matchProfile.netid,
-                      promptId: m.promptId,
-                    });
-
-                    // Serialize prompt and nudge status as JSON
-                    if (activePrompt) {
-                      params.append('promptData', JSON.stringify(activePrompt));
-                    }
-                    if (m.nudgeStatus) {
-                      params.append('nudgeData', JSON.stringify(m.nudgeStatus));
-                    }
-
-                    router.push(`/view-profile?${params.toString()}` as any);
-                  }}
-                  nudgeSent={m.nudgeStatus?.sent || hasLocalNudge}
-                  nudgeDisabled={m.nudgeStatus?.mutual || false}
-                />
-              </View>
-            );
-          })}
-        </ScrollView>
-
-        {currentMatches.length > 1 && (
-          <View style={styles.pagination}>
-            {currentMatches.map((_, index) => {
-              const cardWidth = width - 60;
-              // Create input range for smooth transitions between cards
-              const inputRange = [
-                (index - 1) * cardWidth,
-                index * cardWidth,
-                (index + 1) * cardWidth,
-              ];
-
-              const dotWidth = scrollX.interpolate({
-                inputRange,
-                outputRange: [8, 20, 8],
-                extrapolate: 'clamp',
-              });
-
-              const dotHeight = scrollX.interpolate({
-                inputRange,
-                outputRange: [8, 10, 8],
-                extrapolate: 'clamp',
-              });
-
-              const opacity = scrollX.interpolate({
-                inputRange,
-                outputRange: [0.2, 1, 0.2],
-                extrapolate: 'clamp',
-              });
-
-              return (
-                <Animated.View
-                  key={index}
-                  style={[
-                    styles.paginationDot,
-                    {
-                      backgroundColor: AppColors.foregroundDefault,
-                      width: dotWidth,
-                      height: dotHeight,
-                      opacity,
-                    },
-                  ]}
-                />
-              );
-            })}
-          </View>
-        )}
-      </View>
-    );
-  };
+    const all =
+      result.length === 0
+        ? [...PROFILE_ACTION_CARDS, ...PREFERENCE_CARDS]
+        : result;
+    if (activeFilter === 'all') return all;
+    return all.filter((c) => c.type === activeFilter);
+  }, [currentMatches, chatMatchCards, activeFilter]);
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
 
-      <View style={styles.headerContainer}>
-        <AppText variant="title">Matches</AppText>
-        <AppText variant="subtitle" color="dimmer">
-          {activePrompt
-            ? getMatchDropDescription(activePrompt.matchDate)
-            : 'Check back soon for new matches'}
-        </AppText>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.titleRow}>
+          <AppText variant="title">Home</AppText>
+          <View style={styles.headerRight}>
+            <AppText variant="body" color="dimmer">
+              {dailyCards.length} left
+            </AppText>
+            <IconButton
+              icon={SlidersHorizontal}
+              onPress={() => setShowFilterSheet(true)}
+              variant={'secondary'}
+            />
+          </View>
+        </View>
+        <View style={styles.headerRow}>
+          {activePrompt && (
+            <Button
+              title={userAnswer ? 'Edit answer' : 'Answer prompt'}
+              onPress={() => {
+                setTempAnswer(userAnswer);
+                setShowPromptSheet(true);
+              }}
+              variant="secondary"
+              iconLeft={Pencil}
+              noRound
+            />
+          )}
+        </View>
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
+      {/* Card stack — flex:1 so it fills remaining space */}
+      <View style={styles.stackContainer}>
+        <CardStack key={activeFilter} cards={dailyCards} />
+      </View>
+
+      {/* Filter Sheet */}
+      <Sheet
+        visible={showFilterSheet}
+        onDismiss={() => setShowFilterSheet(false)}
+        title="Filter cards"
+        height="auto"
       >
-        <View style={styles.content}>
-          {showCountdown ? renderCountdownPeriod() : renderWeekendPeriod()}
-          {renderCurrentMatch()}
-        </View>
-      </ScrollView>
+        <ListItemWrapper>
+          {FILTER_OPTIONS.map((opt) => (
+            <ListItem
+              key={opt.value}
+              title={opt.label}
+              selected={activeFilter === opt.value}
+              left={
+                <View
+                  style={[
+                    styles.iconBadge,
+                    {
+                      backgroundColor: opt.color ?? AppColors.backgroundDimmer,
+                    },
+                  ]}
+                >
+                  <opt.icon size={14} color={opt.iconColor} />
+                </View>
+              }
+              right={
+                activeFilter === opt.value ? (
+                  <Check size={18} color={AppColors.accentDefault} />
+                ) : null
+              }
+              onPress={() => {
+                setActiveFilter(opt.value);
+                setShowFilterSheet(false);
+              }}
+            />
+          ))}
+        </ListItemWrapper>
+      </Sheet>
 
       {/* Weekly Prompt Sheet */}
       <Sheet
@@ -509,11 +394,9 @@ export default function MatchesScreen() {
               style={{ height: 84, borderRadius: 24 }}
               returnKeyType="done"
             />
-
             <AppText variant="bodySmall" color="dimmer">
               {tempAnswer.length}/120 characters
             </AppText>
-
             <Button
               title={userAnswer ? 'Update answer' : 'Submit answer'}
               onPress={handleSubmitAnswer}
@@ -535,91 +418,39 @@ const styles = StyleSheet.create({
     paddingTop: 64,
     backgroundColor: AppColors.backgroundDefault,
   },
-  scrollView: {
-    flex: 1,
+  header: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+    gap: 6,
   },
-  content: {
-    paddingBottom: 100,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  countdownSection: {
-    borderRadius: 12,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 20,
-    gap: 16,
-  },
-  sectionTitle: {
-    marginBottom: 8,
-  },
-  subtitle: {
-    marginTop: 8,
-  },
-  promptSection: {
-    gap: 4,
-    marginBottom: 24,
-    padding: 16,
-  },
-  promptLabel: {
-    marginLeft: 4,
-  },
-  promptCard: {
-    borderWidth: 1,
-    borderRadius: 4,
-    gap: 4,
-    padding: 16,
-    marginTop: 24,
-  },
-  promptQuestion: {
-    padding: 16,
-    gap: 8,
-    borderRadius: 4,
-  },
-  answerCard: {
-    borderRadius: 4,
-    padding: 16,
-  },
-  section: {
-    marginTop: 24,
-  },
-  sectionPadding: {
-    paddingLeft: 16,
-  },
-  matchContainer: {
-    marginBottom: 24,
-  },
-  pagination: {
+  headerRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  headerSub: {
+    flex: 1,
+  },
+  stackContainer: {
+    flex: 1,
+    paddingBottom: 32,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerRight: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 16,
   },
-  paginationDot: {
-    borderRadius: 5,
-  },
-  emptyState: {
-    borderRadius: 24,
-    padding: 40,
+  iconBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
     alignItems: 'center',
-    margin: 16,
-  },
-  headerContainer: {
-    padding: 16,
-    paddingTop: 3,
-  },
-  skeletonWrapper: {
-    padding: 16,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 16,
-  },
-  emptyStateContainer: {
     justifyContent: 'center',
-    alignItems: 'center',
   },
 });
