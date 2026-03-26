@@ -1,8 +1,11 @@
+import ProfileView from '@/app/components/profile/ProfileView';
 import { AppColors } from '@/app/components/AppColors';
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
+import Tag from '@/app/components/ui/Tag';
 import {
+  ArrowLeft,
   BookOpen,
   Camera,
   ChevronDown,
@@ -11,11 +14,20 @@ import {
   Link,
   MapPin,
   MessageSquare,
+  Plus,
   Star,
   User,
 } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { DailyCard, ProfileActionIcon } from './cardTypes';
 
 const ACTION_ICONS: Record<ProfileActionIcon, React.ElementType> = {
@@ -54,33 +66,42 @@ function MatchSheetContent({
   card: Extract<DailyCard, { type: 'match' }>;
   onDismiss: () => void;
 }) {
+  const [showProfile, setShowProfile] = useState(false);
+
   return (
     <View style={styles.body}>
-      {card.matchImage ? (
-        <Image source={{ uri: card.matchImage }} style={styles.matchImage} />
-      ) : (
-        <View
-          style={[
-            styles.matchImage,
-            { backgroundColor: AppColors.backgroundDimmest },
-          ]}
-        />
-      )}
-      <AppText variant="title" style={{ marginTop: 16 }}>
-        {card.matchName}, {card.matchAge}
+      {/* Round profile picture */}
+      <View style={styles.matchAvatarWrap}>
+        {card.matchImage ? (
+          <Image source={{ uri: card.matchImage }} style={styles.matchAvatar} />
+        ) : (
+          <View style={[styles.matchAvatar, { backgroundColor: AppColors.backgroundDimmest }]}>
+            <User size={48} color={AppColors.foregroundDimmer} />
+          </View>
+        )}
+      </View>
+
+      {/* Name & age */}
+      <AppText variant="title" style={styles.matchName}>
+        {card.matchName}{card.matchAge ? `, ${card.matchAge}` : ''}
       </AppText>
+
+      {/* Year · Major */}
       {(card.matchYear || card.matchMajor) && (
-        <AppText variant="body" color="dimmer" style={{ marginTop: 4 }}>
+        <AppText variant="body" color="dimmer" style={styles.matchMeta}>
           {[card.matchYear, card.matchMajor].filter(Boolean).join(' · ')}
         </AppText>
       )}
+
       <View style={styles.actions}>
-        <Button
-          title="View full profile"
-          onPress={onDismiss}
-          variant="primary"
-          fullWidth
-        />
+        {card.matchProfile && (
+          <Button
+            title="View full profile"
+            onPress={() => setShowProfile(true)}
+            variant="primary"
+            fullWidth
+          />
+        )}
         <Button
           title="Not now"
           onPress={onDismiss}
@@ -88,6 +109,27 @@ function MatchSheetContent({
           fullWidth
         />
       </View>
+
+      {/* Full-screen profile modal */}
+      {card.matchProfile && (
+        <Modal visible={showProfile} animationType="slide" statusBarTranslucent>
+          <SafeAreaView style={styles.profileModal}>
+            <View style={styles.profileModalHeader}>
+              <TouchableOpacity
+                onPress={() => setShowProfile(false)}
+                style={styles.backButton}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <ArrowLeft size={22} color={AppColors.foregroundDefault} />
+                <AppText variant="body">Back</AppText>
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <ProfileView profile={card.matchProfile} />
+            </ScrollView>
+          </SafeAreaView>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -362,52 +404,266 @@ function ProfileActionSheetContent({
   card: Extract<DailyCard, { type: 'profile_action' }>;
   onDismiss: () => void;
 }) {
-  const Icon = ACTION_ICONS[card.actionIconName];
+  switch (card.id) {
+    case 'profile-photo':
+      return <PhotoActionContent onDismiss={onDismiss} />;
+    case 'profile-hometown':
+      return (
+        <SimpleTextActionContent
+          placeholder="e.g., New York, NY"
+          onDismiss={onDismiss}
+        />
+      );
+    case 'profile-location':
+      return (
+        <SimpleTextActionContent
+          placeholder="e.g., Collegetown, Duffield Hall"
+          onDismiss={onDismiss}
+        />
+      );
+    case 'profile-social':
+      return <InstagramActionContent onDismiss={onDismiss} />;
+    case 'profile-interests':
+      return <InterestsActionContent onDismiss={onDismiss} />;
+    case 'profile-prompt':
+      return <PromptActionContent onDismiss={onDismiss} />;
+    case 'profile-major':
+      return (
+        <SimpleTextActionContent
+          placeholder="e.g., Computer Science"
+          onDismiss={onDismiss}
+        />
+      );
+    case 'profile-year':
+      return <YearActionContent onDismiss={onDismiss} />;
+    default:
+      return <GenericProfileActionContent card={card} onDismiss={onDismiss} />;
+  }
+}
+
+function PhotoActionContent({ onDismiss }: { onDismiss: () => void }) {
   return (
     <View style={styles.body}>
-      <View
-        style={[styles.iconCircle, { alignSelf: 'center', marginBottom: 16 }]}
-      >
-        <Icon size={40} color={AppColors.accentDefault} />
+      <TouchableOpacity style={styles.photoPlaceholder} activeOpacity={0.7}>
+        <Camera size={48} color={AppColors.foregroundDimmer} />
+        <AppText variant="body" color="dimmer" style={{ marginTop: 12 }}>
+          Tap to choose a photo
+        </AppText>
+      </TouchableOpacity>
+      <View style={styles.actions}>
+        <Button title="Save photo" onPress={onDismiss} variant="primary" fullWidth disabled />
+        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
       </View>
-      <AppText
-        variant="body"
-        color="dimmer"
-        style={{ marginBottom: 20, textAlign: 'center' }}
-      >
-        {card.actionDescription}
-      </AppText>
-      {['Open your profile', 'Tap the edit button', 'Save your changes'].map(
-        (step, i) => (
-          <View key={i} style={styles.step}>
-            <View style={styles.stepBadge}>
-              <AppText
-                variant="bodySmall"
-                color="inverse"
-                style={{ fontWeight: '700' }}
-              >
-                {i + 1}
-              </AppText>
-            </View>
-            <AppText variant="body" style={{ flex: 1 }}>
-              {step}
-            </AppText>
-          </View>
-        )
-      )}
+    </View>
+  );
+}
+
+function SimpleTextActionContent({
+  placeholder,
+  onDismiss,
+}: {
+  placeholder: string;
+  onDismiss: () => void;
+}) {
+  const [value, setValue] = useState('');
+  return (
+    <View style={styles.body}>
+      <AppInput
+        placeholder={placeholder}
+        value={value}
+        onChangeText={setValue}
+        autoCapitalize="words"
+        returnKeyType="done"
+      />
       <View style={styles.actions}>
         <Button
-          title="Go to profile"
+          title="Save"
           onPress={onDismiss}
           variant="primary"
           fullWidth
+          disabled={!value.trim()}
+        />
+        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+      </View>
+    </View>
+  );
+}
+
+function InstagramActionContent({ onDismiss }: { onDismiss: () => void }) {
+  const [handle, setHandle] = useState('');
+  return (
+    <View style={styles.body}>
+      <AppInput
+        placeholder="@yourhandle"
+        value={handle}
+        onChangeText={setHandle}
+        autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="done"
+      />
+      <View style={styles.actions}>
+        <Button
+          title="Save"
+          onPress={onDismiss}
+          variant="primary"
+          fullWidth
+          disabled={!handle.trim()}
+        />
+        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+      </View>
+    </View>
+  );
+}
+
+function InterestsActionContent({ onDismiss }: { onDismiss: () => void }) {
+  const [interests, setInterests] = useState<string[]>([]);
+  const [newInterest, setNewInterest] = useState('');
+
+  const addInterest = () => {
+    const trimmed = newInterest.trim();
+    if (trimmed && !interests.includes(trimmed)) {
+      setInterests([...interests, trimmed]);
+      setNewInterest('');
+    }
+  };
+
+  return (
+    <View style={styles.body}>
+      {interests.length > 0 && (
+        <View style={styles.tagsRow}>
+          {interests.map((item) => (
+            <Tag
+              key={item}
+              label={item}
+              variant="gray"
+              dismissible
+              onDismiss={() => setInterests(interests.filter((i) => i !== item))}
+            />
+          ))}
+        </View>
+      )}
+      <View style={styles.addRow}>
+        <AppInput
+          placeholder="e.g., Music, Photography..."
+          value={newInterest}
+          onChangeText={setNewInterest}
+          autoCapitalize="words"
+          autoCorrect={false}
+          returnKeyType="done"
+          onSubmitEditing={addInterest}
+          style={{ flex: 1 }}
         />
         <Button
-          title="Remind me later"
-          onPress={onDismiss}
+          title="Add"
+          onPress={addInterest}
           variant="secondary"
-          fullWidth
+          iconLeft={Plus}
+          disabled={!newInterest.trim()}
         />
+      </View>
+      <View style={styles.actions}>
+        <Button
+          title="Save interests"
+          onPress={onDismiss}
+          variant="primary"
+          fullWidth
+          disabled={interests.length === 0}
+        />
+        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+      </View>
+    </View>
+  );
+}
+
+function PromptActionContent({ onDismiss }: { onDismiss: () => void }) {
+  const [answer, setAnswer] = useState('');
+  return (
+    <View style={styles.body}>
+      <AppInput
+        placeholder="Write your answer..."
+        value={answer}
+        onChangeText={setAnswer}
+        multiline
+        numberOfLines={4}
+        maxLength={240}
+        style={{ height: 110, borderRadius: 16 }}
+        returnKeyType="done"
+      />
+      <AppText variant="bodySmall" color="dimmer" style={{ marginTop: 4 }}>
+        {answer.length}/240
+      </AppText>
+      <View style={styles.actions}>
+        <Button
+          title="Save answer"
+          onPress={onDismiss}
+          variant="primary"
+          fullWidth
+          disabled={!answer.trim()}
+        />
+        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+      </View>
+    </View>
+  );
+}
+
+const YEAR_OPTIONS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'];
+
+function YearActionContent({ onDismiss }: { onDismiss: () => void }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  return (
+    <View style={styles.body}>
+      <View style={styles.optionsList}>
+        {YEAR_OPTIONS.map((year) => (
+          <TouchableOpacity
+            key={year}
+            style={[styles.optionPill, selected === year && styles.optionPillSelected]}
+            onPress={() => setSelected(year)}
+            activeOpacity={0.75}
+          >
+            <AppText
+              variant="subtitle"
+              style={{
+                color: selected === year ? AppColors.backgroundDefault : AppColors.foregroundDefault,
+              }}
+            >
+              {year}
+            </AppText>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <View style={styles.actions}>
+        <Button
+          title="Save"
+          onPress={onDismiss}
+          variant="primary"
+          fullWidth
+          disabled={!selected}
+        />
+        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+      </View>
+    </View>
+  );
+}
+
+function GenericProfileActionContent({
+  card,
+  onDismiss,
+}: {
+  card: Extract<DailyCard, { type: 'profile_action' }>;
+  onDismiss: () => void;
+}) {
+  const Icon = ACTION_ICONS[card.actionIconName];
+  return (
+    <View style={styles.body}>
+      <View style={[styles.iconCircle, { alignSelf: 'center', marginBottom: 16 }]}>
+        <Icon size={40} color={AppColors.accentDefault} />
+      </View>
+      <AppText variant="body" color="dimmer" style={{ marginBottom: 20, textAlign: 'center' }}>
+        {card.actionDescription}
+      </AppText>
+      <View style={styles.actions}>
+        <Button title="Go to profile" onPress={onDismiss} variant="primary" fullWidth />
+        <Button title="Remind me later" onPress={onDismiss} variant="secondary" fullWidth />
       </View>
     </View>
   );
@@ -464,12 +720,6 @@ function WeeklyPromptSheetContent({
 
 const styles = StyleSheet.create({
   body: { gap: 8 },
-  matchImage: {
-    width: '100%',
-    height: 220,
-    borderRadius: 16,
-    resizeMode: 'cover',
-  },
   actions: { marginTop: 16, gap: 10 },
 
   // Options reply
@@ -529,6 +779,68 @@ const styles = StyleSheet.create({
     borderColor: AppColors.accentDefault,
   },
   scaleLabels: { flexDirection: 'row', justifyContent: 'space-between' },
+
+  // Match sheet
+  matchAvatarWrap: {
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  matchAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    resizeMode: 'cover',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  matchName: {
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  matchMeta: {
+    textAlign: 'center',
+    marginTop: 2,
+  },
+
+  // Full-profile modal
+  profileModal: {
+    flex: 1,
+    backgroundColor: AppColors.backgroundDefault,
+  },
+  profileModalHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: AppColors.backgroundDimmest,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+
+  // Profile action inline editors
+  photoPlaceholder: {
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: AppColors.backgroundDimmest,
+    borderRadius: 20,
+    height: 160,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: AppColors.backgroundDimmer,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  addRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
 
   // Profile action
   iconCircle: {

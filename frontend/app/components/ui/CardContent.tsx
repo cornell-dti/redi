@@ -108,7 +108,7 @@ function MatchCard({ card }: { card: Extract<DailyCard, { type: 'match' }> }) {
 function PreferenceCard({ card }: { card: Extract<DailyCard, { type: 'preference' }> }) {
   return (
     <View style={[styles.fill, { backgroundColor: C.preference.bg }]}>
-      <CardTop topBg={C.preference.topBg} deco={C.preference.deco} icon={Sparkles} iconColor={C.preference.icon} />
+      <CardTop topBg={C.preference.topBg} deco={C.preference.deco} icon={HelpCircle} iconColor={C.preference.icon} />
       <View style={styles.cardBottom}>
         <View style={[styles.tag, { backgroundColor: C.preference.tag }]}>
           <AppText variant="bodySmall" style={[styles.tagText, { color: C.preference.tagText }]}>
@@ -234,7 +234,7 @@ function WeeklyPromptCard({ card }: { card: Extract<DailyCard, { type: 'weekly_p
 
   return (
     <View style={[styles.fill, { backgroundColor: C.weekly.bg }]}>
-      <CardTop topBg={C.weekly.topBg} deco={C.weekly.deco} icon={HelpCircle} iconColor={C.weekly.icon} />
+      <CardTop topBg={C.weekly.topBg} deco={C.weekly.deco} icon={Sparkles} iconColor={C.weekly.icon} />
       <View style={styles.cardBottom}>
         <View style={styles.weeklyTagRow}>
           <View style={[styles.tag, { backgroundColor: C.weekly.tag }]}>

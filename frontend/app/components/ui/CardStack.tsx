@@ -57,12 +57,11 @@ export default function CardStack({ cards: initialCards }: CardStackProps) {
   // ── Gesture values ────────────────────────────────────────────────────────
   const panX = useRef(new Animated.Value(0)).current;
   const panY = useRef(new Animated.Value(0)).current;
-  // JS-thread mirror of panX — used only for non-transform animated properties
-  // (fill button width). Kept separate to avoid native-driver conflicts.
+  // JS-thread mirrors of panX/panY — used only for non-transform animated
+  // properties (skip button fill). Kept separate to avoid native-driver conflicts.
   const panXFill = useRef(new Animated.Value(0)).current;
+  const panYFill = useRef(new Animated.Value(0)).current;
   const pressScale = useRef(new Animated.Value(1)).current;
-  const returnTranslateX = useRef(new Animated.Value(0)).current;
-  const [isCardReturning, setIsCardReturning] = useState(false);
 
   // Controls the dark dim overlay on the mid card.
   // 1 = fully dim (at rest), 0 = transparent (fully swiped).
@@ -74,6 +73,11 @@ export default function CardStack({ cards: initialCards }: CardStackProps) {
   // opacity=0 and panX=0 are processed atomically on the native side,
   // eliminating the 1-frame flash when rotating the card stack.
   const topCardOpacity = useRef(new Animated.Value(1)).current;
+  // midCardOpacity is set to 0 before panX resets so the mid card doesn't
+  // visibly snap from its "fully revealed" position back to rest position.
+  const midCardOpacity = useRef(new Animated.Value(1)).current;
+  // backCardOffsetY drives the returned card rising up into the back slot.
+  const backCardOffsetY = useRef(new Animated.Value(0)).current;
 
   // ── Sheet expansion ───────────────────────────────────────────────────────
   const expandProgress = useRef(new Animated.Value(0)).current;
@@ -109,33 +113,35 @@ export default function CardStack({ cards: initialCards }: CardStackProps) {
       Animated.timing(panX, { toValue: dirX * flyDist, duration: 300, useNativeDriver: true }),
       Animated.timing(panY, { toValue: dirY * flyDist, duration: 300, useNativeDriver: true }),
     ]).start(() => {
-      // Queue topCardOpacity=0 and panX=0 together — the native module processes
-      // both in the same frame, so the card is invisible AND centered simultaneously.
+      // Hide top AND mid card before resetting panX.
+      // At panX=flyDist the mid card is at scale=1/translateY=0 (clamped);
+      // resetting panX to 0 would snap it back to its rest position in one frame,
+      // making it look like the mid card is sliding backwards. Hiding it first
+      // prevents that flash entirely.
       topCardOpacity.setValue(0);
+      midCardOpacity.setValue(0);
       panX.setValue(0);
       panY.setValue(0);
       panXFill.setValue(0);
-      returnTranslateX.setValue(dirX > 0 ? width + 260 : -(width + 260));
+      panYFill.setValue(0);
+      // The skipped card will rise up into the back slot from slightly below.
+      backCardOffsetY.setValue(28);
       setCards((prev) => {
         if (prev.length <= 1) return prev;
         const [first, ...rest] = prev;
         return [...rest, first];
       });
-      if (initialCards.length >= 3) {
-        setIsCardReturning(true);
-        setTimeout(() => {
-          topCardOpacity.setValue(1);
-          // Spring dimProgress back to 1 so the new mid card's overlay fades in smoothly
-          Animated.spring(dimProgress, { toValue: 1, useNativeDriver: false, tension: 55, friction: 12 }).start();
-          Animated.spring(returnTranslateX, { toValue: 0, useNativeDriver: true, tension: 48, friction: 12 })
-            .start(() => setIsCardReturning(false));
-        }, 40);
-      } else {
-        setTimeout(() => {
-          topCardOpacity.setValue(1);
-          Animated.spring(dimProgress, { toValue: 1, useNativeDriver: false, tension: 55, friction: 12 }).start();
-        }, 40);
-      }
+      setTimeout(() => {
+        // Snap top and mid visible — they're already at their correct rest
+        // positions (panX=0) so no movement is visible.
+        topCardOpacity.setValue(1);
+        midCardOpacity.setValue(1);
+        Animated.spring(dimProgress, { toValue: 1, useNativeDriver: false, tension: 55, friction: 12 }).start();
+        // Skipped card rises up into the back of the stack.
+        if (initialCards.length >= 3) {
+          Animated.spring(backCardOffsetY, { toValue: 0, useNativeDriver: true, tension: 55, friction: 12 }).start();
+        }
+      }, 40);
     });
   };
 
@@ -226,6 +232,7 @@ export default function CardStack({ cards: initialCards }: CardStackProps) {
         panX.setValue(g.dx);
         panY.setValue(g.dy);
         panXFill.setValue(g.dx);
+        panYFill.setValue(g.dy);
         // Drive dim overlay: 0 when fully dragged, 1 when at rest
         dimProgress.setValue(Math.max(0, 1 - dist / (width * 0.7)));
       },
@@ -245,12 +252,14 @@ export default function CardStack({ cards: initialCards }: CardStackProps) {
           panX.setValue(0);
           panY.setValue(0);
           panXFill.setValue(0);
+          panYFill.setValue(0);
           openSheet();
         } else {
           // Snap back — spring all values including dimProgress
           Animated.spring(panX, { toValue: 0, useNativeDriver: true, tension: 180, friction: 14 }).start();
           Animated.spring(panY, { toValue: 0, useNativeDriver: true, tension: 180, friction: 14 }).start();
           Animated.spring(panXFill, { toValue: 0, useNativeDriver: false, tension: 180, friction: 14 }).start();
+          Animated.spring(panYFill, { toValue: 0, useNativeDriver: false, tension: 180, friction: 14 }).start();
           Animated.spring(dimProgress, { toValue: 1, useNativeDriver: false, tension: 180, friction: 14 }).start();
         }
       },
@@ -261,6 +270,7 @@ export default function CardStack({ cards: initialCards }: CardStackProps) {
         Animated.spring(panX, { toValue: 0, useNativeDriver: true }).start();
         Animated.spring(panY, { toValue: 0, useNativeDriver: true }).start();
         panXFill.setValue(0);
+        panYFill.setValue(0);
         dimProgress.setValue(1);
       },
     })
@@ -293,9 +303,8 @@ export default function CardStack({ cards: initialCards }: CardStackProps) {
           <Animated.View style={[styles.cardShadow, {
             zIndex: 1,
             transform: [
-              { translateY: backTranslateY },
+              { translateY: Animated.add(backTranslateY, backCardOffsetY) },
               { scale: backScale },
-              ...(isCardReturning ? [{ translateX: returnTranslateX }] : []),
             ],
           }]}>
             <View style={styles.cardClip} pointerEvents="none">
@@ -307,6 +316,7 @@ export default function CardStack({ cards: initialCards }: CardStackProps) {
         {midCard && (
           <Animated.View style={[styles.cardShadow, {
             zIndex: 2,
+            opacity: midCardOpacity,
             transform: [{ translateY: midTranslateY }, { scale: midScale }],
           }]}>
             <View style={styles.cardClip} pointerEvents="none">
@@ -329,7 +339,7 @@ export default function CardStack({ cards: initialCards }: CardStackProps) {
       </View>
 
       <View style={styles.buttonRow}>
-        <SwipeProgressButton panXFill={panXFill} onPress={() => doSkip(1, 0)} />
+        <SwipeProgressButton panXFill={panXFill} panYFill={panYFill} onPress={() => doSkip(1, 0)} />
         <View style={styles.doItWrap}>
           <Button title="Do it" onPress={openSheet} variant="primary" iconLeft={ArrowUp} fullWidth />
         </View>
@@ -378,22 +388,34 @@ export default function CardStack({ cards: initialCards }: CardStackProps) {
 
 // ─── Directional skip button ──────────────────────────────────────────────────
 
-function SwipeProgressButton({ panXFill, onPress }: { panXFill: Animated.Value; onPress: () => void }) {
-  const leftFillWidth = panXFill.interpolate({
-    inputRange: [0, width * 0.55],
-    outputRange: [0, 600],
+const FILL_SIZE = 400; // large square, clipped by parent overflow:hidden
+const FILL_THRESHOLD_X = width * 0.85;
+const FILL_THRESHOLD_Y = screenHeight * 0.45;
+
+function SwipeProgressButton({ panXFill, panYFill, onPress }: { panXFill: Animated.Value; panYFill: Animated.Value; onPress: () => void }) {
+  // Left fill (right drag): square slides in from left
+  const leftTranslateX = panXFill.interpolate({
+    inputRange: [0, FILL_THRESHOLD_X],
+    outputRange: [-FILL_SIZE, 0],
     extrapolate: 'clamp',
   });
-  const rightFillWidth = panXFill.interpolate({
-    inputRange: [-width * 0.55, 0],
-    outputRange: [600, 0],
+  // Right fill (left drag): square slides in from right
+  const rightTranslateX = panXFill.interpolate({
+    inputRange: [-FILL_THRESHOLD_X, 0],
+    outputRange: [0, FILL_SIZE],
+    extrapolate: 'clamp',
+  });
+  // Y offset: drag up → fill rises from below (+Y shift); drag down → fill falls from above (-Y shift)
+  const fillTranslateY = panYFill.interpolate({
+    inputRange: [-FILL_THRESHOLD_Y, 0, FILL_THRESHOLD_Y],
+    outputRange: [FILL_SIZE * 0.6, 0, -FILL_SIZE * 0.6],
     extrapolate: 'clamp',
   });
 
   return (
     <View style={styles.skipOuter}>
-      <Animated.View style={[styles.skipFill, styles.skipFillLeft, { width: leftFillWidth }]} pointerEvents="none" />
-      <Animated.View style={[styles.skipFill, styles.skipFillRight, { width: rightFillWidth }]} pointerEvents="none" />
+      <Animated.View style={[styles.skipFill, styles.skipFillLeft,  { transform: [{ translateX: leftTranslateX  }, { translateY: fillTranslateY }] }]} pointerEvents="none" />
+      <Animated.View style={[styles.skipFill, styles.skipFillRight, { transform: [{ translateX: rightTranslateX }, { translateY: fillTranslateY }] }]} pointerEvents="none" />
       <TouchableOpacity style={styles.skipTouchable} onPress={onPress} activeOpacity={0.8}>
         <SkipForward size={20} color={AppColors.foregroundDefault} />
         <AppText variant="body">Skip</AppText>
@@ -428,10 +450,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   skipFill: {
-    position: 'absolute', top: 0, bottom: 0,
+    position: 'absolute',
+    width: FILL_SIZE,
+    height: FILL_SIZE,
+    top: (48 - FILL_SIZE) / 2, // vertically center in 48px button
     backgroundColor: 'rgba(0,0,0,0.10)',
   },
-  skipFillLeft: { left: 0 },
+  skipFillLeft:  { left: 0 },
   skipFillRight: { right: 0 },
   skipTouchable: {
     position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,

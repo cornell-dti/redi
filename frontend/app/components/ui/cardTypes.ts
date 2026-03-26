@@ -60,6 +60,8 @@ export interface PreferenceCard {
 
 // ─── 3. Match ─────────────────────────────────────────────────────────────────
 
+import type { ProfileResponse } from '@/types';
+
 export interface MatchCard {
   id: string;
   type: 'match';
@@ -68,6 +70,8 @@ export interface MatchCard {
   matchYear?: string;
   matchMajor?: string;
   matchImage?: string;
+  /** Full profile — available for real API matches, undefined for mock cards */
+  matchProfile?: ProfileResponse;
 }
 
 // ─── 4. Weekly Prompt ─────────────────────────────────────────────────────────
