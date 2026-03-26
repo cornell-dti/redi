@@ -15,6 +15,7 @@ import { HapticsProvider } from './contexts/HapticsContext';
 import { MotionProvider } from './contexts/MotionContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { ThemeProvider, useThemeAware } from './contexts/ThemeContext';
+import { NotificationsProvider } from './contexts/NotificationsContext';
 import { ToastProvider, useToast } from './contexts/ToastContext';
 import { clearBadgeCount } from './services/notificationPermissions';
 
@@ -112,20 +113,20 @@ function RootNavigator() {
       }
     };
 
-      // Check for initial URL when app is opened from a link.
-      Linking.getInitialURL().then((url) => {
-        if (url) {
-          handleDeepLink({ url });
-        }
-      });
+    // Check for initial URL when app is opened from a link.
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        handleDeepLink({ url });
+      }
+    });
 
-      // Listen for deep links while app is running
-      const subscription = Linking.addEventListener('url', handleDeepLink);
+    // Listen for deep links while app is running
+    const subscription = Linking.addEventListener('url', handleDeepLink);
 
-      return () => {
-        subscription.remove();
-      };
-    }, []);
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   // Clear badge when app comes to foreground
   useEffect(() => {
@@ -346,13 +347,19 @@ function RootNavigator() {
   }, [user, initializing]);
 
 
-  return (
+  const stack = (
     <Stack screenOptions={{ animation: 'default' }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="auth-redirect" options={{ headerShown: false, animation: 'none' }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="home" options={{ headerShown: false, animation: 'slide_from_left' }} />
     </Stack>
+  );
+
+  return user ? (
+    <NotificationsProvider>{stack}</NotificationsProvider>
+  ) : (
+    stack
   );
 }
 
