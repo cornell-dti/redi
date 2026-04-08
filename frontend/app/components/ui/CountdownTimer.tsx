@@ -175,6 +175,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingTop: 28,
   },
+  tabularNums: {
+    fontVariant: ['tabular-nums'],
+  },
 });
 
 // Component for a single flip digit showing full value with flip animation

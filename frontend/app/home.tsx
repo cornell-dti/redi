@@ -7,7 +7,7 @@ import {
   Play,
   Plus,
 } from 'lucide-react-native';
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -395,6 +395,7 @@ export default function HomePage() {
               onPress={handleSendPasswordlessLink}
               variant="primary"
               disabled={cooldownSeconds > 0}
+              textStyle={{ fontVariant: ['tabular-nums'] }}
             />
 
             <Button
