@@ -28,7 +28,7 @@ export default function DeleteAccountSheet({
 
         <View style={styles.buttonRow}>
           <Button
-            title={isDeleting ? "Deleting..." : "Delete Account"}
+            title={isDeleting ? 'Deleting...' : 'Delete Account'}
             onPress={onConfirm}
             variant="negative"
             fullWidth

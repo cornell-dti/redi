@@ -264,7 +264,11 @@ class APIClient {
           );
         }
         // If no validation details, use generic message
-        throw new APIError(errorMessage || 'Invalid request', 400, 'BAD_REQUEST');
+        throw new APIError(
+          errorMessage || 'Invalid request',
+          400,
+          'BAD_REQUEST'
+        );
 
       case 500:
       case 502:

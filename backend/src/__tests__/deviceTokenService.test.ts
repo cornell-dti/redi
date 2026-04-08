@@ -51,7 +51,9 @@ describe('Device Token Service', () => {
     (db.collection as jest.Mock) = mockCollection;
 
     // Mock Expo.isExpoPushToken
-    (Expo.isExpoPushToken as unknown as jest.Mock) = jest.fn().mockReturnValue(true);
+    (Expo.isExpoPushToken as unknown as jest.Mock) = jest
+      .fn()
+      .mockReturnValue(true);
   });
 
   describe('registerPushToken', () => {

@@ -1,9 +1,6 @@
 import { getNudgeStatus, sendNudge } from '@/app/api/nudgesApi';
 import { getProfileByNetid } from '@/app/api/profileApi';
-import {
-  getPromptAnswerByNetid,
-  getPromptById,
-} from '@/app/api/promptsApi';
+import { getPromptAnswerByNetid, getPromptById } from '@/app/api/promptsApi';
 import { createReport } from '@/app/api/reportsApi';
 import { AppColors } from '@/app/components/AppColors';
 import ProfileView from '@/app/components/profile/ProfileView';

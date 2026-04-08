@@ -1,4 +1,4 @@
-import { Gender, School } from '../types';
+import { Gender, School } from 'backend/types';
 
 export const CORNELL_SCHOOLS: School[] = [
   'College of Agriculture and Life Sciences',
@@ -147,7 +147,9 @@ export const CORNELL_MAJORS: Record<School, string[]> = {
 };
 
 // Flattened list of all majors for easy selection
-export const ALL_MAJORS = Object.values(CORNELL_MAJORS).flat().sort((a, b) => a.localeCompare(b));
+export const ALL_MAJORS = Object.values(CORNELL_MAJORS)
+  .flat()
+  .sort((a, b) => a.localeCompare(b));
 
 export const CORNELL_MINORS: string[] = [
   'Actuarial Science',

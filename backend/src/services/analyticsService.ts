@@ -252,7 +252,9 @@ export async function getCompatibilityMatrix(): Promise<CompatibilityMatrixRespo
         const userInterestedInTarget = userPreferences.includes(u.gender);
 
         // 2. Target must be interested in user's gender
-        const targetInterestedInUser = targetPreferences.includes(sampleUser.gender);
+        const targetInterestedInUser = targetPreferences.includes(
+          sampleUser.gender
+        );
 
         // Both must be true for compatibility
         return userInterestedInTarget && targetInterestedInUser;
@@ -267,7 +269,7 @@ export async function getCompatibilityMatrix(): Promise<CompatibilityMatrixRespo
   const matrixArray = Array.from(matrix.entries()).map(([key, count]) => {
     const [userDemo, targetDemo] = key.split(':') as [
       DemographicCategory,
-      DemographicCategory
+      DemographicCategory,
     ];
     return {
       userDemographic: userDemo,
@@ -449,7 +451,10 @@ export async function getMutualNudgeStats(): Promise<MutualNudgeStatsResponse> {
     const preferences = preferencesMap.get(userNetid);
     const demographic = categorizeDemographic(profile.gender, preferences);
 
-    const stats = demographicStats.get(demographic) || { matches: 0, mutual: 0 };
+    const stats = demographicStats.get(demographic) || {
+      matches: 0,
+      mutual: 0,
+    };
 
     // Count each match
     (match.matches || []).forEach((matchedNetid: string) => {
