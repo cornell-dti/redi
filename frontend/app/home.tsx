@@ -7,7 +7,7 @@ import {
   Play,
   Plus,
 } from 'lucide-react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -49,6 +49,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [showInfoSheet, setShowInfoSheet] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
 
   // Animation refs for splash elements
@@ -217,7 +219,29 @@ export default function HomePage() {
     markOnboardingVideoAsShown();
   };
 
+  const startCooldown = useCallback(() => {
+    setCooldownSeconds(15);
+    cooldownRef.current = setInterval(() => {
+      setCooldownSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(cooldownRef.current!);
+          cooldownRef.current = null;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
+  }, []);
+
   const handleSendPasswordlessLink = async () => {
+    if (cooldownSeconds > 0) return;
+
     if (!email) {
       Alert.alert('Missing Information', 'Please enter your email address');
       return;
@@ -235,6 +259,7 @@ export default function HomePage() {
     try {
       await sendPasswordlessSignInLink(email);
       showToast({ label: 'Sign-in link sent! Check your email.' });
+      startCooldown();
       // Keep the email in case user needs to resend
     } catch (error) {
       Alert.alert(
@@ -366,9 +391,11 @@ export default function HomePage() {
         ) : (
           <View style={styles.buttonContainer}>
             <Button
-              title="Send Sign-In Link"
+              title={cooldownSeconds > 0 ? `Resend in ${cooldownSeconds}s` : 'Send Sign-In Link'}
               onPress={handleSendPasswordlessLink}
               variant="primary"
+              disabled={cooldownSeconds > 0}
+              textStyle={{ fontVariant: ['tabular-nums'] }}
             />
 
             <Button
