@@ -5,7 +5,7 @@ import CardContent from '@/app/components/ui/CardContent';
 import SheetContent from '@/app/components/ui/CardSheetContent';
 import { useHapticFeedback } from '@/app/hooks/useHapticFeedback';
 import { ArrowUp, Check, SkipForward } from 'lucide-react-native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -90,6 +90,9 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
   const topIndexRef = useRef(0);
   topIndexRef.current = topIndex;
 
+  // Set to true by doSkip; useEffect restores slot opacities after React commits.
+  const pendingRestore = useRef(false);
+
   // ── Gesture values (all native-driver safe: transform + opacity) ──────────
   const panX = useRef(new Animated.Value(0)).current;
   const panY = useRef(new Animated.Value(0)).current;
@@ -101,9 +104,9 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
   // dimProgress: 1 = mid card fully dimmed (rest), 0 = fully revealed (swiped).
   const dimProgress = useRef(new Animated.Value(1)).current;
 
-  // Opacity of the slot that is currently "mid" — hidden during stack reset.
-  // We don't need topCardOpacity anymore: the top card flies off screen
-  // naturally, and we advance topIndex only after it's gone.
+  // Opacity of each slot — all three are hidden during the index-advance reset
+  // so that panX.setValue(0) doesn't flash the old top card back into view.
+  const topSlotOpacity = useRef(new Animated.Value(1)).current;
   const midSlotOpacity = useRef(new Animated.Value(1)).current;
   const backSlotOpacity = useRef(new Animated.Value(1)).current;
 
@@ -156,10 +159,11 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
       // any visible jump, then advance topIndex. After React commits the new
       // render (new cards in each slot), restore opacities. The new top card
       // appears exactly where the old mid card was — no movement, no flash.
+      topSlotOpacity.setValue(0);
       midSlotOpacity.setValue(0);
       backSlotOpacity.setValue(0);
 
-      // Reset pan synchronously — slots are hidden so nothing is visible.
+      // Reset pan synchronously — all slots are hidden so nothing is visible.
       panX.setValue(0);
       panY.setValue(0);
       panXFill.setValue(0);
@@ -168,23 +172,25 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
       backCardOffsetY.setValue(28);
 
       const dismissed = getCard(0);
+      pendingRestore.current = true;
       setTopIndex((prev) => (prev + 1) % cards.length);
       if (dismissed) onCardDismissedRef.current?.(dismissed);
-
-      // requestAnimationFrame gives React one frame to commit the new render
-      // before we restore visibility — slots are already in correct positions.
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          midSlotOpacity.setValue(1);
-          backSlotOpacity.setValue(1);
-          Animated.spring(dimProgress, { toValue: 1, useNativeDriver: false, tension: 55, friction: 12 }).start();
-          if (cards.length >= 3) {
-            Animated.spring(backCardOffsetY, { toValue: 0, useNativeDriver: true, tension: 55, friction: 12 }).start();
-          }
-        });
-      });
     });
-  }, [cards, getCard, panX, panY, panXFill, panYFill, midSlotOpacity, backSlotOpacity, backCardOffsetY, dimProgress]);
+  }, [cards, getCard, panX, panY, panXFill, panYFill, topSlotOpacity, midSlotOpacity, backSlotOpacity, backCardOffsetY, dimProgress]);
+
+  // Restore slot opacities only after React has committed the new topIndex render.
+  // useEffect fires post-commit, guaranteeing new cards are in place before we show them.
+  useEffect(() => {
+    if (!pendingRestore.current) return;
+    pendingRestore.current = false;
+    topSlotOpacity.setValue(1);
+    midSlotOpacity.setValue(1);
+    backSlotOpacity.setValue(1);
+    Animated.spring(dimProgress, { toValue: 1, useNativeDriver: false, tension: 55, friction: 12 }).start();
+    if (cards.length >= 3) {
+      Animated.spring(backCardOffsetY, { toValue: 0, useNativeDriver: true, tension: 55, friction: 12 }).start();
+    }
+  }, [topIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Submit — green fill + checkmark + fly up ─────────────────────────────
   const doSubmit = useCallback(() => {
@@ -415,6 +421,7 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
         <Animated.View
           style={[styles.cardShadow, {
             zIndex: 10,
+            opacity: topSlotOpacity,
             transform: [{ translateX: panX }, { translateY: panY }, { rotate: topRotate }, { scale: pressScale }],
           }]}
           {...panResponder.panHandlers}
