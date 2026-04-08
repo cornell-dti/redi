@@ -1,5 +1,5 @@
-import ProfileView from '@/app/components/profile/ProfileView';
 import { AppColors } from '@/app/components/AppColors';
+import ProfileView from '@/app/components/profile/ProfileView';
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
@@ -44,10 +44,22 @@ const ACTION_ICONS: Record<ProfileActionIcon, React.ElementType> = {
 export default function SheetContent({
   card,
   onDismiss,
+  onDismissAndSkip,
 }: {
   card: DailyCard;
   onDismiss: () => void;
+  onDismissAndSkip?: () => void;
 }) {
+  if (card.type === 'tutorial') {
+    if (card.step === 'act')
+      return (
+        <TutorialActSheetContent
+          onDismissAndSkip={onDismissAndSkip ?? onDismiss}
+        />
+      );
+    onDismiss();
+    return null;
+  }
   if (card.type === 'match')
     return <MatchSheetContent card={card} onDismiss={onDismiss} />;
   if (card.type === 'preference')
@@ -55,6 +67,44 @@ export default function SheetContent({
   if (card.type === 'weekly_prompt')
     return <WeeklyPromptSheetContent card={card} onDismiss={onDismiss} />;
   return <ProfileActionSheetContent card={card} onDismiss={onDismiss} />;
+}
+
+// ─── Tutorial: Act ───────────────────────────────────────────────────────────
+
+function TutorialActSheetContent({
+  onDismissAndSkip,
+}: {
+  onDismissAndSkip: () => void;
+}) {
+  const [value, setValue] = useState('');
+  return (
+    <View style={styles.body}>
+      <AppText variant="body" color="dimmer" style={{ marginBottom: 12 }}>
+        This is what an action sheet looks like. Type something below and press
+        Submit — then the card will move on.
+      </AppText>
+      <AppInput
+        placeholder="Type anything you want..."
+        value={value}
+        onChangeText={setValue}
+        multiline
+        numberOfLines={3}
+        maxLength={120}
+        style={{ height: 84, borderRadius: 16 }}
+        returnKeyType="done"
+      />
+      <View style={styles.actions}>
+        <Button
+          title="Submit"
+          onPress={onDismissAndSkip}
+          variant="primary"
+          fullWidth
+          disabled={!value.trim()}
+        />
+        {/* <Button title="Next" onPress={onDismissAndSkip} variant="secondary" fullWidth /> */}
+      </View>
+    </View>
+  );
 }
 
 // ─── Match ────────────────────────────────────────────────────────────────────
@@ -75,7 +125,12 @@ function MatchSheetContent({
         {card.matchImage ? (
           <Image source={{ uri: card.matchImage }} style={styles.matchAvatar} />
         ) : (
-          <View style={[styles.matchAvatar, { backgroundColor: AppColors.backgroundDimmest }]}>
+          <View
+            style={[
+              styles.matchAvatar,
+              { backgroundColor: AppColors.backgroundDimmest },
+            ]}
+          >
             <User size={48} color={AppColors.foregroundDimmer} />
           </View>
         )}
@@ -83,7 +138,8 @@ function MatchSheetContent({
 
       {/* Name & age */}
       <AppText variant="title" style={styles.matchName}>
-        {card.matchName}{card.matchAge ? `, ${card.matchAge}` : ''}
+        {card.matchName}
+        {card.matchAge ? `, ${card.matchAge}` : ''}
       </AppText>
 
       {/* Year · Major */}
@@ -451,8 +507,19 @@ function PhotoActionContent({ onDismiss }: { onDismiss: () => void }) {
         </AppText>
       </TouchableOpacity>
       <View style={styles.actions}>
-        <Button title="Save photo" onPress={onDismiss} variant="primary" fullWidth disabled />
-        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Save photo"
+          onPress={onDismiss}
+          variant="primary"
+          fullWidth
+          disabled
+        />
+        <Button
+          title="Not now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );
@@ -483,7 +550,12 @@ function SimpleTextActionContent({
           fullWidth
           disabled={!value.trim()}
         />
-        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Not now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );
@@ -509,7 +581,12 @@ function InstagramActionContent({ onDismiss }: { onDismiss: () => void }) {
           fullWidth
           disabled={!handle.trim()}
         />
-        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Not now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );
@@ -537,7 +614,9 @@ function InterestsActionContent({ onDismiss }: { onDismiss: () => void }) {
               label={item}
               variant="gray"
               dismissible
-              onDismiss={() => setInterests(interests.filter((i) => i !== item))}
+              onDismiss={() =>
+                setInterests(interests.filter((i) => i !== item))
+              }
             />
           ))}
         </View>
@@ -569,7 +648,12 @@ function InterestsActionContent({ onDismiss }: { onDismiss: () => void }) {
           fullWidth
           disabled={interests.length === 0}
         />
-        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Not now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );
@@ -600,7 +684,12 @@ function PromptActionContent({ onDismiss }: { onDismiss: () => void }) {
           fullWidth
           disabled={!answer.trim()}
         />
-        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Not now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );
@@ -616,14 +705,20 @@ function YearActionContent({ onDismiss }: { onDismiss: () => void }) {
         {YEAR_OPTIONS.map((year) => (
           <TouchableOpacity
             key={year}
-            style={[styles.optionPill, selected === year && styles.optionPillSelected]}
+            style={[
+              styles.optionPill,
+              selected === year && styles.optionPillSelected,
+            ]}
             onPress={() => setSelected(year)}
             activeOpacity={0.75}
           >
             <AppText
               variant="subtitle"
               style={{
-                color: selected === year ? AppColors.backgroundDefault : AppColors.foregroundDefault,
+                color:
+                  selected === year
+                    ? AppColors.backgroundDefault
+                    : AppColors.foregroundDefault,
               }}
             >
               {year}
@@ -639,7 +734,12 @@ function YearActionContent({ onDismiss }: { onDismiss: () => void }) {
           fullWidth
           disabled={!selected}
         />
-        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Not now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );
@@ -655,15 +755,31 @@ function GenericProfileActionContent({
   const Icon = ACTION_ICONS[card.actionIconName];
   return (
     <View style={styles.body}>
-      <View style={[styles.iconCircle, { alignSelf: 'center', marginBottom: 16 }]}>
+      <View
+        style={[styles.iconCircle, { alignSelf: 'center', marginBottom: 16 }]}
+      >
         <Icon size={40} color={AppColors.accentDefault} />
       </View>
-      <AppText variant="body" color="dimmer" style={{ marginBottom: 20, textAlign: 'center' }}>
+      <AppText
+        variant="body"
+        color="dimmer"
+        style={{ marginBottom: 20, textAlign: 'center' }}
+      >
         {card.actionDescription}
       </AppText>
       <View style={styles.actions}>
-        <Button title="Go to profile" onPress={onDismiss} variant="primary" fullWidth />
-        <Button title="Remind me later" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Go to profile"
+          onPress={onDismiss}
+          variant="primary"
+          fullWidth
+        />
+        <Button
+          title="Remind me later"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );

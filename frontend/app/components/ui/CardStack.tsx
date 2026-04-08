@@ -60,7 +60,7 @@ const PROFILE_ACTION_LABELS: Record<string, string> = {
 };
 
 function getActionLabel(card: DailyCard): string {
-  if (card.type === 'tutorial') return 'Got it';
+  if (card.type === 'tutorial') return card.step === 'act' ? 'Try it' : 'Got it';
   if (card.type === 'profile_action') return PROFILE_ACTION_LABELS[card.actionIconName] ?? 'Add info';
   if (card.type === 'preference') return 'Submit response';
   if (card.type === 'weekly_prompt') return 'Answer prompt';
@@ -367,7 +367,7 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
         <View style={styles.doItWrap}>
           <Button
             title={getActionLabel(topCard)}
-            onPress={topCard.type === 'tutorial' ? () => doSkip(1, 0) : openSheet}
+            onPress={topCard.type === 'tutorial' && topCard.step !== 'act' ? () => doSkip(1, 0) : openSheet}
             variant="primary"
             iconLeft={ArrowUp}
             fullWidth
@@ -406,7 +406,11 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
                 contentContainerStyle={styles.sheetScrollContent}
                 showsVerticalScrollIndicator={false}
               >
-                <SheetContent card={topCard} onDismiss={closeSheet} />
+                <SheetContent
+                  card={topCard}
+                  onDismiss={closeSheet}
+                  onDismissAndSkip={() => { closeSheet(); setTimeout(() => doSkip(1, 0), 320); }}
+                />
               </ScrollView>
             </Animated.View>
           </Animated.View>
