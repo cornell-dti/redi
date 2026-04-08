@@ -37,22 +37,45 @@ const SHEET_HEIGHT = screenHeight - SHEET_TOP - SHEET_MARGIN;
 
 interface CardStackProps {
   cards: DailyCard[];
+  onCardDismissed?: (card: DailyCard) => void;
 }
 
 function getSheetTitle(card: DailyCard): string {
+  if (card.type === 'tutorial') return card.title;
   if (card.type === 'profile_action') return card.actionTitle;
   if (card.type === 'preference') return card.question;
   if (card.type === 'weekly_prompt') return "This week's prompt";
   return card.matchName ? `Meet ${card.matchName}` : 'Your match';
 }
 
+const PROFILE_ACTION_LABELS: Record<string, string> = {
+  camera:   'Add picture',
+  home:     'Add hometown',
+  mapPin:   'Add location',
+  message:  'Add answer',
+  link:     'Add link',
+  star:     'Add interests',
+  user:     'Add info',
+  bookOpen: 'Add major',
+};
+
+function getActionLabel(card: DailyCard): string {
+  if (card.type === 'tutorial') return 'Got it';
+  if (card.type === 'profile_action') return PROFILE_ACTION_LABELS[card.actionIconName] ?? 'Add info';
+  if (card.type === 'preference') return 'Submit response';
+  if (card.type === 'weekly_prompt') return 'Answer prompt';
+  return 'View profile';
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function CardStack({ cards: initialCards }: CardStackProps) {
+export default function CardStack({ cards: initialCards, onCardDismissed }: CardStackProps) {
   const [cards, setCards] = useState(initialCards);
   const haptic = useHapticFeedback();
   const hapticRef = useRef(haptic);
   hapticRef.current = haptic;
+  const onCardDismissedRef = useRef(onCardDismissed);
+  onCardDismissedRef.current = onCardDismissed;
 
   // ── Gesture values ────────────────────────────────────────────────────────
   const panX = useRef(new Animated.Value(0)).current;
@@ -129,6 +152,7 @@ export default function CardStack({ cards: initialCards }: CardStackProps) {
       setCards((prev) => {
         if (prev.length <= 1) return prev;
         const [first, ...rest] = prev;
+        onCardDismissedRef.current?.(first);
         return [...rest, first];
       });
       setTimeout(() => {
@@ -341,7 +365,13 @@ export default function CardStack({ cards: initialCards }: CardStackProps) {
       <View style={styles.buttonRow}>
         <SwipeProgressButton panXFill={panXFill} panYFill={panYFill} onPress={() => doSkip(1, 0)} />
         <View style={styles.doItWrap}>
-          <Button title="Do it" onPress={openSheet} variant="primary" iconLeft={ArrowUp} fullWidth />
+          <Button
+            title={getActionLabel(topCard)}
+            onPress={topCard.type === 'tutorial' ? () => doSkip(1, 0) : openSheet}
+            variant="primary"
+            iconLeft={ArrowUp}
+            fullWidth
+          />
         </View>
       </View>
 

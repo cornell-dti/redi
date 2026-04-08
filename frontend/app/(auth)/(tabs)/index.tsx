@@ -1,6 +1,6 @@
 // Main Home Screen — Card-based daily engagement
-import { getConversations } from '@/app/api/chatApi';
 import { getCurrentUser } from '@/app/api/authService';
+import { getConversations } from '@/app/api/chatApi';
 import {
   getActivePrompt,
   getBatchMatchData,
@@ -13,7 +13,7 @@ import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
 import CardStack from '@/app/components/ui/CardStack';
-import { DailyCard } from '@/app/components/ui/cardTypes';
+import { DailyCard, TutorialCard } from '@/app/components/ui/cardTypes';
 import IconButton from '@/app/components/ui/IconButton';
 import ListItem from '@/app/components/ui/ListItem';
 import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
@@ -34,6 +34,7 @@ import {
   WeeklyPromptAnswerResponse,
   WeeklyPromptResponse,
 } from '@/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Check,
@@ -45,8 +46,43 @@ import {
   Sparkles,
   User,
 } from 'lucide-react-native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { StatusBar, StyleSheet, View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
+
+const TOUR_STORAGE_KEY = 'home_tour_seen_v1';
+
+const TUTORIAL_CARDS: TutorialCard[] = [
+  {
+    id: 'tutorial-skip',
+    type: 'tutorial',
+    step: 'skip',
+    title: 'Swipe or tap Skip to come back later',
+    subtitle:
+      'Drag the card in any direction or hit the Skip button — the card moves to the back of your stack.',
+  },
+  {
+    id: 'tutorial-act',
+    type: 'tutorial',
+    step: 'act',
+    title: 'Tap the card or the main button to take action',
+    subtitle:
+      'Tapping the card or the accent button at the bottom opens a sheet where you can complete the action.',
+  },
+  {
+    id: 'tutorial-filter',
+    type: 'tutorial',
+    step: 'filter',
+    title: 'Use the filter button to focus your stack',
+    subtitle:
+      'Hit the sliders icon in the top-right corner to show only a specific type of card — profile actions, preferences, prompts, or matches.',
+  },
+];
 
 const FILTER_OPTIONS = [
   {
@@ -72,7 +108,7 @@ const FILTER_OPTIONS = [
   },
   {
     value: 'weekly_prompt' as const,
-    label: 'Weekly prompts',
+    label: 'Prompts',
     color: '#D1FAE5',
     icon: Sparkles,
     iconColor: '#059669',
@@ -113,7 +149,37 @@ export default function HomeScreen() {
     'all' | 'profile_action' | 'preference' | 'weekly_prompt' | 'match'
   >('all');
   const [tempAnswer, setTempAnswer] = useState('');
+  const [tourSeen, setTourSeen] = useState(true); // default true to avoid flash
+  const dismissedTutorialIds = useRef<Set<string>>(new Set());
   const lastLoadTime = useRef<number>(0);
+
+  useEffect(() => {
+    AsyncStorage.getItem(TOUR_STORAGE_KEY).then((val: string | null) => {
+      setTourSeen(val === 'true');
+    });
+  }, []);
+
+  const resetTour = useCallback(async () => {
+    await AsyncStorage.removeItem(TOUR_STORAGE_KEY);
+    dismissedTutorialIds.current = new Set();
+    setTourSeen(false);
+  }, []);
+
+  const markTourSeen = useCallback(async () => {
+    await AsyncStorage.setItem(TOUR_STORAGE_KEY, 'true');
+    setTourSeen(true);
+  }, []);
+
+  const handleCardDismissed = useCallback(
+    (card: DailyCard) => {
+      if (card.type !== 'tutorial') return;
+      dismissedTutorialIds.current.add(card.id);
+      if (TUTORIAL_CARDS.every((t) => dismissedTutorialIds.current.has(t.id))) {
+        markTourSeen();
+      }
+    },
+    [markTourSeen]
+  );
 
   const loadData = useCallback(async () => {
     const now = Date.now();
@@ -214,19 +280,20 @@ export default function HomeScreen() {
             if (!otherUid) return [];
             const other = c.participants[otherUid];
             if (!other || other.deleted) return [];
-            return [{
-              id: `chat-match-${c.id}`,
-              type: 'match' as const,
-              matchName: other.name,
-              matchImage: other.image ?? undefined,
-            }];
+            return [
+              {
+                id: `chat-match-${c.id}`,
+                type: 'match' as const,
+                matchName: other.name,
+                matchImage: other.image ?? undefined,
+              },
+            ];
           });
         setChatMatchCards(cards);
       } catch {
         // Non-critical — silently ignore
       }
       // ────────────────────────────────────────────────────────────────────────
-
     } catch (error) {
       console.error('Error loading data:', error);
     }
@@ -269,9 +336,11 @@ export default function HomeScreen() {
       });
     // Fallback chain: real API matches → chat contacts (temp) → static mocks
     const matchCards: DailyCard[] =
-      apiMatchCards.length > 0 ? apiMatchCards :
-      chatMatchCards.length > 0 ? chatMatchCards :
-      MOCK_MATCH_CARDS;
+      apiMatchCards.length > 0
+        ? apiMatchCards
+        : chatMatchCards.length > 0
+          ? chatMatchCards
+          : MOCK_MATCH_CARDS;
 
     const profileCards = PROFILE_ACTION_CARDS.filter((c) => !c.completed);
     const result: DailyCard[] = [];
@@ -292,9 +361,10 @@ export default function HomeScreen() {
       result.length === 0
         ? [...PROFILE_ACTION_CARDS, ...PREFERENCE_CARDS]
         : result;
-    if (activeFilter === 'all') return all;
-    return all.filter((c) => c.type === activeFilter);
-  }, [currentMatches, chatMatchCards, activeFilter]);
+    const filtered =
+      activeFilter === 'all' ? all : all.filter((c) => c.type === activeFilter);
+    return tourSeen ? filtered : [...TUTORIAL_CARDS, ...filtered];
+  }, [currentMatches, chatMatchCards, activeFilter, tourSeen]);
 
   return (
     <View style={styles.container}>
@@ -303,7 +373,17 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <AppText variant="title">Home</AppText>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <AppText variant="title">Home</AppText>
+            <TouchableOpacity onPress={resetTour} style={styles.debugBadge}>
+              <AppText
+                variant="bodySmall"
+                style={{ color: AppColors.foregroundDimmer }}
+              >
+                RESET TOUR
+              </AppText>
+            </TouchableOpacity>
+          </View>
           <View style={styles.headerRight}>
             <AppText variant="body" color="dimmer">
               {dailyCards.length} left
@@ -333,7 +413,11 @@ export default function HomeScreen() {
 
       {/* Card stack — flex:1 so it fills remaining space */}
       <View style={styles.stackContainer}>
-        <CardStack key={activeFilter} cards={dailyCards} />
+        <CardStack
+          key={`${activeFilter}-${tourSeen}`}
+          cards={dailyCards}
+          onCardDismissed={handleCardDismissed}
+        />
       </View>
 
       {/* Filter Sheet */}
@@ -445,6 +529,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  debugBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: AppColors.backgroundDimmer,
+    borderWidth: 1,
+    borderColor: AppColors.foregroundDimmer,
   },
   iconBadge: {
     width: 28,

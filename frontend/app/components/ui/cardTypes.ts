@@ -86,6 +86,18 @@ export interface WeeklyPromptCard {
   promptId?: string;
 }
 
+// ─── 5. Tutorial ─────────────────────────────────────────────────────────────
+
+export type TutorialStep = 'skip' | 'act' | 'filter';
+
+export interface TutorialCard {
+  id: string;
+  type: 'tutorial';
+  step: TutorialStep;
+  title: string;
+  subtitle: string;
+}
+
 // ─── Union ────────────────────────────────────────────────────────────────────
 
-export type DailyCard = ProfileActionCard | PreferenceCard | MatchCard | WeeklyPromptCard;
+export type DailyCard = ProfileActionCard | PreferenceCard | MatchCard | WeeklyPromptCard | TutorialCard;
