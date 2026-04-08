@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import RoundedButton from '@/components/RoundedButton';
 
 function AuthRedirectContent() {
   const searchParams = useSearchParams();
@@ -69,34 +70,25 @@ function AuthRedirectContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 to-blue-500 p-5">
+    <div className="min-h-screen flex items-center justify-center bg-[url(/background.png)] bg-cover bg-center p-5">
       <div className="text-center max-w-md">
         {status === 'loading' && (
           <>
-            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-6" />
+            <img src="/logo.png" alt="Redi logo" className="w-24 h-24 mx-auto mb-1" />
             <h1 className="text-5xl font-bold text-white mb-4">redi</h1>
+            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-6" />
             <p className="text-xl text-white/90">Opening the app...</p>
           </>
         )}
 
         {status === 'manual' && (
           <>
+            <img src="/logo.png" alt="Redi logo" className="w-24 h-24 mx-auto mb-1" />
             <h1 className="text-5xl font-bold text-white mb-4">redi</h1>
             <p className="text-xl text-white/90 mb-6">
               Click below if the app didn&apos;t open
             </p>
-            <button
-              onClick={handleManualOpen}
-              className="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-            >
-              Open Redi App
-            </button>
-            <p className="text-sm text-white/70 mt-4">
-              Don&apos;t have the app?{' '}
-              <a href="#" className="underline">
-                Download from App Store
-              </a>
-            </p>
+            <RoundedButton onClick={handleManualOpen}>Open app</RoundedButton>
           </>
         )}
       </div>
@@ -108,10 +100,11 @@ export default function AuthRedirect() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 to-blue-500 p-5">
+        <div className="min-h-screen flex items-center justify-center bg-[url(/background.png)] bg-cover bg-center p-5">
           <div className="text-center max-w-md">
-            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-6" />
+            <img src="/logo.png" alt="Redi logo" className="w-24 h-24 mx-auto mb-1" />
             <h1 className="text-5xl font-bold text-white mb-4">redi</h1>
+            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-6" />
             <p className="text-xl text-white/90">Loading...</p>
           </div>
         </div>
