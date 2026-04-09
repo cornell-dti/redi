@@ -5,7 +5,7 @@ import CardContent from '@/app/components/ui/CardContent';
 import SheetContent from '@/app/components/ui/CardSheetContent';
 import { useHapticFeedback } from '@/app/hooks/useHapticFeedback';
 import { ArrowUp, Check, SkipForward } from 'lucide-react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -112,6 +112,11 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
 
   // The back card (index+2) rises up into its slot after a skip.
   const backCardOffsetY = useRef(new Animated.Value(0)).current;
+  // Compensates for the panX reset snapping the mid card from its "revealed"
+  // position (translateY=0) back to its "behind" position (translateY=-PEEK_GAP).
+  // Pre-set to PEEK_GAP at the moment of the reset so the net position is
+  // unchanged, then spring to 0 so the mid card smoothly settles.
+  const midCardOffsetY = useRef(new Animated.Value(0)).current;
 
   // Submit animation: green fill sweeps over the top card, then checkmark pops in.
   const submitFill = useRef(new Animated.Value(0)).current;   // 0→1: green overlay opacity
@@ -146,47 +151,53 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
     hapticRef.current.heavy();
     const flyDist = width + 240;
 
+    // Animate panX/panY out AND fade the fill button back to 0 simultaneously
+    // so the skip button doesn't stay frozen at the mid-swipe position.
     Animated.parallel([
-      Animated.timing(panX, { toValue: dirX * flyDist, duration: 300, useNativeDriver: true }),
-      Animated.timing(panY, { toValue: dirY * flyDist, duration: 300, useNativeDriver: true }),
+      Animated.timing(panX,     { toValue: dirX * flyDist, duration: 300, useNativeDriver: true }),
+      Animated.timing(panY,     { toValue: dirY * flyDist, duration: 300, useNativeDriver: true }),
+      Animated.timing(panXFill, { toValue: 0, duration: 300, useNativeDriver: false }),
+      Animated.timing(panYFill, { toValue: 0, duration: 300, useNativeDriver: false }),
     ]).start(() => {
-      // The top card is now fully off-screen at panX=flyDist.
-      // The mid and back cards have already animated to their "revealed" positions
-      // (scale=1, translateY=0 for mid; scale=0.97, translateY=-PEEK_GAP for back)
-      // because panX drove them there continuously during the fly-out.
+      // The top card is now fully off-screen. Mid/back are at their "revealed"
+      // positions (scale=1, translateY=0 for mid; scale=0.97, translateY=−PEEK_GAP
+      // for back) because panX drove them there.
       //
-      // Strategy: hide mid+back slots so we can snap panX back to 0 without
-      // any visible jump, then advance topIndex. After React commits the new
-      // render (new cards in each slot), restore opacities. The new top card
-      // appears exactly where the old mid card was — no movement, no flash.
-      topSlotOpacity.setValue(0);
-      midSlotOpacity.setValue(0);
-      backSlotOpacity.setValue(0);
-
-      // Reset pan synchronously — all slots are hidden so nothing is visible.
-      panX.setValue(0);
-      panY.setValue(0);
-      panXFill.setValue(0);
-      panYFill.setValue(0);
-      // New back card will rise up into its slot.
-      backCardOffsetY.setValue(28);
-
-      const dismissed = getCard(0);
-      pendingRestore.current = true;
-      setTopIndex((prev) => (prev + 1) % cards.length);
-      if (dismissed) onCardDismissedRef.current?.(dismissed);
+      // Instead of hiding mid/back cards (which causes a white flash), we keep
+      // them visible and compensate for the panX→0 position snap with offsets:
+      //   midCardOffsetY = PEEK_GAP  →  net mid translateY = −PEEK_GAP + PEEK_GAP = 0
+      //   backCardOffsetY = PEEK_GAP →  net back translateY = −2*PEEK_GAP + PEEK_GAP = −PEEK_GAP
+      // These exactly match the mid/back positions at panX=flyDist, so there is
+      // no visual jump. Both offsets then spring to 0 in useLayoutEffect.
+      // Only the top slot needs opacity=0 to hide the old card teleporting back.
+      Animated.parallel([
+        Animated.timing(topSlotOpacity,  { toValue: 0, duration: 0, useNativeDriver: true }),
+        Animated.timing(panX,            { toValue: 0, duration: 0, useNativeDriver: true }),
+        Animated.timing(panY,            { toValue: 0, duration: 0, useNativeDriver: true }),
+        Animated.timing(midCardOffsetY,  { toValue: PEEK_GAP, duration: 0, useNativeDriver: true }),
+        Animated.timing(backCardOffsetY, { toValue: PEEK_GAP, duration: 0, useNativeDriver: true }),
+      ]).start(() => {
+        const dismissed = getCard(0);
+        pendingRestore.current = true;
+        setTopIndex((prev) => (prev + 1) % cards.length);
+        if (dismissed) onCardDismissedRef.current?.(dismissed);
+      });
     });
-  }, [cards, getCard, panX, panY, panXFill, panYFill, topSlotOpacity, midSlotOpacity, backSlotOpacity, backCardOffsetY, dimProgress]);
+  }, [cards, getCard, panX, panY, panXFill, panYFill, topSlotOpacity, midCardOffsetY, backCardOffsetY, dimProgress]);
 
-  // Restore slot opacities only after React has committed the new topIndex render.
-  // useEffect fires post-commit, guaranteeing new cards are in place before we show them.
-  useEffect(() => {
+  // After React commits the new topIndex, reveal the new top card and spring
+  // mid/back offsets to 0 so they smoothly settle into their resting positions.
+  useLayoutEffect(() => {
     if (!pendingRestore.current) return;
     pendingRestore.current = false;
-    topSlotOpacity.setValue(1);
-    midSlotOpacity.setValue(1);
-    backSlotOpacity.setValue(1);
+    // Top slot: new card is now in the correct position — reveal it.
+    Animated.timing(topSlotOpacity, { toValue: 1, duration: 0, useNativeDriver: true }).start();
     Animated.spring(dimProgress, { toValue: 1, useNativeDriver: false, tension: 55, friction: 12 }).start();
+    // Mid card springs from revealed position (offset=PEEK_GAP) to behind position.
+    if (cards.length >= 2) {
+      Animated.spring(midCardOffsetY, { toValue: 0, useNativeDriver: true, tension: 55, friction: 12 }).start();
+    }
+    // Back card springs from old-mid position (offset=PEEK_GAP) to behind position.
     if (cards.length >= 3) {
       Animated.spring(backCardOffsetY, { toValue: 0, useNativeDriver: true, tension: 55, friction: 12 }).start();
     }
@@ -409,7 +420,7 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
           <Animated.View style={[styles.cardShadow, {
             zIndex: 2,
             opacity: midSlotOpacity,
-            transform: [{ translateY: midTranslateY }, { scale: midScale }],
+            transform: [{ translateY: Animated.add(midTranslateY, midCardOffsetY) }, { scale: midScale }],
           }]}>
             <View style={styles.cardClip} pointerEvents="none">
               <CardContent card={midCard} />
