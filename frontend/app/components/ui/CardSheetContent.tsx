@@ -9,6 +9,7 @@ import Button from '@/app/components/ui/Button';
 import IconButton from '@/app/components/ui/IconButton';
 import Tag from '@/app/components/ui/Tag';
 import UserOptionsSheet from '@/app/components/ui/UserOptionsSheet';
+import { useRouter } from 'expo-router';
 import {
   ArrowLeft,
   BookOpen,
@@ -24,7 +25,6 @@ import {
   Star,
   User,
 } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Image,
@@ -71,12 +71,32 @@ export default function SheetContent({
     return null;
   }
   if (card.type === 'match')
-    return <MatchSheetContent card={card} onDismiss={onDismiss} onSubmit={submit} />;
+    return (
+      <MatchSheetContent card={card} onDismiss={onDismiss} onSubmit={submit} />
+    );
   if (card.type === 'preference')
-    return <PreferenceSheetContent card={card} onDismiss={onDismiss} onSubmit={submit} />;
+    return (
+      <PreferenceSheetContent
+        card={card}
+        onDismiss={onDismiss}
+        onSubmit={submit}
+      />
+    );
   if (card.type === 'weekly_prompt')
-    return <WeeklyPromptSheetContent card={card} onDismiss={onDismiss} onSubmit={submit} />;
-  return <ProfileActionSheetContent card={card} onDismiss={onDismiss} onSubmit={submit} />;
+    return (
+      <WeeklyPromptSheetContent
+        card={card}
+        onDismiss={onDismiss}
+        onSubmit={submit}
+      />
+    );
+  return (
+    <ProfileActionSheetContent
+      card={card}
+      onDismiss={onDismiss}
+      onSubmit={submit}
+    />
+  );
 }
 
 // ─── Tutorial: Act ───────────────────────────────────────────────────────────
@@ -122,7 +142,6 @@ function TutorialActSheetContent({
 function MatchSheetContent({
   card,
   onDismiss,
-  onSubmit,
 }: {
   card: Extract<DailyCard, { type: 'match' }>;
   onDismiss: () => void;
@@ -154,9 +173,11 @@ function MatchSheetContent({
   const handleOpenChat = async () => {
     if (!card.matchNetid) return;
     try {
-      const conversation = await createOrGetConversationByNetid(card.matchNetid);
+      const conversation = await createOrGetConversationByNetid(
+        card.matchNetid
+      );
       setShowProfile(false);
-      onSubmit();
+      onDismiss();
       router.push(
         `/chat-detail?conversationId=${conversation.id}&name=${card.matchName}&netid=${card.matchNetid}` as any
       );
@@ -233,7 +254,7 @@ function MatchSheetContent({
             <View style={styles.profileModalFooter}>
               <View style={styles.nudgeRow}>
                 <Button
-                  title={nudgeSent ? 'Interest sent!' : 'Express interest'}
+                  title={nudgeSent ? 'Nudged!' : 'Express interest'}
                   onPress={handleExpressInterest}
                   variant="primary"
                   fullWidth
@@ -249,12 +270,6 @@ function MatchSheetContent({
                   />
                 )}
               </View>
-              <Button
-                title="Pass"
-                onPress={() => setShowProfile(false)}
-                variant="secondary"
-                fullWidth
-              />
             </View>
             {card.matchNetid && (
               <UserOptionsSheet
@@ -288,11 +303,21 @@ function PreferenceSheetContent({
         Your answer helps us find better matches for you.
       </AppText>
       {card.replyType === 'options' && (
-        <OptionsReply options={card.options ?? []} onDismiss={onDismiss} onSubmit={onSubmit} />
+        <OptionsReply
+          options={card.options ?? []}
+          onDismiss={onDismiss}
+          onSubmit={onSubmit}
+        />
       )}
-      {card.replyType === 'text' && <TextReply onDismiss={onDismiss} onSubmit={onSubmit} />}
+      {card.replyType === 'text' && (
+        <TextReply onDismiss={onDismiss} onSubmit={onSubmit} />
+      )}
       {card.replyType === 'ranking' && (
-        <RankingReply options={card.options ?? []} onDismiss={onDismiss} onSubmit={onSubmit} />
+        <RankingReply
+          options={card.options ?? []}
+          onDismiss={onDismiss}
+          onSubmit={onSubmit}
+        />
       )}
       {card.replyType === 'scale' && (
         <ScaleReply
@@ -322,13 +347,21 @@ function OptionsReply({
         {options.map((opt) => (
           <TouchableOpacity
             key={opt}
-            style={[styles.optionPill, selected === opt && styles.optionPillSelected]}
+            style={[
+              styles.optionPill,
+              selected === opt && styles.optionPillSelected,
+            ]}
             onPress={() => setSelected(opt)}
             activeOpacity={0.75}
           >
             <AppText
               variant="subtitle"
-              style={{ color: selected === opt ? AppColors.backgroundDefault : AppColors.foregroundDefault }}
+              style={{
+                color:
+                  selected === opt
+                    ? AppColors.backgroundDefault
+                    : AppColors.foregroundDefault,
+              }}
             >
               {opt}
             </AppText>
@@ -336,14 +369,31 @@ function OptionsReply({
         ))}
       </View>
       <View style={styles.actions}>
-        <Button title="Save answer" onPress={onSubmit} variant="primary" fullWidth disabled={!selected} />
-        <Button title="Skip for now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Save answer"
+          onPress={onSubmit}
+          variant="primary"
+          fullWidth
+          disabled={!selected}
+        />
+        <Button
+          title="Skip for now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </>
   );
 }
 
-function TextReply({ onDismiss, onSubmit }: { onDismiss: () => void; onSubmit: () => void }) {
+function TextReply({
+  onDismiss,
+  onSubmit,
+}: {
+  onDismiss: () => void;
+  onSubmit: () => void;
+}) {
   const [value, setValue] = useState('');
   return (
     <>
@@ -360,8 +410,19 @@ function TextReply({ onDismiss, onSubmit }: { onDismiss: () => void; onSubmit: (
         {value.length}/200
       </AppText>
       <View style={styles.actions}>
-        <Button title="Save answer" onPress={onSubmit} variant="primary" fullWidth disabled={!value.trim()} />
-        <Button title="Skip for now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Save answer"
+          onPress={onSubmit}
+          variant="primary"
+          fullWidth
+          disabled={!value.trim()}
+        />
+        <Button
+          title="Skip for now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </>
   );
@@ -392,23 +453,63 @@ function RankingReply({
         {ranked.map((item, i) => (
           <View key={item} style={styles.rankItem}>
             <View style={styles.rankBadge}>
-              <AppText variant="bodySmall" color="inverse" style={{ fontWeight: '700' }}>{i + 1}</AppText>
+              <AppText
+                variant="bodySmall"
+                color="inverse"
+                style={{ fontWeight: '700' }}
+              >
+                {i + 1}
+              </AppText>
             </View>
-            <AppText variant="body" style={{ flex: 1 }}>{item}</AppText>
+            <AppText variant="body" style={{ flex: 1 }}>
+              {item}
+            </AppText>
             <View style={styles.rankArrows}>
-              <TouchableOpacity onPress={() => move(i, -1)} disabled={i === 0} hitSlop={{ top: 8, bottom: 4, left: 8, right: 8 }}>
-                <ChevronUp size={20} color={i === 0 ? AppColors.foregroundDimmer : AppColors.foregroundDefault} />
+              <TouchableOpacity
+                onPress={() => move(i, -1)}
+                disabled={i === 0}
+                hitSlop={{ top: 8, bottom: 4, left: 8, right: 8 }}
+              >
+                <ChevronUp
+                  size={20}
+                  color={
+                    i === 0
+                      ? AppColors.foregroundDimmer
+                      : AppColors.foregroundDefault
+                  }
+                />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => move(i, 1)} disabled={i === ranked.length - 1} hitSlop={{ top: 4, bottom: 8, left: 8, right: 8 }}>
-                <ChevronDown size={20} color={i === ranked.length - 1 ? AppColors.foregroundDimmer : AppColors.foregroundDefault} />
+              <TouchableOpacity
+                onPress={() => move(i, 1)}
+                disabled={i === ranked.length - 1}
+                hitSlop={{ top: 4, bottom: 8, left: 8, right: 8 }}
+              >
+                <ChevronDown
+                  size={20}
+                  color={
+                    i === ranked.length - 1
+                      ? AppColors.foregroundDimmer
+                      : AppColors.foregroundDefault
+                  }
+                />
               </TouchableOpacity>
             </View>
           </View>
         ))}
       </View>
       <View style={styles.actions}>
-        <Button title="Save ranking" onPress={onSubmit} variant="primary" fullWidth />
-        <Button title="Skip for now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Save ranking"
+          onPress={onSubmit}
+          variant="primary"
+          fullWidth
+        />
+        <Button
+          title="Skip for now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </>
   );
@@ -441,12 +542,31 @@ function ScaleReply({
         ))}
       </View>
       <View style={styles.scaleLabels}>
-        <AppText variant="bodySmall" color="dimmer" style={{ flex: 1 }}>{min}</AppText>
-        <AppText variant="bodySmall" color="dimmer" style={{ flex: 1, textAlign: 'right' }}>{max}</AppText>
+        <AppText variant="bodySmall" color="dimmer" style={{ flex: 1 }}>
+          {min}
+        </AppText>
+        <AppText
+          variant="bodySmall"
+          color="dimmer"
+          style={{ flex: 1, textAlign: 'right' }}
+        >
+          {max}
+        </AppText>
       </View>
       <View style={styles.actions}>
-        <Button title="Save answer" onPress={onSubmit} variant="primary" fullWidth disabled={value === null} />
-        <Button title="Skip for now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Save answer"
+          onPress={onSubmit}
+          variant="primary"
+          fullWidth
+          disabled={value === null}
+        />
+        <Button
+          title="Skip for now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </>
   );
@@ -467,34 +587,81 @@ function ProfileActionSheetContent({
     case 'profile-photo':
       return <PhotoActionContent onDismiss={onDismiss} onSubmit={onSubmit} />;
     case 'profile-hometown':
-      return <SimpleTextActionContent placeholder="e.g., New York, NY" onDismiss={onDismiss} onSubmit={onSubmit} />;
+      return (
+        <SimpleTextActionContent
+          placeholder="e.g., New York, NY"
+          onDismiss={onDismiss}
+          onSubmit={onSubmit}
+        />
+      );
     case 'profile-location':
-      return <SimpleTextActionContent placeholder="e.g., Collegetown, Duffield Hall" onDismiss={onDismiss} onSubmit={onSubmit} />;
+      return (
+        <SimpleTextActionContent
+          placeholder="e.g., Collegetown, Duffield Hall"
+          onDismiss={onDismiss}
+          onSubmit={onSubmit}
+        />
+      );
     case 'profile-social':
-      return <InstagramActionContent onDismiss={onDismiss} onSubmit={onSubmit} />;
+      return (
+        <InstagramActionContent onDismiss={onDismiss} onSubmit={onSubmit} />
+      );
     case 'profile-interests':
-      return <InterestsActionContent onDismiss={onDismiss} onSubmit={onSubmit} />;
+      return (
+        <InterestsActionContent onDismiss={onDismiss} onSubmit={onSubmit} />
+      );
     case 'profile-prompt':
       return <PromptActionContent onDismiss={onDismiss} onSubmit={onSubmit} />;
     case 'profile-major':
-      return <SimpleTextActionContent placeholder="e.g., Computer Science" onDismiss={onDismiss} onSubmit={onSubmit} />;
+      return (
+        <SimpleTextActionContent
+          placeholder="e.g., Computer Science"
+          onDismiss={onDismiss}
+          onSubmit={onSubmit}
+        />
+      );
     case 'profile-year':
       return <YearActionContent onDismiss={onDismiss} onSubmit={onSubmit} />;
     default:
-      return <GenericProfileActionContent card={card} onDismiss={onDismiss} onSubmit={onSubmit} />;
+      return (
+        <GenericProfileActionContent
+          card={card}
+          onDismiss={onDismiss}
+          onSubmit={onSubmit}
+        />
+      );
   }
 }
 
-function PhotoActionContent({ onDismiss, onSubmit }: { onDismiss: () => void; onSubmit: () => void }) {
+function PhotoActionContent({
+  onDismiss,
+  onSubmit,
+}: {
+  onDismiss: () => void;
+  onSubmit: () => void;
+}) {
   return (
     <View style={styles.body}>
       <TouchableOpacity style={styles.photoPlaceholder} activeOpacity={0.7}>
         <Camera size={48} color={AppColors.foregroundDimmer} />
-        <AppText variant="body" color="dimmer" style={{ marginTop: 12 }}>Tap to choose a photo</AppText>
+        <AppText variant="body" color="dimmer" style={{ marginTop: 12 }}>
+          Tap to choose a photo
+        </AppText>
       </TouchableOpacity>
       <View style={styles.actions}>
-        <Button title="Save photo" onPress={onSubmit} variant="primary" fullWidth disabled />
-        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Save photo"
+          onPress={onSubmit}
+          variant="primary"
+          fullWidth
+          disabled
+        />
+        <Button
+          title="Not now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );
@@ -512,29 +679,76 @@ function SimpleTextActionContent({
   const [value, setValue] = useState('');
   return (
     <View style={styles.body}>
-      <AppInput placeholder={placeholder} value={value} onChangeText={setValue} autoCapitalize="words" returnKeyType="done" />
+      <AppInput
+        placeholder={placeholder}
+        value={value}
+        onChangeText={setValue}
+        autoCapitalize="words"
+        returnKeyType="done"
+      />
       <View style={styles.actions}>
-        <Button title="Save" onPress={onSubmit} variant="primary" fullWidth disabled={!value.trim()} />
-        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Save"
+          onPress={onSubmit}
+          variant="primary"
+          fullWidth
+          disabled={!value.trim()}
+        />
+        <Button
+          title="Not now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );
 }
 
-function InstagramActionContent({ onDismiss, onSubmit }: { onDismiss: () => void; onSubmit: () => void }) {
+function InstagramActionContent({
+  onDismiss,
+  onSubmit,
+}: {
+  onDismiss: () => void;
+  onSubmit: () => void;
+}) {
   const [handle, setHandle] = useState('');
   return (
     <View style={styles.body}>
-      <AppInput placeholder="@yourhandle" value={handle} onChangeText={setHandle} autoCapitalize="none" autoCorrect={false} returnKeyType="done" />
+      <AppInput
+        placeholder="@yourhandle"
+        value={handle}
+        onChangeText={setHandle}
+        autoCapitalize="none"
+        autoCorrect={false}
+        returnKeyType="done"
+      />
       <View style={styles.actions}>
-        <Button title="Save" onPress={onSubmit} variant="primary" fullWidth disabled={!handle.trim()} />
-        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Save"
+          onPress={onSubmit}
+          variant="primary"
+          fullWidth
+          disabled={!handle.trim()}
+        />
+        <Button
+          title="Not now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );
 }
 
-function InterestsActionContent({ onDismiss, onSubmit }: { onDismiss: () => void; onSubmit: () => void }) {
+function InterestsActionContent({
+  onDismiss,
+  onSubmit,
+}: {
+  onDismiss: () => void;
+  onSubmit: () => void;
+}) {
   const [interests, setInterests] = useState<string[]>([]);
   const [newInterest, setNewInterest] = useState('');
 
@@ -551,7 +765,15 @@ function InterestsActionContent({ onDismiss, onSubmit }: { onDismiss: () => void
       {interests.length > 0 && (
         <View style={styles.tagsRow}>
           {interests.map((item) => (
-            <Tag key={item} label={item} variant="gray" dismissible onDismiss={() => setInterests(interests.filter((i) => i !== item))} />
+            <Tag
+              key={item}
+              label={item}
+              variant="gray"
+              dismissible
+              onDismiss={() =>
+                setInterests(interests.filter((i) => i !== item))
+              }
+            />
           ))}
         </View>
       )}
@@ -566,17 +788,40 @@ function InterestsActionContent({ onDismiss, onSubmit }: { onDismiss: () => void
           onSubmitEditing={addInterest}
           style={{ flex: 1 }}
         />
-        <Button title="Add" onPress={addInterest} variant="secondary" iconLeft={Plus} disabled={!newInterest.trim()} />
+        <Button
+          title="Add"
+          onPress={addInterest}
+          variant="secondary"
+          iconLeft={Plus}
+          disabled={!newInterest.trim()}
+        />
       </View>
       <View style={styles.actions}>
-        <Button title="Save interests" onPress={onSubmit} variant="primary" fullWidth disabled={interests.length === 0} />
-        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Save interests"
+          onPress={onSubmit}
+          variant="primary"
+          fullWidth
+          disabled={interests.length === 0}
+        />
+        <Button
+          title="Not now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );
 }
 
-function PromptActionContent({ onDismiss, onSubmit }: { onDismiss: () => void; onSubmit: () => void }) {
+function PromptActionContent({
+  onDismiss,
+  onSubmit,
+}: {
+  onDismiss: () => void;
+  onSubmit: () => void;
+}) {
   const [answer, setAnswer] = useState('');
   return (
     <View style={styles.body}>
@@ -590,10 +835,23 @@ function PromptActionContent({ onDismiss, onSubmit }: { onDismiss: () => void; o
         style={{ height: 110, borderRadius: 16 }}
         returnKeyType="done"
       />
-      <AppText variant="bodySmall" color="dimmer" style={{ marginTop: 4 }}>{answer.length}/240</AppText>
+      <AppText variant="bodySmall" color="dimmer" style={{ marginTop: 4 }}>
+        {answer.length}/240
+      </AppText>
       <View style={styles.actions}>
-        <Button title="Save answer" onPress={onSubmit} variant="primary" fullWidth disabled={!answer.trim()} />
-        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Save answer"
+          onPress={onSubmit}
+          variant="primary"
+          fullWidth
+          disabled={!answer.trim()}
+        />
+        <Button
+          title="Not now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );
@@ -601,7 +859,13 @@ function PromptActionContent({ onDismiss, onSubmit }: { onDismiss: () => void; o
 
 const YEAR_OPTIONS = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Graduate'];
 
-function YearActionContent({ onDismiss, onSubmit }: { onDismiss: () => void; onSubmit: () => void }) {
+function YearActionContent({
+  onDismiss,
+  onSubmit,
+}: {
+  onDismiss: () => void;
+  onSubmit: () => void;
+}) {
   const [selected, setSelected] = useState<string | null>(null);
   return (
     <View style={styles.body}>
@@ -609,13 +873,21 @@ function YearActionContent({ onDismiss, onSubmit }: { onDismiss: () => void; onS
         {YEAR_OPTIONS.map((year) => (
           <TouchableOpacity
             key={year}
-            style={[styles.optionPill, selected === year && styles.optionPillSelected]}
+            style={[
+              styles.optionPill,
+              selected === year && styles.optionPillSelected,
+            ]}
             onPress={() => setSelected(year)}
             activeOpacity={0.75}
           >
             <AppText
               variant="subtitle"
-              style={{ color: selected === year ? AppColors.backgroundDefault : AppColors.foregroundDefault }}
+              style={{
+                color:
+                  selected === year
+                    ? AppColors.backgroundDefault
+                    : AppColors.foregroundDefault,
+              }}
             >
               {year}
             </AppText>
@@ -623,8 +895,19 @@ function YearActionContent({ onDismiss, onSubmit }: { onDismiss: () => void; onS
         ))}
       </View>
       <View style={styles.actions}>
-        <Button title="Save" onPress={onSubmit} variant="primary" fullWidth disabled={!selected} />
-        <Button title="Not now" onPress={onDismiss} variant="secondary" fullWidth />
+        <Button
+          title="Save"
+          onPress={onSubmit}
+          variant="primary"
+          fullWidth
+          disabled={!selected}
+        />
+        <Button
+          title="Not now"
+          onPress={onDismiss}
+          variant="secondary"
+          fullWidth
+        />
       </View>
     </View>
   );
