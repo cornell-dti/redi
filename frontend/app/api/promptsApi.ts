@@ -29,6 +29,13 @@ export async function getActivePrompt(): Promise<WeeklyPromptResponse> {
 }
 
 /**
+ * Get all active prompts visible to the current user
+ */
+export async function getActivePrompts(): Promise<WeeklyPromptResponse[]> {
+  return apiClient.get<WeeklyPromptResponse[]>('/api/prompts/active-all');
+}
+
+/**
  * Get a specific prompt by ID
  * SECURITY: firebaseUid is now extracted from Bearer token on backend
  *

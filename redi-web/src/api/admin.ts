@@ -83,23 +83,25 @@ export const createPrompt = async (
  * Activate a prompt immediately
  */
 export const activatePrompt = async (
-  promptId: string
+  promptId: string,
+  keepOthersActive: boolean = false
 ): Promise<ApiResponse<ActivatePromptResponse>> => {
-  console.log('Activating prompt:', promptId);
+  console.log('Activating prompt:', promptId, { keepOthersActive });
 
   const token = await getAuthToken();
 
-  const res = await fetch(
-    `${API_BASE_URL}/api/admin/prompts/${promptId}/activate`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({}), // Empty body, no firebaseUid
-    }
-  );
+  const url = keepOthersActive
+    ? `${API_BASE_URL}/api/admin/prompts/${promptId}/activate?keepOthersActive=true`
+    : `${API_BASE_URL}/api/admin/prompts/${promptId}/activate`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({}),
+  });
 
   if (!res.ok) {
     const error = await res.json();
@@ -176,6 +178,7 @@ export const fetchAllPrompts = async (): Promise<WeeklyPrompt[]> => {
         ? data.createdAt.toDate().toISOString()
         : data.createdAt || null,
       answerCount,
+      targetNetids: data.targetNetids || undefined,
     });
   }
 
@@ -235,6 +238,7 @@ export const fetchPromptById = async (
       ? data.createdAt.toDate().toISOString()
       : data.createdAt || null,
     answerCount,
+    targetNetids: data.targetNetids || undefined,
   };
 };
 

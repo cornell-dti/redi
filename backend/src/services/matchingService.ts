@@ -9,7 +9,7 @@ import {
 import { getBlockedUsersMap } from './blockingService';
 import { UserData, findMatchesForUser } from './matchingAlgorithm';
 import { getPreferences } from './preferencesService';
-import { getUsersWhoAnswered } from './promptsService';
+import { getUsersWhoAnswered, getPromptById } from './promptsService';
 
 const MATCHES_COLLECTION = 'weeklyMatches';
 const PROFILES_COLLECTION = 'profiles';
@@ -304,8 +304,16 @@ export async function generateMatchesForPrompt(
   console.log(`${'='.repeat(60)}\n`);
 
   // Get all users who answered the prompt
-  const userNetids = await getUsersWhoAnswered(promptId);
+  let userNetids = await getUsersWhoAnswered(promptId);
   console.log(`📊 Found ${userNetids.length} users who answered the prompt\n`);
+
+  // If the prompt has targetNetids set, restrict matching to only those users
+  const prompt = await getPromptById(promptId);
+  if (prompt?.targetNetids && prompt.targetNetids.length > 0) {
+    const targetSet = new Set(prompt.targetNetids);
+    userNetids = userNetids.filter((netid) => targetSet.has(netid));
+    console.log(`🎯 targetNetids filter applied — matching ${userNetids.length} user(s): ${userNetids.join(', ')}\n`);
+  }
 
   if (userNetids.length === 0) {
     console.log('⚠️  No users to match');

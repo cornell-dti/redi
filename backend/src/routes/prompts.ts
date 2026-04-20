@@ -12,7 +12,7 @@ import {
 } from '../services/matchingService';
 import {
   answerToResponse,
-  getActivePrompt,
+  getActivePromptsForUser,
   getPromptAnswer,
   getPromptById,
   promptToResponse,
@@ -95,7 +95,8 @@ router.get(
         return res.status(404).json({ error: 'User not found' });
       }
 
-      const prompt = await getActivePrompt();
+      const prompts = await getActivePromptsForUser(netid);
+      const prompt = prompts[0] ?? null;
 
       if (!prompt) {
         return res.status(404).json({ error: 'No active prompt available' });
@@ -106,6 +107,30 @@ router.get(
     } catch (error) {
       console.error('Error fetching active prompt:', error);
       res.status(500).json({ error: 'Failed to fetch active prompt' });
+    }
+  }
+);
+
+/**
+ * GET /api/prompts/active-all
+ * Get all active prompts visible to this user
+ */
+router.get(
+  '/api/prompts/active-all',
+  authenticatedRateLimit,
+  authenticateUser,
+  async (req: AuthenticatedRequest, res: express.Response) => {
+    try {
+      const netid = await getNetidFromAuth(req.user!.uid);
+      if (!netid) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const prompts = await getActivePromptsForUser(netid);
+      res.status(200).json(prompts.map(promptToResponse));
+    } catch (error) {
+      console.error('Error fetching active prompts:', error);
+      res.status(500).json({ error: 'Failed to fetch active prompts' });
     }
   }
 );
@@ -185,6 +210,15 @@ router.post(
         return res.status(400).json({
           error: 'This prompt is not currently active',
         });
+      }
+
+      // Enforce targetNetids restriction
+      if (
+        prompt.targetNetids &&
+        prompt.targetNetids.length > 0 &&
+        !prompt.targetNetids.includes(netid)
+      ) {
+        return res.status(403).json({ error: 'This prompt is not available for your account' });
       }
 
       // Check if answer is within date range

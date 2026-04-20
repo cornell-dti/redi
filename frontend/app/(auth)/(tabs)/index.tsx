@@ -1,7 +1,7 @@
 // Main Matches/Home Screen
 import { sendNudge } from '@/app/api/nudgesApi';
 import {
-  getActivePrompt,
+  getActivePrompts,
   getBatchMatchData,
   getMatchHistory,
   getPromptAnswer,
@@ -62,13 +62,15 @@ export default function MatchesScreen() {
 
   const router = useRouter();
   const [showCountdown, setShowCountdown] = useState(false);
-  const [activePrompt, setActivePrompt] = useState<WeeklyPromptResponse | null>(
-    null
-  );
-  const [userAnswer, setUserAnswer] = useState<string>('');
+  const [activePrompts, setActivePrompts] = useState<WeeklyPromptResponse[]>([]);
+  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
+  const [selectedPromptForSheet, setSelectedPromptForSheet] =
+    useState<WeeklyPromptResponse | null>(null);
   const [currentMatches, setCurrentMatches] = useState<MatchWithProfile[]>([]);
   const [showPromptSheet, setShowPromptSheet] = useState(false);
   const [tempAnswer, setTempAnswer] = useState('');
+  // Primary prompt used for countdown / header description
+  const activePrompt = activePrompts[0] ?? null;
   const lastLoadTime = useRef<number>(0);
   // Track local nudges for immediate UI feedback
   const [localNudges, setLocalNudges] = useState<Set<string>>(new Set());
@@ -90,37 +92,34 @@ export default function MatchesScreen() {
     lastLoadTime.current = now;
 
     try {
-      let prompt: WeeklyPromptResponse | null = null;
+      let prompts: WeeklyPromptResponse[] = [];
 
-      // Get active prompt (optional - matches can exist without an active prompt)
+      // Get all active prompts visible to this user
       try {
-        prompt = await getActivePrompt();
-        setActivePrompt(prompt);
-
-        // Set countdown visibility based on active prompt
-        if (prompt) {
-          setShowCountdown(shouldShowCountdown(prompt.matchDate));
-        } else {
-          setShowCountdown(false);
-        }
+        prompts = await getActivePrompts();
+        setActivePrompts(prompts);
+        const primary = prompts[0] ?? null;
+        setShowCountdown(primary ? shouldShowCountdown(primary.matchDate) : false);
       } catch (promptError) {
-        console.error('Error fetching active prompt:', promptError);
-        setActivePrompt(null);
-        setShowCountdown(false); // Hide countdown if no active prompt
-        // Don't return early - continue loading matches even without an active prompt
+        console.error('Error fetching active prompts:', promptError);
+        setActivePrompts([]);
+        setShowCountdown(false);
       }
 
-      // Get user's answer to the prompt (if there's an active prompt)
-      if (prompt) {
-        try {
-          const answer: WeeklyPromptAnswerResponse = await getPromptAnswer(
-            prompt.promptId
-          );
-          setUserAnswer(answer.answer);
-        } catch {
-          // No answer yet
-          setUserAnswer('');
-        }
+      // Fetch user's existing answer for each active prompt
+      if (prompts.length > 0) {
+        const answers: Record<string, string> = {};
+        await Promise.all(
+          prompts.map(async (p) => {
+            try {
+              const answer: WeeklyPromptAnswerResponse = await getPromptAnswer(p.promptId);
+              answers[p.promptId] = answer.answer;
+            } catch {
+              answers[p.promptId] = '';
+            }
+          })
+        );
+        setUserAnswers(answers);
       }
 
       // Get all match history - backend filters by expiration date automatically
@@ -221,11 +220,14 @@ export default function MatchesScreen() {
   }, [activePrompt, loadData]); // Update when activePrompt changes or loadData changes
 
   const handleSubmitAnswer = async () => {
-    if (!activePrompt || !tempAnswer.trim()) return;
+    if (!selectedPromptForSheet || !tempAnswer.trim()) return;
 
     try {
-      await submitPromptAnswer(activePrompt.promptId, tempAnswer);
-      setUserAnswer(tempAnswer);
+      await submitPromptAnswer(selectedPromptForSheet.promptId, tempAnswer);
+      setUserAnswers((prev) => ({
+        ...prev,
+        [selectedPromptForSheet.promptId]: tempAnswer,
+      }));
       setShowPromptSheet(false);
       setTempAnswer('');
     } catch (error) {
@@ -242,6 +244,31 @@ export default function MatchesScreen() {
     }, [])
   );
 
+  const renderPromptCard = (prompt: WeeklyPromptResponse) => (
+    <ListItemWrapper key={prompt.promptId} style={styles.promptSection}>
+      <View
+        style={[
+          styles.promptQuestion,
+          { backgroundColor: AppColors.backgroundDimmer },
+        ]}
+      >
+        <AppText color="dimmer"> Weekly Prompt: </AppText>
+        <AppText variant="subtitle">{prompt.question}</AppText>
+      </View>
+      <Button
+        title={userAnswers[prompt.promptId] ? 'Edit answer' : 'Answer prompt'}
+        onPress={() => {
+          setTempAnswer(userAnswers[prompt.promptId] ?? '');
+          setSelectedPromptForSheet(prompt);
+          setShowPromptSheet(true);
+        }}
+        variant="secondary"
+        iconLeft={Pencil}
+        noRound
+      />
+    </ListItemWrapper>
+  );
+
   const renderCountdownPeriod = () => (
     <>
       <CountdownTimer
@@ -249,59 +276,13 @@ export default function MatchesScreen() {
           activePrompt ? new Date(activePrompt.matchDate) : new Date()
         }
       />
-      {activePrompt && (
-        <ListItemWrapper style={styles.promptSection}>
-          <View
-            style={[
-              styles.promptQuestion,
-              { backgroundColor: AppColors.backgroundDimmer },
-            ]}
-          >
-            <AppText color="dimmer"> Weekly Prompt: </AppText>
-
-            <AppText variant="subtitle">{activePrompt.question}</AppText>
-          </View>
-          <Button
-            title={userAnswer ? 'Edit answer' : 'Answer prompt'}
-            onPress={() => {
-              setTempAnswer(userAnswer);
-              setShowPromptSheet(true);
-            }}
-            variant="secondary"
-            iconLeft={Pencil}
-            noRound
-          />
-        </ListItemWrapper>
-      )}
+      {activePrompts.map(renderPromptCard)}
     </>
   );
 
   const renderWeekendPeriod = () => (
     <>
-      {activePrompt && (
-        <ListItemWrapper style={styles.promptSection}>
-          <View
-            style={[
-              styles.promptQuestion,
-              { backgroundColor: AppColors.backgroundDimmer },
-            ]}
-          >
-            <AppText color="dimmer"> Weekly Prompt: </AppText>
-
-            <AppText variant="subtitle">{activePrompt.question}</AppText>
-          </View>
-          <Button
-            title={userAnswer ? 'Edit answer' : 'Answer prompt'}
-            onPress={() => {
-              setTempAnswer(userAnswer);
-              setShowPromptSheet(true);
-            }}
-            variant="secondary"
-            iconLeft={Pencil}
-            noRound
-          />
-        </ListItemWrapper>
-      )}
+      {activePrompts.map(renderPromptCard)}
       {currentMatches.length > 0 && (
         <View style={[styles.section, styles.sectionPadding]}>
           <AppText variant="subtitle" style={styles.sectionTitle}>
@@ -494,10 +475,10 @@ export default function MatchesScreen() {
       <Sheet
         visible={showPromptSheet}
         onDismiss={() => setShowPromptSheet(false)}
-        title={activePrompt?.question || 'Weekly Prompt'}
+        title={selectedPromptForSheet?.question || 'Weekly Prompt'}
         bottomRound={false}
       >
-        {activePrompt && (
+        {selectedPromptForSheet && (
           <View style={{ gap: 16, flex: 1 }}>
             <AppInput
               placeholder="Your answer..."
@@ -515,7 +496,7 @@ export default function MatchesScreen() {
             </AppText>
 
             <Button
-              title={userAnswer ? 'Update answer' : 'Submit answer'}
+              title={userAnswers[selectedPromptForSheet.promptId] ? 'Update answer' : 'Submit answer'}
               onPress={handleSubmitAnswer}
               variant="primary"
               fullWidth

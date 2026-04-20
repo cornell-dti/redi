@@ -4,6 +4,7 @@ import {
   activatePrompt,
   deleteActivePrompt,
   generateMatches,
+  updatePrompt,
 } from '@/api/admin';
 import { WeeklyPrompt } from '@/types/admin';
 import { useState } from 'react';
@@ -20,6 +21,9 @@ export default function TestingSection({
   onActionComplete,
 }: TestingSectionProps) {
   const [selectedPromptId, setSelectedPromptId] = useState<string>('');
+  const [keepOthersActive, setKeepOthersActive] = useState(false);
+  const [targetNetidsInput, setTargetNetidsInput] = useState('');
+  const [isSavingNetids, setIsSavingNetids] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -43,7 +47,7 @@ export default function TestingSection({
     setIsActivating(true);
 
     try {
-      await activatePrompt(selectedPromptId);
+      await activatePrompt(selectedPromptId, keepOthersActive);
       setSuccess('Prompt activated successfully!');
       setShowActivateModal(false);
       onActionComplete();
@@ -96,6 +100,26 @@ export default function TestingSection({
       setShowDeleteModal(false);
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleSaveNetids = async () => {
+    if (!selectedPromptId) return;
+    setError(null);
+    setSuccess(null);
+    setIsSavingNetids(true);
+    try {
+      const targetNetids = targetNetidsInput
+        .split(/[\s,]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      await updatePrompt(selectedPromptId, { targetNetids: targetNetids.length > 0 ? targetNetids : [] });
+      setSuccess('Target NetIDs saved!');
+      onActionComplete();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save target NetIDs');
+    } finally {
+      setIsSavingNetids(false);
     }
   };
 
@@ -222,9 +246,12 @@ export default function TestingSection({
           id="promptSelect"
           value={selectedPromptId}
           onChange={(e) => {
-            setSelectedPromptId(e.target.value);
+            const id = e.target.value;
+            setSelectedPromptId(id);
             setError(null);
             setSuccess(null);
+            const p = prompts.find((p) => p.id === id);
+            setTargetNetidsInput(p?.targetNetids?.join(', ') ?? '');
           }}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black text-black"
         >
@@ -287,9 +314,66 @@ export default function TestingSection({
                 </button>
               </div>
             )}
+            {selectedPrompt.targetNetids && selectedPrompt.targetNetids.length > 0 && (
+              <p className="text-purple-700">
+                <span className="font-medium">Target NetIDs:</span>{' '}
+                {selectedPrompt.targetNetids.join(', ')}
+              </p>
+            )}
           </div>
         </div>
       )}
+
+      {/* Test Configuration */}
+      <div className="border border-purple-200 rounded-lg p-4 mb-6 bg-purple-50">
+        <h3 className="text-sm font-semibold text-purple-900 mb-3">
+          Test Configuration
+        </h3>
+
+        <div className="mb-3">
+          <label
+            htmlFor="targetNetids"
+            className="block text-sm font-medium text-purple-900 mb-1"
+          >
+            Target NetIDs
+          </label>
+          <textarea
+            id="targetNetids"
+            value={targetNetidsInput}
+            onChange={(e) => setTargetNetidsInput(e.target.value)}
+            rows={2}
+            disabled={!selectedPromptId}
+            className="w-full px-3 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 text-black font-mono text-sm disabled:opacity-40 disabled:cursor-not-allowed bg-white"
+            placeholder="e.g. abc123, xyz456  (comma or space separated)"
+          />
+          <p className="text-xs text-purple-700 mt-1">
+            Only these users will see the prompt in the app and receive matches.
+            Leave blank to show the prompt to all users.
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={keepOthersActive}
+              onChange={(e) => setKeepOthersActive(e.target.checked)}
+              className="w-4 h-4 accent-purple-600"
+            />
+            <span className="text-sm text-purple-900">
+              Keep other prompts active when activating
+            </span>
+          </label>
+
+          <button
+            onClick={handleSaveNetids}
+            disabled={!selectedPromptId || isSavingNetids}
+            className="px-4 py-1.5 text-sm bg-purple-600 text-white rounded-full hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            {isSavingNetids ? 'Saving…' : 'Save NetIDs'}
+          </button>
+        </div>
+      </div>
 
       {/* Action Buttons */}
       <div className="flex gap-4 mb-6">

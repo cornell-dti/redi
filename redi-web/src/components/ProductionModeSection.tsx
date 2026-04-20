@@ -158,7 +158,7 @@ export default function ProductionModeSection({
       // Create request with correct field names for backend
       const requestData = {
         promptId,
-        question: promptText.trim(), // Backend expects 'question', not 'promptText'
+        question: promptText.trim(),
         releaseDate: new Date(releaseDate).toISOString(),
         matchDate: new Date(matchDate).toISOString(),
       };

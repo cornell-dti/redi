@@ -397,6 +397,7 @@ router.post(
   async (req: AdminRequest, res) => {
     try {
       const { promptId } = req.params;
+      const keepOthersActive = req.query.keepOthersActive === 'true';
 
       // Check if prompt exists
       const existingPrompt = await getPromptById(promptId);
@@ -404,7 +405,7 @@ router.post(
         return res.status(404).json({ error: 'Prompt not found' });
       }
 
-      const activatedPrompt: WeeklyPromptDoc = await activatePrompt(promptId);
+      const activatedPrompt: WeeklyPromptDoc = await activatePrompt(promptId, keepOthersActive);
       const response: WeeklyPromptResponse = promptToResponse(activatedPrompt);
 
       // Log successful action
@@ -569,10 +570,9 @@ router.post(
  */
 router.delete('/api/admin/prompts/active', async (req: AdminRequest, res) => {
   try {
-    // Find the active prompt
-    const activePrompts: WeeklyPromptDoc[] = await getAllPrompts({
-      active: true,
-    });
+    // Find the active prompt (simple where-only query, no composite index needed)
+    const activeSnapshot = await db.collection('weeklyPrompts').where('active', '==', true).get();
+    const activePrompts: WeeklyPromptDoc[] = activeSnapshot.docs.map((d) => d.data() as WeeklyPromptDoc);
 
     if (activePrompts.length === 0) {
       return res.status(404).json({ error: 'No active prompt found' });
@@ -1169,8 +1169,9 @@ router.post(
         `Admin ${req.user?.email} fixing multiple active prompts issue`
       );
 
-      // Get all prompts marked as active
-      const activePrompts = await getAllPrompts({ active: true });
+      // Get all prompts marked as active (simple where-only query, no composite index needed)
+      const activeFixSnapshot = await db.collection('weeklyPrompts').where('active', '==', true).get();
+      const activePrompts = activeFixSnapshot.docs.map((d) => d.data() as WeeklyPromptDoc);
 
       if (activePrompts.length === 0) {
         return res.status(200).json({

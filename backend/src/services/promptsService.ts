@@ -115,6 +115,31 @@ export async function getActivePrompt(): Promise<WeeklyPromptDoc | null> {
 }
 
 /**
+ * Returns all active prompts a specific user is allowed to see.
+ * A prompt is visible to a user if it has no targetNetids, or if the user's
+ * netid appears in targetNetids.
+ */
+export async function getActivePromptsForUser(
+  netid: string
+): Promise<WeeklyPromptDoc[]> {
+  const snapshot = await db
+    .collection(PROMPTS_COLLECTION)
+    .where('active', '==', true)
+    .get();
+
+  if (snapshot.empty) return [];
+
+  return snapshot.docs
+    .map((d) => d.data() as WeeklyPromptDoc)
+    .filter(
+      (p) =>
+        !p.targetNetids ||
+        p.targetNetids.length === 0 ||
+        p.targetNetids.includes(netid)
+    );
+}
+
+/**
  * Get all prompts with optional filtering
  * @param options - Filter options (active status, date range, limit)
  * @returns Promise resolving to array of WeeklyPromptDoc
@@ -233,31 +258,41 @@ function getFridayOfCurrentWeek(): Date {
  * @returns Promise resolving to the activated WeeklyPromptDoc
  */
 export async function activatePrompt(
-  promptId: string
+  promptId: string,
+  keepOthersActive: boolean = false
 ): Promise<WeeklyPromptDoc> {
-  // Deactivate all currently active prompts (excluding the one we're about to activate)
-  const allPrompts = await getAllPrompts({ active: true });
+  // Use a simple where-only query (no orderBy) to avoid requiring a composite index
+  const activeSnapshot = await db
+    .collection(PROMPTS_COLLECTION)
+    .where('active', '==', true)
+    .get();
+  const allPrompts = activeSnapshot.docs.map(
+    (d) => d.data() as WeeklyPromptDoc
+  );
   const batch = db.batch();
 
   console.log(`🚀 Manually activating prompt ${promptId}`);
   console.log(`📋 Found ${allPrompts.length} currently active prompt(s)`);
 
-  // Deactivate all active prompts EXCEPT the one we're activating
-  // This prevents batch update conflicts
-  allPrompts.forEach((prompt) => {
-    if (prompt.promptId !== promptId) {
-      const ref = db.collection(PROMPTS_COLLECTION).doc(prompt.promptId);
-      batch.update(ref, {
-        active: false,
-        status: 'completed',
-      });
-      console.log(`   └─ Deactivating prompt: ${prompt.promptId}`);
-    } else {
-      console.log(
-        `   └─ Skipping deactivation of ${prompt.promptId} (it's the one being activated)`
-      );
-    }
-  });
+  if (!keepOthersActive) {
+    // Deactivate all active prompts EXCEPT the one we're activating
+    allPrompts.forEach((prompt) => {
+      if (prompt.promptId !== promptId) {
+        const ref = db.collection(PROMPTS_COLLECTION).doc(prompt.promptId);
+        batch.update(ref, {
+          active: false,
+          status: 'completed',
+        });
+        console.log(`   └─ Deactivating prompt: ${prompt.promptId}`);
+      } else {
+        console.log(
+          `   └─ Skipping deactivation of ${prompt.promptId} (it's the one being activated)`
+        );
+      }
+    });
+  } else {
+    console.log(`   └─ keepOthersActive=true, leaving other prompts active`);
+  }
 
   // Set releaseDate to now (so prompt is immediately accessible)
   const now = new Date();
@@ -317,6 +352,7 @@ export function promptToResponse(doc: WeeklyPromptDoc): WeeklyPromptResponse {
       ? toDate(doc.matchesGeneratedAt).toISOString()
       : undefined,
     createdAt: toDate(doc.createdAt).toISOString(),
+    targetNetids: doc.targetNetids,
   };
 }
 

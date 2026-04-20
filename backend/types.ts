@@ -289,6 +289,7 @@ export interface WeeklyPromptDoc {
   activatedAt?: FirestoreTimestampType; // When the prompt was activated
   matchesGeneratedAt?: FirestoreTimestampType; // When matches were generated
   createdAt: FirestoreTimestampType;
+  targetNetids?: string[]; // If set, only these users receive matches (for testing)
 }
 
 // Weekly prompt document when writing to Firestore
@@ -302,6 +303,7 @@ export interface WeeklyPromptDocWrite {
   activatedAt?: FirestoreTimestampType | FieldValue;
   matchesGeneratedAt?: FirestoreTimestampType | FieldValue;
   createdAt: FirestoreTimestampType | FieldValue;
+  targetNetids?: string[];
 }
 
 // Weekly prompt data for API responses
@@ -315,6 +317,7 @@ export interface WeeklyPromptResponse {
   activatedAt?: string; // ISO string format for JSON
   matchesGeneratedAt?: string; // ISO string format for JSON
   createdAt: string; // ISO string format for JSON
+  targetNetids?: string[];
 }
 
 // For creating a new weekly prompt

@@ -67,6 +67,7 @@ export interface CreateWeeklyPromptInput {
   question: string;
   releaseDate: string | Date; // Monday at 12:01 AM ET
   matchDate: string | Date; // Friday at 12:01 AM ET
+  targetNetids?: string[]; // If set, only these users receive matches (for testing)
 }
 
 // =============================================================================
@@ -90,6 +91,7 @@ export interface WeeklyPrompt extends WeeklyPromptResponse {
   matchesGeneratedAt?: string; // ISO date string
   answerCount?: number; // Count of answers received
   updatedAt?: string; // ISO date string
+  targetNetids?: string[];
 }
 
 export interface WeeklyAnswer {
