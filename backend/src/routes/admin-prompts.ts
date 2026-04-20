@@ -94,7 +94,7 @@ router.post('/api/admin/prompts', async (req: AdminRequest, res) => {
       );
 
       return res.status(409).json({
-        error: 'A prompt already exists for this week',
+        error: 'A prompt with this ID already exists',
       });
     }
 

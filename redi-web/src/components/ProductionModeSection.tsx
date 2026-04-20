@@ -47,7 +47,7 @@ export default function ProductionModeSection({
     return nextFriday.toISOString().split('T')[0];
   };
 
-  // Generate promptId from release date (format: YYYY-WW)
+  // Generate promptId from release date (format: YYYY-WW-xxxx)
   const generatePromptId = (dateString: string): string => {
     const date = new Date(dateString);
     const year = date.getFullYear();
@@ -60,7 +60,8 @@ export default function ProductionModeSection({
       (pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7
     );
 
-    return `${year}-${String(weekNumber).padStart(2, '0')}`;
+    const suffix = Date.now().toString(36).slice(-4);
+    return `${year}-${String(weekNumber).padStart(2, '0')}-${suffix}`;
   };
 
   // Initialize with next Monday and Friday
