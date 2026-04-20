@@ -124,6 +124,7 @@ const FILTER_OPTIONS = [
 
 interface MatchWithProfile {
   netid: string;
+  matchIndex: number;
   profile: ProfileResponse | null;
   revealed: boolean;
   nudgeStatus?: NudgeStatusResponse;
@@ -249,6 +250,7 @@ export default function HomeScreen() {
                     : undefined;
                 return {
                   netid,
+                  matchIndex: index,
                   profile,
                   revealed: matchRecord.revealed[index],
                   nudgeStatus,
@@ -332,6 +334,10 @@ export default function HomeScreen() {
           matchMajor: p.major.join(', '),
           matchImage: p.pictures[0] || undefined,
           matchProfile: p,
+          matchPromptId: m.promptId,
+          matchIndex: m.matchIndex,
+          matchNetid: m.netid,
+          nudgeStatus: m.nudgeStatus,
         };
       });
     // Fallback chain: real API matches → chat contacts (temp) → static mocks

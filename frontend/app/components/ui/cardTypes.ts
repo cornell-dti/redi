@@ -60,7 +60,7 @@ export interface PreferenceCard {
 
 // ─── 3. Match ─────────────────────────────────────────────────────────────────
 
-import type { ProfileResponse } from '@/types';
+import type { NudgeStatusResponse, ProfileResponse } from '@/types';
 
 export interface MatchCard {
   id: string;
@@ -72,6 +72,14 @@ export interface MatchCard {
   matchImage?: string;
   /** Full profile — available for real API matches, undefined for mock cards */
   matchProfile?: ProfileResponse;
+  /** Prompt this match came from — required to call revealMatch / sendNudge */
+  matchPromptId?: string;
+  /** Index of this netid within the prompt's matches array — required to call revealMatch */
+  matchIndex?: number;
+  /** NetID of the matched user — required to call sendNudge */
+  matchNetid?: string;
+  /** Nudge status at load time — drives locked/mutual state in the sheet */
+  nudgeStatus?: NudgeStatusResponse;
 }
 
 // ─── 4. Weekly Prompt ─────────────────────────────────────────────────────────

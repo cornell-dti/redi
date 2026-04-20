@@ -1,9 +1,14 @@
+import { createOrGetConversationByNetid } from '@/app/api/chatApi';
+import { sendNudge } from '@/app/api/nudgesApi';
+import { revealMatch } from '@/app/api/promptsApi';
 import { AppColors } from '@/app/components/AppColors';
 import ProfileView from '@/app/components/profile/ProfileView';
 import AppInput from '@/app/components/ui/AppInput';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
+import IconButton from '@/app/components/ui/IconButton';
 import Tag from '@/app/components/ui/Tag';
+import UserOptionsSheet from '@/app/components/ui/UserOptionsSheet';
 import {
   ArrowLeft,
   BookOpen,
@@ -14,10 +19,12 @@ import {
   Link,
   MapPin,
   MessageSquare,
+  MoreVertical,
   Plus,
   Star,
   User,
 } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Image,
@@ -121,7 +128,40 @@ function MatchSheetContent({
   onDismiss: () => void;
   onSubmit: () => void;
 }) {
+  const router = useRouter();
   const [showProfile, setShowProfile] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
+  const [nudgeSent, setNudgeSent] = useState(card.nudgeStatus?.sent ?? false);
+  const [isMutual, setIsMutual] = useState(card.nudgeStatus?.mutual ?? false);
+
+  const handleViewProfile = () => {
+    if (card.matchPromptId !== undefined && card.matchIndex !== undefined) {
+      revealMatch(card.matchPromptId, card.matchIndex).catch(() => {});
+    }
+    setShowProfile(true);
+  };
+
+  const handleExpressInterest = async () => {
+    setNudgeSent(true);
+    if (card.matchNetid && card.matchPromptId) {
+      try {
+        const response = await sendNudge(card.matchNetid, card.matchPromptId);
+        if (response.mutual) setIsMutual(true);
+      } catch {}
+    }
+  };
+
+  const handleOpenChat = async () => {
+    if (!card.matchNetid) return;
+    try {
+      const conversation = await createOrGetConversationByNetid(card.matchNetid);
+      setShowProfile(false);
+      onSubmit();
+      router.push(
+        `/chat-detail?conversationId=${conversation.id}&name=${card.matchName}&netid=${card.matchNetid}` as any
+      );
+    } catch {}
+  };
 
   return (
     <View style={styles.body}>
@@ -158,7 +198,7 @@ function MatchSheetContent({
         {card.matchProfile && (
           <Button
             title="View full profile"
-            onPress={() => { setShowProfile(true); onSubmit(); }}
+            onPress={handleViewProfile}
             variant="primary"
             fullWidth
           />
@@ -176,18 +216,54 @@ function MatchSheetContent({
         <Modal visible={showProfile} animationType="slide" statusBarTranslucent>
           <SafeAreaView style={styles.profileModal}>
             <View style={styles.profileModalHeader}>
-              <TouchableOpacity
+              <IconButton
                 onPress={() => setShowProfile(false)}
-                style={styles.backButton}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <ArrowLeft size={22} color={AppColors.foregroundDefault} />
-                <AppText variant="body">Back</AppText>
-              </TouchableOpacity>
+                variant="secondary"
+                icon={ArrowLeft}
+              />
+              <IconButton
+                onPress={() => setShowOptions(true)}
+                variant="secondary"
+                icon={MoreVertical}
+              />
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
               <ProfileView profile={card.matchProfile} />
             </ScrollView>
+            <View style={styles.profileModalFooter}>
+              <View style={styles.nudgeRow}>
+                <Button
+                  title={nudgeSent ? 'Interest sent!' : 'Express interest'}
+                  onPress={handleExpressInterest}
+                  variant="primary"
+                  fullWidth
+                  disabled={nudgeSent}
+                />
+                {isMutual && (
+                  <Button
+                    title="Open chat"
+                    onPress={handleOpenChat}
+                    variant="primary"
+                    iconLeft={MessageSquare}
+                    fullWidth
+                  />
+                )}
+              </View>
+              <Button
+                title="Pass"
+                onPress={() => setShowProfile(false)}
+                variant="secondary"
+                fullWidth
+              />
+            </View>
+            {card.matchNetid && (
+              <UserOptionsSheet
+                visible={showOptions}
+                onDismiss={() => setShowOptions(false)}
+                netid={card.matchNetid}
+                firstName={card.matchName}
+              />
+            )}
           </SafeAreaView>
         </Modal>
       )}
@@ -738,17 +814,30 @@ const styles = StyleSheet.create({
     backgroundColor: AppColors.backgroundDefault,
   },
   profileModalHeader: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: AppColors.backgroundDimmest,
-  },
-  backButton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    paddingTop: 52,
+    backgroundColor: AppColors.backgroundDefault,
   },
-
+  profileModalFooter: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 10,
+    borderTopWidth: 1,
+    borderTopColor: AppColors.backgroundDimmest,
+  },
+  nudgeRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
   // Profile action inline editors
   photoPlaceholder: {
     borderWidth: 2,
