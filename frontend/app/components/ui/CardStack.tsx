@@ -124,6 +124,7 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
 
   // ── Sheet expansion ───────────────────────────────────────────────────────
   const expandProgress = useRef(new Animated.Value(0)).current;
+  const overlayOpacity = useRef(new Animated.Value(1)).current;
   const sheetDragY = useRef(new Animated.Value(0)).current;
   const [isExpanded, setIsExpanded] = useState(false);
   const [cardRect, setCardRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
@@ -138,10 +139,12 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
   }, [cards]);
 
   // ── Card slot transforms (driven by panX on native thread) ───────────────
-  const midTranslateY = panX.interpolate({ inputRange: [-width, 0, width], outputRange: [0, -PEEK_GAP, 0], extrapolate: 'clamp' });
-  const midScale      = panX.interpolate({ inputRange: [-width, 0, width], outputRange: [1.0, 0.97, 1.0], extrapolate: 'clamp' });
+  // Mid/back cards only animate on Y — scale is intentionally excluded because
+  // Animated.add(interpolation, offset) is not guaranteed to update atomically
+  // on the native thread, causing a one-frame width snap on every card transition.
+  // Depth is conveyed by Y offset (PEEK_GAP) and the dim overlay instead.
+  const midTranslateY  = panX.interpolate({ inputRange: [-width, 0, width], outputRange: [0, -PEEK_GAP, 0], extrapolate: 'clamp' });
   const backTranslateY = panX.interpolate({ inputRange: [-width, 0, width], outputRange: [-PEEK_GAP, -PEEK_GAP * 2, -PEEK_GAP], extrapolate: 'clamp' });
-  const backScale      = panX.interpolate({ inputRange: [-width, 0, width], outputRange: [0.97, 0.94, 0.97], extrapolate: 'clamp' });
   const topRotate      = panX.interpolate({ inputRange: [-200, 0, 200], outputRange: ['-8deg', '0deg', '8deg'], extrapolate: 'clamp' });
 
   const midDimOpacity = dimProgress.interpolate({ inputRange: [0, 1], outputRange: [0, 0.20] });
@@ -151,13 +154,16 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
     hapticRef.current.heavy();
     const flyDist = width + 240;
 
-    // Animate panX/panY out AND fade the fill button back to 0 simultaneously
-    // so the skip button doesn't stay frozen at the mid-swipe position.
+    // Animate panX/panY out, fade the fill button, fade the top card out, and
+    // reveal the mid card (dimProgress→0) all simultaneously so the skip feels
+    // like the card is going out of focus while the next card comes forward.
     Animated.parallel([
-      Animated.timing(panX,     { toValue: dirX * flyDist, duration: 300, useNativeDriver: true }),
-      Animated.timing(panY,     { toValue: dirY * flyDist, duration: 300, useNativeDriver: true }),
-      Animated.timing(panXFill, { toValue: 0, duration: 300, useNativeDriver: false }),
-      Animated.timing(panYFill, { toValue: 0, duration: 300, useNativeDriver: false }),
+      Animated.timing(panX,            { toValue: dirX * flyDist, duration: 300, useNativeDriver: true }),
+      Animated.timing(panY,            { toValue: dirY * flyDist, duration: 300, useNativeDriver: true }),
+      Animated.timing(panXFill,        { toValue: 0, duration: 300, useNativeDriver: false }),
+      Animated.timing(panYFill,        { toValue: 0, duration: 300, useNativeDriver: false }),
+      Animated.timing(topSlotOpacity,  { toValue: 0, duration: 220, useNativeDriver: true }),
+      Animated.timing(dimProgress,     { toValue: 0, duration: 300, useNativeDriver: false }),
     ]).start(() => {
       // The top card is now fully off-screen. Mid/back are at their "revealed"
       // positions (scale=1, translateY=0 for mid; scale=0.97, translateY=−PEEK_GAP
@@ -192,14 +198,14 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
     pendingRestore.current = false;
     // Top slot: new card is now in the correct position — reveal it.
     Animated.timing(topSlotOpacity, { toValue: 1, duration: 0, useNativeDriver: true }).start();
-    Animated.spring(dimProgress, { toValue: 1, useNativeDriver: false, tension: 55, friction: 12 }).start();
+    Animated.spring(dimProgress, { toValue: 1, useNativeDriver: false, tension: 45, friction: 18 }).start();
     // Mid card springs from revealed position (offset=PEEK_GAP) to behind position.
     if (cards.length >= 2) {
-      Animated.spring(midCardOffsetY, { toValue: 0, useNativeDriver: true, tension: 55, friction: 12 }).start();
+      Animated.spring(midCardOffsetY,  { toValue: 0, useNativeDriver: true, tension: 45, friction: 18 }).start();
     }
     // Back card springs from old-mid position (offset=PEEK_GAP) to behind position.
     if (cards.length >= 3) {
-      Animated.spring(backCardOffsetY, { toValue: 0, useNativeDriver: true, tension: 55, friction: 12 }).start();
+      Animated.spring(backCardOffsetY, { toValue: 0, useNativeDriver: true, tension: 45, friction: 18 }).start();
     }
   }, [topIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -247,6 +253,7 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
   const openSheet = useCallback(() => {
     measureRef.current?.measureInWindow((x, y, w, h) => {
       sheetDragY.setValue(0);
+      overlayOpacity.setValue(1);
       // Set expandProgress to a tiny non-zero value before mounting the Modal
       // so it never renders at exactly 0 (which would flash the card at its
       // original position for one frame before the spring starts).
@@ -255,19 +262,28 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
       setIsExpanded(true);
       Animated.spring(expandProgress, { toValue: 1, useNativeDriver: false, tension: 55, friction: 13 }).start();
     });
-  }, [expandProgress, sheetDragY]);
+  }, [expandProgress, overlayOpacity, sheetDragY]);
 
   const closeSheet = useCallback(() => {
     sheetDragY.setValue(0);
-    Animated.spring(expandProgress, { toValue: 0, useNativeDriver: false, tension: 70, friction: 14 })
-      .start(({ finished }) => {
-        if (finished) {
-          setIsExpanded(false);
-          setCardRect(null);
-          expandProgress.setValue(0);
-        }
-      });
-  }, [expandProgress, sheetDragY]);
+    // Both values spring with the same params as the open animation so close
+    // feels like an exact reversal. overlayOpacity reaching 0 in sync with
+    // expandProgress also prevents CardContent from appearing stretched inside
+    // a too-large overlay near the end of the collapse.
+    Animated.parallel([
+      Animated.spring(overlayOpacity,  { toValue: 0, useNativeDriver: false, tension: 55, friction: 13 }),
+      Animated.spring(expandProgress,  { toValue: 0, useNativeDriver: false, tension: 55, friction: 13 }),
+    ]).start(({ finished }) => {
+      if (finished) {
+        setIsExpanded(false);
+        setCardRect(null);
+        expandProgress.setValue(0);
+        // overlayOpacity is intentionally NOT reset here — resetting it before
+        // React commits the unmount causes a one-frame flash where the overlay
+        // briefly snaps back to full opacity at card size. openSheet resets it.
+      }
+    });
+  }, [expandProgress, overlayOpacity, sheetDragY]);
 
   closeSheetRef.current = closeSheet;
 
@@ -407,7 +423,6 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
             opacity: backSlotOpacity,
             transform: [
               { translateY: Animated.add(backTranslateY, backCardOffsetY) },
-              { scale: backScale },
             ],
           }]}>
             <View style={styles.cardClip} pointerEvents="none">
@@ -420,7 +435,7 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
           <Animated.View style={[styles.cardShadow, {
             zIndex: 2,
             opacity: midSlotOpacity,
-            transform: [{ translateY: Animated.add(midTranslateY, midCardOffsetY) }, { scale: midScale }],
+            transform: [{ translateY: Animated.add(midTranslateY, midCardOffsetY) }],
           }]}>
             <View style={styles.cardClip} pointerEvents="none">
               <CardContent card={midCard} />
@@ -472,6 +487,7 @@ export default function CardStack({ cards: initialCards, onCardDismissed }: Card
           </Pressable>
 
           <Animated.View style={[styles.sheetOverlay, {
+            opacity: overlayOpacity,
             top: overlayTop,
             left: overlayLeft,
             right: overlayRight,
@@ -549,9 +565,9 @@ function SwipeProgressButton({ panXFill, panYFill, onPress }: { panXFill: Animat
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 16 },
+  container: { flex: 1, paddingHorizontal: 16, overflow: 'visible' },
   measureTarget: { position: 'absolute', left: 0, right: 0, zIndex: -1 },
-  stackArea: { position: 'relative', marginBottom: 20 },
+  stackArea: { position: 'relative', marginBottom: 20, overflow: 'visible' },
 
   cardShadow: {
     position: 'absolute', top: PEEK_GAP * 2, left: 0, right: 0, height: CARD_HEIGHT,

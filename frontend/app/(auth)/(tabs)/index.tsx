@@ -36,6 +36,7 @@ import {
 } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Check,
   Heart,
@@ -133,6 +134,7 @@ interface MatchWithProfile {
 
 export default function HomeScreen() {
   useThemeAware();
+  const insets = useSafeAreaInsets();
 
   const [activePrompt, setActivePrompt] = useState<WeeklyPromptResponse | null>(
     null
@@ -190,23 +192,9 @@ export default function HomeScreen() {
     try {
       let prompt: WeeklyPromptResponse | null = null;
 
-      try {
-        prompt = await getActivePrompt();
-        setActivePrompt(prompt);
-      } catch {
-        setActivePrompt(null);
-      }
-
-      if (prompt) {
-        try {
-          const answer: WeeklyPromptAnswerResponse = await getPromptAnswer(
-            prompt.promptId
-          );
-          setUserAnswer(answer.answer);
-        } catch {
-          setUserAnswer('');
-        }
-      }
+      // TODO: wire up the answer-prompt header button once the weekly prompt
+      // pipeline is ready. For now, keep activePrompt null so the button stays hidden.
+      setActivePrompt(null);
 
       try {
         const history: WeeklyMatchResponse[] = await getMatchHistory(10);
@@ -418,7 +406,7 @@ export default function HomeScreen() {
       </View>
 
       {/* Card stack — flex:1 so it fills remaining space */}
-      <View style={styles.stackContainer}>
+      <View style={[styles.stackContainer, { paddingBottom: 32 + insets.bottom }]}>
         <CardStack
           key={`${activeFilter}-${tourSeen}`}
           cards={dailyCards}
@@ -524,7 +512,6 @@ const styles = StyleSheet.create({
   },
   stackContainer: {
     flex: 1,
-    paddingBottom: 32,
   },
   titleRow: {
     flexDirection: 'row',
