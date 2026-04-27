@@ -44,7 +44,7 @@ function getSheetTitle(card: DailyCard): string {
   if (card.type === 'tutorial') return card.title;
   if (card.type === 'profile_action') return card.actionTitle;
   if (card.type === 'preference') return card.question;
-  if (card.type === 'weekly_prompt') return "This week's prompt";
+  if (card.type === 'weekly_prompt') return card.promptText;
   return card.matchName ? `Meet ${card.matchName}` : 'Your match';
 }
 
