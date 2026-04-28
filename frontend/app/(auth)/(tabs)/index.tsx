@@ -1,11 +1,7 @@
 // Main Home Screen — Card-based daily engagement
-import { getCurrentUser } from '@/app/api/authService';
-import { getConversations } from '@/app/api/chatApi';
 import {
-  getActivePrompt,
   getBatchMatchData,
   getMatchHistory,
-  getPromptAnswer,
   submitPromptAnswer,
 } from '@/app/api/promptsApi';
 import { AppColors } from '@/app/components/AppColors';
@@ -20,7 +16,6 @@ import ListItemWrapper from '@/app/components/ui/ListItemWrapper';
 import Sheet from '@/app/components/ui/Sheet';
 import { useThemeAware } from '@/app/contexts/ThemeContext';
 import {
-  MOCK_MATCH_CARDS,
   PREFERENCE_CARDS,
   PROFILE_ACTION_CARDS,
   WEEKLY_PROMPT_CARDS,
@@ -31,12 +26,10 @@ import {
   NudgeStatusResponse,
   ProfileResponse,
   WeeklyMatchResponse,
-  WeeklyPromptAnswerResponse,
   WeeklyPromptResponse,
 } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Check,
   Heart,
@@ -55,6 +48,7 @@ import React, {
   useState,
 } from 'react';
 import { StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TOUR_STORAGE_KEY = 'home_tour_seen_v1';
 
@@ -141,11 +135,6 @@ export default function HomeScreen() {
   );
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [currentMatches, setCurrentMatches] = useState<MatchWithProfile[]>([]);
-  // ── TEMPORARY PLACEHOLDER ────────────────────────────────────────────────────
-  // Seeds match cards from existing chat conversations so the card stack isn't
-  // empty during development. Remove once the real match pipeline is wired up.
-  const [chatMatchCards, setChatMatchCards] = useState<DailyCard[]>([]);
-  // ─────────────────────────────────────────────────────────────────────────────
   const [showPromptSheet, setShowPromptSheet] = useState(false);
   const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [activeFilter, setActiveFilter] = useState<
@@ -256,34 +245,6 @@ export default function HomeScreen() {
       } catch {
         setCurrentMatches([]);
       }
-
-      // ── TEMPORARY PLACEHOLDER ───────────────────────────────────────────────
-      // Builds match cards from existing chat conversations for dev/testing.
-      // Remove this block once the real weekly-match pipeline populates the feed.
-      try {
-        const convos = await getConversations();
-        const currentUid = getCurrentUser()?.uid;
-        const cards: DailyCard[] = convos
-          .filter((c) => c.lastMessage)
-          .flatMap((c) => {
-            const otherUid = c.participantIds.find((id) => id !== currentUid);
-            if (!otherUid) return [];
-            const other = c.participants[otherUid];
-            if (!other || other.deleted) return [];
-            return [
-              {
-                id: `chat-match-${c.id}`,
-                type: 'match' as const,
-                matchName: other.name,
-                matchImage: other.image ?? undefined,
-              },
-            ];
-          });
-        setChatMatchCards(cards);
-      } catch {
-        // Non-critical — silently ignore
-      }
-      // ────────────────────────────────────────────────────────────────────────
     } catch (error) {
       console.error('Error loading data:', error);
     }
@@ -328,26 +289,19 @@ export default function HomeScreen() {
           nudgeStatus: m.nudgeStatus,
         };
       });
-    // Fallback chain: real API matches → chat contacts (temp) → static mocks
-    const matchCards: DailyCard[] =
-      apiMatchCards.length > 0
-        ? apiMatchCards
-        : chatMatchCards.length > 0
-          ? chatMatchCards
-          : MOCK_MATCH_CARDS;
 
     const profileCards = PROFILE_ACTION_CARDS.filter((c) => !c.completed);
     const result: DailyCard[] = [];
     const maxLen = Math.max(
       profileCards.length,
       PREFERENCE_CARDS.length,
-      matchCards.length,
+      apiMatchCards.length,
       WEEKLY_PROMPT_CARDS.length
     );
     for (let i = 0; i < maxLen; i++) {
       if (i < profileCards.length) result.push(profileCards[i]);
       if (i < PREFERENCE_CARDS.length) result.push(PREFERENCE_CARDS[i]);
-      if (i < matchCards.length) result.push(matchCards[i]);
+      if (i < apiMatchCards.length) result.push(apiMatchCards[i]);
       if (i < WEEKLY_PROMPT_CARDS.length) result.push(WEEKLY_PROMPT_CARDS[i]);
     }
 
@@ -358,7 +312,7 @@ export default function HomeScreen() {
     const filtered =
       activeFilter === 'all' ? all : all.filter((c) => c.type === activeFilter);
     return tourSeen ? filtered : [...TUTORIAL_CARDS, ...filtered];
-  }, [currentMatches, chatMatchCards, activeFilter, tourSeen]);
+  }, [currentMatches, activeFilter, tourSeen]);
 
   return (
     <View style={styles.container}>
@@ -406,7 +360,9 @@ export default function HomeScreen() {
       </View>
 
       {/* Card stack — flex:1 so it fills remaining space */}
-      <View style={[styles.stackContainer, { paddingBottom: 32 + insets.bottom }]}>
+      <View
+        style={[styles.stackContainer, { paddingBottom: 32 + insets.bottom }]}
+      >
         <CardStack
           key={`${activeFilter}-${tourSeen}`}
           cards={dailyCards}

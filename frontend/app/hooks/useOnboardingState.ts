@@ -158,41 +158,15 @@ export function useOnboardingState() {
         return data.sexualOrientation.length > 0;
 
       case 9:
-        // Ethnicity: select at least one
-        return Array.isArray(data.ethnicity) && data.ethnicity.length > 0;
-
-      case 10:
         // Interested in: At least one selected
         return data.interestedIn.length > 0;
 
+      case 10:
+        // Photos: optional for now
+        return true;
+
       case 11:
-        // Photos: 3-6 photos required
-        // return data.pictures.length >= 3 && data.pictures.length <= 6;
-        return true;
-
-      case 12:
-        // Prompts: 1-3 prompts required, each with answer
-        // const validPrompts = data.prompts.filter(
-        //   (p) => p.question && p.answer.trim() !== ''
-        // );
-        // return validPrompts.length >= 1 && validPrompts.length <= 3;
-        return true;
-
-      case 13:
-        // Clubs: Optional, always valid
-        return true;
-
-      case 14:
-        // Social Links: Optional, always valid
-        // Could add URL validation here if needed
-        return true;
-
-      case 15:
-        // Interests: Optional, always valid
-        return true;
-
-      case 16:
-        // Final welcome screen: Always valid
+        // Welcome screen: always valid
         return true;
 
       default:

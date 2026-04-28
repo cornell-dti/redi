@@ -1,5 +1,4 @@
 import {
-  ETHNICITY_OPTIONS,
   GENDER_OPTIONS,
   INTERESTED_IN_OPTIONS,
   PRONOUN_OPTIONS,
@@ -60,7 +59,7 @@ import {
   validateProfilePayload,
 } from '../utils/onboardingTransform';
 
-const TOTAL_STEPS = 15; // Steps 2-16 (Step 1 is in home.tsx)
+const TOTAL_STEPS = 10; // Steps 2-11 (Step 1 is in home.tsx)
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const PROMPT_ITEM_HEIGHT = 120; // Approximate height of a prompt selector
 
@@ -218,11 +217,7 @@ export default function CreateProfileScreen() {
       return;
     }
 
-    if (currentStep === 14) {
-      normalizeSocialMediaLinks();
-    }
-
-    if (currentStep < 16) {
+    if (currentStep < 11) {
       setDirection('forward');
       setCurrentStep(currentStep + 1);
     } else {
@@ -237,82 +232,6 @@ export default function CreateProfileScreen() {
     } else if (currentStep === 2) {
       // Go back to home/signup screen
       router.replace('/home' as any);
-    }
-  };
-
-  const normalizeSocialMediaLinks = () => {
-    // Normalize LinkedIn
-    if (data.linkedIn) {
-      let linkedin = data.linkedIn.trim();
-      // Remove @ if present
-      linkedin = linkedin.replace(/^@/, '');
-      // Remove https:// or http:// if present
-      linkedin = linkedin.replace(/^https?:\/\//, '');
-      // Remove www. if present
-      linkedin = linkedin.replace(/^www\./, '');
-      // If it doesn't start with linkedin.com, add it
-      if (!linkedin.startsWith('linkedin.com/')) {
-        // If it's just a username, add the full path
-        if (!linkedin.includes('/')) {
-          linkedin = `linkedin.com/in/${linkedin}`;
-        } else {
-          linkedin = `linkedin.com/${linkedin}`;
-        }
-      }
-      updateField('linkedIn', `https://${linkedin}`);
-    }
-
-    // Normalize Instagram - extract username only
-    if (data.instagram) {
-      let instagram = data.instagram.trim();
-      // Remove @ if present
-      instagram = instagram.replace(/^@/, '');
-      // Remove https:// or http:// if present
-      instagram = instagram.replace(/^https?:\/\//, '');
-      // Remove www. if present
-      instagram = instagram.replace(/^www\./, '');
-      // Remove instagram.com/ if present
-      instagram = instagram.replace(/^instagram\.com\//, '');
-      // Store just the username (backend expects username only)
-      updateField('instagram', instagram);
-    }
-
-    // Normalize Snapchat - extract username only
-    if (data.snapchat) {
-      let snapchat = data.snapchat.trim();
-      // Remove @ if present
-      snapchat = snapchat.replace(/^@/, '');
-      // Remove https:// or http:// if present
-      snapchat = snapchat.replace(/^https?:\/\//, '');
-      // Remove www. if present
-      snapchat = snapchat.replace(/^www\./, '');
-      // Remove snapchat.com/add/ if present
-      snapchat = snapchat.replace(/^snapchat\.com\/add\//, '');
-      // Store just the username (backend expects username only)
-      updateField('snapchat', snapchat);
-    }
-
-    // Normalize GitHub - extract username only
-    if (data.github) {
-      let github = data.github.trim();
-      // Remove @ if present
-      github = github.replace(/^@/, '');
-      // Remove https:// or http:// if present
-      github = github.replace(/^https?:\/\//, '');
-      // Remove www. if present
-      github = github.replace(/^www\./, '');
-      // Remove github.com/ if present
-      github = github.replace(/^github\.com\//, '');
-      // Store just the username (backend expects username only)
-      updateField('github', github);
-    }
-
-    // Normalize Website (ensure it has https://)
-    if (data.website) {
-      let website = data.website.trim();
-      if (!website.startsWith('http://') && !website.startsWith('https://')) {
-        updateField('website', `https://${website}`);
-      }
     }
   };
 
@@ -685,66 +604,66 @@ export default function CreateProfileScreen() {
           </View>
         );
 
+      // case 9:
+      //   return (
+      //     <View style={styles.stepContainer}>
+      //       <OnboardingTitle
+      //         title="What's your ethnicity?"
+      //         subtitle="Optional - this helps you connect with people who share similar cultural backgrounds."
+      //       />
+      //       <ListItemWrapper>
+      //         {ETHNICITY_OPTIONS.map((ethnicity) => {
+      //           const isPreferNotToSay = ethnicity === 'Prefer not to say';
+      //           const hasPreferNotToSay =
+      //             data.ethnicity?.includes('Prefer not to say');
+      //           const hasOtherEthnicity =
+      //             data.ethnicity &&
+      //             data.ethnicity.some((e) => e !== 'Prefer not to say');
+
+      //           // Disable "Prefer not to say" if other ethnicities are selected
+      //           // Disable other ethnicities if "Prefer not to say" is selected
+      //           const isDisabled = isPreferNotToSay
+      //             ? hasOtherEthnicity
+      //             : hasPreferNotToSay;
+
+      //           return (
+      //             <ListItem
+      //               key={ethnicity}
+      //               title={ethnicity}
+      //               selected={data.ethnicity?.includes(ethnicity)}
+      //               disabled={isDisabled}
+      //               onPress={() => {
+      //                 if (isPreferNotToSay) {
+      //                   // If clicking "Prefer not to say", toggle it exclusively
+      //                   if (hasPreferNotToSay) {
+      //                     // Already selected, unselect it
+      //                     updateField('ethnicity', []);
+      //                   } else {
+      //                     // Not selected, set it exclusively
+      //                     updateField('ethnicity', ['Prefer not to say']);
+      //                   }
+      //                 } else {
+      //                   // If clicking other ethnicity and "Prefer not to say" is selected, remove it first
+      //                   if (hasPreferNotToSay) {
+      //                     updateField('ethnicity', [ethnicity]);
+      //                   } else {
+      //                     toggleArrayItem('ethnicity', ethnicity);
+      //                   }
+      //                 }
+      //               }}
+      //               right={
+      //                 data.ethnicity?.includes(ethnicity) ? (
+      //                   <Check size={20} color={AppColors.accentDefault} />
+      //                 ) : null
+      //               }
+      //             />
+      //           );
+      //         })}
+      //       </ListItemWrapper>
+      //     </View>
+      //   );
+
       case 9:
-        return (
-          <View style={styles.stepContainer}>
-            <OnboardingTitle
-              title="What's your ethnicity?"
-              subtitle="Optional - this helps you connect with people who share similar cultural backgrounds."
-            />
-            <ListItemWrapper>
-              {ETHNICITY_OPTIONS.map((ethnicity) => {
-                const isPreferNotToSay = ethnicity === 'Prefer not to say';
-                const hasPreferNotToSay =
-                  data.ethnicity?.includes('Prefer not to say');
-                const hasOtherEthnicity =
-                  data.ethnicity &&
-                  data.ethnicity.some((e) => e !== 'Prefer not to say');
-
-                // Disable "Prefer not to say" if other ethnicities are selected
-                // Disable other ethnicities if "Prefer not to say" is selected
-                const isDisabled = isPreferNotToSay
-                  ? hasOtherEthnicity
-                  : hasPreferNotToSay;
-
-                return (
-                  <ListItem
-                    key={ethnicity}
-                    title={ethnicity}
-                    selected={data.ethnicity?.includes(ethnicity)}
-                    disabled={isDisabled}
-                    onPress={() => {
-                      if (isPreferNotToSay) {
-                        // If clicking "Prefer not to say", toggle it exclusively
-                        if (hasPreferNotToSay) {
-                          // Already selected, unselect it
-                          updateField('ethnicity', []);
-                        } else {
-                          // Not selected, set it exclusively
-                          updateField('ethnicity', ['Prefer not to say']);
-                        }
-                      } else {
-                        // If clicking other ethnicity and "Prefer not to say" is selected, remove it first
-                        if (hasPreferNotToSay) {
-                          updateField('ethnicity', [ethnicity]);
-                        } else {
-                          toggleArrayItem('ethnicity', ethnicity);
-                        }
-                      }
-                    }}
-                    right={
-                      data.ethnicity?.includes(ethnicity) ? (
-                        <Check size={20} color={AppColors.accentDefault} />
-                      ) : null
-                    }
-                  />
-                );
-              })}
-            </ListItemWrapper>
-          </View>
-        );
-
-      case 10:
         return (
           <View style={styles.stepContainer}>
             <OnboardingTitle
@@ -769,7 +688,7 @@ export default function CreateProfileScreen() {
           </View>
         );
 
-      case 11:
+      case 10:
         return (
           <View style={styles.stepContainer}>
             <OnboardingTitle
@@ -785,241 +704,241 @@ export default function CreateProfileScreen() {
           </View>
         );
 
-      case 12:
-        return (
-          <View style={styles.stepContainer}>
-            <OnboardingTitle
-              title="Select 1-3 prompts for your profile"
-              subtitle="Optional - Add prompts for fun conversation starters."
-            />
-            <View style={styles.promptsContainer}>
-              {data.prompts.map((prompt, index) => {
-                const isDragging = draggingPromptIndex === index;
-                const shouldShowGhost =
-                  hoverPromptIndex === index &&
-                  draggingPromptIndex !== null &&
-                  draggingPromptIndex !== hoverPromptIndex;
+      // case 12:
+      //   return (
+      //     <View style={styles.stepContainer}>
+      //       <OnboardingTitle
+      //         title="Select 1-3 prompts for your profile"
+      //         subtitle="Optional - Add prompts for fun conversation starters."
+      //       />
+      //       <View style={styles.promptsContainer}>
+      //         {data.prompts.map((prompt, index) => {
+      //           const isDragging = draggingPromptIndex === index;
+      //           const shouldShowGhost =
+      //             hoverPromptIndex === index &&
+      //             draggingPromptIndex !== null &&
+      //             draggingPromptIndex !== hoverPromptIndex;
 
-                return (
-                  <View key={prompt.id} style={styles.promptItemWrapper}>
-                    {shouldShowGhost && draggingPromptIndex !== null && (
-                      <View style={styles.promptGhostPlaceholder}>
-                        <View style={styles.promptWithHandle}>
-                          <View style={styles.promptDragHandle}>
-                            <GripVertical
-                              size={20}
-                              color={AppColors.foregroundDimmer}
-                            />
-                          </View>
-                          <View
-                            style={[
-                              styles.promptSelectorContainer,
-                              { opacity: 0.3 },
-                            ]}
-                          >
-                            <PromptSelector
-                              prompt={data.prompts[draggingPromptIndex]}
-                              onUpdate={() => {}}
-                              onRemove={() => {}}
-                              canRemove={true}
-                            />
-                          </View>
-                        </View>
-                      </View>
-                    )}
-                    <DraggablePromptSelector
-                      prompt={prompt}
-                      index={index}
-                      isDragging={isDragging}
-                      onUpdate={(updated) => updatePrompt(prompt.id, updated)}
-                      onRemove={() => removePrompt(prompt.id)}
-                      onDragStart={() => setDraggingPromptIndex(index)}
-                      onDragEnd={(toIndex) => {
-                        reorderPrompts(index, toIndex);
-                        setDraggingPromptIndex(null);
-                        setHoverPromptIndex(null);
-                      }}
-                      onHoverChange={setHoverPromptIndex}
-                      canRemove={true}
-                      totalPrompts={data.prompts.length}
-                      onHaptic={() => haptic.medium()}
-                    />
-                  </View>
-                );
-              })}
-              {data.prompts.length < 3 && (
-                <Button
-                  title={
-                    data.prompts.length === 0 ? 'Select prompt' : 'Add prompt'
-                  }
-                  onPress={addPrompt}
-                  variant="secondary"
-                  fullWidth
-                  iconLeft={Plus}
-                />
-              )}
-            </View>
-          </View>
-        );
+      //           return (
+      //             <View key={prompt.id} style={styles.promptItemWrapper}>
+      //               {shouldShowGhost && draggingPromptIndex !== null && (
+      //                 <View style={styles.promptGhostPlaceholder}>
+      //                   <View style={styles.promptWithHandle}>
+      //                     <View style={styles.promptDragHandle}>
+      //                       <GripVertical
+      //                         size={20}
+      //                         color={AppColors.foregroundDimmer}
+      //                       />
+      //                     </View>
+      //                     <View
+      //                       style={[
+      //                         styles.promptSelectorContainer,
+      //                         { opacity: 0.3 },
+      //                       ]}
+      //                     >
+      //                       <PromptSelector
+      //                         prompt={data.prompts[draggingPromptIndex]}
+      //                         onUpdate={() => {}}
+      //                         onRemove={() => {}}
+      //                         canRemove={true}
+      //                       />
+      //                     </View>
+      //                   </View>
+      //                 </View>
+      //               )}
+      //               <DraggablePromptSelector
+      //                 prompt={prompt}
+      //                 index={index}
+      //                 isDragging={isDragging}
+      //                 onUpdate={(updated) => updatePrompt(prompt.id, updated)}
+      //                 onRemove={() => removePrompt(prompt.id)}
+      //                 onDragStart={() => setDraggingPromptIndex(index)}
+      //                 onDragEnd={(toIndex) => {
+      //                   reorderPrompts(index, toIndex);
+      //                   setDraggingPromptIndex(null);
+      //                   setHoverPromptIndex(null);
+      //                 }}
+      //                 onHoverChange={setHoverPromptIndex}
+      //                 canRemove={true}
+      //                 totalPrompts={data.prompts.length}
+      //                 onHaptic={() => haptic.medium()}
+      //               />
+      //             </View>
+      //           );
+      //         })}
+      //         {data.prompts.length < 3 && (
+      //           <Button
+      //             title={
+      //               data.prompts.length === 0 ? 'Select prompt' : 'Add prompt'
+      //             }
+      //             onPress={addPrompt}
+      //             variant="secondary"
+      //             fullWidth
+      //             iconLeft={Plus}
+      //           />
+      //         )}
+      //       </View>
+      //     </View>
+      //   );
 
-      case 13:
-        return (
-          <View style={styles.stepContainer}>
-            <OnboardingTitle
-              title="What clubs are you in?"
-              subtitle="Optional - Add any Cornell clubs or organizations you're a part of."
-            />
+      // case 13:
+      //   return (
+      //     <View style={styles.stepContainer}>
+      //       <OnboardingTitle
+      //         title="What clubs are you in?"
+      //         subtitle="Optional - Add any Cornell clubs or organizations you're a part of."
+      //       />
 
-            {data.clubs.length > 0 && (
-              <View style={styles.majorTags}>
-                {data.clubs.map((club, index) => (
-                  <Tag
-                    key={club}
-                    label={club}
-                    dismissible
-                    onDismiss={() => removeClub(index)}
-                  />
-                ))}
-              </View>
-            )}
+      //       {data.clubs.length > 0 && (
+      //         <View style={styles.majorTags}>
+      //           {data.clubs.map((club, index) => (
+      //             <Tag
+      //               key={club}
+      //               label={club}
+      //               dismissible
+      //               onDismiss={() => removeClub(index)}
+      //             />
+      //           ))}
+      //         </View>
+      //       )}
 
-            <Button
-              title="Add club"
-              iconLeft={Plus}
-              onPress={() => setShowClubInput(true)}
-              variant="secondary"
-            />
+      //       <Button
+      //         title="Add club"
+      //         iconLeft={Plus}
+      //         onPress={() => setShowClubInput(true)}
+      //         variant="secondary"
+      //       />
 
-            <Sheet
-              visible={showClubInput}
-              onDismiss={() => {
-                setShowClubInput(false);
-                setClubInput('');
-              }}
-              title="Add club"
-              bottomRound={false}
-            >
-              <View style={styles.majorSheetContent}>
-                <AppInput
-                  autoFocus
-                  placeholder="Enter club name"
-                  value={clubInput}
-                  onChangeText={setClubInput}
-                  autoCapitalize="words"
-                  returnKeyType="done"
-                  onSubmitEditing={addClub}
-                />
-                <Button
-                  title="Add"
-                  onPress={addClub}
-                  variant="primary"
-                  fullWidth
-                  iconLeft={Plus}
-                />
-              </View>
-            </Sheet>
-          </View>
-        );
+      //       <Sheet
+      //         visible={showClubInput}
+      //         onDismiss={() => {
+      //           setShowClubInput(false);
+      //           setClubInput('');
+      //         }}
+      //         title="Add club"
+      //         bottomRound={false}
+      //       >
+      //         <View style={styles.majorSheetContent}>
+      //           <AppInput
+      //             autoFocus
+      //             placeholder="Enter club name"
+      //             value={clubInput}
+      //             onChangeText={setClubInput}
+      //             autoCapitalize="words"
+      //             returnKeyType="done"
+      //             onSubmitEditing={addClub}
+      //           />
+      //           <Button
+      //             title="Add"
+      //             onPress={addClub}
+      //             variant="primary"
+      //             fullWidth
+      //             iconLeft={Plus}
+      //           />
+      //         </View>
+      //       </Sheet>
+      //     </View>
+      //   );
 
-      case 14:
-        return (
-          <View style={styles.stepContainer}>
-            <OnboardingTitle
-              title="Connect your social media"
-              subtitle="All fields are optional - add any you'd like to share"
-            />
-            <AppInput
-              label="Instagram"
-              placeholder="@username"
-              value={data.instagram}
-              onChangeText={(text) => updateField('instagram', text)}
-            />
-            <AppInput
-              label="Snapchat"
-              placeholder="username"
-              value={data.snapchat}
-              onChangeText={(text) => updateField('snapchat', text)}
-            />
-            <AppInput
-              label="LinkedIn"
-              placeholder="linkedin.com/in/username"
-              value={data.linkedIn}
-              onChangeText={(text) => updateField('linkedIn', text)}
-            />
-            <AppInput
-              label="GitHub"
-              placeholder="github.com/username"
-              value={data.github}
-              onChangeText={(text) => updateField('github', text)}
-            />
-            <AppInput
-              label="Personal Website"
-              placeholder="https://yourwebsite.com"
-              value={data.website}
-              onChangeText={(text) => updateField('website', text)}
-            />
-          </View>
-        );
+      // case 14:
+      //   return (
+      //     <View style={styles.stepContainer}>
+      //       <OnboardingTitle
+      //         title="Connect your social media"
+      //         subtitle="All fields are optional - add any you'd like to share"
+      //       />
+      //       <AppInput
+      //         label="Instagram"
+      //         placeholder="@username"
+      //         value={data.instagram}
+      //         onChangeText={(text) => updateField('instagram', text)}
+      //       />
+      //       <AppInput
+      //         label="Snapchat"
+      //         placeholder="username"
+      //         value={data.snapchat}
+      //         onChangeText={(text) => updateField('snapchat', text)}
+      //       />
+      //       <AppInput
+      //         label="LinkedIn"
+      //         placeholder="linkedin.com/in/username"
+      //         value={data.linkedIn}
+      //         onChangeText={(text) => updateField('linkedIn', text)}
+      //       />
+      //       <AppInput
+      //         label="GitHub"
+      //         placeholder="github.com/username"
+      //         value={data.github}
+      //         onChangeText={(text) => updateField('github', text)}
+      //       />
+      //       <AppInput
+      //         label="Personal Website"
+      //         placeholder="https://yourwebsite.com"
+      //         value={data.website}
+      //         onChangeText={(text) => updateField('website', text)}
+      //       />
+      //     </View>
+      //   );
 
-      case 15:
-        return (
-          <View style={styles.stepContainer}>
-            <OnboardingTitle
-              title="What are your interests?"
-              subtitle="Share what you're passionate about"
-            />
+      // case 15:
+      //   return (
+      //     <View style={styles.stepContainer}>
+      //       <OnboardingTitle
+      //         title="What are your interests?"
+      //         subtitle="Share what you're passionate about"
+      //       />
 
-            {data.interests.length > 0 && (
-              <View style={styles.majorTags}>
-                {data.interests.map((interest, index) => (
-                  <Tag
-                    key={interest}
-                    label={interest}
-                    dismissible
-                    onDismiss={() => removeInterest(index)}
-                  />
-                ))}
-              </View>
-            )}
+      //       {data.interests.length > 0 && (
+      //         <View style={styles.majorTags}>
+      //           {data.interests.map((interest, index) => (
+      //             <Tag
+      //               key={interest}
+      //               label={interest}
+      //               dismissible
+      //               onDismiss={() => removeInterest(index)}
+      //             />
+      //           ))}
+      //         </View>
+      //       )}
 
-            <Button
-              title="Add interest"
-              iconLeft={Plus}
-              onPress={() => setShowInterestInput(true)}
-              variant="secondary"
-            />
+      //       <Button
+      //         title="Add interest"
+      //         iconLeft={Plus}
+      //         onPress={() => setShowInterestInput(true)}
+      //         variant="secondary"
+      //       />
 
-            <Sheet
-              visible={showInterestInput}
-              onDismiss={() => {
-                setShowInterestInput(false);
-                setInterestInput('');
-              }}
-              title="Add interest"
-              bottomRound={false}
-            >
-              <View style={styles.majorSheetContent}>
-                <AppInput
-                  autoFocus
-                  placeholder="Enter an interest"
-                  value={interestInput}
-                  onChangeText={setInterestInput}
-                  returnKeyType="done"
-                  onSubmitEditing={addInterest}
-                />
-                <Button
-                  title="Add"
-                  onPress={addInterest}
-                  variant="primary"
-                  fullWidth
-                  iconLeft={Plus}
-                />
-              </View>
-            </Sheet>
-          </View>
-        );
+      //       <Sheet
+      //         visible={showInterestInput}
+      //         onDismiss={() => {
+      //           setShowInterestInput(false);
+      //           setInterestInput('');
+      //         }}
+      //         title="Add interest"
+      //         bottomRound={false}
+      //       >
+      //         <View style={styles.majorSheetContent}>
+      //           <AppInput
+      //             autoFocus
+      //             placeholder="Enter an interest"
+      //             value={interestInput}
+      //             onChangeText={setInterestInput}
+      //             returnKeyType="done"
+      //             onSubmitEditing={addInterest}
+      //           />
+      //           <Button
+      //             title="Add"
+      //             onPress={addInterest}
+      //             variant="primary"
+      //             fullWidth
+      //             iconLeft={Plus}
+      //           />
+      //         </View>
+      //       </Sheet>
+      //     </View>
+      //   );
 
-      case 16:
+      case 11:
         return (
           <View style={styles.stepContainer}>
             <AppText variant="title" style={{ textAlign: 'center' }}>
@@ -1048,7 +967,7 @@ export default function CreateProfileScreen() {
   const getNextLabel = () => {
     if (uploadingImages) return 'Uploading images...';
     if (isSubmitting) return 'Creating profile...';
-    if (currentStep === 16) return 'Get started';
+    if (currentStep === 11) return 'Get started';
     return 'Next';
   };
 
@@ -1080,7 +999,7 @@ export default function CreateProfileScreen() {
     if (currentStep === 6) updateField('showCollegeOnProfile', checked);
     if (currentStep === 8)
       updateField('showSexualOrientationOnProfile', checked);
-    if (currentStep === 9) updateField('showEthnicityOnProfile', checked);
+    //if (currentStep === 9) updateField('showEthnicityOnProfile', checked);
   };
 
   return (
