@@ -256,14 +256,13 @@ export default function EditSocialsPage() {
         setOriginalSocials(socialData);
 
         // Load socialsOrder if it exists, otherwise use default
-        const loadedSocialsOrder = (profileData.socialsOrder ||
-          [
-            'instagram',
-            'snapchat',
-            'linkedin',
-            'github',
-            'website',
-          ]) as SocialType[];
+        const loadedSocialsOrder = (profileData.socialsOrder || [
+          'instagram',
+          'snapchat',
+          'linkedin',
+          'github',
+          'website',
+        ]) as SocialType[];
         setSocialsOrder(loadedSocialsOrder);
         setOriginalSocialsOrder(loadedSocialsOrder);
       }

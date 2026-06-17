@@ -7,10 +7,7 @@ import { AppColors } from '@/app/components/AppColors';
 import ProfileView from '@/app/components/profile/ProfileView';
 import AppText from '@/app/components/ui/AppText';
 import Button from '@/app/components/ui/Button';
-import {
-  WeeklyPromptAnswerResponse,
-  WeeklyPromptResponse,
-} from '@/types';
+import { WeeklyPromptAnswerResponse, WeeklyPromptResponse } from '@/types';
 import { router } from 'expo-router';
 import { ArrowLeft, Check } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';

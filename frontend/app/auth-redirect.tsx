@@ -7,9 +7,9 @@ import LoadingSpinner from './components/ui/LoadingSpinner';
 // _layout.tsx handles the actual sign-in and routes away when done.
 export default function AuthRedirect() {
   return (
-    < View style={styles.container} >
+    <View style={styles.container}>
       <LoadingSpinner />
-    </View >
+    </View>
   );
 }
 

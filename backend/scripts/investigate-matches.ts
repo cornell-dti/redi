@@ -41,7 +41,11 @@ async function investigateMatches() {
     // Data structures for analysis
     const allMatches = new Map<string, MatchDoc>();
     const usersWithNullMatches: string[] = [];
-    const nullMatchDetails: Array<{ netid: string; matches: string[]; nullPositions: number[] }> = [];
+    const nullMatchDetails: Array<{
+      netid: string;
+      matches: string[];
+      nullPositions: number[];
+    }> = [];
 
     // Parse all match documents
     matchesSnapshot.docs.forEach((doc) => {
@@ -51,7 +55,13 @@ async function investigateMatches() {
       // Check for null/empty matches
       const nullPositions: number[] = [];
       data.matches.forEach((match, index) => {
-        if (match === null || match === 'null' || match === undefined || match === '' || !match) {
+        if (
+          match === null ||
+          match === 'null' ||
+          match === undefined ||
+          match === '' ||
+          !match
+        ) {
           nullPositions.push(index);
         }
       });
@@ -61,14 +71,16 @@ async function investigateMatches() {
         nullMatchDetails.push({
           netid: data.netid,
           matches: data.matches,
-          nullPositions
+          nullPositions,
         });
       }
     });
 
     console.log('═══════════════════════════════════════════════════════════');
     console.log('NULL MATCHES ANALYSIS');
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log(
+      '═══════════════════════════════════════════════════════════\n'
+    );
 
     console.log(`❌ Users with null matches: ${usersWithNullMatches.length}`);
 
@@ -86,10 +98,16 @@ async function investigateMatches() {
 
     console.log('═══════════════════════════════════════════════════════════');
     console.log('MUTUALITY ANALYSIS');
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log(
+      '═══════════════════════════════════════════════════════════\n'
+    );
 
     // Check for non-mutual matches
-    const nonMutualPairs: Array<{ userA: string; userB: string; direction: string }> = [];
+    const nonMutualPairs: Array<{
+      userA: string;
+      userB: string;
+      direction: string;
+    }> = [];
     const checkedPairs = new Set<string>();
 
     allMatches.forEach((matchDocA, netidA) => {
@@ -108,11 +126,13 @@ async function investigateMatches() {
         const matchDocB = allMatches.get(netidB);
 
         if (!matchDocB) {
-          console.log(`  ⚠️  User ${netidB} (matched with ${netidA}) has no match document`);
+          console.log(
+            `  ⚠️  User ${netidB} (matched with ${netidA}) has no match document`
+          );
           nonMutualPairs.push({
             userA: netidA,
             userB: netidB,
-            direction: `${netidA} → ${netidB} (no reciprocal document)`
+            direction: `${netidA} → ${netidB} (no reciprocal document)`,
           });
           return;
         }
@@ -123,7 +143,7 @@ async function investigateMatches() {
           nonMutualPairs.push({
             userA: netidA,
             userB: netidB,
-            direction: `${netidA} → ${netidB} (but ${netidB} ↛ ${netidA})`
+            direction: `${netidA} → ${netidB} (but ${netidB} ↛ ${netidA})`,
           });
         }
       });
@@ -143,12 +163,16 @@ async function investigateMatches() {
 
     console.log('═══════════════════════════════════════════════════════════');
     console.log('MATCH DISTRIBUTION ANALYSIS');
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log(
+      '═══════════════════════════════════════════════════════════\n'
+    );
 
     // Analyze match counts
     const matchCounts = new Map<number, number>();
     allMatches.forEach((matchDoc) => {
-      const validMatches = matchDoc.matches.filter(m => m && m !== 'null').length;
+      const validMatches = matchDoc.matches.filter(
+        (m) => m && m !== 'null'
+      ).length;
       matchCounts.set(validMatches, (matchCounts.get(validMatches) || 0) + 1);
     });
 
@@ -159,9 +183,13 @@ async function investigateMatches() {
         console.log(`  ${count} matches: ${users} users`);
       });
 
-    console.log('\n═══════════════════════════════════════════════════════════');
+    console.log(
+      '\n═══════════════════════════════════════════════════════════'
+    );
     console.log('SAMPLE MATCH DATA');
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log(
+      '═══════════════════════════════════════════════════════════\n'
+    );
 
     // Show first 5 match documents as examples
     let sampleCount = 0;
@@ -177,7 +205,9 @@ async function investigateMatches() {
 
     console.log('═══════════════════════════════════════════════════════════');
     console.log('SUMMARY');
-    console.log('═══════════════════════════════════════════════════════════\n');
+    console.log(
+      '═══════════════════════════════════════════════════════════\n'
+    );
 
     console.log(`Total users in 2025_46: ${allMatches.size}`);
     console.log(`Users with null matches: ${usersWithNullMatches.length}`);
@@ -189,7 +219,9 @@ async function investigateMatches() {
     } else {
       console.log('❌ BUGS CONFIRMED:');
       if (usersWithNullMatches.length > 0) {
-        console.log(`  - ${usersWithNullMatches.length} users have null matches`);
+        console.log(
+          `  - ${usersWithNullMatches.length} users have null matches`
+        );
       }
       if (nonMutualPairs.length > 0) {
         console.log(`  - ${nonMutualPairs.length} non-mutual match pairs`);
@@ -205,9 +237,8 @@ async function investigateMatches() {
       nullMatchDetails,
       nonMutualPairs,
       matchCounts,
-      allMatches
+      allMatches,
     };
-
   } catch (error) {
     console.error('❌ Error during investigation:', error);
     throw error;

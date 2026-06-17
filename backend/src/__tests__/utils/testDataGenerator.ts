@@ -89,10 +89,19 @@ export async function createTestUser(
   const preferences: PreferencesDoc = {
     netid,
     ageRange: overrides?.preferences?.ageRange || { min: 18, max: 25 },
-    years: overrides?.preferences?.years || ['Freshman', 'Sophomore', 'Junior', 'Senior'],
+    years: overrides?.preferences?.years || [
+      'Freshman',
+      'Sophomore',
+      'Junior',
+      'Senior',
+    ],
     schools: overrides?.preferences?.schools || [],
     majors: overrides?.preferences?.majors || [],
-    genders: overrides?.preferences?.genders || ['male', 'female', 'non-binary'],
+    genders: overrides?.preferences?.genders || [
+      'male',
+      'female',
+      'non-binary',
+    ],
     createdAt: new Date(),
     updatedAt: new Date(),
     ...(overrides?.preferences || {}),
@@ -122,16 +131,22 @@ export async function createTestUsers(count: number): Promise<TestUser[]> {
       netid,
       profile: {
         netid,
-        gender: (i % 3 === 0 ? 'male' : i % 3 === 1 ? 'female' : 'non-binary') as Gender,
-        year: (['Freshman', 'Sophomore', 'Junior', 'Senior'][i % 4]) as Year,
-        school: (i % 2 === 0 ? 'College of Engineering' : 'College of Arts and Sciences') as School,
+        gender: (i % 3 === 0
+          ? 'male'
+          : i % 3 === 1
+            ? 'female'
+            : 'non-binary') as Gender,
+        year: ['Freshman', 'Sophomore', 'Junior', 'Senior'][i % 4] as Year,
+        school: (i % 2 === 0
+          ? 'College of Engineering'
+          : 'College of Arts and Sciences') as School,
         major: i % 2 === 0 ? ['Computer Science'] : ['Biology', 'Psychology'],
         interests:
           i % 3 === 0
             ? ['coding', 'gaming', 'music']
             : i % 3 === 1
-            ? ['reading', 'hiking', 'photography']
-            : ['music', 'sports', 'cooking'],
+              ? ['reading', 'hiking', 'photography']
+              : ['music', 'sports', 'cooking'],
         clubs: i % 2 === 0 ? ['CUAppDev'] : ['Hiking Club'],
         bio: `Test user ${i}`,
         firstName: `User${i}`,
@@ -142,7 +157,8 @@ export async function createTestUsers(count: number): Promise<TestUser[]> {
       } as ProfileDoc,
       preferences: {
         netid,
-        genders: i % 2 === 0 ? ['female', 'non-binary'] : ['male', 'non-binary'],
+        genders:
+          i % 2 === 0 ? ['female', 'non-binary'] : ['male', 'non-binary'],
         ageRange: { min: 18, max: 25 },
         years: ['Freshman', 'Sophomore', 'Junior', 'Senior'],
         schools: [],
@@ -167,7 +183,9 @@ export async function createTestPrompt(
   const id = promptId || generateTestPromptId();
   const now = new Date();
   const nextFriday = new Date();
-  nextFriday.setDate(nextFriday.getDate() + ((5 + 7 - nextFriday.getDay()) % 7 || 7));
+  nextFriday.setDate(
+    nextFriday.getDate() + ((5 + 7 - nextFriday.getDay()) % 7 || 7)
+  );
   nextFriday.setHours(0, 0, 0, 0);
 
   const prompt: WeeklyPromptDoc = {
@@ -206,12 +224,15 @@ export async function createTestPromptAnswers(
   for (let i = 0; i < users.length; i++) {
     const user = users[i];
     const docId = `${user.netid}_${promptId}`;
-    await db.collection('weeklyPromptAnswers').doc(docId).set({
-      netid: user.netid,
-      promptId,
-      answer: answers[i % answers.length],
-      createdAt: FieldValue.serverTimestamp(),
-    });
+    await db
+      .collection('weeklyPromptAnswers')
+      .doc(docId)
+      .set({
+        netid: user.netid,
+        promptId,
+        answer: answers[i % answers.length],
+        createdAt: FieldValue.serverTimestamp(),
+      });
   }
 }
 
@@ -380,8 +401,14 @@ export async function getAllTestUsers(): Promise<TestUser[]> {
 
   for (const doc of usersSnapshot.docs) {
     const userData = doc.data();
-    const profileDoc = await db.collection('profiles').doc(userData.netid).get();
-    const preferencesDoc = await db.collection('preferences').doc(userData.netid).get();
+    const profileDoc = await db
+      .collection('profiles')
+      .doc(userData.netid)
+      .get();
+    const preferencesDoc = await db
+      .collection('preferences')
+      .doc(userData.netid)
+      .get();
 
     users.push({
       netid: userData.netid,
@@ -416,7 +443,11 @@ export async function getUserMatches(netid: string, promptId: string) {
 /**
  * Get nudge status between two users
  */
-export async function getNudge(fromNetid: string, toNetid: string, promptId: string) {
+export async function getNudge(
+  fromNetid: string,
+  toNetid: string,
+  promptId: string
+) {
   const nudgeId = `${fromNetid}_${promptId}_${toNetid}`;
   const doc = await db.collection('nudges').doc(nudgeId).get();
   return doc.exists ? doc.data() : null;

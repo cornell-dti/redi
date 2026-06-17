@@ -41,7 +41,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       setProfile(profileData);
     } catch (err) {
       console.error('Error fetching profile:', err);
-      setError(err instanceof Error ? err : new Error('Failed to fetch profile'));
+      setError(
+        err instanceof Error ? err : new Error('Failed to fetch profile')
+      );
     } finally {
       setLoading(false);
     }

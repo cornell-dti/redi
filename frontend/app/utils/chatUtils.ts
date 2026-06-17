@@ -2,7 +2,7 @@ import bannedTermsData from './bannedTerms.json';
 
 // Create a map for speed
 const bannedTermsSet = new Set(
-  bannedTermsData.terms.map(term => term.replace(/[*;]/g, '').toLowerCase())
+  bannedTermsData.terms.map((term) => term.replace(/[*;]/g, '').toLowerCase())
 );
 
 /**
@@ -17,5 +17,7 @@ export function isMessageValid(message: string): boolean {
 
   const normalizedMessage = message.toLowerCase().replace(/[^\w\s]/g, '');
 
-  return !Array.from(bannedTermsSet).some(term => normalizedMessage.includes(term));
+  return !Array.from(bannedTermsSet).some((term) =>
+    normalizedMessage.includes(term)
+  );
 }

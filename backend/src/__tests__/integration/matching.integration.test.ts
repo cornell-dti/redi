@@ -89,7 +89,10 @@ describe('Matching Algorithm Integration Tests', () => {
       // Verify document ID format: ${netid}_${promptId}
       for (const user of testUsers) {
         const expectedDocId = `${user.netid}_${testPromptId}`;
-        const doc = await db.collection('weeklyMatches').doc(expectedDocId).get();
+        const doc = await db
+          .collection('weeklyMatches')
+          .doc(expectedDocId)
+          .get();
 
         expect(doc.exists).toBe(true);
         const data = doc.data();
@@ -198,7 +201,8 @@ describe('Matching Algorithm Integration Tests', () => {
       expect(expiresAt.getTime()).toBeGreaterThan(Date.now());
 
       // Should be within 7 days
-      const daysDiff = (expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+      const daysDiff =
+        (expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
       expect(daysDiff).toBeLessThanOrEqual(7);
       expect(daysDiff).toBeGreaterThan(0);
     });
@@ -239,8 +243,14 @@ describe('Matching Algorithm Integration Tests', () => {
       expect(matchedCount).toBe(2);
 
       // Each user should match with the other (only 1 match available)
-      const user1Matches = await getUserMatches(testUsers[0].netid, testPromptId);
-      const user2Matches = await getUserMatches(testUsers[1].netid, testPromptId);
+      const user1Matches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
+      const user2Matches = await getUserMatches(
+        testUsers[1].netid,
+        testPromptId
+      );
 
       expect(user1Matches?.matches).toContain(testUsers[1].netid);
       expect(user2Matches?.matches).toContain(testUsers[0].netid);
@@ -314,15 +324,25 @@ describe('Matching Algorithm Integration Tests', () => {
       await generateMatchesForPrompt(prompt2.promptId);
 
       // Each user should have matches for both prompts
-      const user1Matches1 = await getUserMatches(testUsers[0].netid, prompt1.promptId);
-      const user1Matches2 = await getUserMatches(testUsers[0].netid, prompt2.promptId);
+      const user1Matches1 = await getUserMatches(
+        testUsers[0].netid,
+        prompt1.promptId
+      );
+      const user1Matches2 = await getUserMatches(
+        testUsers[0].netid,
+        prompt2.promptId
+      );
 
       // Verify both match sets exist
       if (!user1Matches1) {
-        throw new Error(`No matches found for user on prompt1: ${prompt1.promptId}`);
+        throw new Error(
+          `No matches found for user on prompt1: ${prompt1.promptId}`
+        );
       }
       if (!user1Matches2) {
-        throw new Error(`No matches found for user on prompt2: ${prompt2.promptId}`);
+        throw new Error(
+          `No matches found for user on prompt2: ${prompt2.promptId}`
+        );
       }
 
       expect(user1Matches1).toBeTruthy();
@@ -358,8 +378,14 @@ describe('Matching Algorithm Integration Tests', () => {
       expect(matchedCount).toBeGreaterThan(0);
 
       // User0 and User1 have identical interests, should likely match
-      const user0Matches = await getUserMatches(testUsers[0].netid, testPromptId);
-      const user1Matches = await getUserMatches(testUsers[1].netid, testPromptId);
+      const user0Matches = await getUserMatches(
+        testUsers[0].netid,
+        testPromptId
+      );
+      const user1Matches = await getUserMatches(
+        testUsers[1].netid,
+        testPromptId
+      );
 
       // Due to high compatibility (shared interests), they should match each other
       expect(user0Matches).toBeTruthy();

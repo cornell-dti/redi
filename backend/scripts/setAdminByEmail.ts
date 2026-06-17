@@ -37,7 +37,9 @@ for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
     console.error(`❌ Error: Missing required environment variable: ${envVar}`);
     console.error('\nUsage:');
-    console.error('  ADMIN_EMAIL=user@cornell.edu npx ts-node scripts/setAdminByEmail.ts');
+    console.error(
+      '  ADMIN_EMAIL=user@cornell.edu npx ts-node scripts/setAdminByEmail.ts'
+    );
     console.error('\nOr add to your .env file:');
     console.error('  ADMIN_EMAIL=user@cornell.edu');
     console.error('  FIREBASE_PROJECT_ID=your-project-id');
@@ -120,9 +122,7 @@ async function setupAdmin() {
       console.log('⚠️  Admin document already exists in Firestore');
       const existingData = adminDoc.data();
       console.log('   Existing data:', JSON.stringify(existingData, null, 2));
-      console.log(
-        '\n❓ Keeping existing document (not updating)\n'
-      );
+      console.log('\n❓ Keeping existing document (not updating)\n');
     } else {
       // Step 6: Create admin document in Firestore
       console.log('📝 Step 6: Creating admin document in Firestore...');

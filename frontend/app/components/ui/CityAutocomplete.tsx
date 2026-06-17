@@ -1,11 +1,6 @@
 import { House } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { apiClient } from '../../api/apiClient';
 import { AppColors } from '../AppColors';
 import AppInput from './AppInput';

@@ -5,9 +5,7 @@ import { bucket, db } from '../../firebaseAdmin';
 import { FirestoreDoc, UserDoc, UserDocWrite, UserResponse } from '../../types';
 import { AdminRequest, requireAdmin } from '../middleware/adminAuth';
 import { AuthenticatedRequest, authenticateUser } from '../middleware/auth';
-import {
-  authenticationRateLimit
-} from '../middleware/rateLimiting';
+import { authenticationRateLimit } from '../middleware/rateLimiting';
 import { validate, validateUserCreation } from '../middleware/validation';
 
 const router = express.Router();
@@ -34,18 +32,22 @@ const userDocToResponse = (doc: FirestoreDoc<UserDoc>): UserResponse => ({
 });
 
 // GET all users (admin-only endpoint)
-router.get('/api/users', requireAdmin, async (req: AdminRequest, res: Response) => {
-  try {
-    const snapshot = await db.collection('users').get();
-    const users: UserResponse[] = snapshot.docs.map((doc) =>
-      userDocToResponse({ id: doc.id, ...(doc.data() as UserDoc) })
-    );
-    res.status(200).json(users);
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ error: 'Failed to fetch users' });
+router.get(
+  '/api/users',
+  requireAdmin,
+  async (req: AdminRequest, res: Response) => {
+    try {
+      const snapshot = await db.collection('users').get();
+      const users: UserResponse[] = snapshot.docs.map((doc) =>
+        userDocToResponse({ id: doc.id, ...(doc.data() as UserDoc) })
+      );
+      res.status(200).json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ error: 'Failed to fetch users' });
+    }
   }
-});
+);
 
 // GET user by netid (admin-only or own user)
 router.get(
@@ -129,13 +131,17 @@ router.post(
       }
 
       // If user exists, return their info
-      console.log('🆕 [firebase-create] Checking if user already exists:', { netid });
+      console.log('🆕 [firebase-create] Checking if user already exists:', {
+        netid,
+      });
       const existingUser = await db
         .collection('users')
         .where('netid', '==', netid)
         .get();
       if (!existingUser.empty) {
-        console.log('ℹ️ [firebase-create] User already exists, returning existing user');
+        console.log(
+          'ℹ️ [firebase-create] User already exists, returning existing user'
+        );
         const doc = existingUser.docs[0];
         const user = userDocToResponse({
           id: doc.id,
@@ -160,7 +166,11 @@ router.post(
       };
 
       const docRef = await db.collection('users').add(userDoc);
-      console.log('✅ [firebase-create] User created successfully:', { docId: docRef.id, netid, email });
+      console.log('✅ [firebase-create] User created successfully:', {
+        docId: docRef.id,
+        netid,
+        email,
+      });
       res.status(201).json({
         id: docRef.id,
         netid,
@@ -185,7 +195,10 @@ router.post(
       // Use authenticated user's email and uid from verified token
       const email = req.user!.email;
       const firebaseUid = req.user!.uid;
-      console.log('🔑 [firebase-login] User from token:', { email, firebaseUid });
+      console.log('🔑 [firebase-login] User from token:', {
+        email,
+        firebaseUid,
+      });
 
       if (!email || !firebaseUid) {
         return res
@@ -201,14 +214,22 @@ router.post(
           .json({ error: 'Only Cornell emails (@cornell.edu) are allowed' });
       }
 
-      console.log('🔑 [firebase-login] Querying users collection for:', { netid, firebaseUid });
+      console.log('🔑 [firebase-login] Querying users collection for:', {
+        netid,
+        firebaseUid,
+      });
       const snapshot = await db
         .collection('users')
         .where('netid', '==', netid)
         .where('firebaseUid', '==', firebaseUid)
         .get();
 
-      console.log('🔑 [firebase-login] Query result - empty:', snapshot.empty, 'size:', snapshot.size);
+      console.log(
+        '🔑 [firebase-login] Query result - empty:',
+        snapshot.empty,
+        'size:',
+        snapshot.size
+      );
 
       if (snapshot.empty) {
         console.log('❌ [firebase-login] User not found, returning 401');
@@ -293,7 +314,10 @@ router.delete(
         await admin.auth().deleteUser(firebaseUid);
         console.log(`Deleted Firebase Auth user: ${firebaseUid}`);
       } catch (error) {
-        console.error(`Error deleting Firebase Auth user ${firebaseUid}:`, error);
+        console.error(
+          `Error deleting Firebase Auth user ${firebaseUid}:`,
+          error
+        );
         throw new Error('Failed to delete Firebase Authentication user');
       }
 
@@ -404,7 +428,9 @@ router.delete(
         batch.delete(doc.ref);
       });
       await batch.commit();
-      console.log(`Deleted ${notificationsSnapshot.size} notification documents`);
+      console.log(
+        `Deleted ${notificationsSnapshot.size} notification documents`
+      );
 
       const blockedByUserSnapshot = await db
         .collection('blockedUsers')

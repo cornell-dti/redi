@@ -8,23 +8,27 @@ import { validateBulkEmailUpload, validate } from '../middleware/validation';
 const router = express.Router();
 
 // GET the number of users signed up on the wait list (public endpoint)
-router.get('/api/registered-count', publicRateLimit, async (req: Request, res: Response) => {
-  try {
-    const doc = db.collection('stats').doc('global');
-    const snapshot = await doc.get();
+router.get(
+  '/api/registered-count',
+  publicRateLimit,
+  async (req: Request, res: Response) => {
+    try {
+      const doc = db.collection('stats').doc('global');
+      const snapshot = await doc.get();
 
-    if (!snapshot.exists) {
-      // Create the stats document with initial count if it doesn't exist
-      await doc.set({ userCount: 0 });
-      return res.status(200).json({ userCount: 0 });
+      if (!snapshot.exists) {
+        // Create the stats document with initial count if it doesn't exist
+        await doc.set({ userCount: 0 });
+        return res.status(200).json({ userCount: 0 });
+      }
+
+      res.status(200).json(snapshot.data());
+    } catch (error) {
+      console.error('Error fetching user count:', error);
+      res.status(500).json({ error: 'Failed to fetch user count' });
     }
-
-    res.status(200).json(snapshot.data());
-  } catch (error) {
-    console.error('Error fetching user count:', error);
-    res.status(500).json({ error: 'Failed to fetch user count' });
   }
-});
+);
 
 // POST bulk upload emails (admin only, requires authentication)
 router.post(

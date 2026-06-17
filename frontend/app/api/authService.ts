@@ -7,8 +7,10 @@ import { createUserInBackend, loginUserInBackend } from './userApi';
 
 // Configure Google Sign-In
 GoogleSignin.configure({
-  webClientId: '272234540869-847nqbb7foi8557s1msn3aegck6vs27e.apps.googleusercontent.com',
-  iosClientId: '272234540869-6okghrkn79ub3kf6urj9h2jed3nmopel.apps.googleusercontent.com',
+  webClientId:
+    '272234540869-847nqbb7foi8557s1msn3aegck6vs27e.apps.googleusercontent.com',
+  iosClientId:
+    '272234540869-6okghrkn79ub3kf6urj9h2jed3nmopel.apps.googleusercontent.com',
 });
 
 enum FirebaseAuthCode {
@@ -151,9 +153,7 @@ export const signInWithGoogle = async (): Promise<void> => {
     // This prevents the auth state listener from being triggered with an invalid user
     if (!validateCornellEmail(email)) {
       await GoogleSignin.signOut();
-      throw new Error(
-        'Please use your Cornell email address (@cornell.edu)'
-      );
+      throw new Error('Please use your Cornell email address (@cornell.edu)');
     }
 
     // Create a Google credential with the token
@@ -261,16 +261,13 @@ export const sendPasswordlessSignInLink = async (
   try {
     // Call backend endpoint to send the sign-in link
     // The backend will generate the Firebase link and send it via email
-    const response = await fetch(
-      `${API_BASE_URL}/api/auth/send-signin-link`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/api/auth/send-signin-link`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
 
     if (!response.ok) {
       const errorData = await response.json();

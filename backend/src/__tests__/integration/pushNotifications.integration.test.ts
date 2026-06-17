@@ -39,14 +39,21 @@ describe('Push Notifications Integration Tests', () => {
 
   beforeAll(async () => {
     // Mock Expo methods
-    (Expo.isExpoPushToken as unknown as jest.Mock) = jest.fn().mockReturnValue(true);
-    (Expo as jest.MockedClass<typeof Expo>).mockImplementation(() => ({
-      sendPushNotificationsAsync: jest
-        .fn()
-        .mockResolvedValue([{ status: 'ok' }]),
-      chunkPushNotifications: jest.fn().mockImplementation((msgs) => [msgs]),
-      isExpoPushToken: jest.fn().mockReturnValue(true),
-    } as any));
+    (Expo.isExpoPushToken as unknown as jest.Mock) = jest
+      .fn()
+      .mockReturnValue(true);
+    (Expo as jest.MockedClass<typeof Expo>).mockImplementation(
+      () =>
+        ({
+          sendPushNotificationsAsync: jest
+            .fn()
+            .mockResolvedValue([{ status: 'ok' }]),
+          chunkPushNotifications: jest
+            .fn()
+            .mockImplementation((msgs) => [msgs]),
+          isExpoPushToken: jest.fn().mockReturnValue(true),
+        }) as any
+    );
 
     // Clean up test data
     for (const user of testUsers) {
@@ -389,11 +396,7 @@ describe('Push Notifications Integration Tests', () => {
         createdAt: new Date(),
       });
 
-      const result = await sendPushNotification(
-        tempUser.netid,
-        'Test',
-        'Test'
-      );
+      const result = await sendPushNotification(tempUser.netid, 'Test', 'Test');
 
       expect(result).toBe(false);
 

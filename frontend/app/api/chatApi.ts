@@ -177,7 +177,10 @@ export const sendMessage = async (
       }
 
       // Log other errors normally (including non-blocking 403s)
-      console.error(`❌ Failed to send message (${response.status}):`, errorData);
+      console.error(
+        `❌ Failed to send message (${response.status}):`,
+        errorData
+      );
       throw new Error(errorData.error || 'Failed to send message');
     }
 

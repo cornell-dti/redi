@@ -3,13 +3,13 @@
  * Tests the core compatibility checking logic, especially majors and schools exclusion
  */
 
+import { ALL_MAJORS, CORNELL_SCHOOLS } from '../../../../constants/cornell';
+import { PreferencesDoc, ProfileDoc } from '../../../types';
 import {
+  calculateCompatibilityScore,
   checkCompatibility,
   checkMutualCompatibility,
-  calculateCompatibilityScore,
 } from '../matchingAlgorithm';
-import { PreferencesDoc, ProfileDoc } from '../../../types';
-import { ALL_MAJORS, CORNELL_SCHOOLS } from '../../../constants/cornell';
 
 // Helper function to create a basic profile for testing
 function createTestProfile(overrides: Partial<ProfileDoc> = {}): ProfileDoc {
@@ -252,9 +252,7 @@ describe('Matching Algorithm - checkCompatibility', () => {
         majors: [],
       });
 
-      expect(checkCompatibility(profile, preferencesExcludeSchool)).toBe(
-        false
-      );
+      expect(checkCompatibility(profile, preferencesExcludeSchool)).toBe(false);
 
       // Preferences that exclude this profile's major
       const preferencesExcludeMajor = createTestPreferences({
@@ -316,7 +314,7 @@ describe('Matching Algorithm - checkMutualCompatibility', () => {
     ).toBe(true);
   });
 
-  test('Should fail if user A excludes user B\'s major', () => {
+  test("Should fail if user A excludes user B's major", () => {
     const profileA = createTestProfile({
       netid: 'user1',
       gender: 'female',
@@ -347,7 +345,7 @@ describe('Matching Algorithm - checkMutualCompatibility', () => {
     ).toBe(false);
   });
 
-  test('Should fail if user B excludes user A\'s school', () => {
+  test("Should fail if user B excludes user A's school", () => {
     const profileA = createTestProfile({
       netid: 'user1',
       gender: 'female',

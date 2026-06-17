@@ -50,7 +50,9 @@ async function getAllUserEmails() {
     });
 
     if (skippedEmails.length > 0) {
-      console.log(`Skipped ${skippedEmails.length} test accounts (no numbers in netid):`);
+      console.log(
+        `Skipped ${skippedEmails.length} test accounts (no numbers in netid):`
+      );
       console.log(skippedEmails.join(', '));
       console.log();
     }

@@ -35,7 +35,11 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { clearUserStorage, getCurrentUser, signOutUser } from '../../api/authService';
+import {
+  clearUserStorage,
+  getCurrentUser,
+  signOutUser,
+} from '../../api/authService';
 import { AppColors } from '../../components/AppColors';
 import { useProfile } from '../../contexts/ProfileContext';
 import { useThemeAware } from '../../contexts/ThemeContext';
@@ -78,7 +82,7 @@ export default function ProfileScreen() {
       Alert.alert(
         'Error',
         'Failed to sign out: ' +
-        (error instanceof Error ? error.message : 'Unknown error')
+          (error instanceof Error ? error.message : 'Unknown error')
       );
     }
   };
@@ -131,7 +135,9 @@ export default function ProfileScreen() {
           </Pressable>
 
           <View style={styles.nameContainer}>
-            <AppText variant="title" numberOfLines={2}>{displayName}</AppText>
+            <AppText variant="title" numberOfLines={2}>
+              {displayName}
+            </AppText>
             <AppText variant="body" color="dimmer">
               Member since {getMemberSinceText()}
             </AppText>

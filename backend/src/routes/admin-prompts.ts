@@ -837,16 +837,17 @@ router.get('/api/admin/matches/stats', async (req: AdminRequest, res) => {
         promptMatchCounts[promptId].count++;
         promptMatchCounts[promptId].nudges += nudgesForThisMatch;
       } else {
-        console.warn(`Match document ${matchDoc.id} has invalid promptId:`, promptId);
+        console.warn(
+          `Match document ${matchDoc.id} has invalid promptId:`,
+          promptId
+        );
       }
     }
 
     const totalUsersMatched = uniqueUsers.size;
     const totalPossibleNudges = totalMatches * 3; // Each match has 3 potential nudges
     const nudgeRate =
-      totalPossibleNudges > 0
-        ? (totalNudges / totalPossibleNudges) * 100
-        : 0;
+      totalPossibleNudges > 0 ? (totalNudges / totalPossibleNudges) * 100 : 0;
     const averageMatchesPerPrompt =
       Object.keys(promptMatchCounts).length > 0
         ? totalMatches / Object.keys(promptMatchCounts).length
@@ -1016,8 +1017,15 @@ router.get(
           : [];
 
         // Skip if userNetid is invalid
-        if (!userNetid || typeof userNetid !== 'string' || userNetid.trim() === '') {
-          console.warn(`Invalid userNetid for match document ${matchDoc.id}:`, userNetid);
+        if (
+          !userNetid ||
+          typeof userNetid !== 'string' ||
+          userNetid.trim() === ''
+        ) {
+          console.warn(
+            `Invalid userNetid for match document ${matchDoc.id}:`,
+            userNetid
+          );
           continue; // Skip this entire match document
         }
 
@@ -1038,8 +1046,15 @@ router.get(
           const matchedNetid = matchedNetids[i];
 
           // Skip if matchedNetid is empty, null, or undefined
-          if (!matchedNetid || typeof matchedNetid !== 'string' || matchedNetid.trim() === '') {
-            console.warn(`Invalid matchedNetid at index ${i} for user ${userNetid}:`, matchedNetid);
+          if (
+            !matchedNetid ||
+            typeof matchedNetid !== 'string' ||
+            matchedNetid.trim() === ''
+          ) {
+            console.warn(
+              `Invalid matchedNetid at index ${i} for user ${userNetid}:`,
+              matchedNetid
+            );
             matchedProfiles.push({
               netid: matchedNetid || 'invalid',
               firstName: 'Invalid User',
@@ -1063,8 +1078,10 @@ router.get(
             : null;
 
           // Check nudge status in both directions
-          const nudgedByUser = nudgeMap.get(userNetid)?.has(matchedNetid) || false;
-          const nudgedByMatch = nudgeMap.get(matchedNetid)?.has(userNetid) || false;
+          const nudgedByUser =
+            nudgeMap.get(userNetid)?.has(matchedNetid) || false;
+          const nudgedByMatch =
+            nudgeMap.get(matchedNetid)?.has(userNetid) || false;
 
           // Count total nudges (count each direction once)
           if (nudgedByUser) {
@@ -1097,9 +1114,7 @@ router.get(
 
       const totalPossibleNudges = totalMatchDocuments * 3;
       const nudgeRate =
-        totalPossibleNudges > 0
-          ? (totalNudges / totalPossibleNudges) * 100
-          : 0;
+        totalPossibleNudges > 0 ? (totalNudges / totalPossibleNudges) * 100 : 0;
 
       const response: PromptMatchDetailResponse = {
         promptId,

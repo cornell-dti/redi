@@ -104,9 +104,7 @@ describe('Push Token API', () => {
     });
 
     it('should handle fetch errors', async () => {
-      (apiClient.get as jest.Mock).mockRejectedValue(
-        new Error('Fetch failed')
-      );
+      (apiClient.get as jest.Mock).mockRejectedValue(new Error('Fetch failed'));
 
       await expect(getNotificationPreferences()).rejects.toThrow(
         'Fetch failed'

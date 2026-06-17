@@ -146,9 +146,7 @@ export async function createNudge(
               matchFirebaseUid: toFirebaseUid || undefined,
             }
           );
-          console.log(
-            `✅ Mutual nudge push notification sent to ${fromNetid}`
-          );
+          console.log(`✅ Mutual nudge push notification sent to ${fromNetid}`);
         }
 
         // Check notification preferences and send to toNetid
@@ -172,12 +170,13 @@ export async function createNudge(
               matchFirebaseUid: fromFirebaseUid || undefined,
             }
           );
-          console.log(
-            `✅ Mutual nudge push notification sent to ${toNetid}`
-          );
+          console.log(`✅ Mutual nudge push notification sent to ${toNetid}`);
         }
       } catch (notifError) {
-        console.error('Error sending mutual nudge push notifications:', notifError);
+        console.error(
+          'Error sending mutual nudge push notifications:',
+          notifError
+        );
         // Don't throw - notification failure shouldn't affect nudge creation
       }
     });
