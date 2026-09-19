@@ -240,7 +240,6 @@ From individual directories:
 - **Clément Rozé** - Designer/Frontend Developer
 - **Abrar Amin** - Developer
 - **Nadia Choophungart** - Developer
-- **Gillio Lopes** - Developer
 
 ### FA25
 
